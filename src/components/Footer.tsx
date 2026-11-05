@@ -42,10 +42,10 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="w-full border-t border-orange-200/70 dark:border-orange-950/60 bg-[#fffaf5] dark:bg-[#140e0a]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-6">
+    <footer className="relative z-10 w-full border-t border-orange-200/80 dark:border-orange-900/50 bg-[#fffaf5] dark:bg-[#140e0a] shadow-[0_-4px_20px_rgba(234,88,12,0.03)]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-6">
         {/* Quiet Internal SEO Tool Links */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 text-xs">
           {ALL_TOOL_CONFIGS.map((rawTool) => {
             const tool = getLocalizedToolConfig(rawTool, language);
             const isActive = activeToolSlug === tool.slug;
@@ -56,8 +56,8 @@ export const Footer: React.FC<FooterProps> = ({
                 onClick={(e) => handleToolClick(e, tool.slug)}
                 className={`transition-colors ${
                   isActive
-                    ? 'text-orange-600 font-semibold font-semibold'
-                    : 'text-[#6c4e40] dark:text-orange-200/70 hover:text-orange-600 dark:hover:text-orange-400'
+                    ? 'text-orange-600 dark:text-amber-400 font-bold'
+                    : 'text-[#6c4e40] dark:text-orange-200/70 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
                 }`}
               >
                 {tool.h1}
@@ -67,28 +67,30 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Bottom Bar: Brand & Legal Modal Links */}
-        <div className="pt-4 border-t border-orange-200/60 dark:border-orange-950/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#6c4e40] dark:text-orange-200/70">
-          <span dir="ltr">© {new Date().getFullYear()} VIDNEX</span>
+        <div className="pt-5 border-t border-orange-200/60 dark:border-orange-900/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#6c4e40] dark:text-orange-200/70">
+          <span dir="ltr" className="font-medium">
+            © {new Date().getFullYear()} VIDNEX — Universal Public Media Resolver
+          </span>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 font-medium">
             <button
               type="button"
               onClick={() => onOpenLegal('terms')}
-              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+              className="hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
             >
               {t.terms}
             </button>
             <button
               type="button"
               onClick={() => onOpenLegal('privacy')}
-              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+              className="hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
             >
               {t.privacy}
             </button>
             <button
               type="button"
               onClick={() => onOpenLegal('dmca')}
-              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+              className="hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
             >
               {t.dmca}
             </button>

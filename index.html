@@ -3,12 +3,110 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var currentFetch =
+            typeof window.fetch === 'function'
+              ? window.fetch.bind(window)
+              : undefined;
+
+          var origDefineProperty = Object.defineProperty;
+          Object.defineProperty = function (target, prop, attributes) {
+            if (
+              (target === window || target === Window.prototype) &&
+              prop === 'fetch' &&
+              attributes &&
+              typeof attributes.get === 'function' &&
+              typeof attributes.set !== 'function'
+            ) {
+              var customVal = undefined;
+              var origGet = attributes.get;
+              return origDefineProperty.call(Object, target, prop, {
+                configurable: true,
+                enumerable: attributes.enumerable !== false,
+                get: function () {
+                  return customVal !== undefined
+                    ? customVal
+                    : origGet.call(this);
+                },
+                set: function (v) {
+                  if (typeof v === 'function') {
+                    customVal = v;
+                  }
+                },
+              });
+            }
+            return origDefineProperty.call(Object, target, prop, attributes);
+          };
+
+          var winDesc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          var protoDesc =
+            typeof Window !== 'undefined'
+              ? Object.getOwnPropertyDescriptor(Window.prototype, 'fetch')
+              : undefined;
+
+          if (protoDesc && protoDesc.configurable !== false && !protoDesc.writable && !protoDesc.set) {
+            origDefineProperty.call(Object, Window.prototype, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return currentFetch;
+              },
+              set: function (nextFetch) {
+                if (typeof nextFetch === 'function') {
+                  currentFetch = nextFetch;
+                }
+              },
+            });
+          }
+
+          if (!winDesc || winDesc.configurable !== false) {
+            origDefineProperty.call(Object, window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return currentFetch;
+              },
+              set: function (nextFetch) {
+                if (typeof nextFetch === 'function') {
+                  currentFetch = nextFetch;
+                }
+              },
+            });
+          }
+        } catch (_err) {
+          // Ignore if descriptor is locked by host environment
+        }
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            var msg = String((event && event.message) || '');
+            var file = String((event && event.filename) || '');
+            if (
+              msg.indexOf('Cannot set property fetch') !== -1 ||
+              file.indexOf('chrome-extension://') !== -1
+            ) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
     <title>VIDNEX — Universal Media Downloader</title>
     <meta
       name="description"
       content="Fast, clean, zero-watermark HD media extraction for Instagram, TikTok, YouTube Shorts, X, Facebook, and Snapchat."
     />
-    <!-- Clean Typography: Space Grotesk, Plus Jakarta Sans, Inter, JetBrains Mono -->
+    <meta property="og:title" content="VIDNEX — Universal Media Downloader" />
+    <meta
+      property="og:description"
+      content="Fast, clean, zero-watermark HD media extraction for Instagram, TikTok, YouTube Shorts, X, Facebook, and Snapchat."
+    />
+    <!-- Clean Typography: Space Grotesk, Hanken Grotesk, Plus Jakarta Sans, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

@@ -3,6 +3,8 @@ import {
   detectMediaUrl,
   DetectedUrlInfo,
   PlatformId,
+  SAMPLE_LINKS,
+  SampleLink,
 } from '../utils/urlDetector';
 import {
   getToolsByPlatform,
@@ -174,6 +176,15 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     inputRef.current?.focus();
   };
 
+  const handleSampleClick = (sample: SampleLink) => {
+    setValidationMessage(null);
+    setUrlInput(sample.url);
+    const sampleDetected = detectMediaUrl(sample.url, sample.platform);
+    if (sampleDetected.isValid) {
+      onSubmitUrl(sampleDetected.normalizedUrl, sampleDetected);
+    }
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!urlInput.trim()) {
@@ -192,50 +203,68 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   };
 
   return (
-    <section className="w-full">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center pt-14 sm:pt-20 pb-10">
-        {/* 1. Clean Title + Concise Subtitle */}
-        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5]">
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-12 sm:pt-16 pb-12 border-b border-orange-200/40 dark:border-orange-900/30">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center relative z-10">
+        {/* Eyebrow Technical Specs Line */}
+        <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[11px] font-semibold tracking-widest uppercase mb-4">
+          <span>{activeTool.specs.join(' · ')}</span>
+        </div>
+
+        {/* Main Headline */}
+        <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
           {activeTool.h1}
         </h1>
-        <p className="mt-3 text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/70 max-w-xl mx-auto line-clamp-2">
+
+        {/* Subtitle */}
+        <p className="mt-3.5 text-base sm:text-lg text-[#6c4e40] dark:text-orange-200/75 max-w-2xl mx-auto leading-relaxed">
           {activeTool.subtitle}
         </p>
 
-        {/* 2. Sleek Elevated Rounded-2xl Omnibox */}
+        {/* Master URL Input Omnibox */}
         <form onSubmit={handleFormSubmit} noValidate className="mt-8 w-full">
           <div
-            className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-2xl bg-white/95 dark:bg-[#1c140e] border shadow-xs transition-all ${
+            className={`bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl shadow-orange-glow border-2 transition-all flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
               detected.isValid
-                ? 'border-emerald-500/70 dark:border-emerald-500/60'
+                ? 'border-orange-500 dark:border-amber-500'
                 : validationMessage
-                ? 'border-red-500/70'
-                : 'border-orange-200/90 dark:border-orange-950/70 focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/20 shadow-[0_4px_24px_rgba(234,88,12,0.08)]'
+                ? 'border-red-500/80'
+                : 'border-orange-300/80 dark:border-orange-800/70 hover:border-orange-500 focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/20'
             }`}
           >
-            {/* URL Input + Subtle Detected Platform Icon */}
+            {/* Protocol / Platform Status Box */}
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 rounded-xl shrink-0 shadow-inner">
+              <span className="text-orange-600 dark:text-amber-400">
+                <PlatformIcon
+                  platform={
+                    detected.isValid && detected.platform
+                      ? detected.platform
+                      : activeTool.platform
+                  }
+                  className="w-4 h-4"
+                />
+              </span>
+              <span className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap">
+                {detected.isValid && detected.badgeLabel
+                  ? detected.badgeLabel
+                  : activeTool.shortLabel}
+              </span>
+            </div>
+
+            {/* URL Input */}
             <div
-              className="relative flex-1 flex items-center min-h-[48px]"
+              className="relative flex-1 flex items-center min-h-[48px] min-w-0 px-2"
               dir="ltr"
             >
-              <div className="pl-3.5 pr-2 flex items-center justify-center text-slate-400 dark:text-zinc-500">
-                {detected.isValid && detected.platform ? (
-                  <span
-                    title={detected.badgeLabel}
-                    className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition-all"
-                  >
-                    <PlatformIcon
-                      platform={detected.platform}
-                      className="w-3.5 h-3.5"
-                    />
-                  </span>
-                ) : (
-                  <PlatformIcon
-                    platform={activeTool.platform}
-                    className="w-4 h-4 opacity-50"
-                  />
-                )}
-              </div>
+              <span className="sm:hidden pr-2 text-orange-500 dark:text-amber-400 shrink-0">
+                <PlatformIcon
+                  platform={
+                    detected.isValid && detected.platform
+                      ? detected.platform
+                      : activeTool.platform
+                  }
+                  className="w-4 h-4"
+                />
+              </span>
 
               <input
                 ref={inputRef}
@@ -248,7 +277,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="off"
-                className="w-full h-12 pr-3 bg-transparent font-mono text-sm text-left text-[#1f130b] dark:text-[#fffaf5] placeholder:text-orange-900/40 dark:placeholder:text-orange-200/40 focus:outline-none"
+                className="w-full h-12 pr-2 bg-transparent font-mono text-sm text-left text-[#1f130b] dark:text-[#fffaf5] placeholder:text-orange-900/40 dark:placeholder:text-orange-200/40 focus:outline-none font-medium"
               />
             </div>
 
@@ -258,14 +287,14 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                 <button
                   type="button"
                   onClick={handlePasteClipboard}
-                  className="min-h-[48px] px-3.5 rounded-xl flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200/70 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-medium text-[#0F172A] dark:text-[#FAFAFA] transition-colors"
+                  className="min-h-[48px] px-4 rounded-xl flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-300 transition-all font-mono text-xs font-semibold active:scale-95 shadow-sm whitespace-nowrap"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.75"
-                    className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400"
+                    className="w-3.5 h-3.5 text-orange-600 dark:text-amber-400"
                   >
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -278,7 +307,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                   onClick={handleClearInput}
                   aria-label={t.clearInputAria}
                   title={t.clearInputAria}
-                  className="min-h-[48px] w-11 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200/70 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 hover:text-[#0F172A] dark:hover:text-[#FAFAFA] transition-colors"
+                  className="min-h-[48px] w-11 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950 hover:text-orange-950 transition-colors"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -296,9 +325,19 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               <button
                 type="submit"
                 disabled={isExtracting}
-                className="flex-1 sm:flex-initial min-h-[48px] px-6 rounded-xl flex items-center justify-center gap-2 bg-[#0F172A] hover:bg-slate-800 disabled:opacity-50 text-white dark:bg-[#FAFAFA] dark:hover:bg-zinc-200 dark:text-[#09090B] text-sm font-medium transition-colors"
+                className="flex-1 sm:flex-initial min-h-[48px] px-7 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 text-white hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 transition-all active:scale-[0.98] shadow-[0_4px_16px_rgba(234,88,12,0.4)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.55)] font-mono text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap"
               >
                 <span>{isExtracting ? t.extractingBtn : t.downloadBtn}</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-4 h-4"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </button>
             </div>
           </div>
@@ -307,19 +346,19 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
           {validationMessage && (
             <p
               role="alert"
-              className="mt-2.5 text-xs text-red-600 dark:text-red-400"
+              className="mt-2.5 font-mono text-xs font-medium text-red-600 dark:text-red-400"
             >
               {validationMessage}
             </p>
           )}
         </form>
 
-        {/* 3. Quiet Centered Row of Sub-Tool Pills Directly Under Omnibox */}
+        {/* Sub-Tool Selector Row */}
         {siblingSubTools.length > 1 && (
           <div
             role="tablist"
             aria-label={`${activeTool.platform} tools`}
-            className="mt-4 flex flex-wrap items-center justify-center gap-1.5"
+            className="mt-5 flex flex-wrap items-center justify-center gap-2"
           >
             {siblingSubTools.map((subTool) => {
               const isSelected = subTool.slug === activeTool.slug;
@@ -330,10 +369,10 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => onSelectTool(subTool.slug)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap ${
                     isSelected
-                      ? 'bg-[#0F172A] text-white dark:bg-[#FAFAFA] dark:text-[#09090B]'
-                      : 'bg-white dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border border-slate-200/90 dark:border-zinc-800 hover:text-[#0F172A] dark:hover:text-[#FAFAFA]'
+                      ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
+                      : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/80 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
                   }`}
                 >
                   {subTool.shortLabel}
@@ -342,6 +381,23 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             })}
           </div>
         )}
+
+        {/* Quick Sample Test Links */}
+        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+          <span className="text-xs text-orange-900/60 dark:text-orange-200/60 font-medium">
+            {t.trySampleLabel}
+          </span>
+          {SAMPLE_LINKS.map((sample) => (
+            <button
+              key={sample.id}
+              type="button"
+              onClick={() => handleSampleClick(sample)}
+              className="font-mono text-[11px] px-2.5 py-1 rounded-md bg-orange-100/70 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 text-orange-900 dark:text-orange-200 font-semibold transition-all shadow-sm whitespace-nowrap"
+            >
+              {sample.label}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

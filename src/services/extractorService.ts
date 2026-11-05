@@ -137,6 +137,52 @@ export async function extractMediaFromUrl(
   return buildMockMediaResult(url, detected);
 }
 
+function createStudioArtworkDataUri(
+  title: string,
+  subtitle: string,
+  accentStart = '#ea580c',
+  accentEnd = '#f59e0b',
+  aspect: 'square' | 'portrait' = 'portrait'
+): string {
+  const width = 720;
+  const height = aspect === 'square' ? 720 : 900;
+  const isPhotoOrAvatar =
+    aspect === 'square' || subtitle.toUpperCase().includes('JPG');
+  const centerEmblem = isPhotoOrAvatar
+    ? `<circle cx="${width / 2}" cy="${height * 0.46}" r="62" fill="${accentStart}" fill-opacity="0.18" stroke="${accentEnd}" stroke-width="2.5"/>
+       <circle cx="${width / 2}" cy="${height * 0.46}" r="34" fill="none" stroke="#fffaf5" stroke-width="2.5" stroke-opacity="0.85"/>
+       <circle cx="${width / 2 + 18}" cy="${height * 0.46 - 18}" r="6" fill="${accentEnd}"/>`
+    : `<circle cx="${width / 2}" cy="${height * 0.48}" r="54" fill="${accentStart}" fill-opacity="0.22" stroke="${accentEnd}" stroke-width="2"/>
+       <polygon points="${width / 2 - 12},${height * 0.48 - 18} ${width / 2 + 20},${height * 0.48} ${width / 2 - 12},${height * 0.48 + 18}" fill="#fffaf5"/>`;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1f130b"/>
+        <stop offset="55%" stop-color="#2e1a10"/>
+        <stop offset="100%" stop-color="#431407"/>
+      </linearGradient>
+      <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${accentStart}" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="${accentEnd}" stop-opacity="0.25"/>
+      </linearGradient>
+      <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+        <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#fdba74" stroke-width="1" stroke-opacity="0.08"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <rect width="100%" height="100%" fill="url(#grid)"/>
+    <circle cx="${width * 0.75}" cy="${height * 0.28}" r="220" fill="url(#glow)" opacity="0.55"/>
+    <circle cx="${width * 0.25}" cy="${height * 0.72}" r="180" fill="${accentEnd}" opacity="0.18"/>
+    <rect x="56" y="${height * 0.2}" width="${width - 112}" height="${height * 0.56}" rx="24" fill="#140e0a" fill-opacity="0.55" stroke="#fdba74" stroke-opacity="0.28" stroke-width="2"/>
+    <line x1="96" y1="${height * 0.34}" x2="${width - 96}" y2="${height * 0.34}" stroke="${accentStart}" stroke-width="3" stroke-opacity="0.6"/>
+    ${centerEmblem}
+    <text x="88" y="${height * 0.64}" fill="#fffaf5" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700">${title}</text>
+    <text x="88" y="${height * 0.69}" fill="#fdba74" font-family="JetBrains Mono, monospace" font-size="17" font-weight="500">${subtitle}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function buildMockMediaResult(
   url: string,
   detected: DetectedUrlInfo
@@ -153,6 +199,13 @@ function buildMockMediaResult(
   if (mediaType === 'profile') {
     const cleanHandle = (detected.identifier || '@natgeo').replace(/^@/, '');
     const isTikTok = platform === 'tiktok';
+    const dpDataUri = createStudioArtworkDataUri(
+      `@${cleanHandle}`,
+      '1080 × 1080 • sRGB MASTER DP',
+      '#ea580c',
+      '#f59e0b',
+      'square'
+    );
 
     return {
       id: `dp-${cleanHandle}-${Date.now()}`,
@@ -171,11 +224,8 @@ function buildMockMediaResult(
         ? 'Visual engineering, kinetic typography & industrial design systems.'
         : 'Experience the world through the eyes of National Geographic photographers and explorers.',
       followersCount: isTikTok ? '418.2K' : '281.4M',
-      // Crisp architectural/portrait 1:1 photography from Unsplash
-      standardPreviewUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&q=70',
-      hdOriginalUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1080&q=95',
+      standardPreviewUrl: dpDataUri,
+      hdOriginalUrl: dpDataUri,
       dimensions: '1080 × 1080',
       fileSize: '1.84 MB',
       format: 'JPG',
@@ -192,8 +242,7 @@ function buildMockMediaResult(
         mediaType: 'image',
         dimensions: '1080 × 1350',
         fileSize: '2.1 MB',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=85',
+        thumbnailUrl: createStudioArtworkDataUri('PLATE 01 // KYOTO', '1080×1350 RAW JPG', '#ea580c', '#fb923c'),
         downloadUrl: '#slide-1',
       },
       {
@@ -202,8 +251,7 @@ function buildMockMediaResult(
         mediaType: 'image',
         dimensions: '1080 × 1350',
         fileSize: '1.9 MB',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=85',
+        thumbnailUrl: createStudioArtworkDataUri('PLATE 02 // ZÜRICH', '1080×1350 RAW JPG', '#d97706', '#f59e0b'),
         downloadUrl: '#slide-2',
       },
       {
@@ -212,8 +260,7 @@ function buildMockMediaResult(
         mediaType: 'video',
         dimensions: '1080 × 1350',
         fileSize: '8.4 MB',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=85',
+        thumbnailUrl: createStudioArtworkDataUri('PLATE 03 // MOTION', '1080p60 MP4 STREAM', '#c2410c', '#ea580c'),
         downloadUrl: '#slide-3',
       },
       {
@@ -222,8 +269,7 @@ function buildMockMediaResult(
         mediaType: 'image',
         dimensions: '1080 × 1350',
         fileSize: '2.4 MB',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=85',
+        thumbnailUrl: createStudioArtworkDataUri('PLATE 04 // CONCRETE', '1080×1350 RAW JPG', '#ea580c', '#fbbf24'),
         downloadUrl: '#slide-4',
       },
       {
@@ -232,8 +278,7 @@ function buildMockMediaResult(
         mediaType: 'image',
         dimensions: '1080 × 1350',
         fileSize: '1.7 MB',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=85',
+        thumbnailUrl: createStudioArtworkDataUri('PLATE 05 // STUDIO', '1080×1350 RAW JPG', '#b45309', '#f97316'),
         downloadUrl: '#slide-5',
       },
     ];
@@ -290,8 +335,7 @@ function buildMockMediaResult(
       title:
         'Precision CNC anodized aluminum chassis milling — 60fps macro studio reel with raw mechanical acoustics.',
       duration: '00:34',
-      thumb:
-        'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('IG REEL 1080P', '60FPS • H.264 MASTER', '#ea580c', '#f59e0b'),
       hdSize: '14.2 MB',
       sdSize: '6.8 MB',
       mp3Size: '1.4 MB',
@@ -302,8 +346,7 @@ function buildMockMediaResult(
       title:
         'How modular typographic scales and hairline 1px borders eliminate interface clutter in modern developer tools.',
       duration: '00:48',
-      thumb:
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('TIKTOK LOSSLESS', 'NO WATERMARK • 1080P', '#f97316', '#fbbf24'),
       hdSize: '18.6 MB',
       sdSize: '8.9 MB',
       mp3Size: '1.9 MB',
@@ -315,8 +358,7 @@ function buildMockMediaResult(
         ? 'Inside the Optical Clock: Measuring Picoseconds with Zero Drift (4K Downsampled Master)'
         : 'Why High-Frequency Mechanical Shutters Never Wear Out #shorts',
       duration: isHorizontal ? '04:12' : '00:58',
-      thumb:
-        'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('YOUTUBE 4K HDR', 'AV1 / OPUS 320KBPS', '#ea580c', '#dc2626'),
       hdSize: isHorizontal ? '64.5 MB' : '21.4 MB',
       sdSize: isHorizontal ? '28.1 MB' : '9.6 MB',
       mp3Size: isHorizontal ? '5.8 MB' : '2.1 MB',
@@ -327,8 +369,7 @@ function buildMockMediaResult(
       title:
         'Sub-millisecond keyboard navigation and instant local state synchronization demo in production.',
       duration: '00:29',
-      thumb:
-        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('X BROADCAST', '1080P NATIVE STREAM', '#c2410c', '#f97316'),
       hdSize: '11.4 MB',
       sdSize: '5.2 MB',
       mp3Size: '1.1 MB',
@@ -339,8 +380,7 @@ function buildMockMediaResult(
       title:
         'Onboard Porsche 911 GT3 RS Nürburgring Nordschleife telemetry overlay in full 1080p60.',
       duration: '01:15',
-      thumb:
-        'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('FB REELS HD', '1080P60 TELEMETRY', '#ea580c', '#fb923c'),
       hdSize: '29.8 MB',
       sdSize: '13.4 MB',
       mp3Size: '2.7 MB',
@@ -351,8 +391,7 @@ function buildMockMediaResult(
       title:
         'First light ridge traverse at 4,000m elevation — raw unedited Spotlight vertical feed.',
       duration: '00:22',
-      thumb:
-        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=85',
+      thumb: createStudioArtworkDataUri('SNAP SPOTLIGHT', '9:16 VERTICAL MASTER', '#d97706', '#facc15'),
       hdSize: '9.8 MB',
       sdSize: '4.5 MB',
       mp3Size: '0.9 MB',

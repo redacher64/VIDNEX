@@ -73,14 +73,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="legal-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[82vh] flex flex-col rounded-2xl bg-white dark:bg-zinc-900 border border-orange-200/80 dark:border-orange-950/60 text-[#1f130b] dark:text-[#fffaf5] shadow-xl overflow-hidden"
+        className="w-full max-w-2xl max-h-[82vh] flex flex-col rounded-2xl bg-[#fffaf5] dark:bg-[#1c140e] border-2 border-orange-200/80 dark:border-orange-900/60 text-[#1f130b] dark:text-[#fffaf5] shadow-orange-glow overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-orange-200/80 dark:border-orange-950/60">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-orange-200/80 dark:border-orange-900/60 bg-white/80 dark:bg-[#231710]">
           <div className="flex items-center gap-1.5 overflow-x-auto">
             {(['terms', 'privacy', 'dmca'] as LegalDocType[]).map((docKey) => {
               const isSelected = activeDoc === docKey;
@@ -89,10 +89,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   key={docKey}
                   type="button"
                   onClick={() => onSelectDoc(docKey)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
                     isSelected
-                      ? 'bg-[#0F172A] text-white dark:bg-[#FAFAFA] dark:text-[#09090B]'
-                      : 'text-[#6c4e40] dark:text-orange-200/70 hover:text-[#0F172A] dark:hover:text-[#FAFAFA]'
+                      ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                      : 'text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-amber-400 hover:bg-orange-50 dark:hover:bg-orange-950/50'
                   }`}
                 >
                   {labels[docKey]}
@@ -104,13 +104,13 @@ export const LegalModal: React.FC<LegalModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-xs font-medium text-[#6c4e40] dark:text-orange-200/70 hover:text-[#0F172A] dark:hover:text-[#FAFAFA]"
+            className="px-3.5 py-1.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-800/70 text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors"
           >
             {labels.closeLabel}
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-4 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+        <div className="p-6 overflow-y-auto space-y-4 text-sm leading-relaxed text-[#6c4e40] dark:text-orange-200/80">
           {activeDoc === 'terms' && (
             <>
               <h2
@@ -167,7 +167,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                 holders who wish to block their public @handle or specific URLs
                 from being resolved through VIDNEX may contact:
               </p>
-              <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-zinc-800 font-mono text-xs text-[#1f130b] dark:text-[#fffaf5]">
+              <div className="p-3.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100">
                 {LEGAL_CONTACT_EMAIL}
               </div>
             </>

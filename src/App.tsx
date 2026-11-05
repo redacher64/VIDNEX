@@ -219,9 +219,12 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#09090B] text-[#0F172A] dark:text-[#FAFAFA] transition-colors duration-150">
-      {/* Ambient Orange Depth Glow */}
-      <div className="ambient-orange-glow absolute -top-24 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-orange-500/15 via-amber-400/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+    <div className="relative min-h-screen flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden">
+      {/* Ambient Orange Depth Glows */}
+      <div className="ambient-orange-glow absolute -top-24 left-1/2 -translate-x-1/2 w-[1040px] h-[520px] bg-gradient-to-b from-orange-500/20 via-amber-400/15 to-transparent rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute top-32 left-10 w-72 h-72 bg-orange-400/10 rounded-full blur-2xl pointer-events-none z-0" />
+      <div className="absolute top-32 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl pointer-events-none z-0" />
+
       <SeoSchemaInjector tool={activeTool} language={language} />
 
       <Header
@@ -233,7 +236,7 @@ export function App() {
         onSelectLanguage={handleSelectLanguage}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <HeroOmnibox
           activeTool={activeTool}
           onSelectTool={handleSelectTool}

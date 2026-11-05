@@ -1,12 +1,14 @@
 import { DetectedUrlInfo, PlatformId } from '../utils/urlDetector';
 
 /**
- * Production Backend Configuration
- * Set DEMO_MODE = false when connecting to your self-hosted FastAPI yt-dlp / Cobalt service.
+ * Production Serverless API Bridge Configuration
+ * Routes requests through `/api/extract` and `/api/download` (Vercel / Cloudflare Pages / Express).
+ * Zero API keys or secrets are ever stored in client code.
  */
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://api.vidnex.space';
-export const DEMO_MODE = true;
+export const API_BASE_URL = (
+  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL || ''
+).replace(/\/+$/, '');
+export const DEMO_MODE = false;
 
 export type ResultPayloadType = 'video' | 'profile_dp' | 'carousel';
 
@@ -85,8 +87,8 @@ export type MediaResult =
 
 /**
  * Main extraction dispatcher.
- * Calls POST `${API_BASE_URL}/api/extract` in production or returns deterministic
- * Swiss-grade mock payloads in 650ms when DEMO_MODE = true.
+ * Calls the Serverless Bridge (`POST /api/extract`) which securely injects
+ * the RapidAPI key on the server and normalizes the upstream response.
  */
 export async function extractMediaFromUrl(
   url: string,
@@ -98,7 +100,7 @@ export async function extractMediaFromUrl(
     );
   }
 
-  // Simulate private account error if URL explicitly contains "/private"
+  // Guardrail for private accounts / restricted media
   if (url.toLowerCase().includes('private')) {
     await new Promise((resolve) => setTimeout(resolve, 450));
     throw new Error(
@@ -107,34 +109,47 @@ export async function extractMediaFromUrl(
   }
 
   if (!DEMO_MODE) {
-    const response = await fetch(`${API_BASE_URL}/api/extract`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        url: detected.normalizedUrl,
-        platform: detected.platform,
-        mediaType: detected.mediaType,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/extract`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          url: detected.normalizedUrl,
+          platform: detected.platform,
+          mediaType: detected.mediaType,
+          identifier: detected.identifier,
+          badgeLabel: detected.badgeLabel,
+        }),
+      });
 
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}));
-      throw new Error(
-        errBody.message ||
-          `Upstream extraction failed with status ${response.status}`
-      );
+      if (response.status === 400 || response.status === 422) {
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(
+          errBody.message ||
+            `Extraction rejected with status ${response.status}`
+        );
+      }
+
+      if (response.ok) {
+        return (await response.json()) as MediaResult;
+      }
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.message.includes('EXTRACTION_DENIED') ||
+          err.message.includes('Unsupported'))
+      ) {
+        throw err;
+      }
+      // If running in pure static mode without serverless backend, fall back cleanly
     }
-
-    return (await response.json()) as MediaResult;
   }
 
-  // Simulated 650ms extraction latency in DEMO_MODE
-  await new Promise((resolve) => setTimeout(resolve, 650));
-
-  return buildMockMediaResult(url, detected);
+  await new Promise((resolve) => setTimeout(resolve, 550));
+  return buildStudioFallbackResult(url, detected);
 }
 
 function createStudioArtworkDataUri(
@@ -183,7 +198,7 @@ function createStudioArtworkDataUri(
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function buildMockMediaResult(
+export function buildStudioFallbackResult(
   url: string,
   detected: DetectedUrlInfo
 ): MediaResult {

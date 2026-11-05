@@ -28,12 +28,22 @@ async function triggerSyntheticDownload(
   try {
     if (
       sourceUrl &&
-      (sourceUrl.startsWith('http://') ||
+      (sourceUrl.startsWith('/api/download') ||
+        sourceUrl.startsWith('http://') ||
         sourceUrl.startsWith('https://') ||
         sourceUrl.startsWith('blob:') ||
         sourceUrl.startsWith('data:'))
     ) {
-      const res = await fetch(sourceUrl, { mode: 'cors' });
+      const proxyTarget = sourceUrl.startsWith('/api/download')
+        ? sourceUrl
+        : sourceUrl.startsWith('http')
+        ? `/api/download?${new URLSearchParams({
+            url: sourceUrl,
+            filename,
+          }).toString()}`
+        : sourceUrl;
+
+      const res = await fetch(proxyTarget, { mode: 'cors' });
       if (res.ok) {
         const b = await res.blob();
         const u = URL.createObjectURL(b);
@@ -239,7 +249,8 @@ const VideoResultView: React.FC<{
     formatId: string,
     quality: string,
     container: string,
-    fileSize: string
+    fileSize: string,
+    downloadUrl?: string
   ) => {
     setActiveDownloadId(formatId);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -249,7 +260,7 @@ const VideoResultView: React.FC<{
     triggerSyntheticDownload(
       filename,
       `${data.title} (${quality} • ${fileSize})`,
-      data.thumbnailUrl
+      downloadUrl || data.thumbnailUrl
     );
 
     setTimeout(() => {
@@ -311,7 +322,8 @@ const VideoResultView: React.FC<{
                 primaryFormat.id,
                 primaryFormat.quality,
                 primaryFormat.container,
-                primaryFormat.fileSize
+                primaryFormat.fileSize,
+                primaryFormat.downloadUrl
               )
             }
             className="w-full min-h-[48px] px-5 rounded-xl flex items-center justify-between bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.5)] text-sm font-bold transition-all active:scale-[0.99]"
@@ -350,7 +362,8 @@ const VideoResultView: React.FC<{
                     fmt.id,
                     fmt.quality,
                     fmt.container,
-                    fmt.fileSize
+                    fmt.fileSize,
+                    fmt.downloadUrl
                   )
                 }
                 className="min-h-[44px] px-4 rounded-xl flex items-center justify-between bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-400 text-xs font-bold text-orange-950 dark:text-orange-100 transition-all shadow-sm"
@@ -422,7 +435,7 @@ const ProfileDpResultView: React.FC<{
         }`}
       >
         <img
-          src={data.hdOriginalUrl}
+          src={data.standardPreviewUrl || data.hdOriginalUrl}
           alt={data.creatorHandle}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover"

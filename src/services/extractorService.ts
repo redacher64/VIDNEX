@@ -1,15 +1,14 @@
 import { DetectedUrlInfo, PlatformId } from '../utils/urlDetector';
 
 /**
- * Zero-Cost Self-Hosted Docker API Configuration
- * Connects to the FastAPI Multi-Engine Backend (TikWM + vxTwitter + yt-dlp + FFmpeg)
- * running on Hugging Face Spaces (`https://username-vidnex.hf.space`) or local port `7860`.
+ * Multi-Service & Self-Hosted API Configuration
+ * Defaults to same-origin `/api/*` routes (matching Vercel Services `/api/(.*)` -> `backend` rewrite),
+ * or connects to an external host if `VITE_API_BASE_URL` is explicitly configured.
  */
 export const DEMO_MODE = false;
 
 export const API_BASE_URL = (
-  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL ||
-  'http://localhost:7860'
+  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL || ''
 ).replace(/\/+$/, '');
 
 export function resolveApiUrl(pathOrUrl: string): string {
@@ -22,7 +21,7 @@ export function resolveApiUrl(pathOrUrl: string): string {
     typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1' &&
-    API_BASE_URL.includes('localhost:7860');
+    API_BASE_URL.includes('localhost');
 
   const effectiveBase = isRemotePreviewHost ? '' : API_BASE_URL;
 
@@ -182,7 +181,7 @@ export async function extractMediaFromUrl(
 
   throw (
     lastError ||
-    new Error('Unable to reach VIDNEX extraction backend on port 7860.')
+    new Error('Unable to reach VIDNEX extraction backend (/api/extract).')
   );
 }
 

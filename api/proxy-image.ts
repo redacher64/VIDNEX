@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { BROWSER_USER_AGENT } from './_config';
+import { BROWSER_USER_AGENT, getBoundBackendUrl } from './_config';
 
 function isDisallowedPrivateHost(hostname: string): boolean {
   const lower = hostname.toLowerCase();
@@ -66,6 +66,30 @@ export default async function handler(req: any, res: any) {
     rawUrl = `https:${rawUrl}`;
   } else if (rawUrl.startsWith('/')) {
     rawUrl = `https://www.tikwm.com${rawUrl}`;
+  }
+
+  const boundBackendUrl = getBoundBackendUrl();
+  if (boundBackendUrl) {
+    try {
+      const targetEndpoint = new URL('/api/proxy-image', boundBackendUrl);
+      targetEndpoint.searchParams.set('url', rawUrl);
+      const boundRes = await fetch(targetEndpoint, {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (boundRes.ok) {
+        const buf = Buffer.from(await boundRes.arrayBuffer());
+        if (buf.byteLength >= 64) {
+          res.setHeader(
+            'Content-Type',
+            boundRes.headers.get('content-type') || 'image/jpeg'
+          );
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          return res.status(200).send(buf);
+        }
+      }
+    } catch {
+      // Fallback to direct image proxy below
+    }
   }
 
   let parsed: URL;

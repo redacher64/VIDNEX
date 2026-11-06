@@ -49,13 +49,13 @@ class ExtractRequest(BaseModel):
     badgeLabel: Optional[str] = None
 
 
-def get_base_url(request: Request) -> str:
-    forwarded_proto = request.headers.get("x-forwarded-proto")
-    forwarded_host = request.headers.get("x-forwarded-host") or request.headers.get("host")
-    if forwarded_host:
-        scheme = forwarded_proto or request.url.scheme or "https"
-        return f"{scheme}://{forwarded_host}".rstrip("/")
-    return str(request.base_url).rstrip("/")
+def get_base_url(_request: Request) -> str:
+    """
+    Returns PUBLIC_API_BASE_URL if explicitly set, or empty string '' by default
+    so generated `/api/download` and `/api/proxy-image` links resolve via the
+    same-origin `/api/(.*)` Vercel service rewrite (or frontend `resolveApiUrl`).
+    """
+    return os.environ.get("PUBLIC_API_BASE_URL", "").strip().rstrip("/")
 
 
 def resolve_upstream_url(raw_url: Optional[str]) -> str:

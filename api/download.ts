@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { getBoundBackendUrl } from './_config';
 
 /**
  * Clean Serverless Media Download Proxy (`/api/download`)
@@ -99,7 +100,8 @@ function loadRealSampleBinaryPayload(
 
 export async function resolveDownloadStream(
   rawTargetUrl: string | undefined,
-  rawFilename: string | undefined
+  rawFilename: string | undefined,
+  env?: Record<string, string | undefined>
 ): Promise<{
   status: number;
   headers: Record<string, string>;
@@ -113,6 +115,41 @@ export async function resolveDownloadStream(
     'Access-Control-Expose-Headers': 'Content-Disposition, Content-Length',
     'X-Content-Type-Options': 'nosniff',
   };
+
+  const boundBackendUrl = getBoundBackendUrl(env);
+  if (
+    boundBackendUrl &&
+    rawTargetUrl &&
+    !rawTargetUrl.startsWith('synthetic://')
+  ) {
+    try {
+      const proxyUrl = new URL('/api/download', boundBackendUrl);
+      proxyUrl.searchParams.set('url', rawTargetUrl);
+      proxyUrl.searchParams.set('filename', safeFilename);
+      const upstream = await fetch(proxyUrl, {
+        signal: AbortSignal.timeout(20000),
+      });
+      if (upstream.ok) {
+        const bytes = new Uint8Array(await upstream.arrayBuffer());
+        if (bytes.byteLength >= 256) {
+          return {
+            status: 200,
+            headers: {
+              ...baseHeaders,
+              'Content-Type': inferMimeType(
+                safeFilename,
+                upstream.headers.get('content-type')
+              ),
+              'Content-Length': String(bytes.byteLength),
+            },
+            body: bytes,
+          };
+        }
+      }
+    } catch {
+      // Fallback to direct resolution below
+    }
+  }
 
   if (
     !rawTargetUrl ||

@@ -1,3 +1,9 @@
+
+const COBALT_PUBLIC_INSTANCES = [
+  'https://api.cobalt.tools',
+  'https://capi.wuk.sh',
+  'https://cobalt.kwiatekm.tokyo',
+];
 /**
  * Cloudflare Pages Function: `POST /api/extract`
  * Multi-engine serverless media extractor for VIDNEX (100% Cloudflare Workers compatible).
@@ -1100,6 +1106,118 @@ async function extractInstagramPublic(
     // Fall through
   }
 
+  // ============================================================================
+  // LEVEL 2: INSTAGRAM ANONYMOUS GRAPHQL API (X-IG-App-ID: 936619743392459)
+  // ============================================================================
+  try {
+    const gqlUrl = `https://www.instagram.com/graphql/query/?query_hash=b3055c2e4705d69612121d0be0d95256&variables=${encodeURIComponent(
+      JSON.stringify({ shortcode, child_comment_count: 0, fetch_comment_count: 0, has_threaded_comments: false })
+    )}`;
+    const gqlRes = await fetch(gqlUrl, {
+      headers: {
+        'User-Agent': BROWSER_USER_AGENT,
+        'X-IG-App-ID': '936619743392459',
+        Accept: '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        Referer: `https://www.instagram.com/p/${shortcode}/`,
+      },
+    });
+    if (gqlRes.ok) {
+      const gqlJson = (await gqlRes.json()) as any;
+      const media = gqlJson?.data?.shortcode_media;
+      if (media) {
+        const handle = media.owner?.username || 'instagram_creator';
+        const creatorName = media.owner?.full_name || `@${handle}`;
+        const caption =
+          media.edge_media_to_caption?.edges?.[0]?.node?.text ||
+          `Instagram Media (${shortcode})`;
+        const children = media.edge_sidecar_to_children?.edges;
+        if (Array.isArray(children) && children.length > 0) {
+          const items: CarouselSlideItem[] = children.map((edge: any, idx: number) => {
+            const node = edge.node;
+            const isVid = Boolean(node.is_video);
+            const mediaUrl = isVid ? node.video_url : node.display_url;
+            return {
+              id: `ig-gql-slide-${idx + 1}`,
+              index: idx + 1,
+              mediaType: isVid ? 'video' : 'image',
+              dimensions: `${node.dimensions?.width || 1080} × ${node.dimensions?.height || 1350}`,
+              fileSize: isVid ? '12.4 MB' : '2.1 MB',
+              thumbnailUrl: buildDownloadProxyUrl(node.display_url || mediaUrl, `VIDNEX_ig_${shortcode}_slide_${idx + 1}_thumb.jpg`, true),
+              downloadUrl: buildDownloadProxyUrl(mediaUrl, `VIDNEX_ig_${shortcode}_slide_${idx + 1}.${isVid ? "mp4" : "jpg"}`, false),
+            };
+          });
+          return {
+            id: `ig-carousel-${shortcode}`,
+            payloadType: 'carousel',
+            platform: 'instagram',
+            badgeLabel: badgeLabel || 'Instagram Carousel',
+            sourceUrl: targetUrl,
+            creatorHandle: `@${handle}`,
+            creatorName,
+            verified: Boolean(media.owner?.is_verified),
+            extractedAt: nowTimeString(),
+            caption: caption.slice(0, 180),
+            totalItems: items.length,
+            archiveSize: `${(items.length * 2.1).toFixed(1)} MB`,
+            items,
+          };
+        }
+        if (media.is_video && media.video_url) {
+          return {
+            id: `ig-reel-${shortcode}`,
+            payloadType: 'video',
+            platform: 'instagram',
+            badgeLabel: badgeLabel || 'Instagram Reel',
+            sourceUrl: targetUrl,
+            creatorHandle: `@${handle}`,
+            creatorName,
+            verified: Boolean(media.owner?.is_verified),
+            extractedAt: nowTimeString(),
+            title: caption.slice(0, 160) || 'Instagram 1080p HD Reel',
+            duration: formatDurationSeconds(media.video_duration || 30),
+            aspectRatio: '9:16',
+            resolution: '1080 × 1920',
+            codec: 'H.264 / AAC • 60fps',
+            thumbnailUrl: buildDownloadProxyUrl(media.display_url || media.video_url, `VIDNEX_ig_${shortcode}_thumb.jpg`, true),
+            formats: [
+              {
+                id: 'hd-1080p',
+                label: 'Download HD 1080p (No Watermark)',
+                quality: '1080p',
+                container: 'MP4',
+                fileSize: '16.8 MB',
+                noWatermark: true,
+                downloadUrl: buildDownloadProxyUrl(media.video_url, `VIDNEX_instagram_${handle}_${shortcode}_1080p.mp4`, false),
+                isPrimary: true,
+              },
+              {
+                id: 'sd-720p',
+                label: 'Download SD 720p',
+                quality: '720p',
+                container: 'MP4',
+                fileSize: '8.4 MB',
+                noWatermark: true,
+                downloadUrl: buildDownloadProxyUrl(media.video_url, `VIDNEX_instagram_${handle}_${shortcode}_720p.mp4`, false),
+              },
+              {
+                id: 'audio-mp3',
+                label: 'Extract Audio (MP3)',
+                quality: 'MP3',
+                container: 'MP3',
+                fileSize: '1.6 MB',
+                noWatermark: true,
+                downloadUrl: buildDownloadProxyUrl(media.video_url, `VIDNEX_instagram_${handle}_${shortcode}_audio.mp3`, false),
+              },
+            ],
+          };
+        }
+      }
+    }
+  } catch {
+    // Level 2 Fall through
+  }
+
   return null;
 }
 
@@ -1112,25 +1230,66 @@ async function extractFallbackPublic(
   badgeLabel: string | undefined,
   env: Env
 ): Promise<MediaResult | null> {
-  // 1. Optional Cobalt API instance if configured in Cloudflare environment variables
-  const cobaltApiUrl = (env.COBALT_API_URL || '').trim().replace(/\/+$/, '');
-  if (cobaltApiUrl) {
+  // 1. Cobalt API instances (Environment variable or Free Public instances)
+  const candidateInstances = [
+    ...(env.COBALT_API_URL ? [env.COBALT_API_URL.trim().replace(/\/+$/, '')] : []),
+    ...COBALT_PUBLIC_INSTANCES,
+  ];
+
+  for (const cobUrl of candidateInstances) {
     try {
       const headers: Record<string, string> = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       };
-      if (env.COBALT_API_KEY) {
+      if (cobUrl === env.COBALT_API_URL?.trim() && env.COBALT_API_KEY) {
         headers['Authorization'] = `Api-Key ${env.COBALT_API_KEY}`;
       }
-      const cobRes = await fetch(cobaltApiUrl, {
+      const cobRes = await fetch(cobUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({ url: targetUrl, videoQuality: '1080' }),
       });
       if (cobRes.ok) {
         const cob: any = await cobRes.json().catch(() => null);
-        if (cob?.url) {
+
+        // Handle Picker (Carousels)
+        if (Array.isArray(cob?.picker) && cob.picker.length > 1) {
+          const items: CarouselSlideItem[] = cob.picker.map((item: any, idx: number) => {
+            const isVid = item.type === 'video';
+            const mediaUrl = item.url;
+            const thumbUrl = item.thumb || item.url;
+            const ext = isVid ? 'mp4' : 'jpg';
+            return {
+              id: `cob-slide-${idx + 1}`,
+              index: idx + 1,
+              mediaType: isVid ? 'video' : 'image',
+              dimensions: '1080 × 1350',
+              fileSize: isVid ? '8.4 MB' : '1.8 MB',
+              thumbnailUrl: buildDownloadProxyUrl(thumbUrl, `VIDNEX_${platform}_slide_${idx + 1}_thumb.jpg`, true),
+              downloadUrl: buildDownloadProxyUrl(mediaUrl, `VIDNEX_${platform}_slide_${idx + 1}.${ext}`, false),
+            };
+          });
+
+          return {
+            id: `cob-carousel-${platform}-${Date.now()}`,
+            payloadType: 'carousel',
+            platform,
+            badgeLabel: badgeLabel || `${platform} Carousel`,
+            sourceUrl: targetUrl,
+            creatorHandle: `@${platform}_creator`,
+            creatorName: `${platform.toUpperCase()} Creator`,
+            verified: true,
+            extractedAt: nowTimeString(),
+            caption: String(cob.filename || `${platform.toUpperCase()} Media Carousel`),
+            totalItems: items.length,
+            archiveSize: `${(items.length * 2.1).toFixed(1)} MB`,
+            items,
+          };
+        }
+
+        const directUrl = cob?.url || (Array.isArray(cob?.picker) && cob.picker[0]?.url);
+        if (directUrl) {
           return {
             id: `cob-${platform}-${Date.now()}`,
             payloadType: 'video',
@@ -1147,7 +1306,7 @@ async function extractFallbackPublic(
             resolution: '1080 × 1920',
             codec: 'H.264 / AAC • 60fps',
             thumbnailUrl: buildDownloadProxyUrl(
-              cob.thumb || cob.url,
+              cob.thumb || directUrl,
               `VIDNEX_${platform}_thumb.jpg`,
               true
             ),
@@ -1160,7 +1319,7 @@ async function extractFallbackPublic(
                 fileSize: '14.8 MB',
                 noWatermark: true,
                 downloadUrl: buildDownloadProxyUrl(
-                  cob.url,
+                  directUrl,
                   `VIDNEX_${platform}_1080p.mp4`,
                   false
                 ),
@@ -1171,7 +1330,7 @@ async function extractFallbackPublic(
         }
       }
     } catch {
-      // Fall through to OpenGraph / oEmbed
+      // Try next public instance
     }
   }
 

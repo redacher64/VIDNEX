@@ -1,56 +1,110 @@
-# Guide de Déploiement 100% Gratuit & Illimité (Hugging Face Spaces + Cloudflare Pages)
+# 🚀 Guide de Déploiement 100% Gratuit & Illimité (Cloudflare Pages)
 
-Ce guide explique comment déployer le backend multi-moteurs **VIDNEX** (`/backend` : **TikWM + vxTwitter + yt-dlp + FFmpeg**) gratuitement sur **Hugging Face Spaces** (0 €, sans carte bancaire, 16 Go RAM, 2 vCPU) et connecter le frontend React sur **Cloudflare Pages** (`vidnex.space`).
+Ce guide détaille le déploiement de **VIDNEX** (`vidnex.space`) sur **Cloudflare Pages** : **0 € à vie, sans carte bancaire**, avec **bande passante CDN mondiale illimitée** et **100 000 requêtes Edge Functions serverless gratuites par jour**.
 
 ---
 
-## Étape 1 : Déployer le Backend Docker sur Hugging Face Spaces (5 clics — 0 €)
+## ⚡ Pourquoi Cloudflare Pages ?
 
-1. Créez un compte gratuit sur **[huggingface.co](https://huggingface.co/join)** puis cliquez sur **New Space** ([huggingface.co/new-space](https://huggingface.co/new-space)).
-2. Configurez votre Space :
-   - **Space name** : `vidnex`
-   - **Select the Space SDK** : choisissez **Docker** (puis **Blank**).
-   - **Space Hardware** : laissez **CPU basic · 2 vCPU · 16 GB · FREE**.
-   - **Visibility** : **Public**.
-   - Cliquez sur **Create Space**.
-3. Dans l'onglet **Files** de votre Space, cliquez sur **+ Add file** → **Upload files** et glissez-déposez les 3 fichiers contenus dans le dossier `/backend` :
-   - `backend/Dockerfile`
-   - `backend/requirements.txt`
-   - `backend/main.py`
-4. Cliquez sur **Commit changes to main**. Hugging Face construit automatiquement le conteneur Docker avec Python 3.11, `ffmpeg` et `yt-dlp` sur le port `7860` (le badge passe à **Running** en ~2 minutes).
-5. Récupérez l'URL publique directe de votre Space (bouton **⋮** en haut à droite → **Embed this Space** → **Direct URL**) :
+- **0 € / mois à vie** : Aucune carte bancaire requise à l'inscription.
+- **Bande passante CDN illimitée** : Pas de facture surprise en cas de pic de trafic mondial.
+- **Pages Functions natives (`/functions/api`)** : Les moteurs d'extraction et de téléchargement forcé s'exécutent directement sur le réseau mondial Edge de Cloudflare à moins de 50 ms de chaque utilisateur.
+- **Zéro serveur Docker à maintenir** : Fini les conteneurs payants ou les contraintes d'hibernation de Hugging Face Spaces.
+- **Zéro abonnement API payant** : Aucune clé RapidAPI payante requise.
+
+---
+
+## 🛠️ Architecture des Moteurs 100% Gratuits
+
+VIDNEX intègre une suite de moteurs d'extraction multi-niveaux sans quotas stricts ni frais cachés :
+
+1. **TikTok (`/functions/api/extract.ts`)** :
+   - Moteur direct TikWM : Vidéos Full HD 1080p sans filigrane, carrousels photos haute résolution, pistes audio MP3 extraites, photos de profil HD.
+2. **Instagram (`/functions/api/extract.ts`)** :
+   - **Niveau 1** : Analyse officielle de l'embed Instagram (`/p/{shortcode}/embed/captioned/`) extrayant les flux vidéo MP4 et images HD sans cookie.
+   - **Niveau 2** : Requêtes GraphQL anonymes avec l'en-tête officiel `X-IG-App-ID: 936619743392459` pour les carrousels multi-slides et Reels.
+   - **Niveau 3** : Moteur de secours sur instances publiques et libres de Cobalt (`api.cobalt.tools`, `capi.wuk.sh`, `cobalt.kwiatekm.tokyo`).
+   - **Profils** : Résolution des avatars HD 1080×1080 via OpenGraph direct.
+3. **X / Twitter** :
+   - Moteurs ouverts BetterTwitFix / vxTwitter et syndication officielle Twitter (`tweet-result`).
+4. **Téléchargement forcé mobile & desktop (`/functions/api/download.ts`)** :
+   - Proxy de flux avec en-têtes `Content-Disposition: attachment; filename="..."` et bypass CORS pour forcer l'enregistrement direct des fichiers sur iOS, Android, macOS et Windows.
+
+---
+
+## 📋 Déploiement en 4 Étapes (Durée : ~3 minutes)
+
+### Étape 1 : Créer votre compte Cloudflare (Gratuit)
+1. Rendez-vous sur **[dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)**.
+2. Créez un compte avec votre adresse email (aucune carte bancaire requise).
+
+### Étape 2 : Connecter votre dépôt GitHub
+1. Dans le menu de gauche, cliquez sur **Compute (Workers & Pages)** → **Overview**.
+2. Cliquez sur le bouton bleu **Create** (ou **Create application**), puis sélectionnez l'onglet **Pages**.
+3. Choisissez **Connect to Git** et autorisez l'accès à votre compte GitHub.
+4. Sélectionnez votre dépôt : `VIDNEX` (ou `votre-pseudo/VIDNEX`).
+
+### Étape 3 : Configurer les paramètres de build
+Remplissez les champs de configuration exactement comme suit :
+
+| Paramètre | Valeur | Description |
+| :--- | :--- | :--- |
+| **Project name** | `vidnex` (ou au choix) | Nom de votre projet Cloudflare |
+| **Production branch** | `main` | Branche principale synchronisée |
+| **Framework preset** | `Vite` | Détection automatique Vite |
+| **Build command** | `npm run build` | Compilation TypeScript + Vite |
+| **Build output directory** | `dist` | Dossier des fichiers statiques générés |
+| **Root directory** | `/` *(laisser vide)* | Racine du projet |
+
+> [!NOTE]
+> **Aucune variable d'environnement obligatoire** n'est nécessaire ! Les moteurs fonctionnent nativement sans aucune clé secrète.
+> *(Optionnel)* Si vous disposez d'un compte Google AdSense, vous pouvez ajouter la variable d'environnement `VITE_ADSENSE_CLIENT_ID` avec votre identifiant `ca-pub-XXXXXXXXXXXXXXXX`.
+
+### Étape 4 : Déployer
+1. Cliquez sur **Save and Deploy**.
+2. Cloudflare Pages lance le build :
+   - Installation des dépendances
+   - Compilation Vite vers `dist/`
+   - Déploiement automatique des Pages Functions depuis le dossier `/functions`
+3. En moins de 60 secondes, votre site est en ligne avec une URL du type :
    ```text
-   https://votre-pseudo-vidnex.hf.space
+   https://vidnex.pages.dev
    ```
-   Testez-la dans votre navigateur : `https://votre-pseudo-vidnex.hf.space/api/health` renvoie `{"status":"ok","engines":["tikwm","vxtwitter","yt-dlp"],"ffmpeg":true}`.
 
 ---
 
-## Étape 2 : Déployer le Frontend React sur Cloudflare Pages
+## 🌐 Lier votre domaine personnalisé (Ex: `vidnex.space`)
 
-1. Ouvrez **[Cloudflare Dashboard](https://dash.cloudflare.com/)** → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Sélectionnez votre dépôt GitHub **VIDNEX** :
-   - **Framework preset** : `Vite`
-   - **Build command** : `npm run build`
-   - **Build output directory** : `dist`
-3. Dans **Environment variables (Production & Preview)**, ajoutez :
-   | Variable | Valeur |
-   | :--- | :--- |
-   | `VITE_API_BASE_URL` | `https://votre-pseudo-vidnex.hf.space` |
-4. Cliquez sur **Save and Deploy**. Votre site est en ligne et interroge directement votre backend Docker illimité !
+1. Dans votre projet Cloudflare Pages, allez dans l'onglet **Custom domains**.
+2. Cliquez sur **Set up a custom domain**.
+3. Saisissez votre nom de domaine (ex: `vidnex.space` ou `www.vidnex.space`).
+4. Si votre domaine est déjà géré par Cloudflare DNS, la validation SSL/TLS automatique se fait en 1 clic. Si votre domaine est chez un registrar externe (Namecheap, Hostinger, OVH), ajoutez le CNAME indiqué par Cloudflare.
+5. Cloudflare active automatiquement le certificat HTTPS gratuit avec renouvellement automatique à vie.
 
 ---
 
-## Étape 3 (Optionnel) : Ajouter `COOKIES_TXT_BASE64` contre les blocages IP Instagram / YouTube
+## 💻 Développement Local
 
-Si certains Reels Instagram ou vidéos YouTube demandent une session authentifiée depuis les IP cloud :
+Pour lancer et tester VIDNEX localement sur votre ordinateur :
 
-1. Exportez vos cookies au format Netscape `cookies.txt` (via l'extension navigateur *Get cookies.txt LOCALLY*).
-2. Encodez le fichier en Base64 dans un terminal :
-   ```bash
-   base64 -w 0 cookies.txt
-   ```
-3. Dans votre Space Hugging Face → **Settings** → **Variables and secrets** → **New secret** :
-   - **Name** : `COOKIES_TXT_BASE64`
-   - **Value** : *(collez la chaîne Base64)*
-4. Le backend décode automatiquement `COOKIES_TXT_BASE64` vers `/tmp/cookies.txt` et le transmet à `yt-dlp`.
+```powershell
+# 1. Cloner le projet (si ce n'est pas déjà fait)
+git clone https://github.com/redacher64/VIDNEX.git
+cd VIDNEX
+
+# 2. Lancer le serveur de développement local
+npm run dev
+```
+
+L'application est immédiatement accessible sur `http://localhost:3000` (ou `http://localhost:5173`) avec prise en charge complète des API locales (`server.ts` + `server/api/`).
+
+---
+
+## ✅ Matrice de Test QA
+
+Pour valider le bon fonctionnement de votre déploiement :
+1. **TikTok Vidéo** : Collez un lien TikTok standard (ex: `https://www.tiktok.com/@.../video/...`) → Téléchargement MP4 1080p sans filigrane immédiat.
+2. **TikTok Carrousel** : Collez un lien de diaporama photos TikTok → Affichage des slides avec téléchargement individuel ou de l'audio MP3.
+3. **Instagram Reel** : Collez un lien Reel (`https://www.instagram.com/reel/...`) → Lecture et téléchargement direct en MP4 HD.
+4. **Instagram Carrousel** : Collez un post multi-images Instagram → Extraction des photos HD.
+5. **Photo de Profil HD** : Tapez `@pseudo` ou collez un profil Instagram → Affichage et téléchargement de l'avatar 1080×1080.

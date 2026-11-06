@@ -1,58 +1,85 @@
-# VIDNEX — Universal Media Downloader & Serverless RapidAPI Bridge
+# VIDNEX — Universal Media Downloader
 
-Application React + TypeScript propulsée par une passerelle Serverless sécurisée (`/api`) compatible avec **Vercel** et **Cloudflare Pages**.
-
----
-
-## Architecture Serverless (`/api`)
-
-Toutes les requêtes vers RapidAPI transitent exclusivement côté serveur afin que la clé secrète (`RAPIDAPI_KEY`) ne soit **jamais** exposée dans le bundle JavaScript client (`src/`) :
-
-- **`/api/_config.ts`** : Lecture sécurisée des variables d'environnement serveur (`RAPIDAPI_KEY`, `RAPIDAPI_HOST`, `RAPIDAPI_UA`, `RAPIDAPI_TIKTOK_HOST`) et construction des en-têtes `x-rapidapi-key`, `x-rapidapi-host`, `x-rapidapi-ua`.
-- **`/api/extract.ts` (`POST /api/extract`)** :
-  - Reçoit l'URL et la plateforme détectée depuis l'interface VIDNEX.
-  - Interroge l'API RapidAPI correspondante (`instagram-scraper-stable-api.p.rapidapi.com` en `multipart/form-data` pour Instagram Reels, Carrousels et Photos de Profil HD ; ou l'API TikTok No-Watermark).
-  - Normalise la réponse JSON brute via `/api/_normalizer.ts` au format exact `MediaResult` attendu par le frontend (`VideoMediaResult`, `ProfileDpMediaResult`, `CarouselMediaResult`).
-- **`/api/download.ts` (`GET /api/download`)** :
-  - Proxy de flux média qui récupère le fichier brut (`.mp4`, `.jpg`, `.mp3`, `.zip`) et force l'en-tête HTTP `Content-Disposition: attachment; filename="..."` pour déclencher un téléchargement direct sur PC, iOS et Android sans ouverture d'onglet ni erreur CORS.
+Application web haute performance (React 18 + TypeScript + Vite + Tailwind CSS) propulsée par une architecture serverless **100 % gratuite** sur **Cloudflare Pages** et Edge Functions (`/functions/api`), avec un serveur de développement local Express (`server.ts` + `/server/api`).
 
 ---
 
-## Configuration des Variables d'Environnement
+## 🌟 Fonctionnalités Clés
 
-Ne préfixez **jamais** `RAPIDAPI_KEY` par `VITE_`. Configurez les variables suivantes :
-
-| Nom de la variable | Valeur recommandée | Description |
-| :--- | :--- | :--- |
-| `RAPIDAPI_KEY` | `votre_cle_secrete_rapidapi` | Clé secrète injectée dans l'en-tête `x-rapidapi-key` côté serveur |
-| `RAPIDAPI_HOST` | `instagram-scraper-stable-api.p.rapidapi.com` | Hôte RapidAPI principal pour Instagram (`x-rapidapi-host`) |
-| `RAPIDAPI_UA` | `RapidAPI-Playground` | En-tête `x-rapidapi-ua` transmis à RapidAPI |
-| `RAPIDAPI_TIKTOK_HOST` | `tiktok-video-no-watermark2.p.rapidapi.com` | Hôte RapidAPI pour l'extraction TikTok sans filigrane |
-
----
-
-## Déploiement sur Vercel (Recommandé)
-
-1. Importez votre dépôt Git sur **[Vercel](https://vercel.com/new)**.
-2. Dans la section **Environment Variables** du projet (`Settings` → `Environment Variables`), ajoutez :
-   - `RAPIDAPI_KEY` = `4ccf5ce995msha5582c5f65fa102p1181adjsn3547153d857f` *(ou votre clé active)*
-   - `RAPIDAPI_HOST` = `instagram-scraper-stable-api.p.rapidapi.com`
-   - `RAPIDAPI_UA` = `RapidAPI-Playground`
-   - `RAPIDAPI_TIKTOK_HOST` = `tiktok-video-no-watermark2.p.rapidapi.com`
-3. Cochez les environnements **Production**, **Preview** et **Development**, puis cliquez sur **Save**.
-4. Cliquez sur **Deploy**. Vercel détecte automatiquement le dossier `/api` (`api/extract.ts` et `api/download.ts`) ainsi que `vercel.json`.
+- **100 % Gratuit & Sans Clé Payante** : Aucun abonnement RapidAPI, aucune carte bancaire requise et aucun conteneur Docker payant.
+- **Moteur TikTok Direct** : Téléchargement Full HD 1080p sans filigrane, carrousels de photos haute résolution et extraction audio MP3.
+- **Moteur Instagram Multi-Niveaux** :
+  - **Niveau 1** : Analyse de l'embed officiel Instagram (`/p/{shortcode}/embed/captioned/`).
+  - **Niveau 2** : Requêtes GraphQL anonymes avec l'en-tête officiel `X-IG-App-ID: 936619743392459` (carrousels et Reels).
+  - **Niveau 3** : Moteur de secours multi-instances Cobalt libres et publiques (`api.cobalt.tools`, `capi.wuk.sh`, `cobalt.kwiatekm.tokyo`).
+  - **Avatars HD** : Extraction des photos de profil 1080×1080 via OpenGraph.
+- **Moteur X (Twitter)** : Prise en charge des vidéos et médias multiples via les moteurs ouverts BetterTwitFix / vxTwitter.
+- **Téléchargement Forcé Mobile & Desktop** (`/api/download`) : Flux avec en-têtes `Content-Disposition: attachment; filename="..."` et contournement CORS pour sauvegarder directement sur smartphone ou ordinateur sans ouverture d'onglet parasite.
+- **Design Moderne & Réactif** : Palette chaleureuse orange clair / pêche avec thème sombre / clair, tiroir de résultats interactif et conformité RGPD / conditions d'utilisation.
 
 ---
 
-## Déploiement sur Cloudflare Pages
+## 🏗️ Architecture du Projet
 
-1. Connectez votre dépôt Git dans **Cloudflare Dashboard** → **Workers & Pages** → **Create application** → **Pages**.
-2. Paramètres de build :
+```text
+VIDNEX/
+├── functions/api/          # Fonctions Serverless Cloudflare Pages Edge (Production)
+│   ├── extract.ts          # Moteur multi-plateformes (TikTok, Instagram, Twitter, Fallback)
+│   └── download.ts         # Proxy de téléchargement forcé avec bypass CORS
+├── server/api/             # API locales Express (Développement local)
+│   ├── extract.ts          # Moteurs locaux avec parité exacte Cloudflare
+│   ├── download.ts         # Proxy de téléchargement local
+│   ├── _config.ts          # Utilitaires de configuration
+│   └── _normalizer.ts      # Normalisation uniforme des charges utiles
+├── src/                    # Frontend React 18 + Vite
+│   ├── components/         # Header, HeroOmnibox, ResultDrawer, Footer, LegalModal
+│   ├── services/           # extractorService.ts, adsenseService.ts
+│   └── utils/              # Détecteur d'URL et helpers d'animation
+├── server.ts               # Serveur Node.js / Express local (port 3000)
+├── DEPLOY_FREE.md          # Guide pas-à-pas de déploiement Cloudflare Pages
+└── package.json            # Scripts et dépendances
+```
+
+---
+
+## 🚀 Démarrage Rapide
+
+### 1. Prérequis
+- Node.js 18+ ou 20+
+
+### 2. Installation
+```powershell
+npm install
+```
+
+### 3. Lancer en Développement Local
+```powershell
+npm run dev
+```
+L'application démarre sur `http://localhost:3000`.
+
+### 4. Compiler pour la Production
+```powershell
+npm run build
+```
+Les fichiers statiques optimisés sont générés dans le dossier `dist/`.
+
+---
+
+## 🌐 Déploiement Gratuit sur Cloudflare Pages
+
+Le déploiement s'effectue en quelques clics via Git :
+1. Créez un projet sur **[Cloudflare Pages](https://dash.cloudflare.com/)** lié à votre dépôt GitHub.
+2. Définissez les réglages suivants :
+   - **Framework preset** : `Vite`
    - **Build command** : `npm run build`
    - **Build output directory** : `dist`
-3. Allez dans **Settings** → **Environment variables** et ajoutez vos variables secrètes (**Encrypt** activé) :
-   - `RAPIDAPI_KEY`
-   - `RAPIDAPI_HOST` = `instagram-scraper-stable-api.p.rapidapi.com`
-   - `RAPIDAPI_UA` = `RapidAPI-Playground`
-   - `RAPIDAPI_TIKTOK_HOST` = `tiktok-video-no-watermark2.p.rapidapi.com`
-4. Les fonctions exportent nativement `onRequestPost` (`api/extract.ts`) et `onRequestGet` (`api/download.ts`) pour une compatibilité directe avec le runtime Edge de Cloudflare.
+3. Aucune variable d'environnement obligatoire n'est requise.
+4. Cliquez sur **Save and Deploy**.
+
+Consultez le guide complet et détaillé dans [DEPLOY_FREE.md](./DEPLOY_FREE.md).
+
+---
+
+## 📄 Licence
+Projet open-source distribué sous licence MIT.

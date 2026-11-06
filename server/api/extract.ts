@@ -4,21 +4,22 @@ import {
   BROWSER_USER_AGENT,
   calcSyndicationToken,
   getBetterTwitFixBaseUrl,
+  getBoundBackendUrl,
   getTikWmApiKey,
   prepareCookiesFile,
-} from './_config';
+} from './_config.ts';
 import {
-  ExtractRequestBody,
+  type ExtractRequestBody,
   normalizeTikWmPayload,
   normalizeVxTwitterPayload,
   normalizeYtDlpPayload,
   wrapWithDownloadProxy,
-} from './_normalizer';
+} from './_normalizer.ts';
 import {
   buildStudioFallbackResult,
   type MediaResult,
-} from '../src/services/extractorService';
-import { detectMediaUrl } from '../src/utils/urlDetector';
+} from '../../src/services/extractorService.ts';
+import { detectMediaUrl } from '../../src/utils/urlDetector.ts';
 
 const execFileAsync = promisify(execFile);
 
@@ -53,6 +54,7 @@ async function runYtDlpExtract(
 
 /**
  * Multi-Engine Extraction Router
+ * - Forwards to internal `BACKEND_URL` service binding when running in Vercel multi-service mode
  * - Engine 1: TikTok Direct Engine (`https://www.tikwm.com/api/` with server-side `TIKWM_API_KEY`)
  * - Engine 2: X / Twitter Engine (`dylanpdx/BetterTwitFix`: `vxtwitter` + `twExtract` Syndication + `fxtwitter`)
  * - Engine 3: Universal `yt-dlp` Engine (+ optional `COOKIES_TXT_BASE64`)
@@ -97,6 +99,33 @@ export async function handleServerlessExtract(
     identifier: body.identifier ?? detected.identifier,
     badgeLabel: body.badgeLabel || detected.badgeLabel,
   };
+
+  // ============================================================================
+  // VERCEL SERVICE BINDING: Forward to internal `backend` service (`BACKEND_URL`)
+  // ============================================================================
+  const boundBackendUrl = getBoundBackendUrl(env);
+  if (boundBackendUrl) {
+    try {
+      const targetEndpoint = new URL('/api/extract', boundBackendUrl);
+      const upstream = await fetch(targetEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(normalizedReq),
+        signal: AbortSignal.timeout(14000),
+      });
+      if (upstream.ok || upstream.status === 400 || upstream.status === 422) {
+        const json = await upstream.json().catch(() => null);
+        if (json) {
+          return { status: upstream.status, payload: json };
+        }
+      }
+    } catch {
+      // Fallback to direct engine execution below if bound service is unreachable
+    }
+  }
 
   // ============================================================================
   // ENGINE 1: TIKTOK DIRECT ENGINE (https://www.tikwm.com/api/ + TIKWM_API_KEY)

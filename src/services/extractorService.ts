@@ -1,16 +1,14 @@
-import { DetectedUrlInfo, PlatformId } from '../utils/urlDetector';
+import type { DetectedUrlInfo, PlatformId } from '../utils/urlDetector.ts';
 
 /**
- * Zero-Cost Self-Hosted Docker API Configuration
- * Connects to the FastAPI Multi-Engine Backend (TikWM + vxTwitter + yt-dlp + FFmpeg)
- * running on Hugging Face Spaces (`https://username-vidnex.hf.space`) or local port `7860`.
+ * Cloudflare Pages & Multi-Service API Configuration
+ * Defaults to relative `/api/extract` and `/api/download` routes on the same Cloudflare Pages domain.
  */
-export const DEMO_MODE = false;
-
 export const API_BASE_URL = (
-  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL ||
-  'http://localhost:7860'
+  import.meta.env?.VITE_API_BASE_URL ?? ''
 ).replace(/\/+$/, '');
+
+export const DEMO_MODE = import.meta.env?.VITE_DEMO_MODE === 'true';
 
 export function resolveApiUrl(pathOrUrl: string): string {
   if (!pathOrUrl) return '';
@@ -22,7 +20,7 @@ export function resolveApiUrl(pathOrUrl: string): string {
     typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1' &&
-    API_BASE_URL.includes('localhost:7860');
+    API_BASE_URL.includes('localhost');
 
   const effectiveBase = isRemotePreviewHost ? '' : API_BASE_URL;
 
@@ -113,7 +111,7 @@ export type MediaResult =
 
 /**
  * Main extraction dispatcher.
- * Calls `POST ${API_BASE_URL}/api/extract` (Multi-Engine TikWM + vxTwitter + yt-dlp).
+ * Calls `POST ${API_BASE_URL}/api/extract` (Cloudflare Pages Functions / Multi-Engine Backend).
  */
 export async function extractMediaFromUrl(
   url: string,
@@ -130,6 +128,11 @@ export async function extractMediaFromUrl(
     throw new Error(
       'EXTRACTION_DENIED: Target media belongs to a private account or restricted broadcast.'
     );
+  }
+
+  if (DEMO_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    return buildStudioFallbackResult(url, detected);
   }
 
   const candidateEndpoints = [resolveApiUrl('/api/extract')];
@@ -182,7 +185,7 @@ export async function extractMediaFromUrl(
 
   throw (
     lastError ||
-    new Error('Unable to reach VIDNEX extraction backend on port 7860.')
+    new Error('Unable to reach VIDNEX extraction backend (/api/extract).')
   );
 }
 

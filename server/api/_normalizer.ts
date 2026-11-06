@@ -4,8 +4,8 @@ import type {
   ProfileDpMediaResult,
   CarouselMediaResult,
   CarouselSlideItem,
-} from '../src/services/extractorService';
-import type { PlatformId, MediaType } from '../src/utils/urlDetector';
+} from '../../src/services/extractorService.ts';
+import type { PlatformId, MediaType } from '../../src/utils/urlDetector.ts';
 
 export interface ExtractRequestBody {
   url: string;
@@ -840,4 +840,4 @@ export function normalizeYtDlpPayload(
 
 // Keep alias exports so existing unit tests continue to pass
 export const normalizeTikTokRapidApiPayload = normalizeTikWmPayload;
-export { normalizeInstagramRapidApiPayload } from './_legacyIgNormalizer';
+export { normalizeInstagramRapidApiPayload } from './_legacyIgNormalizer.ts';

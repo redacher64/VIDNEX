@@ -12,6 +12,18 @@ export const BROWSER_USER_AGENT =
 
 export const DEFAULT_TIKWM_API_KEY = 'fbef7469f068f8ee1493378b59468819';
 
+/**
+ * Reads the internal URL of the `backend` service injected at runtime by
+ * Vercel Service Bindings (`{ "type": "service", "service": "backend", "format": "url", "env": "BACKEND_URL" }`).
+ */
+export function getBoundBackendUrl(
+  env: Record<string, string | undefined> = typeof process !== 'undefined'
+    ? process.env
+    : {}
+): string {
+  return (env.BACKEND_URL || '').trim();
+}
+
 export function getTikWmApiKey(
   env: Record<string, string | undefined> = typeof process !== 'undefined'
     ? process.env

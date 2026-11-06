@@ -4,8 +4,8 @@ import type {
   ProfileDpMediaResult,
   CarouselMediaResult,
   CarouselSlideItem,
-} from '../src/services/extractorService';
-import type { PlatformId, MediaType } from '../src/utils/urlDetector';
+} from '../../src/services/extractorService';
+import type { PlatformId, MediaType } from '../../src/utils/urlDetector';
 
 export interface ExtractRequestBody {
   url: string;

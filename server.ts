@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import extractHandler from './api/extract';
-import downloadHandler from './api/download';
-import proxyImageHandler from './api/proxy-image';
+import extractHandler from './server/api/extract';
+import downloadHandler from './server/api/download';
+import proxyImageHandler from './server/api/proxy-image';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

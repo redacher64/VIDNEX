@@ -4,7 +4,7 @@ import type {
   ProfileDpMediaResult,
   CarouselMediaResult,
   CarouselSlideItem,
-} from '../src/services/extractorService';
+} from '../../src/services/extractorService';
 import {
   ExtractRequestBody,
   wrapWithDownloadProxy,

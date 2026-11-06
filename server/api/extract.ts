@@ -18,8 +18,8 @@ import {
 import {
   buildStudioFallbackResult,
   type MediaResult,
-} from '../src/services/extractorService';
-import { detectMediaUrl } from '../src/utils/urlDetector';
+} from '../../src/services/extractorService';
+import { detectMediaUrl } from '../../src/utils/urlDetector';
 
 const execFileAsync = promisify(execFile);
 

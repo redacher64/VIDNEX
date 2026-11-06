@@ -6,14 +6,14 @@ import {
   getBestTwitterMp4Url,
   getTikWmApiKey,
   prepareCookiesFile,
-} from '../../api/_config';
+} from '../../server/api/_config';
 import {
   normalizeTikWmPayload,
   normalizeVxTwitterPayload,
   normalizeYtDlpPayload,
   normalizeInstagramRapidApiPayload,
-} from '../../api/_normalizer';
-import { resolveDownloadStream } from '../../api/download';
+} from '../../server/api/_normalizer';
+import { resolveDownloadStream } from '../../server/api/download';
 
 test('detects Instagram Reel URLs accurately', () => {
   const res = detectMediaUrl('https://www.instagram.com/reel/C8x9kLmN2pQ/');

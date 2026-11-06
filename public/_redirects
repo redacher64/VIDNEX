@@ -1,2 +1,0 @@
-# Cloudflare Pages SPA fallback (Cloudflare Pages Functions in /functions/api/* take precedence automatically)
-/* /index.html 200

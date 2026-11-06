@@ -1,14 +1,40 @@
 import { DetectedUrlInfo, PlatformId } from '../utils/urlDetector';
 
 /**
- * Production Serverless API Bridge Configuration
- * Routes requests through `/api/extract` and `/api/download` (Vercel / Cloudflare Pages / Express).
- * Zero API keys or secrets are ever stored in client code.
+ * Zero-Cost Self-Hosted Docker API Configuration
+ * Connects to the FastAPI Multi-Engine Backend (TikWM + vxTwitter + yt-dlp + FFmpeg)
+ * running on Hugging Face Spaces (`https://username-vidnex.hf.space`) or local port `7860`.
  */
-export const API_BASE_URL = (
-  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL || ''
-).replace(/\/+$/, '');
 export const DEMO_MODE = false;
+
+export const API_BASE_URL = (
+  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL ||
+  'http://localhost:7860'
+).replace(/\/+$/, '');
+
+export function resolveApiUrl(pathOrUrl: string): string {
+  if (!pathOrUrl) return '';
+  if (pathOrUrl.startsWith('data:') || pathOrUrl.startsWith('blob:')) {
+    return pathOrUrl;
+  }
+
+  const isRemotePreviewHost =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1' &&
+    API_BASE_URL.includes('localhost:7860');
+
+  const effectiveBase = isRemotePreviewHost ? '' : API_BASE_URL;
+
+  if (pathOrUrl.startsWith('http://localhost:7860') && isRemotePreviewHost) {
+    return pathOrUrl.replace('http://localhost:7860', '');
+  }
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+    return pathOrUrl;
+  }
+  const cleanPath = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  return `${effectiveBase}${cleanPath}`;
+}
 
 export type ResultPayloadType = 'video' | 'profile_dp' | 'carousel';
 
@@ -87,8 +113,7 @@ export type MediaResult =
 
 /**
  * Main extraction dispatcher.
- * Calls the Serverless Bridge (`POST /api/extract`) which securely injects
- * the RapidAPI key on the server and normalizes the upstream response.
+ * Calls `POST ${API_BASE_URL}/api/extract` (Multi-Engine TikWM + vxTwitter + yt-dlp).
  */
 export async function extractMediaFromUrl(
   url: string,
@@ -100,7 +125,6 @@ export async function extractMediaFromUrl(
     );
   }
 
-  // Guardrail for private accounts / restricted media
   if (url.toLowerCase().includes('private')) {
     await new Promise((resolve) => setTimeout(resolve, 450));
     throw new Error(
@@ -108,9 +132,15 @@ export async function extractMediaFromUrl(
     );
   }
 
-  if (!DEMO_MODE) {
+  const candidateEndpoints = [resolveApiUrl('/api/extract')];
+  if (candidateEndpoints[0] !== '/api/extract') {
+    candidateEndpoints.push('/api/extract');
+  }
+
+  let lastError: Error | null = null;
+  for (const endpoint of candidateEndpoints) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/extract`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,6 +159,7 @@ export async function extractMediaFromUrl(
         const errBody = await response.json().catch(() => ({}));
         throw new Error(
           errBody.message ||
+            errBody.detail ||
             `Extraction rejected with status ${response.status}`
         );
       }
@@ -144,12 +175,15 @@ export async function extractMediaFromUrl(
       ) {
         throw err;
       }
-      // If running in pure static mode without serverless backend, fall back cleanly
+      lastError =
+        err instanceof Error ? err : new Error('Backend extraction error');
     }
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 550));
-  return buildStudioFallbackResult(url, detected);
+  throw (
+    lastError ||
+    new Error('Unable to reach VIDNEX extraction backend on port 7860.')
+  );
 }
 
 function createStudioArtworkDataUri(

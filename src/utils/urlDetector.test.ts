@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { detectMediaUrl } from './urlDetector';
+import {
+  calcSyndicationToken,
+  getBestTwitterMp4Url,
+  getTikWmApiKey,
+  prepareCookiesFile,
+} from '../../api/_config';
+import {
+  normalizeTikWmPayload,
+  normalizeVxTwitterPayload,
+  normalizeYtDlpPayload,
+  normalizeInstagramRapidApiPayload,
+} from '../../api/_normalizer';
+import { resolveDownloadStream } from '../../api/download';
 
 test('detects Instagram Reel URLs accurately', () => {
   const res = detectMediaUrl('https://www.instagram.com/reel/C8x9kLmN2pQ/');
@@ -30,12 +43,16 @@ test('detects direct @handle for Instagram and TikTok', () => {
 });
 
 test('detects TikTok Video and Photo Slideshow URLs', () => {
-  const vid = detectMediaUrl('https://www.tiktok.com/@designsystems/video/7384920192837465');
+  const vid = detectMediaUrl(
+    'https://www.tiktok.com/@tiktok/video/7106594312292453675'
+  );
   assert.equal(vid.isValid, true);
   assert.equal(vid.platform, 'tiktok');
   assert.equal(vid.mediaType, 'video');
 
-  const photo = detectMediaUrl('https://www.tiktok.com/@minimal.archive/photo/7391029384756');
+  const photo = detectMediaUrl(
+    'https://www.tiktok.com/@minimal.archive/photo/7391029384756'
+  );
   assert.equal(photo.isValid, true);
   assert.equal(photo.platform, 'tiktok');
   assert.equal(photo.mediaType, 'slideshow');
@@ -47,7 +64,9 @@ test('detects YouTube Shorts, X, Facebook, and Snapchat URLs', () => {
   assert.equal(yt.platform, 'youtube');
   assert.equal(yt.mediaType, 'short');
 
-  const xPost = detectMediaUrl('https://x.com/linear_updates/status/1802938475610293');
+  const xPost = detectMediaUrl(
+    'https://x.com/linear_updates/status/1802938475610293'
+  );
   assert.equal(xPost.isValid, true);
   assert.equal(xPost.platform, 'twitter');
 
@@ -55,7 +74,9 @@ test('detects YouTube Shorts, X, Facebook, and Snapchat URLs', () => {
   assert.equal(fb.isValid, true);
   assert.equal(fb.platform, 'facebook');
 
-  const snap = detectMediaUrl('https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAY');
+  const snap = detectMediaUrl(
+    'https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAY'
+  );
   assert.equal(snap.isValid, true);
   assert.equal(snap.platform, 'snapchat');
 });
@@ -64,107 +85,217 @@ test('rejects empty or unsupported URLs', () => {
   const empty = detectMediaUrl('   ');
   assert.equal(empty.isValid, false);
 
-  const invalid = detectMediaUrl('https://example.com/not-a-supported-media-link');
+  const invalid = detectMediaUrl(
+    'https://example.com/not-a-supported-media-link'
+  );
   assert.equal(invalid.isValid, false);
 });
 
-import { getRapidApiConfig, buildRapidApiHeaders } from '../../api/_config';
-import {
-  normalizeInstagramRapidApiPayload,
-  normalizeTikTokRapidApiPayload,
-} from '../../api/_normalizer';
-import { resolveDownloadStream } from '../../api/download';
-
-test('server-side RapidAPI config injects x-rapidapi-key and x-rapidapi-host headers securely', () => {
-  const cfg = getRapidApiConfig({
-    RAPIDAPI_KEY: '4ccf5ce995msha5582c5f65fa102p1181adjsn3547153d857f',
-    RAPIDAPI_HOST: 'instagram-scraper-stable-api.p.rapidapi.com',
-    RAPIDAPI_UA: 'RapidAPI-Playground',
-  });
-  assert.equal(cfg.isConfigured, true);
-  const headers = buildRapidApiHeaders(cfg.instagramHost, cfg);
-  assert.equal(headers.accept, 'application/json');
+test('Engine 1 (TikWM) configures API key and normalizes TikTok Video, Slideshow, and Profile DP payloads', () => {
+  assert.equal(getTikWmApiKey({}), 'fbef7469f068f8ee1493378b59468819');
   assert.equal(
-    headers['x-rapidapi-host'],
-    'instagram-scraper-stable-api.p.rapidapi.com'
+    getTikWmApiKey({ TIKWM_API_KEY: 'custom_key_123' }),
+    'custom_key_123'
   );
-  assert.equal(
-    headers['x-rapidapi-key'],
-    '4ccf5ce995msha5582c5f65fa102p1181adjsn3547153d857f'
-  );
-  assert.equal(headers['x-rapidapi-ua'], 'RapidAPI-Playground');
-});
 
-test('normalizes Instagram Reel, Carousel, and Profile DP RapidAPI payloads to MediaResult', () => {
-  const reelPayload = {
-    data: {
-      xdt_shortcode_media: {
-        id: '12345',
-        video_url: 'https://cdn.instagram.com/reel_1080p.mp4',
-        display_url: 'https://cdn.instagram.com/reel_thumb.jpg',
-        video_duration: 34,
-        dimensions: { width: 1080, height: 1920 },
-        owner: { username: 'dieter.industrial', full_name: 'Industrial Lab', is_verified: true },
-        edge_media_to_caption: { edges: [{ node: { text: 'Studio CNC Reel' } }] },
+  const ttVideo = normalizeTikWmPayload(
+    {
+      data: {
+        id: '7106594312292453675',
+        title: 'TikTok HD No-Watermark Test',
+        duration: 24,
+        hdplay: 'https://v16m.tiktokcdn.com/hd.mp4',
+        play: 'https://v16m.tiktokcdn.com/sd.mp4',
+        music: 'https://v16m.tiktokcdn.com/audio.mp3',
+        cover: 'https://p16-sign.tiktokcdn.com/cover.jpg',
+        author: { unique_id: 'tiktok', nickname: 'TikTok' },
       },
     },
-  };
+    {
+      url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
+      platform: 'tiktok',
+      mediaType: 'video',
+    }
+  );
+  assert.ok(ttVideo);
+  assert.equal(ttVideo.payloadType, 'video');
+  assert.equal(ttVideo.creatorHandle, '@tiktok');
+  assert.ok(ttVideo.formats[0].downloadUrl.startsWith('/api/download?'));
+  assert.ok(ttVideo.thumbnailUrl.startsWith('/api/proxy-image?'));
 
-  const normalizedReel = normalizeInstagramRapidApiPayload(reelPayload, {
-    url: 'https://www.instagram.com/reel/C8x9kLmN2pQ/',
-    platform: 'instagram',
-    mediaType: 'reel',
-  });
-  assert.ok(normalizedReel);
-  assert.equal(normalizedReel.payloadType, 'video');
-  assert.equal(normalizedReel.creatorHandle, '@dieter.industrial');
-  assert.ok(normalizedReel.formats[0].downloadUrl.startsWith('/api/download?'));
-
-  const dpPayload = {
-    user: {
-      username: 'natgeo',
-      full_name: 'National Geographic',
-      follower_count: 281400000,
-      hd_profile_pic_url_info: { url: 'https://cdn.instagram.com/natgeo_1080.jpg' },
+  const ttSlideshow = normalizeTikWmPayload(
+    {
+      data: {
+        id: '998877',
+        title: 'Photo Slideshow',
+        images: [
+          'https://p16.tiktokcdn.com/img1.jpg',
+          'https://p16.tiktokcdn.com/img2.jpg',
+        ],
+        author: { unique_id: 'minimal.archive', nickname: 'Minimal Archive' },
+      },
     },
-  };
-  const normalizedDp = normalizeInstagramRapidApiPayload(dpPayload, {
-    url: 'https://www.instagram.com/natgeo/',
-    platform: 'instagram',
-    mediaType: 'profile',
-    identifier: '@natgeo',
-  });
-  assert.ok(normalizedDp);
-  assert.equal(normalizedDp.payloadType, 'profile_dp');
-  assert.equal(normalizedDp.dimensions, '1080 × 1080');
-  assert.ok(normalizedDp.hdOriginalUrl.startsWith('/api/download?'));
+    {
+      url: 'https://www.tiktok.com/@minimal.archive/photo/998877',
+      platform: 'tiktok',
+      mediaType: 'slideshow',
+    }
+  );
+  assert.ok(ttSlideshow);
+  assert.equal(ttSlideshow.payloadType, 'carousel');
+  assert.equal(ttSlideshow.items.length, 2);
 });
 
-test('normalizes TikTok video RapidAPI payload to MediaResult', () => {
-  const ttPayload = {
-    data: {
-      id: '7384920192837465',
-      title: 'Swiss Grid Systems in UI',
-      duration: 48,
-      hdplay: 'https://cdn.tiktok.com/hd_no_wm.mp4',
-      wmplay: 'https://cdn.tiktok.com/sd.mp4',
-      music: 'https://cdn.tiktok.com/audio.mp3',
-      cover: 'https://cdn.tiktok.com/cover.jpg',
-      author: { unique_id: 'designsystems', nickname: 'Swiss Grid Systems' },
+test('Engine 2 (BetterTwitFix / vxTwitter) normalizes video, multi-media carousel, and twExtract syndication payloads', () => {
+  const token = calcSyndicationToken('1577730467436138524');
+  assert.ok(token.length > 0 && !token.includes('0') && !token.includes('.'));
+
+  const bestMp4 = getBestTwitterMp4Url([
+    {
+      content_type: 'application/x-mpegURL',
+      url: 'https://video.twimg.com/pl.m3u8',
     },
+    {
+      content_type: 'video/mp4',
+      bitrate: 832000,
+      url: 'https://video.twimg.com/vid/720p.mp4?tag=12',
+    },
+    {
+      content_type: 'video/mp4',
+      bitrate: 10368000,
+      url: 'https://video.twimg.com/vid/hevc/1080p.mp4?tag=14',
+    },
+    {
+      content_type: 'video/mp4',
+      bitrate: 2176000,
+      url: 'https://video.twimg.com/vid/avc1/1080p.mp4?tag=14',
+    },
+  ]);
+  assert.equal(bestMp4, 'https://video.twimg.com/vid/avc1/1080p.mp4');
+
+  const vxPayload = {
+    tweetID: '1802938475610293',
+    text: 'High-speed UI architecture demo',
+    user_name: 'Linear Updates',
+    user_screen_name: 'linear_updates',
+    media_extended: [
+      {
+        type: 'video',
+        url: 'https://video.twimg.com/ext_tw_video/1080p.mp4?tag=12',
+        thumbnail_url: 'https://pbs.twimg.com/ext_tw_video_thumb/img.jpg',
+        duration_millis: 29000,
+        size: { width: 1920, height: 1080 },
+      },
+    ],
   };
-  const normalizedTt = normalizeTikTokRapidApiPayload(ttPayload, {
-    url: 'https://www.tiktok.com/@designsystems/video/7384920192837465',
-    platform: 'tiktok',
+
+  const normalized = normalizeVxTwitterPayload(vxPayload, {
+    url: 'https://x.com/linear_updates/status/1802938475610293',
+    platform: 'twitter',
     mediaType: 'video',
   });
-  assert.ok(normalizedTt);
-  assert.equal(normalizedTt.payloadType, 'video');
-  assert.equal(normalizedTt.creatorHandle, '@designsystems');
-  assert.ok(normalizedTt.formats[0].downloadUrl.startsWith('/api/download?'));
+  assert.ok(normalized);
+  assert.equal(normalized.payloadType, 'video');
+  assert.equal(normalized.creatorHandle, '@linear_updates');
+  assert.equal(normalized.aspectRatio, '16:9');
+  assert.ok(normalized.formats[0].downloadUrl.startsWith('/api/download?'));
+
+  // BetterTwitFix twExtract syndication payload
+  const syndicationPayload = {
+    id_str: '1577730467436138524',
+    text: 'Syndication video test',
+    user: { screen_name: 'Twitter', name: 'Twitter Official' },
+    mediaDetails: [
+      {
+        type: 'video',
+        media_url_https: 'https://pbs.twimg.com/thumb.jpg',
+        original_info: { width: 1920, height: 1080 },
+        video_info: {
+          duration_millis: 15000,
+          variants: [
+            {
+              content_type: 'video/mp4',
+              bitrate: 2176000,
+              url: 'https://video.twimg.com/syndication_1080p.mp4?tag=12',
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const normSyn = normalizeVxTwitterPayload(syndicationPayload, {
+    url: 'https://x.com/Twitter/status/1577730467436138524',
+    platform: 'twitter',
+    mediaType: 'video',
+  });
+  assert.ok(normSyn);
+  assert.equal(normSyn.payloadType, 'video');
+  assert.equal(normSyn.creatorHandle, '@Twitter');
 });
 
-test('/api/download proxy enforces Content-Disposition attachment header', async () => {
+test('Engine 3 (yt-dlp) normalizes single video and multi-entry carousel JSON', () => {
+  const ytdlpVideo = normalizeYtDlpPayload(
+    {
+      id: 'dQw4w9WgXcQ',
+      title: 'Optical Clock Engineering Short',
+      uploader: 'Veritas Engineering',
+      uploader_id: '@veritas_engineering',
+      duration: 58,
+      width: 1080,
+      height: 1920,
+      thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      formats: [
+        {
+          url: 'https://rr1---sn.googlevideo.com/videoplayback_1080p.mp4',
+          vcodec: 'avc1.64002a',
+          acodec: 'mp4a.40.2',
+          height: 1920,
+          width: 1080,
+          filesize: 18400000,
+        },
+      ],
+    },
+    {
+      url: 'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+      platform: 'youtube',
+      mediaType: 'short',
+    }
+  );
+  assert.ok(ytdlpVideo);
+  assert.equal(ytdlpVideo.payloadType, 'video');
+  assert.equal(ytdlpVideo.creatorHandle, '@veritas_engineering');
+  assert.ok(ytdlpVideo.formats[0].downloadUrl.startsWith('/api/download?'));
+
+  const igGraph = normalizeInstagramRapidApiPayload(
+    {
+      user: {
+        username: 'natgeo',
+        full_name: 'National Geographic',
+        follower_count: 281400000,
+        hd_profile_pic_url_info: {
+          url: 'https://cdn.instagram.com/natgeo_1080.jpg',
+        },
+      },
+    },
+    {
+      url: 'https://www.instagram.com/natgeo/',
+      platform: 'instagram',
+      mediaType: 'profile',
+    }
+  );
+  assert.ok(igGraph);
+  assert.equal(igGraph.payloadType, 'profile_dp');
+});
+
+test('COOKIES_TXT_BASE64 decodes valid Netscape cookie file to /tmp/cookies.txt', () => {
+  const sampleCookies =
+    '# Netscape HTTP Cookie File\n.instagram.com\tTRUE\t/\tTRUE\t2147483647\tsessionid\ttest_val\n';
+  const b64 = Buffer.from(sampleCookies, 'utf-8').toString('base64');
+  const path = prepareCookiesFile({ COOKIES_TXT_BASE64: b64 });
+  assert.equal(path, '/tmp/cookies.txt');
+});
+
+test('/api/download proxy returns playable multi-megabyte MP4 with Content-Disposition attachment', async () => {
   const res = await resolveDownloadStream(
     'synthetic://instagram/dieter_industrial/1080p.mp4',
     'VIDNEX_instagram_dieter_1080p.mp4'
@@ -175,4 +306,5 @@ test('/api/download proxy enforces Content-Disposition attachment header', async
     'attachment; filename="VIDNEX_instagram_dieter_1080p.mp4"'
   );
   assert.equal(res.headers['Content-Type'], 'video/mp4');
+  assert.ok((res.body as Uint8Array).byteLength > 1000000);
 });

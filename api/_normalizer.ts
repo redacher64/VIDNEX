@@ -5,14 +5,27 @@ import type {
   CarouselMediaResult,
   CarouselSlideItem,
 } from '../src/services/extractorService';
-import type { PlatformId, MediaContentType } from '../src/utils/urlDetector';
+import type { PlatformId, MediaType } from '../src/utils/urlDetector';
 
 export interface ExtractRequestBody {
   url: string;
   platform: PlatformId;
-  mediaType: MediaContentType;
+  mediaType: MediaType | null;
   identifier?: string | null;
   badgeLabel?: string;
+}
+
+export function resolveUpstreamUrl(rawUrl: string | undefined): string {
+  if (!rawUrl) return '';
+  if (rawUrl.startsWith('//')) return `https:${rawUrl}`;
+  if (
+    rawUrl.startsWith('/') &&
+    !rawUrl.startsWith('/api/') &&
+    !rawUrl.startsWith('/samples/')
+  ) {
+    return `https://www.tikwm.com${rawUrl}`;
+  }
+  return rawUrl;
 }
 
 export function wrapWithDownloadProxy(
@@ -20,17 +33,31 @@ export function wrapWithDownloadProxy(
   filename: string,
   fallbackHash = '#download'
 ): string {
-  if (!rawUrl || rawUrl.startsWith('#') || rawUrl.startsWith('data:')) {
+  const resolved = resolveUpstreamUrl(rawUrl);
+  if (!resolved || resolved.startsWith('#') || resolved.startsWith('data:')) {
     return fallbackHash;
   }
   const params = new URLSearchParams({
-    url: rawUrl,
+    url: resolved,
     filename,
   });
   return `/api/download?${params.toString()}`;
 }
 
-function formatDurationSeconds(seconds: unknown): string {
+export function wrapWithImageProxy(rawUrl: string | undefined): string {
+  const resolved = resolveUpstreamUrl(rawUrl);
+  if (!resolved) return '';
+  if (
+    resolved.startsWith('data:') ||
+    resolved.startsWith('/api/proxy-image') ||
+    resolved.startsWith('/samples/')
+  ) {
+    return resolved;
+  }
+  return `/api/proxy-image?${new URLSearchParams({ url: resolved }).toString()}`;
+}
+
+export function formatDurationSeconds(seconds: unknown): string {
   const num = Number(seconds);
   if (!Number.isFinite(num) || num <= 0) return '00:34';
   const mins = Math.floor(num / 60);
@@ -38,7 +65,15 @@ function formatDurationSeconds(seconds: unknown): string {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-function formatFollowersCount(count: unknown): string {
+export function formatFileSizeBytes(bytes: unknown, fallback = '14.2 MB'): string {
+  const num = Number(bytes);
+  if (!Number.isFinite(num) || num <= 0) return fallback;
+  const mb = num / (1024 * 1024);
+  if (mb < 1) return `${Math.max(100, Math.round(num / 1024))} KB`;
+  return `${mb.toFixed(1)} MB`;
+}
+
+export function formatFollowersCount(count: unknown): string {
   const num = Number(count);
   if (!Number.isFinite(num) || num <= 0) return '142.8K';
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
@@ -70,252 +105,11 @@ function createStudioFallbackSvgDataUri(
 }
 
 /**
- * Normalizes raw Instagram Scraper Stable API responses into VIDNEX `MediaResult`.
- * Handles GraphVideo, GraphSidecar (carousel), GraphImage, Reels, and User Profile DP payloads.
+ * Engine 1 Normalizer: TikWM (`https://www.tikwm.com/api/`)
+ * Maps `hdplay`/`play` to 1080p/720p MP4, `music` to MP3, `images[]` to `CarouselMediaResult`,
+ * and `user/info` or `author.avatar` to `ProfileDpMediaResult`.
  */
-export function normalizeInstagramRapidApiPayload(
-  raw: any,
-  req: ExtractRequestBody
-): MediaResult | null {
-  if (!raw || typeof raw !== 'object') return null;
-
-  const data =
-    raw.data?.xdt_shortcode_media ||
-    raw.graphql?.shortcode_media ||
-    raw.data?.user ||
-    raw.user ||
-    raw.data ||
-    raw.result ||
-    raw;
-
-  if (!data || typeof data !== 'object') return null;
-
-  const nowIso = new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-
-  // 1. Check if payload is a Profile DP response
-  const hdProfilePic =
-    data.hd_profile_pic_url_info?.url ||
-    data.profile_pic_url_hd ||
-    data.user?.hd_profile_pic_url_info?.url ||
-    data.user?.profile_pic_url_hd;
-
-  if (
-    req.mediaType === 'profile' ||
-    (hdProfilePic && !data.video_url && !data.video_versions && !data.edge_sidecar_to_children && !data.carousel_media)
-  ) {
-    const picUrl =
-      hdProfilePic ||
-      data.profile_pic_url ||
-      data.user?.profile_pic_url;
-
-    if (!picUrl) return null;
-
-    const rawHandle =
-      data.username ||
-      data.user?.username ||
-      (req.identifier || 'instagram').replace(/^@/, '');
-    const cleanHandle = String(rawHandle).replace(/^@/, '');
-
-    const result: ProfileDpMediaResult = {
-      id: `ig-dp-${cleanHandle}-${Date.now()}`,
-      payloadType: 'profile_dp',
-      platform: 'instagram',
-      badgeLabel: req.badgeLabel || `Instagram Profile (@${cleanHandle})`,
-      sourceUrl: req.url,
-      creatorHandle: `@${cleanHandle}`,
-      creatorName:
-        data.full_name || data.user?.full_name || `@${cleanHandle}`,
-      verified: Boolean(data.is_verified ?? data.user?.is_verified ?? true),
-      extractedAt: nowIso,
-      biography:
-        data.biography ||
-        data.bio ||
-        'Instagram creator profile resolved via VIDNEX HD DP pipeline.',
-      followersCount: formatFollowersCount(
-        data.follower_count ??
-          data.edge_followed_by?.count ??
-          data.followers_count
-      ),
-      standardPreviewUrl: picUrl,
-      hdOriginalUrl: wrapWithDownloadProxy(
-        picUrl,
-        `VIDNEX_${cleanHandle}_HD_DP.jpg`
-      ),
-      dimensions: '1080 × 1080',
-      fileSize: '1.8 MB',
-      format: 'JPG',
-    };
-    return result;
-  }
-
-  const owner = data.owner || data.user || {};
-  const handle = String(
-    owner.username || (req.identifier || 'instagram_creator').replace(/^@/, '')
-  ).replace(/^@/, '');
-  const fullName = String(owner.full_name || `@${handle}`);
-  const captionText =
-    data.edge_media_to_caption?.edges?.[0]?.node?.text ||
-    data.caption?.text ||
-    data.title ||
-    'Instagram HD Original Media Stream';
-
-  // 2. Check if payload is a Multi-Slide Carousel (GraphSidecar / carousel_media)
-  const sidecarEdges: any[] | undefined =
-    data.edge_sidecar_to_children?.edges || data.carousel_media;
-
-  if (Array.isArray(sidecarEdges) && sidecarEdges.length > 0) {
-    const items: CarouselSlideItem[] = sidecarEdges.map((edge, idx) => {
-      const node = edge?.node || edge || {};
-      const isVideo = Boolean(
-        node.is_video ||
-          node.media_type === 2 ||
-          node.video_url ||
-          node.video_versions?.[0]?.url
-      );
-      const mediaUrl: string =
-        (isVideo
-          ? node.video_url || node.video_versions?.[0]?.url
-          : node.display_url ||
-            node.image_versions2?.candidates?.[0]?.url ||
-            node.thumbnail_src) || '';
-      const thumbUrl: string =
-        node.display_url ||
-        node.image_versions2?.candidates?.[0]?.url ||
-        node.thumbnail_src ||
-        createStudioFallbackSvgDataUri(
-          `SLIDE 0${idx + 1}`,
-          isVideo ? '1080P MP4' : '1080P JPG'
-        );
-      const width = node.dimensions?.width || node.original_width || 1080;
-      const height = node.dimensions?.height || node.original_height || 1350;
-      const ext = isVideo ? 'mp4' : 'jpg';
-
-      return {
-        id: String(node.id || node.pk || `slide-${idx + 1}`),
-        index: idx + 1,
-        mediaType: isVideo ? 'video' : 'image',
-        dimensions: `${width} × ${height}`,
-        fileSize: isVideo ? '7.8 MB' : '2.1 MB',
-        thumbnailUrl: thumbUrl,
-        downloadUrl: wrapWithDownloadProxy(
-          mediaUrl || thumbUrl,
-          `VIDNEX_${handle}_slide_${idx + 1}.${ext}`
-        ),
-      };
-    });
-
-    const carouselResult: CarouselMediaResult = {
-      id: `ig-carousel-${data.id || Date.now()}`,
-      payloadType: 'carousel',
-      platform: 'instagram',
-      badgeLabel: req.badgeLabel || 'Instagram Multi-Slide Carousel',
-      sourceUrl: req.url,
-      creatorHandle: `@${handle}`,
-      creatorName: fullName,
-      verified: Boolean(owner.is_verified ?? true),
-      extractedAt: nowIso,
-      caption: String(captionText).slice(0, 220),
-      totalItems: items.length,
-      archiveSize: `${(items.length * 2.6).toFixed(1)} MB`,
-      items,
-    };
-    return carouselResult;
-  }
-
-  // 3. Single Video / Reel / Post
-  const videoUrl: string | undefined =
-    data.video_url ||
-    data.video_versions?.[0]?.url ||
-    data.clips_metadata?.original_sound_info?.progressive_download_url;
-  const sdVideoUrl: string | undefined =
-    data.video_versions?.[1]?.url || videoUrl;
-  const audioUrl: string | undefined =
-    data.clips_metadata?.original_sound_info?.progressive_download_url ||
-    data.music_metadata?.music_info?.music_asset_info?.progressive_download_url ||
-    videoUrl;
-  const displayUrl: string | undefined =
-    data.display_url ||
-    data.thumbnail_src ||
-    data.image_versions2?.candidates?.[0]?.url;
-
-  if (!videoUrl && !displayUrl) {
-    return null;
-  }
-
-  const primaryMediaUrl = videoUrl || displayUrl!;
-  const width = data.dimensions?.width || data.original_width || 1080;
-  const height = data.dimensions?.height || data.original_height || 1920;
-
-  const videoResult: VideoMediaResult = {
-    id: `ig-vid-${data.id || Date.now()}`,
-    payloadType: 'video',
-    platform: 'instagram',
-    badgeLabel: req.badgeLabel || 'Instagram Reel',
-    sourceUrl: req.url,
-    creatorHandle: `@${handle}`,
-    creatorName: fullName,
-    verified: Boolean(owner.is_verified ?? true),
-    extractedAt: nowIso,
-    title: String(captionText).slice(0, 180),
-    duration: formatDurationSeconds(data.video_duration ?? data.duration),
-    aspectRatio: width > height ? '16:9' : '9:16',
-    resolution: `${width} × ${height}`,
-    codec: 'H.264 / AAC • 60fps',
-    thumbnailUrl:
-      displayUrl ||
-      createStudioFallbackSvgDataUri('IG REEL 1080P', '60FPS • H.264 MASTER'),
-    formats: [
-      {
-        id: 'hd-1080p',
-        label: 'Download HD 1080p (No Watermark)',
-        quality: '1080p',
-        container: 'MP4',
-        fileSize: '14.2 MB',
-        noWatermark: true,
-        downloadUrl: wrapWithDownloadProxy(
-          primaryMediaUrl,
-          `VIDNEX_instagram_${handle}_1080p.mp4`
-        ),
-        isPrimary: true,
-      },
-      {
-        id: 'sd-720p',
-        label: 'Download SD 720p',
-        quality: '720p',
-        container: 'MP4',
-        fileSize: '6.8 MB',
-        noWatermark: true,
-        downloadUrl: wrapWithDownloadProxy(
-          sdVideoUrl || primaryMediaUrl,
-          `VIDNEX_instagram_${handle}_720p.mp4`
-        ),
-      },
-      {
-        id: 'audio-mp3',
-        label: 'Extract Audio (MP3)',
-        quality: 'MP3',
-        container: 'MP3',
-        fileSize: '1.4 MB',
-        noWatermark: true,
-        downloadUrl: wrapWithDownloadProxy(
-          audioUrl || primaryMediaUrl,
-          `VIDNEX_instagram_${handle}_audio.mp3`
-        ),
-      },
-    ],
-  };
-
-  return videoResult;
-}
-
-/**
- * Normalizes raw TikTok RapidAPI responses into VIDNEX `MediaResult`.
- */
-export function normalizeTikTokRapidApiPayload(
+export function normalizeTikWmPayload(
   raw: any,
   req: ExtractRequestBody
 ): MediaResult | null {
@@ -329,6 +123,52 @@ export function normalizeTikTokRapidApiPayload(
     second: '2-digit',
   });
 
+  // 1A. TikWM /api/user/info Profile DP response
+  if (req.mediaType === 'profile' || data.user) {
+    const userObj = data.user || data.author || data;
+    const statsObj = data.stats || {};
+    const avatarUrl =
+      userObj.avatarLarger ||
+      userObj.avatar_larger?.url_list?.[0] ||
+      userObj.avatarMedium ||
+      userObj.avatar;
+    if (avatarUrl && req.mediaType === 'profile') {
+      const handle = String(
+        userObj.uniqueId ||
+          userObj.unique_id ||
+          (req.identifier || 'tiktok').replace(/^@/, '')
+      ).replace(/^@/, '');
+      const fullName = String(userObj.nickname || `@${handle}`);
+
+      const dpResult: ProfileDpMediaResult = {
+        id: `tt-dp-${handle}-${Date.now()}`,
+        payloadType: 'profile_dp',
+        platform: 'tiktok',
+        badgeLabel: req.badgeLabel || `TikTok Profile (@${handle})`,
+        sourceUrl: req.url,
+        creatorHandle: `@${handle}`,
+        creatorName: fullName,
+        verified: Boolean(userObj.verified ?? true),
+        extractedAt: nowIso,
+        biography:
+          userObj.signature ||
+          'TikTok creator profile resolved via VIDNEX HD DP pipeline.',
+        followersCount: formatFollowersCount(
+          statsObj.followerCount ?? userObj.follower_count
+        ),
+        standardPreviewUrl: wrapWithImageProxy(avatarUrl),
+        hdOriginalUrl: wrapWithDownloadProxy(
+          avatarUrl,
+          `VIDNEX_${handle}_TikTok_HD_DP.jpg`
+        ),
+        dimensions: '1080 × 1080',
+        fileSize: '1.5 MB',
+        format: 'JPG',
+      };
+      return dpResult;
+    }
+  }
+
   const author = data.author || {};
   const handle = String(
     author.unique_id ||
@@ -337,40 +177,7 @@ export function normalizeTikTokRapidApiPayload(
   ).replace(/^@/, '');
   const fullName = String(author.nickname || `@${handle}`);
 
-  if (req.mediaType === 'profile') {
-    const avatarUrl =
-      author.avatar_larger?.url_list?.[0] ||
-      author.avatarLarger ||
-      author.avatar ||
-      data.avatarLarger;
-    if (!avatarUrl) return null;
-
-    return {
-      id: `tt-dp-${handle}-${Date.now()}`,
-      payloadType: 'profile_dp',
-      platform: 'tiktok',
-      badgeLabel: req.badgeLabel || `TikTok Profile (@${handle})`,
-      sourceUrl: req.url,
-      creatorHandle: `@${handle}`,
-      creatorName: fullName,
-      verified: true,
-      extractedAt: nowIso,
-      biography:
-        author.signature ||
-        'TikTok creator profile resolved via VIDNEX HD DP pipeline.',
-      followersCount: formatFollowersCount(author.follower_count),
-      standardPreviewUrl: avatarUrl,
-      hdOriginalUrl: wrapWithDownloadProxy(
-        avatarUrl,
-        `VIDNEX_${handle}_TikTok_HD_DP.jpg`
-      ),
-      dimensions: '1080 × 1080',
-      fileSize: '1.5 MB',
-      format: 'JPG',
-    };
-  }
-
-  // TikTok Photo Mode Slideshow
+  // 1B. TikTok Photo Mode Slideshow (`images[]`)
   const images: any[] | undefined = data.images || data.image_post_info?.images;
   if (Array.isArray(images) && images.length > 0) {
     const items: CarouselSlideItem[] = images.map((img, idx) => {
@@ -384,9 +191,9 @@ export function normalizeTikTokRapidApiPayload(
         mediaType: 'image',
         dimensions: '1080 × 1350',
         fileSize: '1.9 MB',
-        thumbnailUrl:
-          imgUrl ||
-          createStudioFallbackSvgDataUri(`SLIDE 0${idx + 1}`, '1080P JPG'),
+        thumbnailUrl: imgUrl
+          ? wrapWithImageProxy(imgUrl)
+          : createStudioFallbackSvgDataUri(`SLIDE 0${idx + 1}`, '1080P JPG'),
         downloadUrl: wrapWithDownloadProxy(
           imgUrl,
           `VIDNEX_${handle}_slide_${idx + 1}.jpg`
@@ -394,7 +201,7 @@ export function normalizeTikTokRapidApiPayload(
       };
     });
 
-    return {
+    const carouselResult: CarouselMediaResult = {
       id: `tt-carousel-${data.id || Date.now()}`,
       payloadType: 'carousel',
       platform: 'tiktok',
@@ -419,8 +226,10 @@ export function normalizeTikTokRapidApiPayload(
           }
         : undefined,
     };
+    return carouselResult;
   }
 
+  // 1C. TikTok HD Video (`hdplay` / `play`)
   const hdPlay =
     data.hdplay ||
     data.play ||
@@ -428,17 +237,16 @@ export function normalizeTikTokRapidApiPayload(
     data.video_url;
   if (!hdPlay) return null;
 
-  const wmPlay = data.wmplay || hdPlay;
+  const sdPlay = data.play || data.wmplay || hdPlay;
   const musicUrl =
     (typeof data.music === 'string' ? data.music : data.music_info?.play) ||
     hdPlay;
-  const coverUrl =
+  const rawCover =
     data.origin_cover ||
     data.cover ||
-    data.video?.cover?.url_list?.[0] ||
-    createStudioFallbackSvgDataUri('TIKTOK LOSSLESS', 'NO WATERMARK • 1080P');
+    data.video?.cover?.url_list?.[0];
 
-  return {
+  const videoResult: VideoMediaResult = {
     id: `tt-vid-${data.id || Date.now()}`,
     payloadType: 'video',
     platform: 'tiktok',
@@ -453,14 +261,16 @@ export function normalizeTikTokRapidApiPayload(
     aspectRatio: '9:16',
     resolution: '1080 × 1920',
     codec: 'H.264 / AAC • 60fps',
-    thumbnailUrl: coverUrl,
+    thumbnailUrl: rawCover
+      ? wrapWithImageProxy(rawCover)
+      : createStudioFallbackSvgDataUri('TIKTOK LOSSLESS', 'NO WATERMARK • 1080P'),
     formats: [
       {
         id: 'hd-1080p',
         label: 'Download HD 1080p (No Watermark)',
         quality: '1080p',
         container: 'MP4',
-        fileSize: '18.6 MB',
+        fileSize: formatFileSizeBytes(data.hd_size || data.size, '18.6 MB'),
         noWatermark: true,
         downloadUrl: wrapWithDownloadProxy(
           hdPlay,
@@ -473,10 +283,10 @@ export function normalizeTikTokRapidApiPayload(
         label: 'Download SD 720p',
         quality: '720p',
         container: 'MP4',
-        fileSize: '8.9 MB',
+        fileSize: formatFileSizeBytes(data.size, '8.9 MB'),
         noWatermark: true,
         downloadUrl: wrapWithDownloadProxy(
-          wmPlay,
+          sdPlay,
           `VIDNEX_tiktok_${handle}_720p.mp4`
         ),
       },
@@ -494,4 +304,540 @@ export function normalizeTikTokRapidApiPayload(
       },
     ],
   };
+  return videoResult;
 }
+
+/**
+ * Engine 2 Normalizer: BetterTwitFix (`github.com/dylanpdx/BetterTwitFix`)
+ * Supports:
+ * - `vxApi.py` schema (`media_extended` for video, gif, and multi-media carousels)
+ * - `twExtract` / Syndication schema (`mediaDetails` / `extended_entities.media` with `getBestMediaUrl` H.264 filter)
+ * - `api.fxtwitter.com` fallback schema
+ */
+export function normalizeVxTwitterPayload(
+  raw: any,
+  req: ExtractRequestBody
+): MediaResult | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const nowIso = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  // Case A: BetterTwitFix (`vxApi.py` / `api.vxtwitter.com`) schema (`media_extended`)
+  if (Array.isArray(raw.media_extended) && raw.media_extended.length > 0) {
+    const handle = String(raw.user_screen_name || 'x_creator').replace(
+      /^@/,
+      ''
+    );
+    const creatorName = String(raw.user_name || `@${handle}`);
+    const tweetText = String(raw.text || `X Broadcast by @${handle}`);
+
+    // Multi-item X Carousel (2+ media items in `media_extended`)
+    if (raw.media_extended.length > 1) {
+      const items: CarouselSlideItem[] = raw.media_extended
+        .filter((m: any) => m && m.url)
+        .map((m: any, idx: number) => {
+          const isVid = m.type === 'video' || m.type === 'gif';
+          const cleanUrl =
+            isVid && String(m.url).includes('?tag=')
+              ? String(m.url).slice(0, String(m.url).indexOf('?tag='))
+              : String(m.url);
+          const ext = isVid ? 'mp4' : 'jpg';
+          const w = m.size?.width || 1080;
+          const h = m.size?.height || 1350;
+          return {
+            id: `x-slide-${idx + 1}`,
+            index: idx + 1,
+            mediaType: isVid ? 'video' : 'image',
+            dimensions: `${w} × ${h}`,
+            fileSize: isVid ? '5.4 MB' : '1.8 MB',
+            thumbnailUrl: wrapWithImageProxy(m.thumbnail_url || cleanUrl),
+            downloadUrl: wrapWithDownloadProxy(
+              cleanUrl,
+              `VIDNEX_x_${handle}_slide_${idx + 1}.${ext}`
+            ),
+          };
+        });
+
+      if (items.length > 1) {
+        return {
+          id: `x-carousel-${raw.tweetID || Date.now()}`,
+          payloadType: 'carousel',
+          platform: 'twitter',
+          badgeLabel: req.badgeLabel || `X Multi-Media Post (@${handle})`,
+          sourceUrl: req.url,
+          creatorHandle: `@${handle}`,
+          creatorName,
+          verified: true,
+          extractedAt: nowIso,
+          caption: tweetText,
+          totalItems: items.length,
+          archiveSize: `${(items.length * 2.6).toFixed(1)} MB`,
+          items,
+        };
+      }
+    }
+
+    const vid = raw.media_extended.find(
+      (m: any) => (m.type === 'video' || m.type === 'gif') && m.url
+    );
+    if (vid) {
+      const cleanVidUrl = String(vid.url).includes('?tag=')
+        ? String(vid.url).slice(0, String(vid.url).indexOf('?tag='))
+        : String(vid.url);
+      const w = vid.size?.width || 1920;
+      const h = vid.size?.height || 1080;
+      const durSec = vid.duration_millis ? vid.duration_millis / 1000 : 29;
+      return {
+        id: `x-vid-${raw.tweetID || Date.now()}`,
+        payloadType: 'video',
+        platform: 'twitter',
+        badgeLabel: req.badgeLabel || `X Post (@${handle})`,
+        sourceUrl: req.url,
+        creatorHandle: `@${handle}`,
+        creatorName,
+        verified: true,
+        extractedAt: nowIso,
+        title: tweetText,
+        duration: formatDurationSeconds(durSec),
+        aspectRatio: w >= h ? '16:9' : '9:16',
+        resolution: `${w} × ${h}`,
+        codec: 'H.264 / AAC • 60fps',
+        thumbnailUrl: vid.thumbnail_url
+          ? wrapWithImageProxy(vid.thumbnail_url)
+          : createStudioFallbackSvgDataUri('X BROADCAST', '1080P STREAM'),
+        formats: [
+          {
+            id: 'hd-1080p',
+            label: 'Download HD 1080p (No Watermark)',
+            quality: '1080p',
+            container: 'MP4',
+            fileSize: '11.4 MB',
+            noWatermark: true,
+            downloadUrl: wrapWithDownloadProxy(
+              cleanVidUrl,
+              `VIDNEX_x_${handle}_1080p.mp4`
+            ),
+            isPrimary: true,
+          },
+          {
+            id: 'sd-720p',
+            label: 'Download SD 720p',
+            quality: '720p',
+            container: 'MP4',
+            fileSize: '5.2 MB',
+            noWatermark: true,
+            downloadUrl: wrapWithDownloadProxy(
+              cleanVidUrl,
+              `VIDNEX_x_${handle}_720p.mp4`
+            ),
+          },
+          {
+            id: 'audio-mp3',
+            label: 'Extract Audio (MP3)',
+            quality: 'MP3',
+            container: 'MP3',
+            fileSize: '1.1 MB',
+            noWatermark: true,
+            downloadUrl: wrapWithDownloadProxy(
+              cleanVidUrl,
+              `VIDNEX_x_${handle}_audio.mp3`
+            ),
+          },
+        ],
+      };
+    }
+  }
+
+  // Case B: BetterTwitFix `twExtract` (`extractStatus_syndication` / `extractStatusV2`) raw payload
+  const syndicationMedia: any[] | undefined =
+    raw.mediaDetails ||
+    raw.extended_entities?.media ||
+    raw.legacy?.extended_entities?.media;
+  if (Array.isArray(syndicationMedia) && syndicationMedia.length > 0) {
+    const userObj =
+      raw.user ||
+      raw.core?.user_results?.result?.legacy ||
+      raw.core?.user_result?.result?.legacy ||
+      {};
+    const handle = String(
+      userObj.screen_name || req.identifier || 'x_creator'
+    ).replace(/^@/, '');
+    const creatorName = String(userObj.name || `@${handle}`);
+    const tweetText = String(
+      raw.text || raw.full_text || raw.legacy?.full_text || `X Post by @${handle}`
+    );
+
+    const videoEntry = syndicationMedia.find(
+      (m: any) =>
+        (m.type === 'video' || m.type === 'animated_gif') &&
+        Array.isArray(m.video_info?.variants)
+    );
+    if (videoEntry) {
+      const variants: any[] = videoEntry.video_info.variants;
+      // BetterTwitFix `getBestMediaUrl` logic: highest bitrate `video/mp4` without `/hevc/` and strip `?tag=`
+      let bestBitrate = -1;
+      let bestUrl = '';
+      for (const v of variants) {
+        if (
+          v?.content_type === 'video/mp4' &&
+          typeof v.url === 'string' &&
+          !v.url.includes('/hevc/') &&
+          (v.bitrate ?? 0) > bestBitrate
+        ) {
+          bestUrl = v.url;
+          bestBitrate = v.bitrate ?? 0;
+        }
+      }
+      if (bestUrl.includes('?tag=')) {
+        bestUrl = bestUrl.slice(0, bestUrl.indexOf('?tag='));
+      }
+      if (bestUrl) {
+        const w = videoEntry.original_info?.width || 1920;
+        const h = videoEntry.original_info?.height || 1080;
+        const durSec = videoEntry.video_info?.duration_millis
+          ? videoEntry.video_info.duration_millis / 1000
+          : 28;
+        const thumb = videoEntry.media_url_https || videoEntry.media_url;
+        return {
+          id: `x-vid-${raw.id_str || raw.rest_id || Date.now()}`,
+          payloadType: 'video',
+          platform: 'twitter',
+          badgeLabel: req.badgeLabel || `X Post (@${handle})`,
+          sourceUrl: req.url,
+          creatorHandle: `@${handle}`,
+          creatorName,
+          verified: true,
+          extractedAt: nowIso,
+          title: tweetText,
+          duration: formatDurationSeconds(durSec),
+          aspectRatio: w >= h ? '16:9' : '9:16',
+          resolution: `${w} × ${h}`,
+          codec: 'H.264 / AAC • 60fps',
+          thumbnailUrl: thumb
+            ? wrapWithImageProxy(thumb)
+            : createStudioFallbackSvgDataUri('X BROADCAST', '1080P STREAM'),
+          formats: [
+            {
+              id: 'hd-1080p',
+              label: 'Download HD 1080p (No Watermark)',
+              quality: '1080p',
+              container: 'MP4',
+              fileSize: '11.4 MB',
+              noWatermark: true,
+              downloadUrl: wrapWithDownloadProxy(
+                bestUrl,
+                `VIDNEX_x_${handle}_1080p.mp4`
+              ),
+              isPrimary: true,
+            },
+            {
+              id: 'sd-720p',
+              label: 'Download SD 720p',
+              quality: '720p',
+              container: 'MP4',
+              fileSize: '5.2 MB',
+              noWatermark: true,
+              downloadUrl: wrapWithDownloadProxy(
+                bestUrl,
+                `VIDNEX_x_${handle}_720p.mp4`
+              ),
+            },
+            {
+              id: 'audio-mp3',
+              label: 'Extract Audio (MP3)',
+              quality: 'MP3',
+              container: 'MP3',
+              fileSize: '1.1 MB',
+              noWatermark: true,
+              downloadUrl: wrapWithDownloadProxy(
+                bestUrl,
+                `VIDNEX_x_${handle}_audio.mp3`
+              ),
+            },
+          ],
+        };
+      }
+    }
+  }
+
+  // Case C: api.fxtwitter.com schema (`tweet.media.videos`)
+  const tweet = raw.tweet;
+  const fxVideos = tweet?.media?.videos;
+  if (Array.isArray(fxVideos) && fxVideos.length > 0) {
+    const v = fxVideos[0];
+    const handle = String(tweet.author?.screen_name || 'x_creator').replace(
+      /^@/,
+      ''
+    );
+    const w = v.width || 1920;
+    const h = v.height || 1080;
+    return {
+      id: `x-vid-${tweet.id || Date.now()}`,
+      payloadType: 'video',
+      platform: 'twitter',
+      badgeLabel: req.badgeLabel || `X Post (@${handle})`,
+      sourceUrl: req.url,
+      creatorHandle: `@${handle}`,
+      creatorName: String(tweet.author?.name || `@${handle}`),
+      verified: true,
+      extractedAt: nowIso,
+      title: String(tweet.text || `X Broadcast by @${handle}`),
+      duration: formatDurationSeconds(v.duration),
+      aspectRatio: w >= h ? '16:9' : '9:16',
+      resolution: `${w} × ${h}`,
+      codec: 'H.264 / AAC • 60fps',
+      thumbnailUrl: v.thumbnail_url
+        ? wrapWithImageProxy(v.thumbnail_url)
+        : createStudioFallbackSvgDataUri('X BROADCAST', '1080P STREAM'),
+      formats: [
+        {
+          id: 'hd-1080p',
+          label: 'Download HD 1080p (No Watermark)',
+          quality: '1080p',
+          container: 'MP4',
+          fileSize: '11.4 MB',
+          noWatermark: true,
+          downloadUrl: wrapWithDownloadProxy(
+            v.url,
+            `VIDNEX_x_${handle}_1080p.mp4`
+          ),
+          isPrimary: true,
+        },
+        {
+          id: 'sd-720p',
+          label: 'Download SD 720p',
+          quality: '720p',
+          container: 'MP4',
+          fileSize: '5.2 MB',
+          noWatermark: true,
+          downloadUrl: wrapWithDownloadProxy(
+            v.url,
+            `VIDNEX_x_${handle}_720p.mp4`
+          ),
+        },
+        {
+          id: 'audio-mp3',
+          label: 'Extract Audio (MP3)',
+          quality: 'MP3',
+          container: 'MP3',
+          fileSize: '1.1 MB',
+          noWatermark: true,
+          downloadUrl: wrapWithDownloadProxy(
+            v.url,
+            `VIDNEX_x_${handle}_audio.mp3`
+          ),
+        },
+      ],
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Engine 3 Normalizer: `yt-dlp --dump-single-json` output
+ * Handles Instagram Reels/Carousels, YouTube Shorts/Videos, Facebook Reels, Snapchat Spotlight.
+ */
+export function normalizeYtDlpPayload(
+  info: any,
+  req: ExtractRequestBody
+): MediaResult | null {
+  if (!info || typeof info !== 'object') return null;
+
+  const nowIso = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const rawHandle =
+    info.uploader_id ||
+    info.channel ||
+    info.uploader ||
+    req.identifier ||
+    req.platform;
+  const cleanHandle = String(rawHandle)
+    .replace(/^@/, '')
+    .replace(/\s+/g, '_');
+  const creatorName = String(
+    info.uploader || info.channel || `@${cleanHandle}`
+  );
+
+  // Multi-item Carousel (`entries`)
+  if (Array.isArray(info.entries) && info.entries.length > 1) {
+    const items: CarouselSlideItem[] = [];
+    info.entries.forEach((entry: any, idx: number) => {
+      if (!entry || typeof entry !== 'object') return;
+      const formats: any[] = Array.isArray(entry.formats) ? entry.formats : [];
+      const bestMp4 =
+        formats
+          .filter(
+            (f) =>
+              f?.url &&
+              f.vcodec &&
+              f.vcodec !== 'none' &&
+              !String(f.protocol || '').includes('m3u8')
+          )
+          .sort((a, b) => (b.height || 0) - (a.height || 0))[0] || null;
+      const mediaUrl = bestMp4?.url || entry.url || entry.thumbnail;
+      if (!mediaUrl) return;
+      const isVideo = Boolean(
+        bestMp4 || (entry.vcodec && entry.vcodec !== 'none')
+      );
+      const ext = isVideo ? 'mp4' : 'jpg';
+      const thumbUrl = entry.thumbnail || mediaUrl;
+
+      items.push({
+        id: String(entry.id || `slide-${idx + 1}`),
+        index: idx + 1,
+        mediaType: isVideo ? 'video' : 'image',
+        dimensions: `${entry.width || 1080} × ${entry.height || 1350}`,
+        fileSize: isVideo ? '7.4 MB' : '2.1 MB',
+        thumbnailUrl: wrapWithImageProxy(thumbUrl),
+        downloadUrl: wrapWithDownloadProxy(
+          mediaUrl,
+          `VIDNEX_${cleanHandle}_slide_${idx + 1}.${ext}`
+        ),
+      });
+    });
+
+    if (items.length > 0) {
+      return {
+        id: `carousel-${info.id || Date.now()}`,
+        payloadType: 'carousel',
+        platform: req.platform,
+        badgeLabel: req.badgeLabel || 'Multi-Slide Carousel',
+        sourceUrl: req.url,
+        creatorHandle: `@${cleanHandle}`,
+        creatorName,
+        verified: true,
+        extractedAt: nowIso,
+        caption: String(
+          info.description || info.title || 'High-Resolution Carousel Archive'
+        ).slice(0, 220),
+        totalItems: items.length,
+        archiveSize: `${(items.length * 2.4).toFixed(1)} MB`,
+        items,
+      };
+    }
+  }
+
+  const formats: any[] = Array.isArray(info.formats) ? info.formats : [];
+  const progressiveMp4s = formats
+    .filter(
+      (f) =>
+        f?.url &&
+        f.vcodec &&
+        f.vcodec !== 'none' &&
+        f.acodec &&
+        f.acodec !== 'none' &&
+        !String(f.protocol || '').includes('m3u8')
+    )
+    .sort((a, b) => (b.height || 0) - (a.height || 0));
+
+  const fallbackVideoMp4s = formats
+    .filter(
+      (f) =>
+        f?.url &&
+        f.vcodec &&
+        f.vcodec !== 'none' &&
+        !String(f.protocol || '').includes('m3u8')
+    )
+    .sort((a, b) => (b.height || 0) - (a.height || 0));
+
+  const audioStreams = formats
+    .filter(
+      (f) =>
+        f?.url &&
+        f.acodec &&
+        f.acodec !== 'none' &&
+        (!f.vcodec || f.vcodec === 'none')
+    )
+    .sort((a, b) => (b.abr || b.tbr || 0) - (a.abr || a.tbr || 0));
+
+  const bestVideo = progressiveMp4s[0] || fallbackVideoMp4s[0];
+  const sdVideo =
+    progressiveMp4s.find((f) => (f.height || 1080) <= 720) || bestVideo;
+  const bestAudio = audioStreams[0];
+
+  const primaryUrl = bestVideo?.url || info.url;
+  if (!primaryUrl) return null;
+
+  const w = bestVideo?.width || info.width || 1080;
+  const h = bestVideo?.height || info.height || 1920;
+
+  return {
+    id: `vid-${req.platform}-${info.id || Date.now()}`,
+    payloadType: 'video',
+    platform: req.platform,
+    badgeLabel: req.badgeLabel || `${req.platform} Video`,
+    sourceUrl: req.url,
+    creatorHandle: `@${cleanHandle}`,
+    creatorName,
+    verified: true,
+    extractedAt: nowIso,
+    title: String(
+      info.title || info.description || 'Original 1080p HD Stream'
+    ).slice(0, 180),
+    duration: formatDurationSeconds(info.duration),
+    aspectRatio: w > h ? '16:9' : '9:16',
+    resolution: `${w} × ${h}`,
+    codec: 'H.264 / AAC • 60fps',
+    thumbnailUrl: info.thumbnail
+      ? wrapWithImageProxy(info.thumbnail)
+      : createStudioFallbackSvgDataUri('HD MASTER', '1080P60 STREAM'),
+    formats: [
+      {
+        id: 'hd-1080p',
+        label: 'Download HD 1080p (No Watermark)',
+        quality: '1080p',
+        container: 'MP4',
+        fileSize: formatFileSizeBytes(
+          bestVideo?.filesize || bestVideo?.filesize_approx,
+          '15.4 MB'
+        ),
+        noWatermark: true,
+        downloadUrl: wrapWithDownloadProxy(
+          primaryUrl,
+          `VIDNEX_${req.platform}_${cleanHandle}_1080p.mp4`
+        ),
+        isPrimary: true,
+      },
+      {
+        id: 'sd-720p',
+        label: 'Download SD 720p',
+        quality: '720p',
+        container: 'MP4',
+        fileSize: formatFileSizeBytes(
+          sdVideo?.filesize || sdVideo?.filesize_approx,
+          '7.2 MB'
+        ),
+        noWatermark: true,
+        downloadUrl: wrapWithDownloadProxy(
+          sdVideo?.url || primaryUrl,
+          `VIDNEX_${req.platform}_${cleanHandle}_720p.mp4`
+        ),
+      },
+      {
+        id: 'audio-mp3',
+        label: 'Extract Audio (MP3)',
+        quality: 'MP3',
+        container: 'MP3',
+        fileSize: formatFileSizeBytes(bestAudio?.filesize, '1.6 MB'),
+        noWatermark: true,
+        downloadUrl: wrapWithDownloadProxy(
+          bestAudio?.url || primaryUrl,
+          `VIDNEX_${req.platform}_${cleanHandle}_audio.mp3`
+        ),
+      },
+    ],
+  };
+}
+
+// Keep alias exports so existing unit tests continue to pass
+export const normalizeTikTokRapidApiPayload = normalizeTikWmPayload;
+export { normalizeInstagramRapidApiPayload } from './_legacyIgNormalizer';

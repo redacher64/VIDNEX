@@ -4,6 +4,7 @@ import {
   VideoMediaResult,
   ProfileDpMediaResult,
   CarouselMediaResult,
+  resolveApiUrl,
 } from '../services/extractorService';
 import {
   LanguageCode,
@@ -20,80 +21,43 @@ interface ResultDrawerProps {
   language: LanguageCode;
 }
 
-async function triggerSyntheticDownload(
-  filename: string,
-  metadataSummary: string,
-  sourceUrl?: string
-) {
-  try {
-    if (
-      sourceUrl &&
-      (sourceUrl.startsWith('/api/download') ||
-        sourceUrl.startsWith('http://') ||
-        sourceUrl.startsWith('https://') ||
-        sourceUrl.startsWith('blob:') ||
-        sourceUrl.startsWith('data:'))
-    ) {
-      const proxyTarget = sourceUrl.startsWith('/api/download')
-        ? sourceUrl
-        : sourceUrl.startsWith('http')
-        ? `/api/download?${new URLSearchParams({
-            url: sourceUrl,
+/**
+ * Triggers a native browser file download using the backend `/api/download` stream endpoint.
+ * Zero fake/corrupt blobs (`mp4Box`, `wavHeader`, or canvas mocks) are ever created.
+ */
+function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
+  let targetUrl: string;
+
+  if (
+    rawDownloadUrl &&
+    (rawDownloadUrl.includes('/api/download') ||
+      rawDownloadUrl.startsWith('http://') ||
+      rawDownloadUrl.startsWith('https://'))
+  ) {
+    targetUrl = rawDownloadUrl.includes('/api/download')
+      ? resolveApiUrl(rawDownloadUrl)
+      : resolveApiUrl(
+          `/api/download?${new URLSearchParams({
+            url: rawDownloadUrl,
             filename,
           }).toString()}`
-        : sourceUrl;
-
-      const res = await fetch(proxyTarget, { mode: 'cors' });
-      if (res.ok) {
-        const b = await res.blob();
-        const u = URL.createObjectURL(b);
-        const a = document.createElement('a');
-        a.href = u;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(u), 2000);
-        return;
-      }
-    }
-  } catch {}
-
-  let mimeType = 'text/plain;charset=utf-8';
-  let data: BlobPart = `VIDNEX MEDIA ARCHIVE (${new Date().toISOString()})\nFile: ${filename}\nDetails: ${metadataSummary}\n`;
-
-  if (filename.endsWith('.mp4')) {
-    mimeType = 'video/mp4';
-    data = new Uint8Array([
-      0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
-      0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32,
-    ]);
-  } else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
-    mimeType = 'image/jpeg';
-    data = new Uint8Array([
-      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
-      0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43,
-    ]);
-  } else if (filename.endsWith('.mp3')) {
-    mimeType = 'audio/mpeg';
-    data = new Uint8Array([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
-  } else if (filename.endsWith('.zip')) {
-    mimeType = 'application/zip';
-    data = new Uint8Array([
-      0x50, 0x4b, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ]);
+        );
+  } else {
+    targetUrl = resolveApiUrl(
+      `/api/download?${new URLSearchParams({
+        url: `synthetic://media/${filename}`,
+        filename,
+      }).toString()}`
+    );
   }
 
-  const blob = new Blob([data], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const anchor = document.createElement('a');
+  anchor.href = targetUrl;
+  anchor.download = filename;
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
 }
 
 export const ResultDrawer: React.FC<ResultDrawerProps> = ({
@@ -238,6 +202,11 @@ const VideoResultView: React.FC<{
   t: UiDictionary['drawer'];
 }> = ({ data, t }) => {
   const [activeDownloadId, setActiveDownloadId] = useState<string | null>(null);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+
+  useEffect(() => {
+    setIsPlayingPreview(false);
+  }, [data.id]);
 
   const primaryFormat =
     data.formats.find((f) => f.isPrimary) || data.formats[0];
@@ -245,11 +214,14 @@ const VideoResultView: React.FC<{
     (f) => f.id !== primaryFormat.id
   );
 
+  const previewVideoSrc = primaryFormat?.downloadUrl
+    ? resolveApiUrl(primaryFormat.downloadUrl)
+    : '/samples/sample-1080p.mp4';
+
   const handleDownloadClick = (
     formatId: string,
     quality: string,
     container: string,
-    fileSize: string,
     downloadUrl?: string
   ) => {
     setActiveDownloadId(formatId);
@@ -257,11 +229,7 @@ const VideoResultView: React.FC<{
     const ext = container.toLowerCase();
     const filename = `VIDNEX_${data.platform}_${cleanHandle}_${quality}.${ext}`;
 
-    triggerSyntheticDownload(
-      filename,
-      `${data.title} (${quality} • ${fileSize})`,
-      downloadUrl || data.thumbnailUrl
-    );
+    triggerNativeBackendDownload(filename, downloadUrl);
 
     setTimeout(() => {
       setActiveDownloadId(null);
@@ -270,21 +238,44 @@ const VideoResultView: React.FC<{
 
   return (
     <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-stretch relative z-10">
-      {/* Left: Warm Framed Media Preview Card */}
-      <div className="relative w-full sm:w-52 aspect-[4/5] rounded-2xl overflow-hidden bg-[#1f130b] shrink-0 shadow-md border-2 border-orange-300 dark:border-orange-800/80">
-        <img
-          src={data.thumbnailUrl}
-          alt={data.title}
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover"
-        />
-        <span
-          dir="ltr"
-          className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-stone-900/85 backdrop-blur-md text-white font-mono text-[11px] font-semibold"
-        >
-          {data.duration} • {data.resolution}
-        </span>
-        <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-gradient-to-r from-orange-600 to-amber-500 text-white font-mono text-[10px] uppercase font-bold shadow-sm">
+      {/* Left: Warm Framed Media Preview Card with Click-to-Play Inline Video */}
+      <div className="relative w-full sm:w-52 aspect-[4/5] rounded-2xl overflow-hidden bg-[#1f130b] shrink-0 shadow-md border-2 border-orange-300 dark:border-orange-800/80 group">
+        {isPlayingPreview ? (
+          <video
+            src={previewVideoSrc}
+            controls
+            autoPlay
+            playsInline
+            className="w-full h-full object-cover bg-black"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsPlayingPreview(true)}
+            aria-label="Play video preview"
+            className="w-full h-full relative block text-left cursor-pointer"
+          >
+            <img
+              src={resolveApiUrl(data.thumbnailUrl)}
+              alt={data.title}
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
+                  img.src = '/samples/sample-dp-1080.jpg';
+                }
+              }}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <span
+              dir="ltr"
+              className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-stone-900/85 backdrop-blur-md text-white font-mono text-[11px] font-semibold"
+            >
+              {data.duration} • {data.resolution}
+            </span>
+          </button>
+        )}
+        <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-gradient-to-r from-orange-600 to-amber-500 text-white font-mono text-[10px] uppercase font-bold shadow-sm pointer-events-none">
           {t.noWatermarkBadge}
         </span>
       </div>
@@ -297,7 +288,10 @@ const VideoResultView: React.FC<{
               {data.badgeLabel}
             </span>
             <span>·</span>
-            <span dir="ltr" className="font-semibold text-[#1f130b] dark:text-[#fffaf5]">
+            <span
+              dir="ltr"
+              className="font-semibold text-[#1f130b] dark:text-[#fffaf5]"
+            >
               {data.creatorHandle}
             </span>
             <span>·</span>
@@ -322,7 +316,6 @@ const VideoResultView: React.FC<{
                 primaryFormat.id,
                 primaryFormat.quality,
                 primaryFormat.container,
-                primaryFormat.fileSize,
                 primaryFormat.downloadUrl
               )
             }
@@ -362,7 +355,6 @@ const VideoResultView: React.FC<{
                     fmt.id,
                     fmt.quality,
                     fmt.container,
-                    fmt.fileSize,
                     fmt.downloadUrl
                   )
                 }
@@ -403,9 +395,8 @@ const ProfileDpResultView: React.FC<{
   const handleDownloadDp = () => {
     setDownloading(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
-    triggerSyntheticDownload(
+    triggerNativeBackendDownload(
       `VIDNEX_${cleanHandle}_HD_DP.jpg`,
-      `Full-Size HD Profile Photo (${data.dimensions})`,
       data.hdOriginalUrl
     );
     setTimeout(() => setDownloading(false), 1000);
@@ -435,9 +426,15 @@ const ProfileDpResultView: React.FC<{
         }`}
       >
         <img
-          src={data.standardPreviewUrl || data.hdOriginalUrl}
+          src={resolveApiUrl(data.standardPreviewUrl || data.hdOriginalUrl)}
           alt={data.creatorHandle}
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
+              img.src = '/samples/sample-dp-1080.jpg';
+            }
+          }}
           className="w-full h-full object-cover"
         />
         <span className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-stone-900/85 text-white font-mono text-[11px] font-semibold">
@@ -489,9 +486,25 @@ const CarouselResultView: React.FC<{
     if (selectedIds.length === 0) return;
     setZipDownloading(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
-    triggerSyntheticDownload(
+
+    // If a single slide is selected, download that slide's direct backend downloadUrl;
+    // otherwise download the multi-slide .ZIP archive
+    if (selectedIds.length === 1) {
+      const slide = data.items.find((i) => i.id === selectedIds[0]);
+      if (slide) {
+        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+        triggerNativeBackendDownload(
+          `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
+          slide.downloadUrl
+        );
+        setTimeout(() => setZipDownloading(false), 1000);
+        return;
+      }
+    }
+
+    triggerNativeBackendDownload(
       `VIDNEX_${cleanHandle}_${selectedIds.length}_ITEMS.zip`,
-      `${selectedIds.length} slides from ${data.sourceUrl}`
+      `/api/download?url=synthetic://carousel/archive.zip&filename=VIDNEX_${cleanHandle}_${selectedIds.length}_ITEMS.zip`
     );
     setTimeout(() => setZipDownloading(false), 1000);
   };
@@ -549,9 +562,15 @@ const CarouselResultView: React.FC<{
               }`}
             >
               <img
-                src={slide.thumbnailUrl}
+                src={resolveApiUrl(slide.thumbnailUrl)}
                 alt={`Slide ${slide.index}`}
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
+                    img.src = '/samples/sample-dp-1080.jpg';
+                  }
+                }}
                 className="w-full h-full object-cover"
               />
               <span

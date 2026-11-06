@@ -53,7 +53,7 @@ export const SAMPLE_LINKS: SampleLink[] = [
     label: 'TikTok No-WM',
     platform: 'tiktok',
     subType: 'Video',
-    url: 'https://www.tiktok.com/@designsystems/video/7384920192837465',
+    url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
   },
   {
     id: 'ig-carousel',

@@ -1,3 +1,4 @@
+// VIDNEX v0.1.1 - Cloudflare Universal Media Downloader
 import { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { HeroOmnibox } from './components/HeroOmnibox';

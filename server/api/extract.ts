@@ -7,19 +7,19 @@ import {
   getBoundBackendUrl,
   getTikWmApiKey,
   prepareCookiesFile,
-} from './_config';
+} from './_config.ts';
 import {
-  ExtractRequestBody,
+  type ExtractRequestBody,
   normalizeTikWmPayload,
   normalizeVxTwitterPayload,
   normalizeYtDlpPayload,
   wrapWithDownloadProxy,
-} from './_normalizer';
+} from './_normalizer.ts';
 import {
   buildStudioFallbackResult,
   type MediaResult,
-} from '../../src/services/extractorService';
-import { detectMediaUrl } from '../../src/utils/urlDetector';
+} from '../../src/services/extractorService.ts';
+import { detectMediaUrl } from '../../src/utils/urlDetector.ts';
 
 const execFileAsync = promisify(execFile);
 

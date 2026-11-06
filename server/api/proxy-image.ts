@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { BROWSER_USER_AGENT, getBoundBackendUrl } from './_config';
+import { BROWSER_USER_AGENT, getBoundBackendUrl } from './_config.ts';
 
 function isDisallowedPrivateHost(hostname: string): boolean {
   const lower = hostname.toLowerCase();

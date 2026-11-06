@@ -1,15 +1,14 @@
-import { DetectedUrlInfo, PlatformId } from '../utils/urlDetector';
+import type { DetectedUrlInfo, PlatformId } from '../utils/urlDetector.ts';
 
 /**
- * Multi-Service & Self-Hosted API Configuration
- * Defaults to same-origin `/api/*` routes (matching Vercel Services `/api/(.*)` -> `backend` rewrite),
- * or connects to an external host if `VITE_API_BASE_URL` is explicitly configured.
+ * Cloudflare Pages & Multi-Service API Configuration
+ * Defaults to relative `/api/extract` and `/api/download` routes on the same Cloudflare Pages domain.
  */
-export const DEMO_MODE = false;
-
 export const API_BASE_URL = (
-  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE_URL || ''
+  import.meta.env?.VITE_API_BASE_URL ?? ''
 ).replace(/\/+$/, '');
+
+export const DEMO_MODE = import.meta.env?.VITE_DEMO_MODE === 'true';
 
 export function resolveApiUrl(pathOrUrl: string): string {
   if (!pathOrUrl) return '';
@@ -112,7 +111,7 @@ export type MediaResult =
 
 /**
  * Main extraction dispatcher.
- * Calls `POST ${API_BASE_URL}/api/extract` (Multi-Engine TikWM + vxTwitter + yt-dlp).
+ * Calls `POST ${API_BASE_URL}/api/extract` (Cloudflare Pages Functions / Multi-Engine Backend).
  */
 export async function extractMediaFromUrl(
   url: string,
@@ -129,6 +128,11 @@ export async function extractMediaFromUrl(
     throw new Error(
       'EXTRACTION_DENIED: Target media belongs to a private account or restricted broadcast.'
     );
+  }
+
+  if (DEMO_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    return buildStudioFallbackResult(url, detected);
   }
 
   const candidateEndpoints = [resolveApiUrl('/api/extract')];

@@ -308,3 +308,49 @@ test('/api/download proxy returns playable multi-megabyte MP4 with Content-Dispo
   assert.equal(res.headers['Content-Type'], 'video/mp4');
   assert.ok((res.body as Uint8Array).byteLength > 1000000);
 });
+
+test('Cloudflare Pages Functions (/functions/api/extract & /functions/api/download) validate SSRF allowlists and proxy URLs', async () => {
+  const { isAllowedSourceUrl, buildDownloadProxyUrl } = await import(
+    '../../functions/api/extract'
+  );
+  const { isAllowedMediaCdnHost, sanitizeDownloadFilename } = await import(
+    '../../functions/api/download'
+  );
+
+  // Source URL domain allowlist
+  assert.equal(
+    isAllowedSourceUrl('https://www.instagram.com/reel/C8x9kLmN2pQ/').valid,
+    true
+  );
+  assert.equal(
+    isAllowedSourceUrl('https://www.tiktok.com/@tiktok/video/7106594312292453675')
+      .valid,
+    true
+  );
+  assert.equal(isAllowedSourceUrl('http://127.0.0.1:8080/admin').valid, false);
+  assert.equal(
+    isAllowedSourceUrl('https://evil-internal-host.local/secret').valid,
+    false
+  );
+
+  // CDN host allowlist for /api/download
+  assert.equal(isAllowedMediaCdnHost('v16m.tiktokcdn.com'), true);
+  assert.equal(isAllowedMediaCdnHost('scontent.cdninstagram.com'), true);
+  assert.equal(isAllowedMediaCdnHost('video.twimg.com'), true);
+  assert.equal(isAllowedMediaCdnHost('localhost'), false);
+  assert.equal(isAllowedMediaCdnHost('169.254.169.254'), false);
+
+  // Proxy URL builder
+  const inlineThumb = buildDownloadProxyUrl(
+    'https://scontent.cdninstagram.com/v/thumb.jpg',
+    'VIDNEX_thumb.jpg',
+    true
+  );
+  assert.ok(inlineThumb.startsWith('/api/download?'));
+  assert.ok(inlineThumb.includes('inline=1'));
+
+  assert.equal(
+    sanitizeDownloadFilename('VIDNEX../bad name!.mp4'),
+    'VIDNEX_bad_name_.mp4'
+  );
+});

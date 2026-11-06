@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { getBoundBackendUrl } from './_config';
+import { getBoundBackendUrl } from './_config.ts';
 
 /**
  * Clean Serverless Media Download Proxy (`/api/download`)
@@ -101,7 +101,8 @@ function loadRealSampleBinaryPayload(
 export async function resolveDownloadStream(
   rawTargetUrl: string | undefined,
   rawFilename: string | undefined,
-  env?: Record<string, string | undefined>
+  env?: Record<string, string | undefined>,
+  inline = false
 ): Promise<{
   status: number;
   headers: Record<string, string>;
@@ -109,8 +110,12 @@ export async function resolveDownloadStream(
 }> {
   const safeFilename = sanitizeFilename(rawFilename);
   const baseHeaders: Record<string, string> = {
-    'Content-Disposition': `attachment; filename="${safeFilename}"`,
-    'Cache-Control': 'public, max-age=3600',
+    'Content-Disposition': `${
+      inline ? 'inline' : 'attachment'
+    }; filename="${safeFilename}"`,
+    'Cache-Control': inline
+      ? 'public, max-age=86400'
+      : 'public, max-age=3600',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Expose-Headers': 'Content-Disposition, Content-Length',
     'X-Content-Type-Options': 'nosniff',
@@ -304,8 +309,14 @@ export default async function handler(req: any, res: any) {
     typeof req.query?.url === 'string' ? req.query.url : undefined;
   const filename =
     typeof req.query?.filename === 'string' ? req.query.filename : undefined;
+  const inline = req.query?.inline === '1';
 
-  const result = await resolveDownloadStream(targetUrl, filename);
+  const result = await resolveDownloadStream(
+    targetUrl,
+    filename,
+    undefined,
+    inline
+  );
   for (const [key, value] of Object.entries(result.headers)) {
     res.setHeader(key, value);
   }
@@ -321,8 +332,14 @@ export async function onRequestGet(context: {
   const reqUrl = new URL(context.request.url);
   const targetUrl = reqUrl.searchParams.get('url') || undefined;
   const filename = reqUrl.searchParams.get('filename') || undefined;
+  const inline = reqUrl.searchParams.get('inline') === '1';
 
-  const result = await resolveDownloadStream(targetUrl, filename);
+  const result = await resolveDownloadStream(
+    targetUrl,
+    filename,
+    undefined,
+    inline
+  );
   return new Response(result.body as BodyInit, {
     status: result.status,
     headers: result.headers,

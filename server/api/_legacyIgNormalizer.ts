@@ -4,14 +4,14 @@ import type {
   ProfileDpMediaResult,
   CarouselMediaResult,
   CarouselSlideItem,
-} from '../../src/services/extractorService';
+} from '../../src/services/extractorService.ts';
 import {
-  ExtractRequestBody,
+  type ExtractRequestBody,
   wrapWithDownloadProxy,
   wrapWithImageProxy,
   formatDurationSeconds,
   formatFollowersCount,
-} from './_normalizer';
+} from './_normalizer.ts';
 
 export function normalizeInstagramRapidApiPayload(
   raw: any,

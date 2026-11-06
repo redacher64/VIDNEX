@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import extractHandler from './server/api/extract';
-import downloadHandler from './server/api/download';
-import proxyImageHandler from './server/api/proxy-image';
+import extractHandler from './server/api/extract.ts';
+import downloadHandler from './server/api/download.ts';
+import proxyImageHandler from './server/api/proxy-image.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +68,7 @@ async function startServer() {
   });
 
   // Also bind port 7860 in local dev so http://localhost:7860 works out of the box
-  if (PORT !== 7860) {
+  if (!isProd && PORT !== 7860) {
     const apiPortServer = app.listen(7860, '0.0.0.0', () => {
       console.log(`VIDNEX Docker API Bridge listening on http://0.0.0.0:7860`);
     });

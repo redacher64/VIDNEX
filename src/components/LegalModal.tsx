@@ -47,6 +47,132 @@ const LEGAL_TAB_LABELS: Record<
   },
 };
 
+interface LegalDocumentContent {
+  title: string;
+  paragraphs: string[];
+}
+
+const LEGAL_CONTENT: Record<
+  LanguageCode,
+  Record<LegalDocType, LegalDocumentContent>
+> = {
+  en: {
+    terms: {
+      title: `Terms of Service — ${APP_DOMAIN}`,
+      paragraphs: [
+        `VIDNEX (${APP_DOMAIN}) operates strictly as a client-initiated, stateless technical resolver for publicly accessible social media URLs. VIDNEX does not host, archive, or redistribute any video, audio, or image files on its servers.`,
+        'Users are solely responsible for ensuring they have permission to download media from any URL submitted. Private accounts, subscriber-only content, and DRM-protected streams are strictly unsupported.',
+      ],
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      paragraphs: [
+        'URLs pasted into VIDNEX are processed in volatile serverless memory solely to resolve the direct media stream for your active session. We never log, persist, or monitor your submitted links, social handles, IP addresses, or downloaded files.',
+        'Browser localStorage is used exclusively to remember your preferred display language and Light/Dark interface theme preference.',
+      ],
+    },
+    dmca: {
+      title: 'DMCA / Copyright Protection',
+      paragraphs: [
+        'VIDNEX hosts zero media files or uploaded content on its infrastructure. All downloads are directly streamed from official content delivery networks of the respective platforms.',
+        'Rights holders who wish to block their public @handle or specific URLs from being resolved through VIDNEX may submit a formal request to our compliance contact:',
+      ],
+    },
+  },
+  fr: {
+    terms: {
+      title: `Conditions d'Utilisation — ${APP_DOMAIN}`,
+      paragraphs: [
+        `VIDNEX (${APP_DOMAIN}) fonctionne exclusivement comme un outil de résolution technique éphémère et sans état, initié par l'utilisateur pour les URLs publiques. VIDNEX n'héberge, n'archive et ne redistribue aucun fichier vidéo, audio ou image sur ses serveurs.`,
+        'Les utilisateurs sont seuls responsables de s\'assurer qu\'ils disposent des droits nécessaires pour sauvegarder le média soumis. Les comptes privés et les flux protégés par DRM ne sont pas pris en charge.',
+      ],
+    },
+    privacy: {
+      title: 'Politique de Confidentialité',
+      paragraphs: [
+        'Les liens collés dans VIDNEX sont traités en mémoire vive éphémère uniquement pour résoudre le flux direct de votre session. Nous n\'enregistrons aucun historique, adresse IP ni média téléchargé sur disque.',
+        'Le stockage local du navigateur (localStorage) est utilisé exclusivement pour mémoriser votre langue d\'affichage et votre préférence de thème (clair/sombre).',
+      ],
+    },
+    dmca: {
+      title: 'Protection des Droits d\'Auteur / DMCA',
+      paragraphs: [
+        'VIDNEX n\'héberge aucun contenu sur ses serveurs. Les fichiers proviennent directement des réseaux de diffusion officiels (CDN) des plateformes d\'origine.',
+        'Les titulaires de droits souhaitant restreindre l\'extraction de leur identifiant public @handle ou d\'URLs spécifiques peuvent contacter directement notre équipe :',
+      ],
+    },
+  },
+  es: {
+    terms: {
+      title: `Términos de Servicio — ${APP_DOMAIN}`,
+      paragraphs: [
+        `VIDNEX (${APP_DOMAIN}) funciona estrictamente como un solucionador técnico sin estado e iniciado por el usuario para URLs públicas. VIDNEX no aloja, archiva ni redistribuye ningún archivo de vídeo, audio o imagen en sus servidores.`,
+        'Los usuarios son los únicos responsables de garantizar que tienen permiso para descargar los contenidos. Las cuentas privadas y las transmisiones protegidas por DRM no son compatibles.',
+      ],
+    },
+    privacy: {
+      title: 'Política de Privacidad',
+      paragraphs: [
+        'Los enlaces pegados en VIDNEX se procesan en memoria volátil únicamente para resolver la transmisión directa de su sesión. Nunca almacenamos sus enlaces, identificadores ni archivos descargados.',
+        'El almacenamiento local del navegador (localStorage) se utiliza exclusivamente para guardar sus preferencias de idioma y tema (claro/oscuro).',
+      ],
+    },
+    dmca: {
+      title: 'Derechos de Autor / DMCA',
+      paragraphs: [
+        'VIDNEX no aloja ningún archivo multimedia en su infraestructura. Los contenidos se transmiten directamente desde las redes CDN oficiales.',
+        'Los titulares de derechos que deseen bloquear su usuario público o URLs específicas pueden contactar directamente a:',
+      ],
+    },
+  },
+  pt: {
+    terms: {
+      title: `Termos de Serviço — ${APP_DOMAIN}`,
+      paragraphs: [
+        `O VIDNEX (${APP_DOMAIN}) opera estritamente como um resolvedor técnico sem estado iniciado pelo usuário para URLs públicas. O VIDNEX não hospeda, arquiva ou redistribui arquivos de vídeo, áudio ou imagem em seus servidores.`,
+        'Os usuários são os únicos responsáveis por garantir que possuem permissão para baixar as mídias. Contas privadas e transmissões protegidas por DRM não são suportadas.',
+      ],
+    },
+    privacy: {
+      title: 'Política de Privacidade',
+      paragraphs: [
+        'Os links colados no VIDNEX são processados em memória volátil apenas para resolver o fluxo direto da sua sessão. Nunca registramos seus links, perfis ou arquivos baixados.',
+        'O armazenamento local do navegador (localStorage) é utilizado exclusivamente para memorizar o idioma e o tema (claro/escuro).',
+      ],
+    },
+    dmca: {
+      title: 'Direitos Autorais / DMCA',
+      paragraphs: [
+        'O VIDNEX não hospeda arquivos de mídia em sua infraestrutura. Todos os downloads são transmitidos diretamente das redes CDN oficiais das plataformas.',
+        'Detentores de direitos autorais que desejam bloquear perfis públicos ou URLs específicas podem entrar em contato com:',
+      ],
+    },
+  },
+  ar: {
+    terms: {
+      title: `شروط الخدمة — ${APP_DOMAIN}`,
+      paragraphs: [
+        `يعمل VIDNEX (${APP_DOMAIN}) كأداة تقنية مستقلة ومؤقتة تعمل بطلب من المستخدم لجلب الروابط العامة المتاحة للجميع. لا يقوم VIDNEX باستضافة أو تخزين أو إعادة توزيع أي ملفات فيديو أو صوت أو صور على خوادمه نهائياً.`,
+        'يتحمل المستخدمون المسؤولية الكاملة عن التأكد من امتلاكهم الإذن القانوني لتحميل الوسائط. لا يدعم الموقع الحسابات الخاصة أو البث المحمي بأنظمة إدارة الحقوق الرقمية (DRM).',
+      ],
+    },
+    privacy: {
+      title: 'سياسة الخصوصية',
+      paragraphs: [
+        'تتم معالجة الروابط في الذاكرة المؤقتة فقط لاستخراج رابط البث المباشر لجلستك. لا نقوم بتسجيل أو تخزين أي روابط أو أسماء مستخدمين أو عناوين IP أو ملفات محملة.',
+        'يُستخدم التخزين المحلي في المتصفح (localStorage) حصرياً لحفظ لغة العرض المفضلة والمظهر الفاتح أو الداكن.',
+      ],
+    },
+    dmca: {
+      title: 'حماية حقوق النشر / DMCA',
+      paragraphs: [
+        'لا يستضيف VIDNEX أي ملفات وسائط على بنيته التحتية، ويتم نقل البيانات مباشرة وبشكل عابر من خوادم شبكات التوزيع (CDN) الرسمية للمنصات.',
+        'يمكن لأصحاب حقوق النشر والتأليف الراغبين في حظر معالجة حساباتهم العامة أو روابط معينة التواصل مباشرة عبر البريد المخصص:',
+      ],
+    },
+  },
+};
+
 export const LegalModal: React.FC<LegalModalProps> = ({
   activeDoc,
   onSelectDoc,
@@ -67,6 +193,9 @@ export const LegalModal: React.FC<LegalModalProps> = ({
   if (!activeDoc) return null;
 
   const labels = LEGAL_TAB_LABELS[language] || LEGAL_TAB_LABELS.en;
+  const contentDict = LEGAL_CONTENT[language] || LEGAL_CONTENT.en;
+  const currentContent = contentDict[activeDoc];
+  const isRtl = language === 'ar';
 
   return (
     <div
@@ -79,6 +208,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
       <div
         className="w-full max-w-2xl max-h-[82vh] flex flex-col rounded-2xl bg-[#fffaf5] dark:bg-[#1c140e] border-2 border-orange-200/80 dark:border-orange-900/60 text-[#1f130b] dark:text-[#fffaf5] shadow-orange-glow overflow-hidden"
         onClick={(e) => e.stopPropagation()}
+        dir={isRtl ? 'rtl' : 'ltr'}
       >
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-orange-200/80 dark:border-orange-900/60 bg-white/80 dark:bg-[#231710]">
           <div className="flex items-center gap-1.5 overflow-x-auto">
@@ -111,66 +241,24 @@ export const LegalModal: React.FC<LegalModalProps> = ({
         </div>
 
         <div className="p-6 overflow-y-auto space-y-4 text-sm leading-relaxed text-[#6c4e40] dark:text-orange-200/80">
-          {activeDoc === 'terms' && (
-            <>
-              <h2
-                id="legal-modal-title"
-                className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
-              >
-                {labels.terms} — {APP_DOMAIN}
-              </h2>
-              <p>
-                VIDNEX ({APP_DOMAIN}) operates strictly as a client-initiated,
-                stateless technical resolver for publicly accessible social
-                media URLs. VIDNEX does not host, archive, or redistribute any
-                video, audio, or image files on its servers.
-              </p>
-              <p>
-                Users are solely responsible for ensuring they have permission
-                to download media from any URL submitted. Private accounts and
-                DRM-protected streams are strictly unsupported.
-              </p>
-            </>
-          )}
+          <h2
+            id="legal-modal-title"
+            className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
+          >
+            {currentContent.title}
+          </h2>
 
-          {activeDoc === 'privacy' && (
-            <>
-              <h2
-                id="legal-modal-title"
-                className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
-              >
-                {labels.privacy}
-              </h2>
-              <p>
-                URLs pasted into VIDNEX are processed in volatile memory solely
-                to resolve the direct stream for your session. We never log your
-                submitted links, social handles, or downloaded files.
-              </p>
-              <p>
-                Browser <code className="font-mono text-xs">localStorage</code>{' '}
-                is used exclusively to remember your display language and
-                Light/Dark theme preference.
-              </p>
-            </>
-          )}
+          {currentContent.paragraphs.map((p, idx) => (
+            <p key={idx}>{p}</p>
+          ))}
 
           {activeDoc === 'dmca' && (
-            <>
-              <h2
-                id="legal-modal-title"
-                className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
-              >
-                {labels.dmca}
-              </h2>
-              <p>
-                VIDNEX hosts zero media files on its infrastructure. Rights
-                holders who wish to block their public @handle or specific URLs
-                from being resolved through VIDNEX may contact:
-              </p>
-              <div className="p-3.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100">
-                {LEGAL_CONTACT_EMAIL}
-              </div>
-            </>
+            <div
+              dir="ltr"
+              className="p-3.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 text-center sm:text-left"
+            >
+              {LEGAL_CONTACT_EMAIL}
+            </div>
           )}
         </div>
       </div>

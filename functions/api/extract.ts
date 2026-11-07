@@ -7,6 +7,7 @@
 import { detectUrl, type SupportedPlatform } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
+import { checkRateLimit, extractClientIp } from '../_lib/rateLimit.ts';
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -22,7 +23,7 @@ export interface Env {
   TT_COOKIE?: string;
 }
 
-interface PagesContext {
+export interface PagesContext {
   request: Request;
   env: Env;
 }
@@ -79,6 +80,19 @@ function wrapDownloadUrl(
 }
 
 async function handleExtract(request: Request, env: Env): Promise<Response> {
+  const clientIp = extractClientIp(request);
+  if (clientIp !== 'anonymous') {
+    const rate = checkRateLimit(`extract:${clientIp}`, 30, 60_000);
+    if (!rate.allowed) {
+      return createErrorResponse(
+        'RATE_LIMITED',
+        `Trop de requêtes (${rate.retryAfterSec}s). Veuillez patienter avant de relancer une extraction.`,
+        429,
+        { 'Retry-After': String(rate.retryAfterSec) }
+      );
+    }
+  }
+
   let targetUrl = '';
   let preferredPlatform: SupportedPlatform = 'instagram';
 

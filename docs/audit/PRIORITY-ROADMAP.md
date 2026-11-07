@@ -67,7 +67,14 @@
 
 ---
 
-## 3. Statut d'Arrêt Conforme aux Consignes
+## 3. Statut Post-Remédiation (Étapes 1 à 6 Terminées)
 
-> **ARRÊT STRICT :** Conformément aux consignes de la mission (*« ARRÊTE-TOI APRÈS LE RAPPORT. Ne commence aucune correction avant que je valide le plan »*), aucune modification de code correctrice n'a été entreprise.
-> L'ensemble des 8 rapports d'audit est rédigé et disponible dans `docs/audit/`.
+| Étape | Périmètre | Statut | Vérification |
+| :---: | :--- | :---: | :--- |
+| **Étape 1** | Extraction Instagram 3 niveaux sans compte + Sécurité SSRF & Suppression clé API en dur | ✅ **TERMINÉ** | `npm test` (Suite 2 & 3) |
+| **Étape 2** | Extraction TikTok sécurisée + Vrai générateur `.ZIP` Carrousel & Zéro fausses métadonnées | ✅ **TERMINÉ** | `npm test` (Suite 2 & 5) |
+| **Étape 3** | Synchronisation Frontend/Backend & Badges « Bientôt / Soon » (YouTube, X, Facebook, Snapchat) | ✅ **TERMINÉ** | `npm test` (Suite 1 & 7) |
+| **Étape 4** | SEO (`canonical`, `robots.txt`, `sitemap.xml`, `favicon.svg`), Google Fonts & i18n 5 langues | ✅ **TERMINÉ** | `npm test` (Suite 6) + Build |
+| **Étape 5** | Stabilisation TypeScript (`tsconfig.backend.json`), Rate Limiting Edge (`429`) & Docs Cloudflare | ✅ **TERMINÉ** | `npm run lint` + `npm test` (Suite 4 & 7) |
+| **Étape 6** | Validation finale de bout en bout (Tests unitaires, Lint frontend/backend, Build de production) | ✅ **TERMINÉ** | `7/7 PASS` • `0 erreur TS` |
+

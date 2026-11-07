@@ -1,10 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { detectMediaUrl, isPlatformSupported } from './urlDetector.ts';
+import { buildUncompressedZipBytes, crc32 } from './zipArchive.ts';
+import { getLocalizedErrorMessage } from '../services/extractorService.ts';
 import { detectUrl } from '../../functions/_lib/detect.ts';
 import { isAllowedMediaHost } from '../../functions/_lib/allowlist.ts';
 import { sanitizeFilename } from '../../functions/api/download.ts';
 import { mapErrorCodeToHttpStatus } from '../../functions/_lib/normalize.ts';
+import { checkRateLimit, resetRateLimitBuckets } from '../../functions/_lib/rateLimit.ts';
+import worker from '../../worker.ts';
 
 describe('VIDNEX URL Detection & Security Suite', () => {
   it('Frontend detectMediaUrl validates Instagram & TikTok URLs and @handles, and marks unsupported platforms as Coming Soon', () => {
@@ -93,5 +97,101 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(mapErrorCodeToHttpStatus('RATE_LIMITED'), 429);
     assert.equal(mapErrorCodeToHttpStatus('BLOCKED_BY_PLATFORM'), 502);
     assert.equal(mapErrorCodeToHttpStatus('TIMEOUT'), 504);
+  });
+
+  it('Token-bucket rate limiter allows normal traffic and throttles bursts with Retry-After', () => {
+    resetRateLimitBuckets();
+    const r1 = checkRateLimit('test:198.51.100.1', 2, 60_000, 1000);
+    assert.equal(r1.allowed, true);
+    assert.equal(r1.remaining, 1);
+
+    const r2 = checkRateLimit('test:198.51.100.1', 2, 60_000, 1000);
+    assert.equal(r2.allowed, true);
+    assert.equal(r2.remaining, 0);
+
+    const r3 = checkRateLimit('test:198.51.100.1', 2, 60_000, 1000);
+    assert.equal(r3.allowed, false);
+    assert.ok(r3.retryAfterSec >= 1);
+  });
+
+  it('Carousel PKZIP builder generates valid ZIP archive with PK signatures and exact CRC32', () => {
+    const sampleData = new TextEncoder().encode('VIDNEX_CAROUSEL_SLIDE_1');
+    const expectedCrc = crc32(sampleData);
+    assert.ok(expectedCrc > 0);
+
+    const zipBytes = buildUncompressedZipBytes([
+      { name: 'slide_1.jpg', data: sampleData },
+      { name: 'slide_2.jpg', data: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) },
+    ]);
+
+    const view = new DataView(zipBytes.buffer);
+    assert.equal(view.getUint32(0, true), 0x04034b50);
+    assert.equal(view.getUint32(zipBytes.byteLength - 22, true), 0x06054b50);
+    assert.equal(view.getUint16(zipBytes.byteLength - 14, true), 2);
+  });
+
+  it('Localizes extraction error messages across all 5 supported languages (en, fr, es, pt, ar)', () => {
+    const enMsg = getLocalizedErrorMessage('NOT_FOUND', 'en');
+    const frMsg = getLocalizedErrorMessage('NOT_FOUND', 'fr');
+    const esMsg = getLocalizedErrorMessage('NOT_FOUND', 'es');
+    const ptMsg = getLocalizedErrorMessage('NOT_FOUND', 'pt');
+    const arMsg = getLocalizedErrorMessage('NOT_FOUND', 'ar');
+
+    assert.ok(enMsg.includes('Media not found'));
+    assert.ok(frMsg.includes('Contenu introuvable'));
+    assert.ok(esMsg.includes('Contenido no encontrado'));
+    assert.ok(ptMsg.includes('Conteúdo não encontrado'));
+    assert.ok(arMsg.includes('لم يتم العثور'));
+  });
+
+  it('Cloudflare Worker router handles /api/health, rejects unsupported URLs (400), blocks SSRF (403), and enforces IP rate limiting (429)', async () => {
+    resetRateLimitBuckets();
+    const healthRes = await worker.fetch(
+      new Request('https://vidnex.space/api/health'),
+      {}
+    );
+    assert.equal(healthRes.status, 200);
+    const healthJson: any = await healthRes.json();
+    assert.equal(healthJson.status, 'ok');
+
+    const emptyExtractRes = await worker.fetch(
+      new Request('https://vidnex.space/api/extract'),
+      {}
+    );
+    assert.equal(emptyExtractRes.status, 400);
+
+    const evilDownloadRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/download?url=https://evil.example.com/file.mp4'
+      ),
+      {}
+    );
+    assert.equal(evilDownloadRes.status, 403);
+
+    const bareDomainDownloadRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/download?url=https://www.instagram.com/p/abc/'
+      ),
+      {}
+    );
+    assert.equal(bareDomainDownloadRes.status, 403);
+
+    // Exhaust extract rate limit (30 req/min) for IP 203.0.113.99
+    for (let i = 0; i < 30; i++) {
+      await worker.fetch(
+        new Request('https://vidnex.space/api/extract', {
+          headers: { 'CF-Connecting-IP': '203.0.113.99' },
+        }),
+        {}
+      );
+    }
+    const throttledRes = await worker.fetch(
+      new Request('https://vidnex.space/api/extract', {
+        headers: { 'CF-Connecting-IP': '203.0.113.99' },
+      }),
+      {}
+    );
+    assert.equal(throttledRes.status, 429);
+    assert.ok(Number(throttledRes.headers.get('Retry-After')) >= 1);
   });
 });

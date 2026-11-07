@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "dev:cf": "vite build && wrangler pages dev dist",
+    "dev:cf": "vite build && wrangler dev",
     "preview": "vite preview",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit && tsc --noEmit -p tsconfig.backend.json",
+    "lint:backend": "tsc --noEmit -p tsconfig.backend.json",
     "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts"
   },
   "dependencies": {

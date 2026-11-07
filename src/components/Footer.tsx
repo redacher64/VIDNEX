@@ -4,6 +4,7 @@ import {
   getLocalizedToolConfig,
   LanguageCode,
 } from '../i18n/translations';
+import { isPlatformSupported } from '../utils/urlDetector';
 import { LegalDocType } from './LegalModal';
 
 interface FooterProps {
@@ -31,6 +32,9 @@ export const Footer: React.FC<FooterProps> = ({
   language,
 }) => {
   const t = LEGAL_LABELS[language] || LEGAL_LABELS.en;
+  const supportedTools = ALL_TOOL_CONFIGS.filter((tool) =>
+    isPlatformSupported(tool.platform)
+  );
 
   const handleToolClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -44,9 +48,9 @@ export const Footer: React.FC<FooterProps> = ({
   return (
     <footer className="relative z-10 w-full border-t border-orange-200/80 dark:border-orange-900/50 bg-[#fffaf5] dark:bg-[#140e0a] shadow-[0_-4px_20px_rgba(234,88,12,0.03)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-6">
-        {/* Quiet Internal SEO Tool Links */}
+        {/* Quiet Internal SEO Tool Links (Active Platforms Only) */}
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 text-xs">
-          {ALL_TOOL_CONFIGS.map((rawTool) => {
+          {supportedTools.map((rawTool) => {
             const tool = getLocalizedToolConfig(rawTool, language);
             const isActive = activeToolSlug === tool.slug;
             return (

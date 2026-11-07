@@ -8,7 +8,11 @@ import { SeoSchemaInjector } from './components/SeoSchemaInjector';
 import { AdSlot } from './components/AdSlot';
 import { Footer } from './components/Footer';
 import { LegalDocType, LegalModal } from './components/LegalModal';
-import { DetectedUrlInfo, PlatformId } from './utils/urlDetector';
+import {
+  DetectedUrlInfo,
+  isPlatformSupported,
+  PlatformId,
+} from './utils/urlDetector';
 import {
   extractMediaFromUrl,
   MediaResult,
@@ -29,18 +33,25 @@ function resolveInitialToolFromLocation(): ToolSlug {
   if (typeof window === 'undefined') return 'instagram-reels';
   const params = new URLSearchParams(window.location.search);
   const toolParam = params.get('tool');
-  if (toolParam && ALL_TOOL_CONFIGS.some((t) => t.slug === toolParam)) {
-    return toolParam as ToolSlug;
+  if (toolParam) {
+    const found = ALL_TOOL_CONFIGS.find(
+      (t) => t.slug === toolParam && isPlatformSupported(t.platform)
+    );
+    if (found) return found.slug;
   }
   const hash = window.location.hash.replace(/^#\/?/, '');
   if (hash) {
     const matchedHash = ALL_TOOL_CONFIGS.find(
-      (t) => t.slug === hash || t.path.replace(/^\//, '') === hash
+      (t) =>
+        (t.slug === hash || t.path.replace(/^\//, '') === hash) &&
+        isPlatformSupported(t.platform)
     );
     if (matchedHash) return matchedHash.slug;
   }
   const cleanPath = window.location.pathname.replace(/\/+$/, '');
-  const matched = ALL_TOOL_CONFIGS.find((t) => t.path === cleanPath);
+  const matched = ALL_TOOL_CONFIGS.find(
+    (t) => t.path === cleanPath && isPlatformSupported(t.platform)
+  );
   return matched ? matched.slug : 'instagram-reels';
 }
 

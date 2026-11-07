@@ -100,48 +100,4 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://vidnex.space/tiktok-dp?lang=ar" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://vidnex.space/tiktok-dp" />
   </url>
-  <url>
-    <loc>https://vidnex.space/youtube-shorts</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://vidnex.space/youtube-shorts" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://vidnex.space/youtube-shorts?lang=fr" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://vidnex.space/youtube-shorts?lang=es" />
-    <xhtml:link rel="alternate" hreflang="pt" href="https://vidnex.space/youtube-shorts?lang=pt" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://vidnex.space/youtube-shorts?lang=ar" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://vidnex.space/youtube-shorts" />
-  </url>
-  <url>
-    <loc>https://vidnex.space/x-video</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://vidnex.space/x-video" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://vidnex.space/x-video?lang=fr" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://vidnex.space/x-video?lang=es" />
-    <xhtml:link rel="alternate" hreflang="pt" href="https://vidnex.space/x-video?lang=pt" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://vidnex.space/x-video?lang=ar" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://vidnex.space/x-video" />
-  </url>
-  <url>
-    <loc>https://vidnex.space/facebook-reels</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://vidnex.space/facebook-reels" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://vidnex.space/facebook-reels?lang=fr" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://vidnex.space/facebook-reels?lang=es" />
-    <xhtml:link rel="alternate" hreflang="pt" href="https://vidnex.space/facebook-reels?lang=pt" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://vidnex.space/facebook-reels?lang=ar" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://vidnex.space/facebook-reels" />
-  </url>
-  <url>
-    <loc>https://vidnex.space/snapchat-spotlight</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://vidnex.space/snapchat-spotlight" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://vidnex.space/snapchat-spotlight?lang=fr" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://vidnex.space/snapchat-spotlight?lang=es" />
-    <xhtml:link rel="alternate" hreflang="pt" href="https://vidnex.space/snapchat-spotlight?lang=pt" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://vidnex.space/snapchat-spotlight?lang=ar" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://vidnex.space/snapchat-spotlight" />
-  </url>
 </urlset>

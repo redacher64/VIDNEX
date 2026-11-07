@@ -1,85 +1,55 @@
-# VIDNEX — Téléchargeur Média TikTok & Instagram 100 % Gratuit
+# VIDNEX — Universal Media Downloader (Instagram & TikTok)
 
-Application web moderne (React 18 + TypeScript + Vite + Tailwind CSS) déployée sur **Cloudflare Pages** avec **Pages Functions** (`functions/`).
+Application web moderne (**React 18 + TypeScript + Vite 6 + Tailwind CSS**) propulsée par **Cloudflare Workers / Pages Functions** (`worker.ts` + `functions/`).
 
 ---
 
 ## 🌟 Caractéristiques Principales
 
-- **100 % Gratuit & Zéro API Tierce** : Aucun abonnement RapidAPI, aucun service Cobalt, aucun proxy externe payant.
-- **Moteur TikTok Direct** :
-  - Résolution automatique des liens courts (`vm.tiktok.com`, `vt.tiktok.com`).
-  - Scraping direct du JSON officiel TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`).
-  - Téléchargement du flux HD 1080p source sans filigrane, carrousels de photos et audio MP3.
-- **Moteur Instagram à Deux Niveaux** :
-  - **Niveau 1 (Sans compte)** : Analyse de la page embed officielle `/p/{shortcode}/embed/captioned/` pour extraire vidéos et images publiques.
-  - **Niveau 2 (Optionnel)** : Prise en charge du secret `IG_SESSION_ID` (Cloudflare Pages) pour les contenus restreints.
-  - Rapports d'erreur transparents et précis (codes d'erreur explicites).
-- **Proxy de Téléchargement Sécurisé en Streaming (`/api/download`)** :
-  - Allowlist stricte (domaines CDN TikTok et Meta/Instagram uniquement, rejet 403 de tout autre domaine).
-  - Streaming direct sans mise en mémoire tampon (Zero-buffering).
-  - Gestion des en-têtes `Range` (iOS/Safari/Chrome) et forçage du téléchargement avec `Content-Disposition: attachment`.
+- **100 % Gratuit & Sans Compte Obligatoire** :
+  - **Instagram (3 niveaux sans compte)** : API GraphQL publique (`doc_id` officiels) + scraping `/embed/captioned/` (`contextJSON`) + passerelles publiques de secours (`vxinstagram` / `ddinstagram`).
+  - **TikTok (2 niveaux sans clé en dur)** : API publique TikWM + extraction directe du JSON de réhydratation (`__UNIVERSAL_DATA_FOR_REHYDRATION__`) avec transfert automatique des cookies CDN (`tt_chain_token`, `ttwid`).
+- **Téléchargement Carrousel `.ZIP` Réel** :
+  - Assemblage d'une véritable archive binaire `.ZIP` standard (PKZIP STORE + CRC32) côté client avec barre de progression en direct et téléchargement individuel par diapositive.
+- **Sécurité Edge & Protection Anti-SSRF** :
+  - Liste blanche stricte des sous-domaines CDN médias officiels et blocage complet des plages privées RFC 1918.
+  - Suivi manuel des redirections (`redirect: 'manual'`, max 4 sauts vérifiés) et limite de taille à 250 Mo (`HTTP 413`).
+  - Rate Limiting Token Bucket par IP (`30 req/min` sur `/api/extract`, `60 req/min` sur `/api/download`).
+- **Internationalisation (5 langues) & SEO** :
+  - Interface, erreurs API et mentions légales traduites en **Français, Anglais, Espagnol, Portugais et Arabe (RTL)**.
+  - Injection dynamique de `<link rel="canonical">`, `hreflang`, OpenGraph, Schema.org JSON-LD, `robots.txt` et `sitemap.xml`.
 
 ---
 
-## 🏗️ Structure du Projet
+## 🛠️ Commandes de Développement & Vérification
 
-```text
-VIDNEX/
-├── functions/               # Fonctions Edge Cloudflare Pages
-│   ├── api/
-│   │   ├── extract.ts       # GET /api/extract?url=...
-│   │   └── download.ts      # GET /api/download?url=...&filename=...
-│   └── _lib/                # Modules partagés (non routés)
-│       ├── allowlist.ts     # Domaines CDN autorisés (sécurité anti-SSRF)
-│       ├── detect.ts        # Détection et validation d'URLs
-│       ├── http.ts          # Client HTTP (User-Agent réaliste, cookies, timeouts)
-│       ├── instagram.ts     # Moteur Instagram direct (Niveaux 1 et 2)
-│       ├── normalize.ts     # Format de réponse unifié et codes d'erreur
-│       └── tiktok.ts        # Moteur TikTok direct sans filigrane
-├── public/                  # Fichiers statiques et échantillons de test
-├── src/                     # Interface React 18 + Tailwind
-│   ├── components/          # Composants UI
-│   ├── services/            # extractorService.ts
-│   └── utils/               # Détecteur d'URLs côté client
-├── package.json             # Scripts et dépendances minimales
-├── wrangler.jsonc           # Configuration Cloudflare Pages
-└── vite.config.ts           # Configuration Vite
-```
-
----
-
-## 🚀 Développement Local
-
-### 1. Installation des dépendances
 ```bash
+# 1. Installer les dépendances
 npm install
-```
 
-### 2. Démarrage du serveur de développement (Vite)
-```bash
+# 2. Lancer le serveur de développement Vite (port 3000)
 npm run dev
-```
 
-### 3. Tester localement avec les Cloudflare Pages Functions
-```bash
+# 3. Lancer les tests unitaires et d'intégration Edge (node:test)
+npm test
+
+# 4. Vérifier le typage TypeScript (Frontend + Backend Cloudflare)
+npm run lint
+
+# 5. Compiler pour la production (dist/)
+npm run build
+
+# 6. Tester localement avec Wrangler (Worker + Static Assets)
 npm run dev:cf
 ```
 
-### 4. Compiler pour la production
-```bash
-npm run build
-```
-
 ---
 
-## 🌐 Déploiement sur Cloudflare Pages
+## 🚀 Déploiement sur Cloudflare
 
-1. Connectez votre dépôt GitHub à **Cloudflare Pages**.
-2. Paramètres de compilation :
-   - **Framework preset** : `Vite`
-   - **Build command** : `npm run build`
-   - **Build output directory** : `dist`
-3. Variables d'environnement (optionnel) :
-   - `IG_SESSION_ID` : votre sessionid Instagram si vous souhaitez activer le Niveau 2 authentifié.
-4. Cliquez sur **Save and Deploy**.
+Le projet est préconfiguré dans `wrangler.jsonc` :
+- **Build command** : `npm run build`
+- **Deploy command** : `npx wrangler deploy`
+- **Variables secrètes optionnelles** (aucune n'est requise pour fonctionner) :
+  - `IG_SESSION_ID` : cookie `sessionid` d'un compte Instagram secondaire (optionnel, pour les Stories ou contenus restreints).
+  - `TIKWM_API_KEY` : clé TikWM dédiée (optionnel, pour dépasser la limite publique de 1 req/sec).

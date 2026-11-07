@@ -62,106 +62,7 @@ function triggerBlobDownload(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
 }
 
-/**
- * Générateur PKZIP standard (méthode STORE sans compression, compatible tous OS)
- * Permet d'assembler plusieurs photos/vidéos d'un carrousel en une vraie archive .ZIP
- * directement dans le navigateur sans dépendance externe.
- */
-const CRC32_TABLE = (() => {
-  const table = new Uint32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let c = i;
-    for (let k = 0; k < 8; k++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    table[i] = c >>> 0;
-  }
-  return table;
-})();
-
-function crc32(data: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc = CRC32_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function buildUncompressedZipArchive(
-  files: Array<{ name: string; data: Uint8Array }>
-): Blob {
-  const encoder = new TextEncoder();
-  const localParts: Uint8Array[] = [];
-  const centralParts: Uint8Array[] = [];
-  let offset = 0;
-
-  for (const file of files) {
-    const nameBytes = encoder.encode(file.name);
-    const crc = crc32(file.data);
-    const size = file.data.byteLength;
-
-    const localHeader = new Uint8Array(30 + nameBytes.length);
-    const lv = new DataView(localHeader.buffer);
-    lv.setUint32(0, 0x04034b50, true); // Local file header signature
-    lv.setUint16(4, 20, true); // Version needed
-    lv.setUint16(6, 0x0800, true); // UTF-8 flag
-    lv.setUint16(8, 0, true); // Compression method: 0 (STORE)
-    lv.setUint16(10, 0, true); // Mod time
-    lv.setUint16(12, 0, true); // Mod date
-    lv.setUint32(14, crc, true);
-    lv.setUint32(18, size, true);
-    lv.setUint32(22, size, true);
-    lv.setUint16(26, nameBytes.length, true);
-    lv.setUint16(28, 0, true);
-    localHeader.set(nameBytes, 30);
-
-    localParts.push(localHeader, file.data);
-
-    const centralHeader = new Uint8Array(46 + nameBytes.length);
-    const cv = new DataView(centralHeader.buffer);
-    cv.setUint32(0, 0x02014b50, true); // Central directory signature
-    cv.setUint16(4, 20, true);
-    cv.setUint16(6, 20, true);
-    cv.setUint16(8, 0x0800, true);
-    cv.setUint16(10, 0, true);
-    cv.setUint16(12, 0, true);
-    cv.setUint16(14, 0, true);
-    cv.setUint32(16, crc, true);
-    cv.setUint32(20, size, true);
-    cv.setUint32(24, size, true);
-    cv.setUint16(28, nameBytes.length, true);
-    cv.setUint16(30, 0, true);
-    cv.setUint16(32, 0, true);
-    cv.setUint16(34, 0, true);
-    cv.setUint16(36, 0, true);
-    cv.setUint32(38, 0, true);
-    cv.setUint32(42, offset, true);
-    centralHeader.set(nameBytes, 46);
-
-    centralParts.push(centralHeader);
-    offset += localHeader.byteLength + size;
-  }
-
-  let centralSize = 0;
-  for (const part of centralParts) {
-    centralSize += part.byteLength;
-  }
-
-  const eocd = new Uint8Array(22);
-  const ev = new DataView(eocd.buffer);
-  ev.setUint32(0, 0x06054b50, true); // End of central directory signature
-  ev.setUint16(4, 0, true);
-  ev.setUint16(6, 0, true);
-  ev.setUint16(8, files.length, true);
-  ev.setUint16(10, files.length, true);
-  ev.setUint32(12, centralSize, true);
-  ev.setUint32(16, offset, true);
-  ev.setUint16(20, 0, true);
-
-  return new Blob([...localParts, ...centralParts, eocd] as BlobPart[], {
-    type: 'application/zip',
-  });
-}
+import { buildUncompressedZipArchive } from '../utils/zipArchive';
 
 export const ResultDrawer: React.FC<ResultDrawerProps> = ({
   isLoading,
@@ -732,48 +633,101 @@ const CarouselResultView: React.FC<{
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {data.items.map((slide) => {
           const isSelected = selectedIds.includes(slide.id);
+          const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
+          const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+          const slideFilename = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
+
           return (
-            <button
+            <div
               key={slide.id}
-              type="button"
-              onClick={() => handleToggleSlide(slide.id)}
-              aria-pressed={isSelected}
-              className={`relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer border-2 transition-all text-left ${
+              className={`relative aspect-[4/5] rounded-2xl overflow-hidden border-2 transition-all group ${
                 isSelected
                   ? 'border-orange-500 shadow-orange-sm'
-                  : 'border-orange-200/50 dark:border-orange-950/50 opacity-60 hover:opacity-100'
+                  : 'border-orange-200/50 dark:border-orange-950/50 opacity-65 hover:opacity-100'
               }`}
             >
-              <img
-                src={resolveApiUrl(slide.thumbnailUrl)}
-                alt={`Slide ${slide.index}`}
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  if (img.src !== STUDIO_FALLBACK_THUMB) {
-                    img.src = STUDIO_FALLBACK_THUMB;
-                  }
-                }}
-                className="w-full h-full object-cover"
-              />
-              <span
-                className={`absolute top-2 left-2 w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-colors ${
-                  isSelected
-                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
-                    : 'bg-black/50 text-transparent border border-white/50'
-                }`}
+              <button
+                type="button"
+                onClick={() => handleToggleSlide(slide.id)}
+                aria-pressed={isSelected}
+                className="w-full h-full block text-left cursor-pointer"
               >
-                ✓
-              </span>
-              {slide.fileSize && (
-                <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white font-mono text-[10px]">
-                  {slide.fileSize}
+                <img
+                  src={resolveApiUrl(slide.thumbnailUrl)}
+                  alt={`Slide ${slide.index}`}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (img.src !== STUDIO_FALLBACK_THUMB) {
+                      img.src = STUDIO_FALLBACK_THUMB;
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                <span
+                  className={`absolute top-2 left-2 w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-colors ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                      : 'bg-black/50 text-transparent border border-white/50'
+                  }`}
+                >
+                  ✓
                 </span>
-              )}
-            </button>
+                {slide.fileSize && (
+                  <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 text-white font-mono text-[10px]">
+                    {slide.fileSize}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                title={`Download Slide #${slide.index}`}
+                aria-label={`Download Slide ${slide.index}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerNativeBackendDownload(slideFilename, slide.downloadUrl);
+                }}
+                className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center shadow-md transition-transform active:scale-95"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  className="w-3.5 h-3.5"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            </div>
           );
         })}
       </div>
+
+      {data.audioTrack && (
+        <div className="pt-1 flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              const cleanHandle = data.creatorHandle.replace(
+                /[^a-zA-Z0-9_-]/g,
+                ''
+              );
+              triggerNativeBackendDownload(
+                `VIDNEX_${cleanHandle}_audio.mp3`,
+                data.audioTrack?.downloadUrl
+              );
+            }}
+            className="px-4 py-2 rounded-xl bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 text-xs font-mono font-bold text-orange-950 dark:text-orange-100 transition-colors"
+          >
+            {t.extractAudioMp3}
+            {data.audioTrack.fileSize ? ` (${data.audioTrack.fileSize})` : ''}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

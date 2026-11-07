@@ -16,10 +16,11 @@ import { BROWSER_USER_AGENT } from '../_lib/http.ts';
 import { detectUrl } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
+import { checkRateLimit, extractClientIp } from '../_lib/rateLimit.ts';
 
-interface PagesContext {
+export interface PagesContext {
   request: Request;
-  env: Record<string, any>;
+  env: Record<string, string | undefined>;
 }
 
 const MAX_REDIRECTS = 4;
@@ -219,6 +220,26 @@ export const onRequestOptions = async (): Promise<Response> => {
 };
 
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
+  const clientIp = extractClientIp(context.request);
+  if (clientIp !== 'anonymous') {
+    const rate = checkRateLimit(`download:${clientIp}`, 60, 60_000);
+    if (!rate.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: `Trop de téléchargements simultanés. Veuillez réessayer dans ${rate.retryAfterSec}s.`,
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Retry-After': String(rate.retryAfterSec),
+          },
+        }
+      );
+    }
+  }
+
   const reqUrl = new URL(context.request.url);
   const rawTargetUrl = (reqUrl.searchParams.get('url') || '').trim();
   const altTargetUrl = (reqUrl.searchParams.get('alt') || '').trim();

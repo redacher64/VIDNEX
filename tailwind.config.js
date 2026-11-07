@@ -26,8 +26,8 @@ export default {
         "outline-variant": "#fdba74",
       },
       fontFamily: {
-        display: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
-        sans: ['"Hanken Grotesk"', '"Inter"', 'sans-serif'],
+        display: ['"Space Grotesk"', 'sans-serif'],
+        sans: ['"Inter"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {

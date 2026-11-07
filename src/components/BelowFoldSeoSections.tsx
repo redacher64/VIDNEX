@@ -9,8 +9,17 @@ import {
   LanguageCode,
   UI_TRANSLATIONS,
 } from '../i18n/translations';
+import { isPlatformSupported } from '../utils/urlDetector';
 import { AdSlot } from './AdSlot';
 import { PlatformIcon } from './icons/PlatformIcons';
+
+const SOON_BADGE_BY_LANG: Record<LanguageCode, string> = {
+  en: 'Soon',
+  fr: 'Bientôt',
+  es: 'Pronto',
+  pt: 'Em breve',
+  ar: 'قريباً',
+};
 
 interface BelowFoldSeoSectionsProps {
   activeTool: SeoToolConfig;
@@ -25,6 +34,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const t = UI_TRANSLATIONS[language].sections;
+  const soonBadge = SOON_BADGE_BY_LANG[language] || 'Soon';
 
   useEffect(() => {
     setOpenFaqIndex(0);
@@ -153,13 +163,19 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
             {ALL_TOOL_CONFIGS.map((rawTool) => {
               const tool = getLocalizedToolConfig(rawTool, language);
               const isCurrent = tool.slug === activeTool.slug;
+              const supported = isPlatformSupported(tool.platform);
               return (
                 <button
                   key={tool.slug}
                   type="button"
-                  onClick={() => handleToolSelect(tool.slug)}
+                  disabled={!supported}
+                  onClick={() => {
+                    if (supported) handleToolSelect(tool.slug);
+                  }}
                   className={`p-5 text-left rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
-                    isCurrent
+                    !supported
+                      ? 'bg-white/60 dark:bg-[#1c140e]/50 border-orange-200/50 dark:border-orange-900/30 opacity-60 cursor-not-allowed'
+                      : isCurrent
                       ? 'bg-white dark:bg-[#231710] border-2 border-orange-500 shadow-orange-glow'
                       : 'bg-white/90 dark:bg-[#1c140e]/90 border-orange-200/80 dark:border-orange-900/60 shadow-card-warm hover:shadow-orange-glow hover:border-orange-400'
                   }`}
@@ -175,9 +191,15 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                         </span>
                         <span>{tool.shortLabel}</span>
                       </span>
-                      <span className="font-mono text-[10px] font-bold text-orange-700 dark:text-amber-400 uppercase">
-                        {tool.specs[0]}
-                      </span>
+                      {supported ? (
+                        <span className="font-mono text-[10px] font-bold text-orange-700 dark:text-amber-400 uppercase">
+                          {tool.specs[0]}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950 font-mono text-[10px] font-bold text-orange-800 dark:text-amber-400 uppercase">
+                          {soonBadge}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-[#6c4e40] dark:text-orange-200/75 line-clamp-2 leading-relaxed mb-4">
                       {tool.subtitle}
@@ -187,7 +209,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                   <div className="pt-2.5 border-t border-orange-100 dark:border-orange-900/40 flex items-center justify-between font-mono text-[11px] text-orange-900/75 dark:text-orange-200/75">
                     <span>{tool.specs[1]}</span>
                     <span className="text-orange-600 dark:text-amber-400 font-bold">
-                      →
+                      {supported ? '→' : soonBadge}
                     </span>
                   </div>
                 </button>

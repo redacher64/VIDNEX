@@ -71,7 +71,10 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
   }
 }
 
-export function createSuccessResponse(data: Omit<ExtractResponse, 'ok'>): Response {
+export function createSuccessResponse(
+  data: Omit<ExtractResponse, 'ok'>,
+  extraHeaders?: Record<string, string>
+): Response {
   const body: ExtractResponse = {
     ok: true,
     ...data,
@@ -81,7 +84,8 @@ export function createSuccessResponse(data: Omit<ExtractResponse, 'ok'>): Respon
     headers: {
       ...CORS_HEADERS,
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'public, max-age=60, s-maxage=300',
+      ...(extraHeaders || {}),
     },
   });
 }
@@ -89,7 +93,8 @@ export function createSuccessResponse(data: Omit<ExtractResponse, 'ok'>): Respon
 export function createErrorResponse(
   code: ErrorCode,
   message: string,
-  httpStatus?: number
+  httpStatus?: number,
+  extraHeaders?: Record<string, string>
 ): Response {
   const status = httpStatus ?? mapErrorCodeToHttpStatus(code);
   const body: ExtractResponse = {
@@ -105,6 +110,7 @@ export function createErrorResponse(
       ...CORS_HEADERS,
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
+      ...(extraHeaders || {}),
     },
   });
 }

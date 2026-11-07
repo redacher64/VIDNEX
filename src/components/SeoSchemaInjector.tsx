@@ -15,7 +15,7 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   language,
 }) => {
   useEffect(() => {
-    // 1. Update Document Title & Meta Description
+    // 1. Update Document Title, Meta Description & OpenGraph Tags
     document.title = tool.metaTitle;
 
     let metaDesc = document.querySelector(
@@ -42,6 +42,21 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
       document.head.appendChild(canonicalLink);
     }
     canonicalLink.href = canonicalUrl;
+
+    const upsertOgMeta = (property: string, content: string) => {
+      let el = document.querySelector(
+        `meta[property="${property}"]`
+      ) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    upsertOgMeta('og:title', tool.metaTitle);
+    upsertOgMeta('og:description', tool.metaDescription);
+    upsertOgMeta('og:url', canonicalUrl);
 
     // Remove previous hreflang links managed by VIDNEX
     document

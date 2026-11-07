@@ -262,6 +262,10 @@ export async function extractMediaFromUrl(
       data.thumbnail || data.author?.avatar || dpItem?.url || ''
     );
     const downloadUrl = resolveApiUrl(dpItem?.url || previewUrl);
+    const realDimensions =
+      dpItem?.width && dpItem?.height
+        ? `${dpItem.width} × ${dpItem.height}`
+        : dpItem?.dimensions || undefined;
 
     return {
       id: `dp-${Date.now()}`,
@@ -280,7 +284,7 @@ export async function extractMediaFromUrl(
       followersCount: data.author?.followers || undefined,
       standardPreviewUrl: previewUrl,
       hdOriginalUrl: downloadUrl,
-      dimensions: dpItem?.dimensions || undefined,
+      dimensions: realDimensions,
       fileSize: dpItem?.size || undefined,
       format: 'JPG',
     };
@@ -294,7 +298,10 @@ export async function extractMediaFromUrl(
         id: `slide-${idx + 1}`,
         index: idx + 1,
         mediaType: it.kind === 'video' ? 'video' : 'image',
-        dimensions: it.dimensions || undefined,
+        dimensions:
+          it.width && it.height
+            ? `${it.width} × ${it.height}`
+            : it.dimensions || undefined,
         fileSize: it.size || undefined,
         thumbnailUrl: resolveApiUrl(it.thumbnail || it.url),
         downloadUrl: resolveApiUrl(it.url),
@@ -373,6 +380,13 @@ export async function extractMediaFromUrl(
     });
   }
 
+  const realResolution =
+    primaryVideo?.width && primaryVideo?.height
+      ? `${primaryVideo.width} × ${primaryVideo.height}`
+      : primaryVideo?.quality === '1080p'
+      ? '1080p HD'
+      : undefined;
+
   return {
     id: `vid-${Date.now()}`,
     payloadType: 'video',
@@ -386,7 +400,7 @@ export async function extractMediaFromUrl(
     title: data.title || creatorHandle,
     duration: data.duration || undefined,
     aspectRatio: '9:16',
-    resolution: primaryVideo?.quality === '1080p' ? '1080p HD' : undefined,
+    resolution: realResolution,
     codec: undefined,
     thumbnailUrl: resolveApiUrl(data.thumbnail || primaryVideo?.url || ''),
     formats,

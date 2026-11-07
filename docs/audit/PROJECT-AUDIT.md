@@ -68,3 +68,16 @@ Légende des statuts :
 | **ÉLEVÉ (P1)** | **3** | • Redirections non filtrées dans `/api/download` (risque de contournement SSRF)<br>• Absence totale de Rate Limiting sur les endpoints API (risque d'épuisement du quota Cloudflare 100k req/j)<br>• Désynchronisation Git locale (3 commits de retard) et tests unitaires brisés |
 | **MOYEN (P2)** | **3** | • Fichiers volumineux obsolètes et doublons dans `public/samples/` (7,4 Mo dans le bundle)<br>• Absence de balise `<link rel="canonical">`, de `robots.txt` et de `sitemap.xml`<br>• Textes légaux (CGU/Politique) et messages d'erreur API non traduits (i18n incomplète) |
 | **FAIBLE (P3)** | **3** | • Données télémétriques et techniques factices affichées à l'utilisateur (durée, followers, codecs)<br>• Types Cloudflare manquants et `worker.ts` utilisant `any`<br>• Script de contournement d'extension dans `index.html` exécuté avant le parsing |
+
+---
+
+## 5. Bilan Final Post-Correction (Étapes 1 à 6 Appliquées)
+
+Tous les problèmes critiques (P0), élevés (P1), moyens (P2) et faibles (P3) ont été corrigés et vérifiés :
+- ✅ **Extraction Instagram & TikTok 100 % sans compte / sans clé codée en dur** (`functions/_lib/instagram.ts` à 3 niveaux + `functions/_lib/tiktok.ts`).
+- ✅ **Proxy `/api/download` blindé contre les SSRF** (`redirect: 'manual'` jusqu'à 4 sauts vérifiés, blocage RFC 1918 complet `172.16.0.0/12`, rejet des domaines nus non-CDN, limite 250 Mo HTTP `413`).
+- ✅ **Rate Limiting Edge actif** (`30 req/min/IP` sur `/api/extract` et `60 req/min/IP` sur `/api/download` avec en-tête `Retry-After`).
+- ✅ **Vraie archive `.ZIP` Carrousel & Zéro fausses données** (`src/utils/zipArchive.ts` générant un binaire PKZIP valide avec CRC32 exact, téléchargement individuel par slide, suppression des métadonnées inventées).
+- ✅ **Clarification UI des plateformes** (YouTube, X, Facebook et Snapchat marqués *« Bientôt / Soon »* et désactivés proprement).
+- ✅ **SEO, i18n 5 langues & TypeScript strict** (`<link rel="canonical">`, `robots.txt`, `sitemap.xml`, `favicon.svg`, erreurs et modale légale traduites en `en/fr/es/pt/ar`, `tsconfig.backend.json` validé sans erreur).
+

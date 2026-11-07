@@ -1,85 +1,85 @@
-# VIDNEX — Universal Media Downloader
+# VIDNEX — Téléchargeur Média TikTok & Instagram 100 % Gratuit
 
-Application web haute performance (React 18 + TypeScript + Vite + Tailwind CSS) propulsée par une architecture serverless **100 % gratuite** sur **Cloudflare Pages** et Edge Functions (`/functions/api`), avec un serveur de développement local Express (`server.ts` + `/server/api`).
-
----
-
-## 🌟 Fonctionnalités Clés
-
-- **100 % Gratuit & Sans Clé Payante** : Aucun abonnement RapidAPI, aucune carte bancaire requise et aucun conteneur Docker payant.
-- **Moteur TikTok Direct** : Téléchargement Full HD 1080p sans filigrane, carrousels de photos haute résolution et extraction audio MP3.
-- **Moteur Instagram Multi-Niveaux** :
-  - **Niveau 1** : Analyse de l'embed officiel Instagram (`/p/{shortcode}/embed/captioned/`).
-  - **Niveau 2** : Requêtes GraphQL anonymes avec l'en-tête officiel `X-IG-App-ID: 936619743392459` (carrousels et Reels).
-  - **Niveau 3** : Moteur de secours multi-instances Cobalt libres et publiques (`api.cobalt.tools`, `capi.wuk.sh`, `cobalt.kwiatekm.tokyo`).
-  - **Avatars HD** : Extraction des photos de profil 1080×1080 via OpenGraph.
-- **Moteur X (Twitter)** : Prise en charge des vidéos et médias multiples via les moteurs ouverts BetterTwitFix / vxTwitter.
-- **Téléchargement Forcé Mobile & Desktop** (`/api/download`) : Flux avec en-têtes `Content-Disposition: attachment; filename="..."` et contournement CORS pour sauvegarder directement sur smartphone ou ordinateur sans ouverture d'onglet parasite.
-- **Design Moderne & Réactif** : Palette chaleureuse orange clair / pêche avec thème sombre / clair, tiroir de résultats interactif et conformité RGPD / conditions d'utilisation.
+Application web moderne (React 18 + TypeScript + Vite + Tailwind CSS) déployée sur **Cloudflare Pages** avec **Pages Functions** (`functions/`).
 
 ---
 
-## 🏗️ Architecture du Projet
+## 🌟 Caractéristiques Principales
+
+- **100 % Gratuit & Zéro API Tierce** : Aucun abonnement RapidAPI, aucun service Cobalt, aucun proxy externe payant.
+- **Moteur TikTok Direct** :
+  - Résolution automatique des liens courts (`vm.tiktok.com`, `vt.tiktok.com`).
+  - Scraping direct du JSON officiel TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`).
+  - Téléchargement du flux HD 1080p source sans filigrane, carrousels de photos et audio MP3.
+- **Moteur Instagram à Deux Niveaux** :
+  - **Niveau 1 (Sans compte)** : Analyse de la page embed officielle `/p/{shortcode}/embed/captioned/` pour extraire vidéos et images publiques.
+  - **Niveau 2 (Optionnel)** : Prise en charge du secret `IG_SESSION_ID` (Cloudflare Pages) pour les contenus restreints.
+  - Rapports d'erreur transparents et précis (codes d'erreur explicites).
+- **Proxy de Téléchargement Sécurisé en Streaming (`/api/download`)** :
+  - Allowlist stricte (domaines CDN TikTok et Meta/Instagram uniquement, rejet 403 de tout autre domaine).
+  - Streaming direct sans mise en mémoire tampon (Zero-buffering).
+  - Gestion des en-têtes `Range` (iOS/Safari/Chrome) et forçage du téléchargement avec `Content-Disposition: attachment`.
+
+---
+
+## 🏗️ Structure du Projet
 
 ```text
 VIDNEX/
-├── functions/api/          # Fonctions Serverless Cloudflare Pages Edge (Production)
-│   ├── extract.ts          # Moteur multi-plateformes (TikTok, Instagram, Twitter, Fallback)
-│   └── download.ts         # Proxy de téléchargement forcé avec bypass CORS
-├── server/api/             # API locales Express (Développement local)
-│   ├── extract.ts          # Moteurs locaux avec parité exacte Cloudflare
-│   ├── download.ts         # Proxy de téléchargement local
-│   ├── _config.ts          # Utilitaires de configuration
-│   └── _normalizer.ts      # Normalisation uniforme des charges utiles
-├── src/                    # Frontend React 18 + Vite
-│   ├── components/         # Header, HeroOmnibox, ResultDrawer, Footer, LegalModal
-│   ├── services/           # extractorService.ts, adsenseService.ts
-│   └── utils/              # Détecteur d'URL et helpers d'animation
-├── server.ts               # Serveur Node.js / Express local (port 3000)
-├── DEPLOY_FREE.md          # Guide pas-à-pas de déploiement Cloudflare Pages
-└── package.json            # Scripts et dépendances
+├── functions/               # Fonctions Edge Cloudflare Pages
+│   ├── api/
+│   │   ├── extract.ts       # GET /api/extract?url=...
+│   │   └── download.ts      # GET /api/download?url=...&filename=...
+│   └── _lib/                # Modules partagés (non routés)
+│       ├── allowlist.ts     # Domaines CDN autorisés (sécurité anti-SSRF)
+│       ├── detect.ts        # Détection et validation d'URLs
+│       ├── http.ts          # Client HTTP (User-Agent réaliste, cookies, timeouts)
+│       ├── instagram.ts     # Moteur Instagram direct (Niveaux 1 et 2)
+│       ├── normalize.ts     # Format de réponse unifié et codes d'erreur
+│       └── tiktok.ts        # Moteur TikTok direct sans filigrane
+├── public/                  # Fichiers statiques et échantillons de test
+├── src/                     # Interface React 18 + Tailwind
+│   ├── components/          # Composants UI
+│   ├── services/            # extractorService.ts
+│   └── utils/               # Détecteur d'URLs côté client
+├── package.json             # Scripts et dépendances minimales
+├── wrangler.jsonc           # Configuration Cloudflare Pages
+└── vite.config.ts           # Configuration Vite
 ```
 
 ---
 
-## 🚀 Démarrage Rapide
+## 🚀 Développement Local
 
-### 1. Prérequis
-- Node.js 18+ ou 20+
-
-### 2. Installation
-```powershell
+### 1. Installation des dépendances
+```bash
 npm install
 ```
 
-### 3. Lancer en Développement Local
-```powershell
+### 2. Démarrage du serveur de développement (Vite)
+```bash
 npm run dev
 ```
-L'application démarre sur `http://localhost:3000`.
 
-### 4. Compiler pour la Production
-```powershell
+### 3. Tester localement avec les Cloudflare Pages Functions
+```bash
+npm run dev:cf
+```
+
+### 4. Compiler pour la production
+```bash
 npm run build
 ```
-Les fichiers statiques optimisés sont générés dans le dossier `dist/`.
 
 ---
 
-## 🌐 Déploiement Gratuit sur Cloudflare Pages
+## 🌐 Déploiement sur Cloudflare Pages
 
-Le déploiement s'effectue en quelques clics via Git :
-1. Créez un projet sur **[Cloudflare Pages](https://dash.cloudflare.com/)** lié à votre dépôt GitHub.
-2. Définissez les réglages suivants :
+1. Connectez votre dépôt GitHub à **Cloudflare Pages**.
+2. Paramètres de compilation :
    - **Framework preset** : `Vite`
    - **Build command** : `npm run build`
    - **Build output directory** : `dist`
-3. Aucune variable d'environnement obligatoire n'est requise.
+3. Variables d'environnement (optionnel) :
+   - `IG_SESSION_ID` : votre sessionid Instagram si vous souhaitez activer le Niveau 2 authentifié.
 4. Cliquez sur **Save and Deploy**.
-
-Consultez le guide complet et détaillé dans [DEPLOY_FREE.md](./DEPLOY_FREE.md).
-
----
-
-## 📄 Licence
-Projet open-source distribué sous licence MIT.

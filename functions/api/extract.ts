@@ -37,7 +37,24 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   return handleExtract(context.request, context.env || {});
 };
 
-function wrapDownloadUrl(rawUrl: string, filename: string, inline = false): string {
+function encodeBase64Safe(str: string): string {
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch {
+    return '';
+  }
+}
+
+function wrapDownloadUrl(
+  rawUrl: string,
+  filename: string,
+  inline = false,
+  options?: {
+    cookie?: string;
+    backupUrl?: string;
+    sourceUrl?: string;
+  }
+): string {
   if (!rawUrl || rawUrl.startsWith('/api/download')) return rawUrl;
   const params = new URLSearchParams({
     url: rawUrl,
@@ -45,6 +62,16 @@ function wrapDownloadUrl(rawUrl: string, filename: string, inline = false): stri
   });
   if (inline) {
     params.set('inline', '1');
+  }
+  if (options?.cookie) {
+    const b64 = encodeBase64Safe(options.cookie);
+    if (b64) params.set('ck', b64);
+  }
+  if (options?.backupUrl) {
+    params.set('alt', options.backupUrl);
+  }
+  if (options?.sourceUrl && !inline) {
+    params.set('src', options.sourceUrl);
   }
   return `/api/download?${params.toString()}`;
 }
@@ -128,12 +155,15 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
 
   // 3. Transformation des URLs d'items vers le proxy sécurisé /api/download
   const username = (result.author?.username || 'media').replace(/[^a-zA-Z0-9_-]/g, '');
+  const sharedCookie = result.cookie;
+
   const transformedItems = (result.items || []).map((item, idx) => {
     const ext =
       item.ext ||
       (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'mp3' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
     const safeFilename = `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
+    const itemCookie = item.cookie || sharedCookie;
 
     return {
       ...item,
@@ -141,10 +171,15 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
         ? wrapDownloadUrl(
             item.thumbnail,
             `VIDNEX_${result.platform}_${username}_slide_${idx + 1}.jpg`,
-            true
+            true,
+            { cookie: itemCookie }
           )
         : undefined,
-      url: wrapDownloadUrl(item.url, safeFilename, false),
+      url: wrapDownloadUrl(item.url, safeFilename, false, {
+        cookie: itemCookie,
+        backupUrl: item.backupUrl,
+        sourceUrl: detection.cleanUrl,
+      }),
     };
   });
 
@@ -157,7 +192,8 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
     proxyThumbnail = wrapDownloadUrl(
       proxyThumbnail,
       `VIDNEX_${result.platform}_${username}_thumb.jpg`,
-      true
+      true,
+      { cookie: sharedCookie }
     );
   }
 
@@ -172,7 +208,8 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
             ? wrapDownloadUrl(
                 result.author.avatar,
                 `VIDNEX_${result.platform}_${username}_avatar.jpg`,
-                true
+                true,
+                { cookie: sharedCookie }
               )
             : result.author.avatar,
       }

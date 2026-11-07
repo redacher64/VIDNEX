@@ -3,9 +3,10 @@
  *
  * Architecture Multi-Niveaux :
  * - Niveau 1 (Sans compte, Anti-WAF Cloudflare) : API directe TikWM (`https://www.tikwm.com/api/` avec `hd=1`)
- *   pour extraire instantanément les vidéos HD 1080p sans filigrane, 720p, MP3, carrousels photos et avatars DP.
- * - Niveau 2 (Fallback Direct TikTok HTML + `TT_COOKIE` optionnel) : Analyse directe de la page officielle
- *   TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, `__NEXT_DATA__`).
+ *   avec retry automatique en cas de limite 1 req/sec.
+ * - Niveau 2 (Fallback Direct TikTok HTML + transmission automatique des cookies `tt_chain_token` / `ttwid`) :
+ *   Analyse de la page officielle TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, `__NEXT_DATA__`)
+ *   et transmission de `cookieString` au proxy `/api/download` pour éviter toute erreur 403 sur `v16-webapp-prime.tiktok.com`.
  */
 
 import { fetchWithContext } from './http.ts';
@@ -47,6 +48,43 @@ function formatCount(count: unknown): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return String(n);
+}
+
+async function callTikWmApi(targetUrl: string, apiKey: string): Promise<any | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const form = new URLSearchParams({
+      url: targetUrl,
+      hd: '1',
+    });
+    if (apiKey && attempt === 0) {
+      form.set('api_key', apiKey);
+    }
+
+    const tikwmFetch = await fetchWithContext('https://www.tikwm.com/api/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json',
+        Referer: 'https://www.tikwm.com/',
+      },
+      body: form.toString(),
+      timeoutMs: 9000,
+    });
+
+    if (tikwmFetch.response.ok) {
+      const json: any = await tikwmFetch.response.json().catch(() => null);
+      if (json?.code === 0 && json?.data) {
+        return json.data;
+      }
+      // Si limite gratuite 1 req/sec atteinte, attendre 1.05s et réessayer
+      if (json?.code === -1 && attempt === 0) {
+        await new Promise((r) => setTimeout(r, 1050));
+        continue;
+      }
+    }
+    break;
+  }
+  return null;
 }
 
 export async function extractTikTok(
@@ -129,129 +167,53 @@ export async function extractTikTok(
   // NIVEAU 1 : API Directe TikWM (Sans compte, 100% Gratuit, Anti-WAF)
   // ===========================================================================
   try {
-    const form = new URLSearchParams({
-      url: targetUrl,
-      hd: '1',
-    });
-    if (apiKey) form.set('api_key', apiKey);
+    const data = await callTikWmApi(targetUrl, apiKey);
 
-    const tikwmFetch = await fetchWithContext('https://www.tikwm.com/api/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
-        Referer: 'https://www.tikwm.com/',
-      },
-      body: form.toString(),
-      timeoutMs: 10000,
-    });
+    if (data && typeof data === 'object') {
+      const author = data.author || {};
+      const username = String(
+        author.unique_id || author.uniqueId || identifier || 'tiktok_user'
+      ).replace(/^@/, '');
+      const nickname = String(author.nickname || `@${username}`);
+      const avatar = resolveTikWmMediaUrl(author.avatar);
+      const title = String(data.title || `Vidéo TikTok de @${username}`);
+      const cover = resolveTikWmMediaUrl(
+        data.origin_cover || data.cover || author.avatar
+      );
+      const duration = formatDuration(data.duration);
+      const musicUrl = resolveTikWmMediaUrl(
+        typeof data.music === 'string' ? data.music : data.music_info?.play
+      );
 
-    if (tikwmFetch.response.ok) {
-      const json: any = await tikwmFetch.response.json().catch(() => null);
-      const data = json?.data;
+      // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        const items: ExtractMediaItem[] = data.images
+          .map((img: unknown) => resolveTikWmMediaUrl(img))
+          .filter(Boolean)
+          .map((imgUrl: string) => ({
+            kind: 'image' as const,
+            url: imgUrl,
+            thumbnail: imgUrl,
+            quality: '1080p HD',
+            ext: 'jpg',
+            size: '1.9 MB',
+          }));
 
-      if (json?.code === 0 && data && typeof data === 'object') {
-        const author = data.author || {};
-        const username = String(
-          author.unique_id || author.uniqueId || identifier || 'tiktok_user'
-        ).replace(/^@/, '');
-        const nickname = String(author.nickname || `@${username}`);
-        const avatar = resolveTikWmMediaUrl(author.avatar);
-        const title = String(data.title || `Vidéo TikTok de @${username}`);
-        const cover = resolveTikWmMediaUrl(
-          data.origin_cover || data.cover || author.avatar
-        );
-        const duration = formatDuration(data.duration);
-        const musicUrl = resolveTikWmMediaUrl(
-          typeof data.music === 'string' ? data.music : data.music_info?.play
-        );
-
-        // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
-        if (Array.isArray(data.images) && data.images.length > 0) {
-          const items: ExtractMediaItem[] = data.images
-            .map((img: unknown) => resolveTikWmMediaUrl(img))
-            .filter(Boolean)
-            .map((imgUrl: string) => ({
-              kind: 'image' as const,
-              url: imgUrl,
-              thumbnail: imgUrl,
-              quality: '1080p HD',
-              ext: 'jpg',
-              size: '1.9 MB',
-            }));
-
-          if (musicUrl) {
-            items.push({
-              kind: 'audio',
-              url: musicUrl,
-              quality: 'Audio Original MP3',
-              ext: 'mp3',
-              size: '2.4 MB',
-            });
-          }
-
-          if (items.length > 0) {
-            return {
-              ok: true,
-              platform: 'tiktok',
-              type: 'carousel',
-              title,
-              duration,
-              author: {
-                username,
-                nickname,
-                avatar,
-                verified: true,
-              },
-              thumbnail: cover || items[0].url,
-              items,
-            };
-          }
+        if (musicUrl) {
+          items.push({
+            kind: 'audio',
+            url: musicUrl,
+            quality: 'Audio Original MP3',
+            ext: 'mp3',
+            size: '2.4 MB',
+          });
         }
 
-        // 1B. Vidéo TikTok HD 1080p & 720p Sans Filigrane
-        const hdPlay = resolveTikWmMediaUrl(data.hdplay || data.play);
-        const sdPlay = resolveTikWmMediaUrl(data.play || data.wmplay || hdPlay);
-
-        if (hdPlay) {
-          const items: ExtractMediaItem[] = [
-            {
-              kind: 'video',
-              url: hdPlay,
-              quality: '1080p',
-              ext: 'mp4',
-              size: formatBytesToMb(data.hd_size || data.size, '18.2 MB'),
-              width: 1080,
-              height: 1920,
-            },
-          ];
-
-          if (sdPlay && sdPlay !== hdPlay) {
-            items.push({
-              kind: 'video',
-              url: sdPlay,
-              quality: '720p',
-              ext: 'mp4',
-              size: formatBytesToMb(data.size, '8.6 MB'),
-              width: 720,
-              height: 1280,
-            });
-          }
-
-          if (musicUrl) {
-            items.push({
-              kind: 'audio',
-              url: musicUrl,
-              quality: 'MP3',
-              ext: 'mp3',
-              size: '2.1 MB',
-            });
-          }
-
+        if (items.length > 0) {
           return {
             ok: true,
             platform: 'tiktok',
-            type: 'video',
+            type: 'carousel',
             title,
             duration,
             author: {
@@ -260,10 +222,68 @@ export async function extractTikTok(
               avatar,
               verified: true,
             },
-            thumbnail: cover || hdPlay,
+            thumbnail: cover || items[0].url,
             items,
           };
         }
+      }
+
+      // 1B. Vidéo TikTok HD 1080p & 720p Sans Filigrane
+      const hdPlay = resolveTikWmMediaUrl(data.hdplay || data.play);
+      const sdPlay = resolveTikWmMediaUrl(data.play || data.wmplay || hdPlay);
+
+      if (hdPlay) {
+        const items: ExtractMediaItem[] = [
+          {
+            kind: 'video',
+            url: hdPlay,
+            backupUrl: sdPlay && sdPlay !== hdPlay ? sdPlay : undefined,
+            quality: '1080p',
+            ext: 'mp4',
+            size: formatBytesToMb(data.hd_size || data.size, '18.2 MB'),
+            width: 1080,
+            height: 1920,
+          },
+        ];
+
+        if (sdPlay && sdPlay !== hdPlay) {
+          items.push({
+            kind: 'video',
+            url: sdPlay,
+            quality: '720p',
+            ext: 'mp4',
+            size: formatBytesToMb(data.size, '8.6 MB'),
+            width: 720,
+            height: 1280,
+          });
+        }
+
+        if (musicUrl) {
+          items.push({
+            kind: 'audio',
+            url: musicUrl,
+            backupUrl: sdPlay || hdPlay,
+            quality: 'MP3',
+            ext: 'mp3',
+            size: '2.1 MB',
+          });
+        }
+
+        return {
+          ok: true,
+          platform: 'tiktok',
+          type: 'video',
+          title,
+          duration,
+          author: {
+            username,
+            nickname,
+            avatar,
+            verified: true,
+          },
+          thumbnail: cover || hdPlay,
+          items,
+        };
       }
     }
   } catch {
@@ -271,7 +291,7 @@ export async function extractTikTok(
   }
 
   // ===========================================================================
-  // NIVEAU 2 : Scraping Direct Page Officielle TikTok (+ TT_COOKIE optionnel)
+  // NIVEAU 2 : Scraping Direct Page Officielle TikTok (+ transmission cookies)
   // ===========================================================================
   try {
     const customHeaders: Record<string, string> = {
@@ -303,6 +323,7 @@ export async function extractTikTok(
     }
 
     const html = await initialFetch.response.text();
+    const sessionCookies = initialFetch.cookieString || '';
 
     if (
       html.includes('verify-bar') ||
@@ -426,6 +447,7 @@ export async function extractTikTok(
           items.push({
             kind: 'image',
             url: imgUrl,
+            cookie: sessionCookies,
             thumbnail: imgUrl,
             quality: '1080p HD',
             ext: 'jpg',
@@ -438,6 +460,7 @@ export async function extractTikTok(
         items.push({
           kind: 'audio',
           url: itemStruct.music.playUrl,
+          cookie: sessionCookies,
           quality: 'MP3',
           ext: 'mp3',
           size: '2.2 MB',
@@ -450,6 +473,7 @@ export async function extractTikTok(
         type: 'carousel',
         title,
         duration,
+        cookie: sessionCookies,
         author: {
           username,
           nickname,
@@ -462,6 +486,7 @@ export async function extractTikTok(
 
     const video = itemStruct.video || {};
     let videoStreamUrl = video.playAddr || video.downloadAddr || '';
+    const backupStreamUrl = video.downloadAddr || video.playAddr || '';
 
     if (Array.isArray(video.bitrateInfo) && video.bitrateInfo.length > 0) {
       const bestBitrate = video.bitrateInfo[0];
@@ -485,6 +510,11 @@ export async function extractTikTok(
     items.push({
       kind: 'video',
       url: videoStreamUrl,
+      backupUrl:
+        backupStreamUrl && backupStreamUrl !== videoStreamUrl
+          ? backupStreamUrl
+          : undefined,
+      cookie: sessionCookies,
       quality: '1080p',
       ext: 'mp4',
       width: video.width || 1080,
@@ -495,6 +525,7 @@ export async function extractTikTok(
       items.push({
         kind: 'audio',
         url: itemStruct.music.playUrl,
+        cookie: sessionCookies,
         quality: 'MP3',
         ext: 'mp3',
       });
@@ -506,6 +537,7 @@ export async function extractTikTok(
       type: 'video',
       title,
       duration,
+      cookie: sessionCookies,
       author: {
         username,
         nickname,

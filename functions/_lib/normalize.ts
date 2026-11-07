@@ -12,6 +12,8 @@ export type ErrorCode =
 export interface ExtractMediaItem {
   kind: 'video' | 'image' | 'audio';
   url: string;
+  backupUrl?: string;
+  cookie?: string;
   thumbnail?: string;
   quality?: string;
   ext: string;
@@ -26,6 +28,7 @@ export interface ExtractResponse {
   type?: 'video' | 'image' | 'carousel' | 'profile';
   title?: string;
   duration?: string;
+  cookie?: string;
   author?: {
     username: string;
     nickname?: string;

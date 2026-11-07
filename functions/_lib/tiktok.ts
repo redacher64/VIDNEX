@@ -1,56 +1,64 @@
 /**
  * Moteur d'extraction TikTok 100 % Gratuit pour Cloudflare Pages Functions.
  *
- * Architecture Multi-Niveaux :
- * - Niveau 1 (Sans compte, Anti-WAF Cloudflare) : API directe TikWM (`https://www.tikwm.com/api/` avec `hd=1`)
- *   avec retry automatique en cas de limite 1 req/sec.
- * - Niveau 2 (Fallback Direct TikTok HTML + transmission automatique des cookies `tt_chain_token` / `ttwid`) :
- *   Analyse de la page officielle TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, `__NEXT_DATA__`)
- *   et transmission de `cookieString` au proxy `/api/download` pour éviter toute erreur 403 sur `v16-webapp-prime.tiktok.com`.
+ * Sécurité & Architecture :
+ * 1. Aucune clé API codée en dur : utilise uniquement `env?.TIKWM_API_KEY` si définie,
+ *    sinon appelle l'API publique gratuite `https://www.tikwm.com/api/` sans clé.
+ * 2. Convertit toutes les URLs relatives (`/video/media/...`) ou `//` en URLs absolues.
+ * 3. En cas de limite sur TikWM, bascule automatiquement sur le scraping direct de la page
+ *    TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__` / `SIGI_STATE` / `__NEXT_DATA__`), extrait
+ *    `playAddr` / `downloadAddr` et transmet les cookies de session (`tt_chain_token`, `ttwid`)
+ *    au proxy `/api/download`.
  */
 
 import { fetchWithContext } from './http.ts';
 import type { ExtractResponse, ExtractMediaItem } from './normalize.ts';
-
-const DEFAULT_TIKWM_KEY = 'fbef7469f068f8ee1493378b59468819';
 
 export interface TikTokEnv {
   TIKWM_API_KEY?: string;
   TT_COOKIE?: string;
 }
 
-function resolveTikWmMediaUrl(rawUrl: unknown): string {
+export function resolveTikWmMediaUrl(rawUrl: unknown): string {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
-  if (rawUrl.startsWith('//')) return `https:${rawUrl}`;
-  if (rawUrl.startsWith('/')) return `https://www.tikwm.com${rawUrl}`;
-  return rawUrl;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('/')) return `https://www.tikwm.com${trimmed}`;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://www.tikwm.com/${trimmed.replace(/^\/+/, '')}`;
+  }
+  return trimmed;
 }
 
-function formatDuration(sec: unknown): string {
+function formatDuration(sec: unknown): string | undefined {
   const n = Number(sec);
-  if (!Number.isFinite(n) || n <= 0) return '00:30';
+  if (!Number.isFinite(n) || n <= 0) return undefined;
   const mins = Math.floor(n / 60);
   const secs = Math.floor(n % 60);
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-function formatBytesToMb(bytes: unknown, fallback = '16.4 MB'): string {
+function formatBytesToMb(bytes: unknown): string | undefined {
   const n = Number(bytes);
-  if (!Number.isFinite(n) || n <= 0) return fallback;
+  if (!Number.isFinite(n) || n <= 0) return undefined;
   const mb = n / (1024 * 1024);
-  if (mb < 1) return `${Math.max(120, Math.round(n / 1024))} KB`;
+  if (mb < 1) return `${Math.max(1, Math.round(n / 1024))} KB`;
   return `${mb.toFixed(1)} MB`;
 }
 
-function formatCount(count: unknown): string {
+function formatCount(count: unknown): string | undefined {
   const n = Number(count);
-  if (!Number.isFinite(n) || n <= 0) return '128.4K';
+  if (!Number.isFinite(n) || n <= 0) return undefined;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return String(n);
 }
 
-async function callTikWmApi(targetUrl: string, apiKey: string): Promise<any | null> {
+async function callTikWmApi(
+  targetUrl: string,
+  apiKey?: string
+): Promise<any | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const form = new URLSearchParams({
       url: targetUrl,
@@ -76,7 +84,7 @@ async function callTikWmApi(targetUrl: string, apiKey: string): Promise<any | nu
       if (json?.code === 0 && json?.data) {
         return json.data;
       }
-      // Si limite gratuite 1 req/sec atteinte, attendre 1.05s et réessayer
+      // En cas de limite gratuite 1 req/sec (code -1), attendre 1.05s et réessayer
       if (json?.code === -1 && attempt === 0) {
         await new Promise((r) => setTimeout(r, 1050));
         continue;
@@ -93,10 +101,10 @@ export async function extractTikTok(
   kind: 'video' | 'profile' = 'video',
   identifier?: string
 ): Promise<ExtractResponse> {
-  const apiKey = (env?.TIKWM_API_KEY || DEFAULT_TIKWM_KEY).trim();
+  const apiKey = env?.TIKWM_API_KEY?.trim() || undefined;
 
   // ===========================================================================
-  // CAS PROFIL TIKTOK (@username) : Photo de profil HD DP 1080×1080
+  // CAS PROFIL TIKTOK (@username) : Photo de profil HD DP
   // ===========================================================================
   if (kind === 'profile') {
     const cleanHandle = (
@@ -114,6 +122,7 @@ export async function extractTikTok(
         {
           headers: {
             Accept: 'application/json',
+            Referer: 'https://www.tikwm.com/',
           },
           timeoutMs: 9000,
         }
@@ -134,37 +143,34 @@ export async function extractTikTok(
             ok: true,
             platform: 'tiktok',
             type: 'profile',
-            title: String(user?.signature || `Profil TikTok @${username}`),
+            title: user?.signature ? String(user.signature) : `@${username}`,
             author: {
               username,
               nickname: String(user?.nickname || `@${username}`),
               avatar,
               followers: formatCount(stats?.followerCount),
-              biography: String(
-                user?.signature || 'Créateur TikTok résolu en haute définition.'
-              ),
-              verified: Boolean(user?.verified ?? true),
+              biography: user?.signature ? String(user.signature) : undefined,
+              verified: Boolean(user?.verified),
             },
             thumbnail: avatar,
             items: [
               {
                 kind: 'image',
                 url: avatar,
-                quality: '1080p HD DP',
+                quality: '1080p',
                 ext: 'jpg',
-                size: '1.6 MB',
               },
             ],
           };
         }
       }
     } catch {
-      // Continuer vers fallback
+      // Continuer vers le scraping HTML
     }
   }
 
   // ===========================================================================
-  // NIVEAU 1 : API Directe TikWM (Sans compte, 100% Gratuit, Anti-WAF)
+  // NIVEAU 1 : API Publique TikWM (Sans clé codée en dur)
   // ===========================================================================
   try {
     const data = await callTikWmApi(targetUrl, apiKey);
@@ -176,7 +182,7 @@ export async function extractTikTok(
       ).replace(/^@/, '');
       const nickname = String(author.nickname || `@${username}`);
       const avatar = resolveTikWmMediaUrl(author.avatar);
-      const title = String(data.title || `Vidéo TikTok de @${username}`);
+      const title = String(data.title || `@${username}`);
       const cover = resolveTikWmMediaUrl(
         data.origin_cover || data.cover || author.avatar
       );
@@ -194,18 +200,16 @@ export async function extractTikTok(
             kind: 'image' as const,
             url: imgUrl,
             thumbnail: imgUrl,
-            quality: '1080p HD',
+            quality: '1080p',
             ext: 'jpg',
-            size: '1.9 MB',
           }));
 
         if (musicUrl) {
           items.push({
             kind: 'audio',
             url: musicUrl,
-            quality: 'Audio Original MP3',
+            quality: 'MP3',
             ext: 'mp3',
-            size: '2.4 MB',
           });
         }
 
@@ -220,7 +224,6 @@ export async function extractTikTok(
               username,
               nickname,
               avatar,
-              verified: true,
             },
             thumbnail: cover || items[0].url,
             items,
@@ -240,9 +243,7 @@ export async function extractTikTok(
             backupUrl: sdPlay && sdPlay !== hdPlay ? sdPlay : undefined,
             quality: '1080p',
             ext: 'mp4',
-            size: formatBytesToMb(data.hd_size || data.size, '18.2 MB'),
-            width: 1080,
-            height: 1920,
+            size: formatBytesToMb(data.hd_size || data.size),
           },
         ];
 
@@ -252,9 +253,7 @@ export async function extractTikTok(
             url: sdPlay,
             quality: '720p',
             ext: 'mp4',
-            size: formatBytesToMb(data.size, '8.6 MB'),
-            width: 720,
-            height: 1280,
+            size: formatBytesToMb(data.size),
           });
         }
 
@@ -265,7 +264,6 @@ export async function extractTikTok(
             backupUrl: sdPlay || hdPlay,
             quality: 'MP3',
             ext: 'mp3',
-            size: '2.1 MB',
           });
         }
 
@@ -279,7 +277,6 @@ export async function extractTikTok(
             username,
             nickname,
             avatar,
-            verified: true,
           },
           thumbnail: cover || hdPlay,
           items,
@@ -352,6 +349,47 @@ export async function extractTikTok(
       try {
         const parsed = JSON.parse(universalMatch[1]);
         const defaultScope = parsed['__DEFAULT_SCOPE__'] || {};
+        if (kind === 'profile') {
+          const userDetail = defaultScope['webapp.user-detail']?.userInfo;
+          if (userDetail?.user) {
+            const u = userDetail.user;
+            const s = userDetail.stats;
+            const avatar = String(
+              u.avatarLarger || u.avatarMedium || u.avatarThumb || ''
+            );
+            if (avatar) {
+              const uname = String(u.uniqueId || identifier || 'tiktok').replace(
+                /^@/,
+                ''
+              );
+              return {
+                ok: true,
+                platform: 'tiktok',
+                type: 'profile',
+                title: u.signature ? String(u.signature) : `@${uname}`,
+                cookie: sessionCookies,
+                author: {
+                  username: uname,
+                  nickname: String(u.nickname || `@${uname}`),
+                  avatar,
+                  followers: formatCount(s?.followerCount),
+                  biography: u.signature ? String(u.signature) : undefined,
+                  verified: Boolean(u.verified),
+                },
+                thumbnail: avatar,
+                items: [
+                  {
+                    kind: 'image',
+                    url: avatar,
+                    cookie: sessionCookies,
+                    quality: '1080p',
+                    ext: 'jpg',
+                  },
+                ],
+              };
+            }
+          }
+        }
         const videoDetail = defaultScope['webapp.video-detail'] || {};
         itemStruct = videoDetail.itemInfo?.itemStruct;
       } catch {
@@ -421,9 +459,7 @@ export async function extractTikTok(
     const avatar = String(
       author.avatarLarger || author.avatarMedium || author.avatarThumb || ''
     );
-    const title = String(
-      itemStruct.desc || itemStruct.title || `Vidéo TikTok de @${username}`
-    );
+    const title = String(itemStruct.desc || itemStruct.title || `@${username}`);
     const cover = String(
       itemStruct.video?.originCover ||
         itemStruct.video?.cover ||
@@ -449,9 +485,8 @@ export async function extractTikTok(
             url: imgUrl,
             cookie: sessionCookies,
             thumbnail: imgUrl,
-            quality: '1080p HD',
+            quality: '1080p',
             ext: 'jpg',
-            size: '1.9 MB',
           });
         }
       });
@@ -463,7 +498,6 @@ export async function extractTikTok(
           cookie: sessionCookies,
           quality: 'MP3',
           ext: 'mp3',
-          size: '2.2 MB',
         });
       }
 
@@ -478,6 +512,7 @@ export async function extractTikTok(
           username,
           nickname,
           avatar,
+          verified: Boolean(author.verified),
         },
         thumbnail: cover,
         items,
@@ -517,8 +552,9 @@ export async function extractTikTok(
       cookie: sessionCookies,
       quality: '1080p',
       ext: 'mp4',
-      width: video.width || 1080,
-      height: video.height || 1920,
+      size: formatBytesToMb(video.size),
+      width: video.width || undefined,
+      height: video.height || undefined,
     });
 
     if (itemStruct.music?.playUrl) {
@@ -542,6 +578,7 @@ export async function extractTikTok(
         username,
         nickname,
         avatar,
+        verified: Boolean(author.verified),
       },
       thumbnail: cover,
       items,

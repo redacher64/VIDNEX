@@ -24,31 +24,22 @@ interface ResultDrawerProps {
 const STUDIO_FALLBACK_THUMB =
   "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 900'%3E%3Crect width='720' height='900' fill='%231f130b'/%3E%3Ccircle cx='360' cy='420' r='56' fill='%23ea580c' fill-opacity='0.85'/%3E%3Cpolygon points='346,396 346,444 388,420' fill='%23fffaf5'/%3E%3Ctext x='360' y='535' text-anchor='middle' fill='%23fffaf5' font-family='sans-serif' font-size='26' font-weight='700'%3EVIDNEX HD STREAM%3C/text%3E%3C/svg%3E";
 
-function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
-  let targetUrl: string;
-
-  if (
-    rawDownloadUrl &&
-    (rawDownloadUrl.includes('/api/download') ||
-      rawDownloadUrl.startsWith('http://') ||
-      rawDownloadUrl.startsWith('https://'))
-  ) {
-    targetUrl = rawDownloadUrl.includes('/api/download')
-      ? resolveApiUrl(rawDownloadUrl)
-      : resolveApiUrl(
-          `/api/download?${new URLSearchParams({
-            url: rawDownloadUrl,
-            filename,
-          }).toString()}`
-        );
-  } else {
-    targetUrl = resolveApiUrl(
-      `/api/download?${new URLSearchParams({
-        url: `synthetic://media/${filename}`,
-        filename,
-      }).toString()}`
-    );
+function buildDownloadEndpointUrl(filename: string, rawDownloadUrl?: string): string {
+  if (!rawDownloadUrl) return '';
+  if (rawDownloadUrl.includes('/api/download')) {
+    return resolveApiUrl(rawDownloadUrl);
   }
+  return resolveApiUrl(
+    `/api/download?${new URLSearchParams({
+      url: rawDownloadUrl,
+      filename,
+    }).toString()}`
+  );
+}
+
+function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
+  const targetUrl = buildDownloadEndpointUrl(filename, rawDownloadUrl);
+  if (!targetUrl) return;
 
   const anchor = document.createElement('a');
   anchor.href = targetUrl;
@@ -57,6 +48,119 @@ function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string)
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
+}
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
+}
+
+/**
+ * Générateur PKZIP standard (méthode STORE sans compression, compatible tous OS)
+ * Permet d'assembler plusieurs photos/vidéos d'un carrousel en une vraie archive .ZIP
+ * directement dans le navigateur sans dépendance externe.
+ */
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(data: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (let i = 0; i < data.length; i++) {
+    crc = CRC32_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function buildUncompressedZipArchive(
+  files: Array<{ name: string; data: Uint8Array }>
+): Blob {
+  const encoder = new TextEncoder();
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = encoder.encode(file.name);
+    const crc = crc32(file.data);
+    const size = file.data.byteLength;
+
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(localHeader.buffer);
+    lv.setUint32(0, 0x04034b50, true); // Local file header signature
+    lv.setUint16(4, 20, true); // Version needed
+    lv.setUint16(6, 0x0800, true); // UTF-8 flag
+    lv.setUint16(8, 0, true); // Compression method: 0 (STORE)
+    lv.setUint16(10, 0, true); // Mod time
+    lv.setUint16(12, 0, true); // Mod date
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, size, true);
+    lv.setUint32(22, size, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    localHeader.set(nameBytes, 30);
+
+    localParts.push(localHeader, file.data);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(centralHeader.buffer);
+    cv.setUint32(0, 0x02014b50, true); // Central directory signature
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, size, true);
+    cv.setUint32(24, size, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    centralHeader.set(nameBytes, 46);
+
+    centralParts.push(centralHeader);
+    offset += localHeader.byteLength + size;
+  }
+
+  let centralSize = 0;
+  for (const part of centralParts) {
+    centralSize += part.byteLength;
+  }
+
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true); // End of central directory signature
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, centralSize, true);
+  ev.setUint32(16, offset, true);
+  ev.setUint16(20, 0, true);
+
+  return new Blob([...localParts, ...centralParts, eocd] as BlobPart[], {
+    type: 'application/zip',
+  });
 }
 
 export const ResultDrawer: React.FC<ResultDrawerProps> = ({
@@ -210,12 +314,19 @@ const VideoResultView: React.FC<{
   const primaryFormat =
     data.formats.find((f) => f.isPrimary) || data.formats[0];
   const secondaryFormats = data.formats.filter(
-    (f) => f.id !== primaryFormat.id
+    (f) => f.id !== primaryFormat?.id
   );
 
   const previewVideoSrc = primaryFormat?.downloadUrl
     ? resolveApiUrl(primaryFormat.downloadUrl)
     : '';
+
+  const overlayBadgeParts = [data.duration, data.resolution].filter(Boolean);
+  const technicalSpecsParts = [
+    data.resolution,
+    data.codec,
+    primaryFormat?.fileSize,
+  ].filter(Boolean);
 
   const handleDownloadClick = (
     formatId: string,
@@ -266,12 +377,14 @@ const VideoResultView: React.FC<{
               }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <span
-              dir="ltr"
-              className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-stone-900/85 backdrop-blur-md text-white font-mono text-[11px] font-semibold"
-            >
-              {data.duration} • {data.resolution}
-            </span>
+            {overlayBadgeParts.length > 0 && (
+              <span
+                dir="ltr"
+                className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-stone-900/85 backdrop-blur-md text-white font-mono text-[11px] font-semibold"
+              >
+                {overlayBadgeParts.join(' • ')}
+              </span>
+            )}
           </button>
         )}
         <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-gradient-to-r from-orange-600 to-amber-500 text-white font-mono text-[10px] uppercase font-bold shadow-sm pointer-events-none">
@@ -293,88 +406,102 @@ const VideoResultView: React.FC<{
             >
               {data.creatorHandle}
             </span>
-            <span>·</span>
-            <span>{data.creatorName}</span>
+            {data.creatorName && data.creatorName !== data.creatorHandle && (
+              <>
+                <span>·</span>
+                <span>{data.creatorName}</span>
+              </>
+            )}
           </div>
 
           <h3 className="mt-1.5 font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] line-clamp-2 leading-snug">
             {data.title}
           </h3>
 
-          <p className="mt-1 font-mono text-xs text-[#6c4e40] dark:text-orange-200/70 font-medium">
-            {data.resolution} · {data.codec} · {primaryFormat.fileSize}
-          </p>
+          {technicalSpecsParts.length > 0 && (
+            <p className="mt-1 font-mono text-xs text-[#6c4e40] dark:text-orange-200/70 font-medium">
+              {technicalSpecsParts.join(' · ')}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2.5">
           {/* Primary Button: Download HD 1080p */}
-          <button
-            type="button"
-            onClick={() =>
-              handleDownloadClick(
-                primaryFormat.id,
-                primaryFormat.quality,
-                primaryFormat.container,
-                primaryFormat.downloadUrl
-              )
-            }
-            className="w-full min-h-[48px] px-5 rounded-xl flex items-center justify-between bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.5)] text-sm font-bold transition-all active:scale-[0.99]"
-          >
-            <span className="flex items-center gap-2">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="w-4 h-4"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>
-                {activeDownloadId === primaryFormat.id
-                  ? t.startingStream
-                  : t.downloadHd1080}
+          {primaryFormat && (
+            <button
+              type="button"
+              onClick={() =>
+                handleDownloadClick(
+                  primaryFormat.id,
+                  primaryFormat.quality,
+                  primaryFormat.container,
+                  primaryFormat.downloadUrl
+                )
+              }
+              className="w-full min-h-[48px] px-5 rounded-xl flex items-center justify-between bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.5)] text-sm font-bold transition-all active:scale-[0.99]"
+            >
+              <span className="flex items-center gap-2">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-4 h-4"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>
+                  {activeDownloadId === primaryFormat.id
+                    ? t.startingStream
+                    : t.downloadHd1080}
+                </span>
               </span>
-            </span>
-            <span dir="ltr" className="font-mono text-xs opacity-90">
-              {primaryFormat.fileSize}
-            </span>
-          </button>
+              {primaryFormat.fileSize && (
+                <span dir="ltr" className="font-mono text-xs opacity-90">
+                  {primaryFormat.fileSize}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Compact Secondary Buttons: 720p + Audio MP3 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {secondaryFormats.map((fmt) => (
-              <button
-                key={fmt.id}
-                type="button"
-                onClick={() =>
-                  handleDownloadClick(
-                    fmt.id,
-                    fmt.quality,
-                    fmt.container,
-                    fmt.downloadUrl
-                  )
-                }
-                className="min-h-[44px] px-4 rounded-xl flex items-center justify-between bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-400 text-xs font-bold text-orange-950 dark:text-orange-100 transition-all shadow-sm"
-              >
-                <span>
-                  {activeDownloadId === fmt.id
-                    ? t.saving
-                    : fmt.quality === '720p'
-                    ? t.downloadSd720
-                    : t.extractAudioMp3}
-                </span>
-                <span
-                  dir="ltr"
-                  className="font-mono text-[11px] text-orange-700 dark:text-amber-400"
+          {secondaryFormats.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {secondaryFormats.map((fmt) => (
+                <button
+                  key={fmt.id}
+                  type="button"
+                  onClick={() =>
+                    handleDownloadClick(
+                      fmt.id,
+                      fmt.quality,
+                      fmt.container,
+                      fmt.downloadUrl
+                    )
+                  }
+                  className="min-h-[44px] px-4 rounded-xl flex items-center justify-between bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-400 text-xs font-bold text-orange-950 dark:text-orange-100 transition-all shadow-sm"
                 >
-                  {fmt.fileSize}
-                </span>
-              </button>
-            ))}
-          </div>
+                  <span>
+                    {activeDownloadId === fmt.id
+                      ? t.saving
+                      : fmt.quality === '720p'
+                      ? t.downloadSd720
+                      : t.extractAudioMp3}
+                  </span>
+                  {fmt.fileSize && (
+                    <span
+                      dir="ltr"
+                      className="font-mono text-[11px] text-orange-700 dark:text-amber-400"
+                    >
+                      {fmt.fileSize}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -411,7 +538,8 @@ const ProfileDpResultView: React.FC<{
           {data.creatorHandle}
         </h3>
         <p className="text-xs text-[#6c4e40] dark:text-orange-200/75 mt-0.5">
-          {data.creatorName} · {data.followersCount} {t.followers}
+          {data.creatorName}
+          {data.followersCount ? ` · ${data.followersCount} ${t.followers}` : ''}
         </p>
       </div>
 
@@ -464,6 +592,7 @@ const CarouselResultView: React.FC<{
     data.items.map((item) => item.id)
   );
   const [zipDownloading, setZipDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedIds(data.items.map((item) => item.id));
@@ -481,23 +610,83 @@ const CarouselResultView: React.FC<{
     );
   };
 
-  const handleDownloadZip = () => {
-    if (selectedIds.length === 0) return;
+  const handleDownloadSelected = async () => {
+    if (selectedIds.length === 0 || zipDownloading) return;
     setZipDownloading(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
-
     const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
-    selectedSlides.forEach((slide, idx) => {
-      const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
-      setTimeout(() => {
-        triggerNativeBackendDownload(
-          `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
+
+    try {
+      // Si une seule slide est sélectionnée, téléchargement direct
+      if (selectedSlides.length === 1) {
+        const slide = selectedSlides[0];
+        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+        const singleFilename = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
+        setDownloadProgress('1/1');
+        const targetUrl = buildDownloadEndpointUrl(
+          singleFilename,
           slide.downloadUrl
         );
-      }, idx * 350);
-    });
+        const resp = await fetch(targetUrl);
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+        const blob = await resp.blob();
+        triggerBlobDownload(blob, singleFilename);
+        return;
+      }
 
-    setTimeout(() => setZipDownloading(false), 1000);
+      // Si plusieurs slides sont sélectionnées, récupération parallèle par lots et création d'une vraie archive .ZIP
+      const zipEntries: Array<{ name: string; data: Uint8Array }> = [];
+      for (let i = 0; i < selectedSlides.length; i++) {
+        const slide = selectedSlides[i];
+        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+        const entryName = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
+        setDownloadProgress(`${i + 1}/${selectedSlides.length}`);
+
+        const targetUrl = buildDownloadEndpointUrl(entryName, slide.downloadUrl);
+        const resp = await fetch(targetUrl);
+        if (resp.ok) {
+          const buf = await resp.arrayBuffer();
+          zipEntries.push({
+            name: entryName,
+            data: new Uint8Array(buf),
+          });
+        }
+      }
+
+      if (zipEntries.length > 0) {
+        const zipBlob = buildUncompressedZipArchive(zipEntries);
+        triggerBlobDownload(
+          zipBlob,
+          `VIDNEX_${cleanHandle}_carousel_${zipEntries.length}_slides.zip`
+        );
+      } else {
+        // Fallback de secours si fetch CORS échoue
+        selectedSlides.forEach((slide, idx) => {
+          const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+          setTimeout(() => {
+            triggerNativeBackendDownload(
+              `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
+              slide.downloadUrl
+            );
+          }, idx * 450);
+        });
+      }
+    } catch {
+      selectedSlides.forEach((slide, idx) => {
+        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+        setTimeout(() => {
+          triggerNativeBackendDownload(
+            `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
+            slide.downloadUrl
+          );
+        }, idx * 450);
+      });
+    } finally {
+      setZipDownloading(false);
+      setDownloadProgress(null);
+    }
   };
 
   return (
@@ -511,7 +700,8 @@ const CarouselResultView: React.FC<{
             {data.creatorHandle}
           </span>
           <span className="ml-2 font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold">
-            · {data.totalItems} {t.slidesDetected} ({data.archiveSize})
+            · {data.totalItems} {t.slidesDetected}
+            {data.archiveSize ? ` (${data.archiveSize})` : ''}
           </span>
         </div>
 
@@ -526,12 +716,14 @@ const CarouselResultView: React.FC<{
 
           <button
             type="button"
-            disabled={selectedIds.length === 0}
-            onClick={handleDownloadZip}
+            disabled={selectedIds.length === 0 || zipDownloading}
+            onClick={handleDownloadSelected}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:opacity-40 text-white font-mono text-xs font-bold shadow-sm transition-all"
           >
             {zipDownloading
-              ? t.packagingZip
+              ? `${t.packagingZip}${downloadProgress ? ` (${downloadProgress})` : ''}`
+              : selectedIds.length === 1
+              ? `${t.downloadSelectedZip} (1)`
               : `${t.downloadSelectedZip} (${selectedIds.length}) .ZIP`}
           </button>
         </div>
@@ -573,9 +765,11 @@ const CarouselResultView: React.FC<{
               >
                 ✓
               </span>
-              <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white font-mono text-[10px]">
-                {slide.fileSize}
-              </span>
+              {slide.fileSize && (
+                <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white font-mono text-[10px]">
+                  {slide.fileSize}
+                </span>
+              )}
             </button>
           );
         })}

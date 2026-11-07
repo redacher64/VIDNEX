@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "dev:cf": "vite build && wrangler pages dev dist",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

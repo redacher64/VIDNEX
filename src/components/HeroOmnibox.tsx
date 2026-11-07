@@ -18,6 +18,14 @@ import {
 } from '../i18n/translations';
 import { PlatformIcon } from './icons/PlatformIcons';
 
+const COMING_SOON_MESSAGE_BY_LANG: Record<LanguageCode, string> = {
+  en: 'This platform is coming soon! Currently, Instagram (Reels, Posts, Carousels, Profiles) and TikTok (Videos, Photos, Profiles) are active.',
+  fr: 'Cette plateforme arrive bientôt ! Actuellement, Instagram (Reels, Posts, Carrousels, Profils) et TikTok (Vidéos, Photos, Profils) sont disponibles.',
+  es: '¡Esta plataforma estará disponible pronto! Actualmente admitimos Instagram y TikTok.',
+  pt: 'Esta plataforma estará disponível em breve! Atualmente suportamos Instagram e TikTok.',
+  ar: 'هذه المنصة ستتوفر قريباً! حالياً ندعم إنستغرام وتيك توك بالكامل.',
+};
+
 interface HeroOmniboxProps {
   activeTool: SeoToolConfig;
   onSelectTool: (slug: ToolSlug) => void;
@@ -160,7 +168,12 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
         inputRef.current?.focus();
 
         const pastedDetected = detectMediaUrl(trimmed, activeTool.platform);
-        if (pastedDetected.isValid) {
+        if (pastedDetected.isComingSoon) {
+          setValidationMessage(
+            COMING_SOON_MESSAGE_BY_LANG[language] ||
+              COMING_SOON_MESSAGE_BY_LANG.en
+          );
+        } else if (pastedDetected.isValid) {
           onSubmitUrl(pastedDetected.normalizedUrl, pastedDetected);
         }
       }
@@ -190,6 +203,13 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     if (!urlInput.trim()) {
       setValidationMessage(t.errEmptyInput);
       inputRef.current?.focus();
+      return;
+    }
+
+    if (detected.isComingSoon) {
+      setValidationMessage(
+        COMING_SOON_MESSAGE_BY_LANG[language] || COMING_SOON_MESSAGE_BY_LANG.en
+      );
       return;
     }
 
@@ -236,15 +256,13 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               <span className="text-orange-600 dark:text-amber-400">
                 <PlatformIcon
                   platform={
-                    detected.isValid && detected.platform
-                      ? detected.platform
-                      : activeTool.platform
+                    detected.platform ? detected.platform : activeTool.platform
                   }
                   className="w-4 h-4"
                 />
               </span>
               <span className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap">
-                {detected.isValid && detected.badgeLabel
+                {detected.badgeLabel
                   ? detected.badgeLabel
                   : activeTool.shortLabel}
               </span>
@@ -258,9 +276,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               <span className="sm:hidden pr-2 text-orange-500 dark:text-amber-400 shrink-0">
                 <PlatformIcon
                   platform={
-                    detected.isValid && detected.platform
-                      ? detected.platform
-                      : activeTool.platform
+                    detected.platform ? detected.platform : activeTool.platform
                   }
                   className="w-4 h-4"
                 />

@@ -1,6 +1,7 @@
 /**
  * Route Cloudflare Pages Function : `GET /api/extract?url=...` et `POST /api/extract`
  * Point d'entrée unifié d'extraction 100 % gratuit pour VIDNEX (TikTok & Instagram).
+ * Renvoie les vrais codes HTTP sémantiques (400, 403, 404, 429, 502, 504) en cas d'erreur.
  */
 
 import { detectUrl, type SupportedPlatform } from '../_lib/detect.ts';
@@ -9,6 +10,7 @@ import { extractInstagram } from '../_lib/instagram.ts';
 import {
   createSuccessResponse,
   createErrorResponse,
+  mapErrorCodeToHttpStatus,
   optionsResponse,
   type ExtractResponse,
 } from '../_lib/normalize.ts';
@@ -146,10 +148,11 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
   }
 
   if (!result.ok || result.error) {
+    const errCode = result.error?.code || 'BLOCKED_BY_PLATFORM';
     return createErrorResponse(
-      result.error?.code || 'BLOCKED_BY_PLATFORM',
+      errCode,
       result.error?.message || 'Erreur lors de l\'extraction du contenu.',
-      200
+      mapErrorCodeToHttpStatus(errCode)
     );
   }
 
@@ -183,7 +186,7 @@ async function handleExtract(request: Request, env: Env): Promise<Response> {
     };
   });
 
-  // Proxy pour la miniature principale (inline=1) afin d'éviter le blocage CORP d'Instagram/TikTok
+  // Proxy pour la miniature principale (inline=1)
   let proxyThumbnail = result.thumbnail || '';
   if (
     proxyThumbnail &&

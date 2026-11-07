@@ -1,11 +1,13 @@
 /**
  * Types et formateurs de réponses normalisées pour l'API VIDNEX (`/api/extract`).
+ * Retourne des codes HTTP sémantiques (400, 403, 404, 429, 502, 504) en cas d'erreur.
  */
 
 export type ErrorCode =
   | 'UNSUPPORTED_URL'
   | 'NOT_FOUND'
   | 'PRIVATE_OR_LOGIN_REQUIRED'
+  | 'RATE_LIMITED'
   | 'BLOCKED_BY_PLATFORM'
   | 'TIMEOUT';
 
@@ -51,6 +53,24 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Accept',
 };
 
+export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
+  switch (code) {
+    case 'UNSUPPORTED_URL':
+      return 400;
+    case 'PRIVATE_OR_LOGIN_REQUIRED':
+      return 403;
+    case 'NOT_FOUND':
+      return 404;
+    case 'RATE_LIMITED':
+      return 429;
+    case 'TIMEOUT':
+      return 504;
+    case 'BLOCKED_BY_PLATFORM':
+    default:
+      return 502;
+  }
+}
+
 export function createSuccessResponse(data: Omit<ExtractResponse, 'ok'>): Response {
   const body: ExtractResponse = {
     ok: true,
@@ -69,8 +89,9 @@ export function createSuccessResponse(data: Omit<ExtractResponse, 'ok'>): Respon
 export function createErrorResponse(
   code: ErrorCode,
   message: string,
-  httpStatus = 200
+  httpStatus?: number
 ): Response {
+  const status = httpStatus ?? mapErrorCodeToHttpStatus(code);
   const body: ExtractResponse = {
     ok: false,
     error: {
@@ -79,7 +100,7 @@ export function createErrorResponse(
     },
   };
   return new Response(JSON.stringify(body), {
-    status: httpStatus,
+    status,
     headers: {
       ...CORS_HEADERS,
       'Content-Type': 'application/json; charset=utf-8',

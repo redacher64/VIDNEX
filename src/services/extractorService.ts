@@ -1,4 +1,5 @@
 import type { DetectedUrlInfo, PlatformId } from '../utils/urlDetector.ts';
+import type { LanguageCode } from '../i18n/translations.ts';
 
 /**
  * Configuration API Cloudflare Pages Functions (`/functions/api`)
@@ -27,7 +28,7 @@ export interface VideoFormatOption {
   label: string;
   quality: '1080p' | '720p' | 'MP3';
   container: 'MP4' | 'MP3';
-  fileSize: string;
+  fileSize?: string;
   noWatermark: boolean;
   downloadUrl: string;
   isPrimary?: boolean;
@@ -37,8 +38,8 @@ export interface CarouselSlideItem {
   id: string;
   index: number;
   mediaType: 'image' | 'video';
-  dimensions: string;
-  fileSize: string;
+  dimensions?: string;
+  fileSize?: string;
   thumbnailUrl: string;
   downloadUrl: string;
 }
@@ -58,10 +59,10 @@ export interface BaseMediaResult {
 export interface VideoMediaResult extends BaseMediaResult {
   payloadType: 'video';
   title: string;
-  duration: string;
+  duration?: string;
   aspectRatio: '9:16' | '16:9';
-  resolution: string;
-  codec: string;
+  resolution?: string;
+  codec?: string;
   thumbnailUrl: string;
   formats: VideoFormatOption[];
 }
@@ -69,11 +70,11 @@ export interface VideoMediaResult extends BaseMediaResult {
 export interface ProfileDpMediaResult extends BaseMediaResult {
   payloadType: 'profile_dp';
   biography: string;
-  followersCount: string;
+  followersCount?: string;
   standardPreviewUrl: string;
   hdOriginalUrl: string;
-  dimensions: string;
-  fileSize: string;
+  dimensions?: string;
+  fileSize?: string;
   format: 'JPG';
 }
 
@@ -81,11 +82,11 @@ export interface CarouselMediaResult extends BaseMediaResult {
   payloadType: 'carousel';
   caption: string;
   totalItems: number;
-  archiveSize: string;
+  archiveSize?: string;
   items: CarouselSlideItem[];
   audioTrack?: {
     title: string;
-    fileSize: string;
+    fileSize?: string;
     downloadUrl: string;
   };
 }
@@ -95,28 +96,107 @@ export type MediaResult =
   | ProfileDpMediaResult
   | CarouselMediaResult;
 
-const ERROR_MESSAGES_FR: Record<string, string> = {
-  UNSUPPORTED_URL:
-    'Ce lien n\'est pas supporté. Seules les vidéos, photos et profils TikTok et Instagram sont pris en charge.',
-  NOT_FOUND:
-    'Contenu introuvable. La vidéo ou publication a peut-être été supprimée ou est inaccessible.',
-  PRIVATE_OR_LOGIN_REQUIRED:
-    'Ce contenu est privé ou nécessite un compte connecté côté serveur (secret IG_SESSION_ID dans Cloudflare Pages).',
-  BLOCKED_BY_PLATFORM:
-    'La plateforme a temporairement restreint les requêtes publiques. Veuillez réessayer dans quelques instants.',
-  TIMEOUT:
-    'Le délai d\'attente a expiré lors de la récupération du média. Veuillez réessayer.',
+const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
+  en: {
+    UNSUPPORTED_URL:
+      'Unsupported link. Currently, Instagram (Reels, Posts, Carousels, Profiles) and TikTok (Videos, Photos, Profiles) are supported.',
+    NOT_FOUND:
+      'Media not found. The video or post may have been deleted or made private.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'This content is private or requires a logged-in session (IG_SESSION_ID secret in Cloudflare Pages).',
+    RATE_LIMITED:
+      'Rate limit reached on upstream gateway. Please retry in a few seconds.',
+    BLOCKED_BY_PLATFORM:
+      'The platform temporarily restricted public extraction requests. Please try again shortly.',
+    TIMEOUT:
+      'Upstream media extraction timed out. Please try again.',
+    NETWORK_ERROR:
+      'Unable to reach the VIDNEX extraction API (/api/extract).',
+  },
+  fr: {
+    UNSUPPORTED_URL:
+      'Ce lien n\'est pas supporté. Seules les vidéos, photos et profils TikTok et Instagram sont pris en charge.',
+    NOT_FOUND:
+      'Contenu introuvable. La vidéo ou publication a peut-être été supprimée ou est privée.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Ce contenu est privé ou nécessite une session connectée (secret IG_SESSION_ID optionnel dans Cloudflare Pages).',
+    RATE_LIMITED:
+      'Trop de requêtes simultanées vers la passerelle média. Veuillez réessayer dans quelques secondes.',
+    BLOCKED_BY_PLATFORM:
+      'La plateforme a temporairement restreint les requêtes publiques. Veuillez réessayer dans quelques instants.',
+    TIMEOUT:
+      'Le délai d\'attente a expiré lors de la récupération du média. Veuillez réessayer.',
+    NETWORK_ERROR:
+      'Impossible de joindre le service d\'extraction VIDNEX (/api/extract).',
+  },
+  es: {
+    UNSUPPORTED_URL:
+      'Enlace no compatible. Solo se admiten vídeos, fotos y perfiles de TikTok e Instagram.',
+    NOT_FOUND:
+      'Contenido no encontrado. Es posible que el vídeo o la publicación se haya eliminado o sea privado.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Este contenido es privado o requiere inicio de sesión en el servidor.',
+    RATE_LIMITED:
+      'Límite de solicitudes alcanzado temporalmente. Inténtalo de nuevo en unos segundos.',
+    BLOCKED_BY_PLATFORM:
+      'La plataforma restringió temporalmente las solicitudes públicas. Inténtalo de nuevo en unos momentos.',
+    TIMEOUT:
+      'Se agotó el tiempo de espera al recuperar el archivo multimedia. Inténtalo de nuevo.',
+    NETWORK_ERROR:
+      'No se pudo conectar con el servicio de extracción VIDNEX (/api/extract).',
+  },
+  pt: {
+    UNSUPPORTED_URL:
+      'Link não suportado. Apenas vídeos, fotos e perfis do TikTok e Instagram são suportados.',
+    NOT_FOUND:
+      'Conteúdo não encontrado. O vídeo ou publicação pode ter sido removido ou tornado privado.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Este conteúdo é privado ou requer autenticação no servidor.',
+    RATE_LIMITED:
+      'Limite de requisições atingido temporariamente. Tente novamente em alguns segundos.',
+    BLOCKED_BY_PLATFORM:
+      'A plataforma restringiu temporariamente as requisições públicas. Tente novamente em instantes.',
+    TIMEOUT:
+      'O tempo limite expirou ao buscar a mídia. Tente novamente.',
+    NETWORK_ERROR:
+      'Não foi possível conectar ao serviço de extração VIDNEX (/api/extract).',
+  },
+  ar: {
+    UNSUPPORTED_URL:
+      'هذا الرابط غير مدعوم. يتم حالياً دعم مقاطع الفيديو والصور والملفات الشخصية من تيك توك وإنستغرام فقط.',
+    NOT_FOUND:
+      'لم يتم العثور على المحتوى. ربما تم حذف الفيديو أو المنشور أو أنه خاص.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'هذا المحتوى خاص أو يتطلب تسجيل الدخول.',
+    RATE_LIMITED:
+      'تم تجاوز حد الطلبات المؤقت. يرجى المحاولة مرة أخرى بعد ثوانٍ.',
+    BLOCKED_BY_PLATFORM:
+      'قامت المنصة بتقييد الطلبات العامة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.',
+    TIMEOUT:
+      'انتهت مهلة الاتصال أثناء جلب الوسائط. يرجى المحاولة مرة أخرى.',
+    NETWORK_ERROR:
+      'تعذر الاتصال بخدمة الاستخراج VIDNEX (/api/extract).',
+  },
 };
+
+export function getLocalizedErrorMessage(
+  code: string,
+  language: LanguageCode = 'en'
+): string {
+  const dict = ERROR_MESSAGES_I18N[language] || ERROR_MESSAGES_I18N.en;
+  return dict[code] || dict.BLOCKED_BY_PLATFORM;
+}
 
 /**
  * Appel principal de l'API Cloudflare Pages Function `/api/extract`
  */
 export async function extractMediaFromUrl(
   url: string,
-  detected: DetectedUrlInfo
+  detected: DetectedUrlInfo,
+  language: LanguageCode = 'en'
 ): Promise<MediaResult> {
   if (!detected.isValid || !detected.platform) {
-    throw new Error(ERROR_MESSAGES_FR.UNSUPPORTED_URL);
+    throw new Error(getLocalizedErrorMessage('UNSUPPORTED_URL', language));
   }
 
   const queryParams = new URLSearchParams({
@@ -147,12 +227,8 @@ export async function extractMediaFromUrl(
           platform: detected.platform,
         }),
       });
-    } catch (err: any) {
-      throw new Error(
-        err?.message?.includes('Failed to fetch')
-          ? 'Impossible de joindre le service d\'extraction VIDNEX (/api/extract).'
-          : 'Erreur réseau lors de la communication avec le serveur.'
-      );
+    } catch {
+      throw new Error(getLocalizedErrorMessage('NETWORK_ERROR', language));
     }
   }
 
@@ -160,11 +236,8 @@ export async function extractMediaFromUrl(
 
   if (!data || !data.ok || data.error) {
     const errCode = data?.error?.code || 'BLOCKED_BY_PLATFORM';
-    const message =
-      data?.error?.message ||
-      ERROR_MESSAGES_FR[errCode] ||
-      'Erreur lors de l\'extraction.';
-    throw new Error(message);
+    const localized = getLocalizedErrorMessage(errCode, language);
+    throw new Error(localized);
   }
 
   const platform: PlatformId =
@@ -182,7 +255,7 @@ export async function extractMediaFromUrl(
     detected.badgeLabel ||
     (platform === 'tiktok' ? 'TikTok Video' : 'Instagram Reel');
 
-  // 1. Format Photo de Profil (DP 1080×1080)
+  // 1. Format Photo de Profil (DP)
   if (data.type === 'profile' || detected.mediaType === 'profile') {
     const dpItem = data.items?.[0];
     const previewUrl = resolveApiUrl(
@@ -201,17 +274,14 @@ export async function extractMediaFromUrl(
       sourceUrl: url,
       creatorHandle,
       creatorName: authorName,
-      verified: Boolean(data.author?.verified ?? true),
+      verified: Boolean(data.author?.verified),
       extractedAt: nowTime,
-      biography:
-        data.author?.biography ||
-        data.title ||
-        'Photo de profil HD originale extraite par VIDNEX.',
-      followersCount: data.author?.followers || '142.8K',
+      biography: data.author?.biography || data.title || '',
+      followersCount: data.author?.followers || undefined,
       standardPreviewUrl: previewUrl,
       hdOriginalUrl: downloadUrl,
-      dimensions: '1080 × 1080',
-      fileSize: dpItem?.size || '1.8 MB',
+      dimensions: dpItem?.dimensions || undefined,
+      fileSize: dpItem?.size || undefined,
       format: 'JPG',
     };
   }
@@ -224,8 +294,8 @@ export async function extractMediaFromUrl(
         id: `slide-${idx + 1}`,
         index: idx + 1,
         mediaType: it.kind === 'video' ? 'video' : 'image',
-        dimensions: '1080 × 1350',
-        fileSize: it.size || (it.kind === 'video' ? '6.8 MB' : '1.9 MB'),
+        dimensions: it.dimensions || undefined,
+        fileSize: it.size || undefined,
         thumbnailUrl: resolveApiUrl(it.thumbnail || it.url),
         downloadUrl: resolveApiUrl(it.url),
       }));
@@ -236,20 +306,20 @@ export async function extractMediaFromUrl(
       id: `car-${Date.now()}`,
       payloadType: 'carousel',
       platform,
-      badgeLabel: `${badgeLabel} (Carrousel)`,
+      badgeLabel: `${badgeLabel} (Carousel)`,
       sourceUrl: url,
       creatorHandle,
       creatorName: authorName,
-      verified: Boolean(data.author?.verified ?? true),
+      verified: Boolean(data.author?.verified),
       extractedAt: nowTime,
-      caption: data.title || 'Publication Carrousel Multi-Slides HD',
+      caption: data.title || `${creatorHandle}`,
       totalItems: items.length,
-      archiveSize: `${(items.length * 1.9).toFixed(1)} MB`,
+      archiveSize: undefined,
       items,
       audioTrack: audioItem
         ? {
-            title: 'Audio Original MP3',
-            fileSize: audioItem.size || '2.4 MB',
+            title: 'Original Audio MP3',
+            fileSize: audioItem.size || undefined,
             downloadUrl: resolveApiUrl(audioItem.url),
           }
         : undefined,
@@ -272,20 +342,20 @@ export async function extractMediaFromUrl(
       label: 'Download HD 1080p (No Watermark)',
       quality: '1080p',
       container: 'MP4',
-      fileSize: primaryVideo.size || '16.8 MB',
+      fileSize: primaryVideo.size || undefined,
       noWatermark: true,
       downloadUrl: resolveApiUrl(primaryVideo.url),
       isPrimary: true,
     });
   }
 
-  if (sdVideo) {
+  if (sdVideo && sdVideo.url !== primaryVideo?.url) {
     formats.push({
       id: 'sd-720p',
       label: 'Download SD 720p',
       quality: '720p',
       container: 'MP4',
-      fileSize: sdVideo.size || '7.9 MB',
+      fileSize: sdVideo.size || undefined,
       noWatermark: true,
       downloadUrl: resolveApiUrl(sdVideo.url),
     });
@@ -297,7 +367,7 @@ export async function extractMediaFromUrl(
       label: 'Extract Audio (MP3)',
       quality: 'MP3',
       container: 'MP3',
-      fileSize: audioItem.size || '2.1 MB',
+      fileSize: audioItem.size || undefined,
       noWatermark: true,
       downloadUrl: resolveApiUrl(audioItem.url),
     });
@@ -311,13 +381,13 @@ export async function extractMediaFromUrl(
     sourceUrl: url,
     creatorHandle,
     creatorName: authorName,
-    verified: Boolean(data.author?.verified ?? true),
+    verified: Boolean(data.author?.verified),
     extractedAt: nowTime,
-    title: data.title || 'Vidéo HD extraite par VIDNEX',
-    duration: data.duration || '00:30',
+    title: data.title || creatorHandle,
+    duration: data.duration || undefined,
     aspectRatio: '9:16',
-    resolution: '1080 × 1920',
-    codec: 'H.264 / AAC • 60fps',
+    resolution: primaryVideo?.quality === '1080p' ? '1080p HD' : undefined,
+    codec: undefined,
     thumbnailUrl: resolveApiUrl(data.thumbnail || primaryVideo?.url || ''),
     formats,
   };

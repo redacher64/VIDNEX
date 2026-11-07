@@ -28,8 +28,20 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
     }
     metaDesc.content = tool.metaDescription;
 
-    // 2. Inject / Update <link rel="alternate" hreflang="..." /> Tags
+    // 2. Inject / Update <link rel="canonical" href={canonicalUrl} /> & hreflang Tags
     const baseUrl = `https://vidnex.space${tool.path}`;
+    const canonicalUrl =
+      language === 'en' ? baseUrl : `${baseUrl}?lang=${language}`;
+
+    let canonicalLink = document.querySelector(
+      'link[rel="canonical"]'
+    ) as HTMLLinkElement | null;
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.href = canonicalUrl;
 
     // Remove previous hreflang links managed by VIDNEX
     document
@@ -55,9 +67,6 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
     document.head.appendChild(xDefaultLink);
 
     // 3. Build Localized Schema.org JSON-LD Graph
-    const canonicalUrl =
-      language === 'en' ? baseUrl : `${baseUrl}?lang=${language}`;
-
     const schemaGraph = {
       '@context': 'https://schema.org',
       '@graph': [

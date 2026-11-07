@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlatformId } from '../utils/urlDetector';
+import { PlatformId, isPlatformSupported } from '../utils/urlDetector';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons';
 import {
   LanguageCode,
@@ -11,16 +11,25 @@ export interface ToolTab {
   id: PlatformId;
   label: string;
   isPrimary: boolean;
+  supported: boolean;
 }
 
 export const PLATFORM_TABS: ToolTab[] = [
-  { id: 'instagram', label: 'Instagram', isPrimary: true },
-  { id: 'tiktok', label: 'TikTok', isPrimary: true },
-  { id: 'youtube', label: 'YouTube', isPrimary: true },
-  { id: 'twitter', label: 'X', isPrimary: true },
-  { id: 'facebook', label: 'Facebook', isPrimary: false },
-  { id: 'snapchat', label: 'Snapchat', isPrimary: false },
+  { id: 'instagram', label: 'Instagram', isPrimary: true, supported: true },
+  { id: 'tiktok', label: 'TikTok', isPrimary: true, supported: true },
+  { id: 'youtube', label: 'YouTube', isPrimary: true, supported: false },
+  { id: 'twitter', label: 'X', isPrimary: true, supported: false },
+  { id: 'facebook', label: 'Facebook', isPrimary: false, supported: false },
+  { id: 'snapchat', label: 'Snapchat', isPrimary: false, supported: false },
 ];
+
+const SOON_BADGE_BY_LANG: Record<LanguageCode, string> = {
+  en: 'Soon',
+  fr: 'Bientôt',
+  es: 'Pronto',
+  pt: 'Em breve',
+  ar: 'قريباً',
+};
 
 interface HeaderProps {
   activePlatform: PlatformId;
@@ -45,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
   const t = UI_TRANSLATIONS[language].header;
+  const soonBadge = SOON_BADGE_BY_LANG[language] || 'Soon';
   const currentLangOption =
     SUPPORTED_LANGUAGES.find((l) => l.code === language) ||
     SUPPORTED_LANGUAGES[0];
@@ -102,19 +112,31 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {primaryTabs.map((tab) => {
             const isActive = activePlatform === tab.id;
+            const supported = isPlatformSupported(tab.id);
             return (
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => onSelectPlatform(tab.id)}
+                disabled={!supported}
+                onClick={() => {
+                  if (supported) onSelectPlatform(tab.id);
+                }}
+                title={!supported ? `${tab.label} — ${soonBadge}` : tab.label}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  isActive
+                  !supported
+                    ? 'opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50'
+                    : isActive
                     ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
                     : 'text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
                 }`}
               >
                 <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
+                {!supported && (
+                  <span className="ml-0.5 px-1.5 py-0.5 rounded bg-orange-200/70 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
+                    {soonBadge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -146,25 +168,35 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {moreMenuOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
                 {secondaryTabs.map((tab) => {
-                  const isActive = activePlatform === tab.id;
+                  const supported = isPlatformSupported(tab.id);
                   return (
                     <button
                       key={tab.id}
                       type="button"
+                      disabled={!supported}
                       onClick={() => {
-                        onSelectPlatform(tab.id);
-                        setMoreMenuOpen(false);
+                        if (supported) {
+                          onSelectPlatform(tab.id);
+                          setMoreMenuOpen(false);
+                        }
                       }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
-                        isActive
-                          ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
+                        !supported
+                          ? 'opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50'
                           : 'text-[#6c4e40] dark:text-orange-200/80 hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600 dark:hover:text-orange-400'
                       }`}
                     >
-                      <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
-                      <span>{tab.label}</span>
+                      <span className="flex items-center gap-2">
+                        <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
+                        <span>{tab.label}</span>
+                      </span>
+                      {!supported && (
+                        <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
+                          {soonBadge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -274,19 +306,30 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex sm:hidden overflow-x-auto px-4 pb-2.5 gap-1.5 no-scrollbar">
         {PLATFORM_TABS.map((tab) => {
           const isActive = activePlatform === tab.id;
+          const supported = isPlatformSupported(tab.id);
           return (
             <button
               key={tab.id}
               type="button"
-              onClick={() => onSelectPlatform(tab.id)}
+              disabled={!supported}
+              onClick={() => {
+                if (supported) onSelectPlatform(tab.id);
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-                isActive
+                !supported
+                  ? 'opacity-50 cursor-not-allowed bg-white/60 dark:bg-[#231710]/60 text-[#6c4e40] dark:text-orange-200/50 border border-orange-200/50 dark:border-orange-900/40'
+                  : isActive
                   ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
                   : 'bg-white/90 dark:bg-[#231710] text-[#6c4e40] dark:text-orange-200/75 border border-orange-200/80 dark:border-orange-900/50'
               }`}
             >
               <PlatformIcon platform={tab.id} className="w-3 h-3" />
               <span>{tab.label}</span>
+              {!supported && (
+                <span className="px-1 py-0.5 rounded bg-orange-100 dark:bg-orange-950 text-[9px] font-mono uppercase text-orange-800 dark:text-amber-400">
+                  {soonBadge}
+                </span>
+              )}
             </button>
           );
         })}

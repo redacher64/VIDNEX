@@ -1,8 +1,14 @@
 /**
  * Route Cloudflare Pages Function : `GET /api/download`
- * Proxy de streaming haute performance avec zero-buffering (aucune mise en mémoire),
- * transmission des cookies de session (`tt_chain_token` / `ttwid`) et repli automatique (auto-heal)
- * si un lien signé expire ou renvoie HTTP 403.
+ * Proxy de streaming haute performance avec zero-buffering (aucune mise en mémoire).
+ *
+ * Sécurité & Fiabilité (Étape 3) :
+ * - Suivi manuel des redirections (`redirect: 'manual'`, max 4 sauts) en vérifiant que chaque
+ *   URL `Location` cible appartient bien à l'allowlist anti-SSRF (`isAllowedMediaHost`).
+ * - Adaptation dynamique des headers (`User-Agent`, `Referer` adapté au CDN cible :
+ *   `https://www.instagram.com/` ou `https://www.tiktok.com/`).
+ * - Limite stricte de taille : rejette tout flux dont `Content-Length` dépasse 250 Mo avec HTTP 413.
+ * - Auto-Heal : en cas d'expiration de lien signé (403), bascule sur `alt` ou régénère le flux via `src`.
  */
 
 import { isAllowedMediaHost } from '../_lib/allowlist.ts';
@@ -15,6 +21,9 @@ interface PagesContext {
   request: Request;
   env: Record<string, any>;
 }
+
+const MAX_REDIRECTS = 4;
+const MAX_CONTENT_LENGTH_BYTES = 250 * 1024 * 1024; // 250 Mo
 
 export function sanitizeFilename(raw: string | null): string {
   const cleaned = String(raw || 'VIDNEX_media.mp4')
@@ -60,12 +69,13 @@ function inferMimeType(
   return isInline ? 'image/jpeg' : 'video/mp4';
 }
 
-function inferReferer(hostname: string): string {
+export function inferRefererForHost(hostname: string): string {
   const lower = hostname.toLowerCase();
   if (
-    lower.includes('instagram') ||
     lower.includes('cdninstagram') ||
-    lower.includes('fbcdn')
+    lower.includes('fbcdn') ||
+    lower.includes('fbsbx') ||
+    lower.includes('instagram')
   ) {
     return 'https://www.instagram.com/';
   }
@@ -75,76 +85,125 @@ function inferReferer(hostname: string): string {
   return 'https://www.tiktok.com/';
 }
 
-async function fetchMediaStream(
-  targetUrl: string,
+interface StreamAttemptResult {
+  response: Response | null;
+  forbiddenHost?: string;
+  tooLarge?: boolean;
+}
+
+/**
+ * Exécute la requête vers le CDN média avec suivi manuel des redirections (jusqu'à 4 sauts max)
+ * et validation anti-SSRF de chaque `Location` cible.
+ */
+async function fetchMediaStreamWithManualRedirects(
+  initialTargetUrl: string,
   method: string,
   isInline: boolean,
   rangeHeader: string | null,
   cookieHeader?: string
-): Promise<Response | null> {
-  let normalizedUrl = targetUrl.trim();
-  if (normalizedUrl.startsWith('//')) {
-    normalizedUrl = `https:${normalizedUrl}`;
-  } else if (normalizedUrl.startsWith('/')) {
-    normalizedUrl = `https://www.tikwm.com${normalizedUrl}`;
+): Promise<StreamAttemptResult> {
+  let currentUrlStr = initialTargetUrl.trim();
+  if (currentUrlStr.startsWith('//')) {
+    currentUrlStr = `https:${currentUrlStr}`;
+  } else if (currentUrlStr.startsWith('/')) {
+    currentUrlStr = `https://www.tikwm.com${currentUrlStr}`;
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(normalizedUrl);
-  } catch {
-    return null;
-  }
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    let parsed: URL;
+    try {
+      parsed = new URL(currentUrlStr);
+    } catch {
+      return { response: null };
+    }
 
-  if (
-    (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') ||
-    !isAllowedMediaHost(parsed.hostname)
-  ) {
-    return null;
-  }
+    if (
+      (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') ||
+      !isAllowedMediaHost(parsed.hostname)
+    ) {
+      return { response: null, forbiddenHost: parsed.hostname };
+    }
 
-  const referer = inferReferer(parsed.hostname);
-  const headers = new Headers({
-    'User-Agent': BROWSER_USER_AGENT,
-    Accept: isInline ? 'image/avif,image/webp,image/*,*/*;q=0.8' : '*/*',
-    Referer: referer,
-  });
-
-  if (cookieHeader) {
-    headers.set('Cookie', cookieHeader);
-  }
-  if (rangeHeader) {
-    headers.set('Range', rangeHeader);
-  }
-
-  try {
-    const res = await fetch(parsed.toString(), {
-      method: method === 'HEAD' ? 'HEAD' : 'GET',
-      headers,
-      redirect: 'follow',
+    const referer = inferRefererForHost(parsed.hostname);
+    const headers = new Headers({
+      'User-Agent': BROWSER_USER_AGENT,
+      Accept: isInline ? 'image/avif,image/webp,image/*,*/*;q=0.8' : '*/*',
+      Referer: referer,
     });
 
-    if (res.ok || res.status === 206) {
-      return res;
+    if (cookieHeader) {
+      headers.set('Cookie', cookieHeader);
+    }
+    if (rangeHeader) {
+      headers.set('Range', rangeHeader);
     }
 
-    // Si 403 avec Cookie ou Origin, réessayer une fois avec Origin explicite
-    if (res.status === 403) {
-      headers.set('Origin', referer.replace(/\/$/, ''));
-      const retryRes = await fetch(parsed.toString(), {
+    try {
+      const res = await fetch(parsed.toString(), {
         method: method === 'HEAD' ? 'HEAD' : 'GET',
         headers,
-        redirect: 'follow',
+        redirect: 'manual',
       });
-      if (retryRes.ok || retryRes.status === 206) {
-        return retryRes;
+
+      // Suivi manuel des redirections 301 / 302 / 303 / 307 / 308
+      if (
+        res.status === 301 ||
+        res.status === 302 ||
+        res.status === 303 ||
+        res.status === 307 ||
+        res.status === 308
+      ) {
+        const location = res.headers.get('Location');
+        if (!location) {
+          return { response: null };
+        }
+        try {
+          const nextUrl = new URL(location, parsed);
+          if (!isAllowedMediaHost(nextUrl.hostname)) {
+            return { response: null, forbiddenHost: nextUrl.hostname };
+          }
+          currentUrlStr = nextUrl.toString();
+          continue;
+        } catch {
+          return { response: null };
+        }
       }
+
+      if (res.ok || res.status === 206) {
+        const lenStr = res.headers.get('Content-Length');
+        if (lenStr) {
+          const byteLen = Number(lenStr);
+          if (Number.isFinite(byteLen) && byteLen > MAX_CONTENT_LENGTH_BYTES) {
+            return { response: null, tooLarge: true };
+          }
+        }
+        return { response: res };
+      }
+
+      // En cas de 403, réessayer une fois avec l'en-tête Origin explicite
+      if (res.status === 403) {
+        headers.set('Origin', referer.replace(/\/$/, ''));
+        const retryRes = await fetch(parsed.toString(), {
+          method: method === 'HEAD' ? 'HEAD' : 'GET',
+          headers,
+          redirect: 'manual',
+        });
+        if (retryRes.ok || retryRes.status === 206) {
+          const lenStr = retryRes.headers.get('Content-Length');
+          if (lenStr && Number(lenStr) > MAX_CONTENT_LENGTH_BYTES) {
+            return { response: null, tooLarge: true };
+          }
+          return { response: retryRes };
+        }
+      }
+
+      return { response: null };
+    } catch {
+      return { response: null };
     }
-  } catch {
-    return null;
   }
 
-  return null;
+  return { response: null };
 }
 
 export const onRequestOptions = async (): Promise<Response> => {
@@ -183,8 +242,48 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
   }
 
-  // 1. Tentative sur l'URL principale (avec cookies de session si présents)
-  let upstreamRes = await fetchMediaStream(
+  // Validation initiale de l'URL cible avant tout appel réseau
+  let initialParsed: URL;
+  try {
+    const normalizedInitial = rawTargetUrl.startsWith('//')
+      ? `https:${rawTargetUrl}`
+      : rawTargetUrl.startsWith('/')
+      ? `https://www.tikwm.com${rawTargetUrl}`
+      : rawTargetUrl;
+    initialParsed = new URL(normalizedInitial);
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'URL cible malformée.' }),
+      {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+  }
+
+  if (
+    (initialParsed.protocol !== 'https:' && initialParsed.protocol !== 'http:') ||
+    !isAllowedMediaHost(initialParsed.hostname)
+  ) {
+    return new Response(
+      JSON.stringify({
+        error: `Domaine média non autorisé : ${initialParsed.hostname}. Le proxy est réservé aux CDNs officiels.`,
+      }),
+      {
+        status: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+  }
+
+  // 1. Tentative sur l'URL principale (avec suivi manuel des redirections)
+  let attempt = await fetchMediaStreamWithManualRedirects(
     rawTargetUrl,
     method,
     isInline,
@@ -192,20 +291,64 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     decodedCookie
   );
 
+  if (attempt.tooLarge) {
+    return new Response(
+      JSON.stringify({
+        error: 'Le fichier média dépasse la limite maximale autorisée de 250 Mo.',
+      }),
+      {
+        status: 413,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+  }
+
+  if (attempt.forbiddenHost) {
+    return new Response(
+      JSON.stringify({
+        error: `Redirection bloquée vers un domaine non autorisé : ${attempt.forbiddenHost}.`,
+      }),
+      {
+        status: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+  }
+
   // 2. Tentative sur l'URL de secours (`alt`) si l'URL principale a échoué
-  if (!upstreamRes && altTargetUrl) {
-    upstreamRes = await fetchMediaStream(
+  if (!attempt.response && altTargetUrl) {
+    attempt = await fetchMediaStreamWithManualRedirects(
       altTargetUrl,
       method,
       isInline,
       rangeHeader,
       decodedCookie
     );
+    if (attempt.tooLarge) {
+      return new Response(
+        JSON.stringify({
+          error: 'Le fichier média dépasse la limite maximale autorisée de 250 Mo.',
+        }),
+        {
+          status: 413,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
   }
 
   // 3. Auto-Heal : Si le flux CDN signé a expiré ou renvoyé 403 et qu'on a l'URL source (`src`),
-  //    on régénère un flux frais à la volée !
-  if (!upstreamRes && sourcePageUrl) {
+  //    on régénère un flux frais à la volée
+  if (!attempt.response && sourcePageUrl) {
     try {
       const detection = detectUrl(sourcePageUrl);
       if (detection.isValid && detection.platform === 'tiktok') {
@@ -222,7 +365,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
               wantAudio ? it.kind === 'audio' : it.kind === 'video'
             ) || fresh.items[0];
           if (freshItem?.url) {
-            upstreamRes = await fetchMediaStream(
+            attempt = await fetchMediaStreamWithManualRedirects(
               freshItem.url,
               method,
               isInline,
@@ -240,7 +383,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];
           if (freshItem?.url) {
-            upstreamRes = await fetchMediaStream(
+            attempt = await fetchMediaStreamWithManualRedirects(
               freshItem.url,
               method,
               isInline,
@@ -255,6 +398,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     }
   }
 
+  const upstreamRes = attempt.response;
   if (!upstreamRes) {
     return new Response(
       JSON.stringify({
@@ -315,7 +459,6 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     responseHeaders.set('Accept-Ranges', 'bytes');
   }
 
-  // STREAMING DIRECT : upstreamRes.body est transmis sans mise en mémoire
   return new Response(upstreamRes.body, {
     status: upstreamRes.status,
     headers: responseHeaders,

@@ -191,7 +191,7 @@ export function App() {
       setExtractionError(null);
 
       try {
-        const result = await extractMediaFromUrl(url, detected);
+        const result = await extractMediaFromUrl(url, detected, language);
         setMediaResult(result);
       } catch (err) {
         setMediaResult(null);
@@ -204,7 +204,7 @@ export function App() {
         setIsExtracting(false);
       }
     },
-    []
+    [language]
   );
 
   const handleCloseDrawer = useCallback(() => {

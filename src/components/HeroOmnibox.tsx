@@ -17,6 +17,7 @@ import {
   UI_TRANSLATIONS,
 } from '../i18n/translations';
 import { PlatformIcon } from './icons/PlatformIcons';
+import { AdSlot } from './AdSlot';
 
 const COMING_SOON_MESSAGE_BY_LANG: Record<LanguageCode, string> = {
   en: 'This platform is coming soon! Currently, Instagram (Reels, Posts, Carousels, Profiles) and TikTok (Videos, Photos, Profiles) are active.',
@@ -223,12 +224,22 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-12 sm:pt-16 pb-12 border-b border-orange-200/40 dark:border-orange-900/30">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center relative z-10">
-        {/* Eyebrow Technical Specs Line */}
-        <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[11px] font-semibold tracking-widest uppercase mb-4">
-          <span>{activeTool.specs.join(' · ')}</span>
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-10 sm:pt-14 pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 relative z-10 flex items-start justify-center gap-6">
+        {/* Left Vertical Column Ad (160×600 Skyscraper) */}
+        <div className="hidden xl:block pt-2">
+          <AdSlot
+            slotId="vidnex-left-column-160x600"
+            format="skyscraper"
+            language={language}
+          />
         </div>
+
+        <div className="w-full max-w-3xl text-center">
+          {/* Eyebrow Technical Specs Line */}
+          <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[11px] font-semibold tracking-widest uppercase mb-4">
+            <span>{activeTool.specs.join(' · ')}</span>
+          </div>
 
         {/* Main Headline */}
         <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
@@ -413,6 +424,16 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               {sample.label}
             </button>
           ))}
+        </div>
+        </div>
+
+        {/* Right Vertical Column Ad (160×600 Skyscraper) */}
+        <div className="hidden xl:block pt-2">
+          <AdSlot
+            slotId="vidnex-right-column-160x600"
+            format="skyscraper"
+            language={language}
+          />
         </div>
       </div>
     </section>

@@ -268,7 +268,11 @@ export function App() {
           language={language}
         />
 
-        <AdSlot slotId="vidnex-post-result-leaderboard" format="leaderboard" />
+        <AdSlot
+          slotId="vidnex-post-result-leaderboard"
+          format="leaderboard"
+          language={language}
+        />
 
         <BelowFoldSeoSections
           activeTool={activeTool}

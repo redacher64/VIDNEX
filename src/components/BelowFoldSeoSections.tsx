@@ -139,8 +139,12 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         </div>
       </section>
 
-      {/* DORMANT ZERO-CLS ADSENSE HOOK */}
-      <AdSlot slotId="vidnex-pre-faq-rectangle" format="rectangle" />
+      {/* ZERO-CLS ADSENSE BANNER HOOK */}
+      <AdSlot
+        slotId="vidnex-pre-faq-rectangle"
+        format="rectangle"
+        language={language}
+      />
 
       {/* 3. PLATFORM COMPATIBILITY & DEDICATED TOOLS MATRIX */}
       <section className="w-full py-16 bg-gradient-to-b from-orange-50/50 via-orange-100/30 to-orange-50/50 dark:from-[#1a110b] dark:via-[#140e0a] dark:to-[#1a110b] border-y border-orange-200/60 dark:border-orange-900/40">
@@ -219,13 +223,13 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         </div>
       </section>
 
-      {/* 4. EDITORIAL FAQ ACCORDION */}
+      {/* 4. EDITORIAL FAQ ACCORDION + SIDE COLUMN AD (300×600) */}
       <section
         aria-labelledby="faq-heading"
         className="w-full py-16 pb-20 bg-[#fffaf5] dark:bg-[#140e0a]"
       >
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="mb-10">
             <span className="font-mono text-[11px] text-orange-700 dark:text-amber-400 tracking-widest uppercase font-bold">
               {t.knowledgeBase}
             </span>
@@ -237,40 +241,50 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
             </h2>
           </div>
 
-          <div className="space-y-3">
-            {activeTool.faqs.map((faq, idx) => {
-              const isOpen = openFaqIndex === idx;
-              return (
-                <div
-                  key={faq.question}
-                  className="bg-white/95 dark:bg-[#1c140e]/95 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-sm overflow-hidden transition-all"
-                >
-                  <button
-                    type="button"
-                    aria-expanded={isOpen}
-                    onClick={() =>
-                      setOpenFaqIndex((prev) => (prev === idx ? null : idx))
-                    }
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-display text-base font-semibold text-[#1f130b] dark:text-[#fffaf5] hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-8 space-y-3">
+              {activeTool.faqs.map((faq, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div
+                    key={faq.question}
+                    className="bg-white/95 dark:bg-[#1c140e]/95 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-sm overflow-hidden transition-all"
                   >
-                    <span>{faq.question}</span>
-                    <span
-                      className={`font-mono text-lg text-orange-600 dark:text-amber-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() =>
+                        setOpenFaqIndex((prev) => (prev === idx ? null : idx))
+                      }
+                      className="w-full p-5 text-left flex items-center justify-between gap-4 font-display text-base font-semibold text-[#1f130b] dark:text-[#fffaf5] hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
                     >
-                      ▾
-                    </span>
-                  </button>
+                      <span>{faq.question}</span>
+                      <span
+                        className={`font-mono text-lg text-orange-600 dark:text-amber-400 shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                      >
+                        ▾
+                      </span>
+                    </button>
 
-                  {isOpen && (
-                    <div className="px-5 pb-5 pt-3 text-sm text-[#6c4e40] dark:text-orange-200/75 leading-relaxed border-t border-orange-100 dark:border-orange-900/40">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    {isOpen && (
+                      <div className="px-5 pb-5 pt-3 text-sm text-[#6c4e40] dark:text-orange-200/75 leading-relaxed border-t border-orange-100 dark:border-orange-900/40">
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="lg:col-span-4 lg:sticky lg:top-24">
+              <AdSlot
+                slotId="vidnex-faq-column-300x600"
+                format="column"
+                language={language}
+              />
+            </div>
           </div>
         </div>
       </section>

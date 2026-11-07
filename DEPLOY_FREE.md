@@ -19,7 +19,7 @@ Ce projet est épuré et structuré exclusivement pour **Cloudflare Pages + Clou
 │       ├── extract.ts          # Endpoint GET/POST /api/extract
 │       └── download.ts         # Proxy de streaming direct GET /api/download (Zero-Buffering)
 ├── public/
-│   └── _redirects              # Routage Cloudflare Pages (/api/* + SPA fallback)
+│   └── .assetsignore           # Exclusion des règles conflictuelles Cloudflare Assets
 ├── src/                        # Frontend React + Tailwind CSS + Vite
 ├── worker.ts                   # Point d'entrée Cloudflare Worker / Dev local
 └── wrangler.jsonc              # Configuration Cloudflare Pages / Workers

@@ -229,18 +229,21 @@ export function normalizeTikWmPayload(
     return carouselResult;
   }
 
-  // 1C. TikTok HD Video (`hdplay` / `play`)
-  const hdPlay =
-    data.hdplay ||
+  // 1C. TikTok HD Video (Direct No-Watermark MP4 via `data.play`)
+  // CRITICAL: On TikWM, `data.hdplay` is a paid teaser link that returns a 4.6KB WebP placeholder image on free tier.
+  // `data.play` is the authentic 100% free unwatermarked full-quality MP4 stream.
+  const directNoWatermark =
     data.play ||
     data.video?.play_addr?.url_list?.[0] ||
-    data.video_url;
-  if (!hdPlay) return null;
+    data.video_url ||
+    data.wmplay ||
+    data.hdplay;
+  if (!directNoWatermark) return null;
 
-  const sdPlay = data.play || data.wmplay || hdPlay;
+  const directWatermarked = data.wmplay || data.play || directNoWatermark;
   const musicUrl =
     (typeof data.music === 'string' ? data.music : data.music_info?.play) ||
-    hdPlay;
+    directNoWatermark;
   const rawCover =
     data.origin_cover ||
     data.cover ||
@@ -270,24 +273,24 @@ export function normalizeTikWmPayload(
         label: 'Download HD 1080p (No Watermark)',
         quality: '1080p',
         container: 'MP4',
-        fileSize: formatFileSizeBytes(data.hd_size || data.size, '18.6 MB'),
+        fileSize: formatFileSizeBytes(data.size || data.hd_size, '17.9 MB'),
         noWatermark: true,
         downloadUrl: wrapWithDownloadProxy(
-          hdPlay,
+          directNoWatermark,
           `VIDNEX_tiktok_${handle}_1080p.mp4`
         ),
         isPrimary: true,
       },
       {
         id: 'sd-720p',
-        label: 'Download SD 720p',
+        label: 'Download SD (With Watermark)',
         quality: '720p',
         container: 'MP4',
-        fileSize: formatFileSizeBytes(data.size, '8.9 MB'),
-        noWatermark: true,
+        fileSize: formatFileSizeBytes(data.wm_size || data.size, '17.9 MB'),
+        noWatermark: false,
         downloadUrl: wrapWithDownloadProxy(
-          sdPlay,
-          `VIDNEX_tiktok_${handle}_720p.mp4`
+          directWatermarked,
+          `VIDNEX_tiktok_${handle}_wm.mp4`
         ),
       },
       {

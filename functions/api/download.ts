@@ -95,10 +95,11 @@ function inferRefererForHost(hostname: string, protocol: string): string {
   ) {
     return 'https://www.instagram.com/';
   }
-  if (lower.includes('tikwm')) {
-    return 'https://www.tikwm.com/';
-  }
-  if (lower.includes('tiktok') || lower.includes('byte')) {
+  if (
+    lower.includes('tiktok') ||
+    lower.includes('byte') ||
+    lower.includes('tikwm')
+  ) {
     return 'https://www.tiktok.com/';
   }
   if (lower.includes('twimg') || lower.includes('twitter') || lower.includes('x.com')) {
@@ -115,21 +116,30 @@ function inferFallbackMimeType(
   inline: boolean,
   upstreamContentType: string | null
 ): string {
-  if (
-    upstreamContentType &&
-    !upstreamContentType.includes('text/html') &&
-    !upstreamContentType.includes('text/plain')
-  ) {
-    return upstreamContentType;
-  }
   const lower = filename.toLowerCase();
+  if (lower.endsWith('.mp4')) {
+    if (
+      upstreamContentType &&
+      (upstreamContentType.includes('video/') ||
+        upstreamContentType.includes('application/octet-stream'))
+    ) {
+      return upstreamContentType;
+    }
+    return 'video/mp4';
+  }
   if (lower.endsWith('.mp3')) return 'audio/mpeg';
   if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
   if (lower.endsWith('.png')) return 'image/png';
   if (lower.endsWith('.webp')) return 'image/webp';
   if (lower.endsWith('.zip')) return 'application/zip';
-  if (inline && !lower.endsWith('.mp4')) return 'image/jpeg';
-  return 'video/mp4';
+  if (inline) return 'image/jpeg';
+  return (
+    upstreamContentType &&
+    !upstreamContentType.includes('text/html') &&
+    !upstreamContentType.includes('text/plain')
+      ? upstreamContentType
+      : 'application/octet-stream'
+  );
 }
 
 export const onRequestOptions = async (): Promise<Response> => {
@@ -163,13 +173,60 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
   }
 
+  // Handle local samples or synthetic test URLs
+  if (
+    rawTargetUrl.startsWith('synthetic://') ||
+    rawTargetUrl.startsWith('/samples/')
+  ) {
+    let sampleFile = '/samples/sample-1080p.mp4';
+    const lowerFilename = safeFilename.toLowerCase();
+    if (lowerFilename.endsWith('.mp3')) {
+      sampleFile = '/samples/sample-audio.mp3';
+    } else if (
+      lowerFilename.endsWith('.jpg') ||
+      lowerFilename.endsWith('.jpeg') ||
+      lowerFilename.endsWith('.png')
+    ) {
+      sampleFile = '/samples/sample-dp-1080.jpg';
+    } else if (lowerFilename.endsWith('.zip')) {
+      sampleFile = '/samples/sample-carousel.zip';
+    } else if (lowerFilename.includes('720p')) {
+      sampleFile = '/samples/sample-720p.mp4';
+    }
+
+    if (
+      context.env &&
+      'ASSETS' in context.env &&
+      typeof (context.env as any).ASSETS?.fetch === 'function'
+    ) {
+      const assetUrl = new URL(sampleFile, reqUrl.origin);
+      const assetRes = await (context.env as any).ASSETS.fetch(
+        new Request(assetUrl.toString(), {
+          headers: context.request.headers,
+        })
+      );
+      if (assetRes.ok) {
+        const headers = new Headers(assetRes.headers);
+        headers.set('Access-Control-Allow-Origin', '*');
+        headers.set(
+          'Content-Disposition',
+          isInline
+            ? `inline; filename="${safeFilename}"`
+            : `attachment; filename="${safeFilename}"`
+        );
+        return new Response(assetRes.body, {
+          status: assetRes.status,
+          headers,
+        });
+      }
+    }
+    return Response.redirect(new URL(sampleFile, reqUrl.origin).toString(), 302);
+  }
+
   // Normalize protocol-relative or TikWM-relative paths
   if (rawTargetUrl.startsWith('//')) {
     rawTargetUrl = `https:${rawTargetUrl}`;
-  } else if (
-    rawTargetUrl.startsWith('/') &&
-    !rawTargetUrl.startsWith('/samples/')
-  ) {
+  } else if (rawTargetUrl.startsWith('/')) {
     rawTargetUrl = `https://www.tikwm.com${rawTargetUrl}`;
   }
 
@@ -227,6 +284,24 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       headers: upstreamHeaders,
       redirect: 'follow',
     });
+
+    const isVideoRequested = safeFilename.toLowerCase().endsWith('.mp4');
+    const isAudioRequested = safeFilename.toLowerCase().endsWith('.mp3');
+    const upstreamContentType = (upstreamRes.headers.get('Content-Type') || '').toLowerCase();
+
+    // If upstream returns an error, bot protection challenge (HTML), or a placeholder image when a video was requested:
+    // Seamlessly redirect the user's browser (302) to the direct CDN target so their residential IP / browser cookies
+    // can stream/download it directly without getting stuck on Cloudflare edge block or downloading a corrupted file!
+    if (
+      !isInline &&
+      (isVideoRequested || isAudioRequested) &&
+      (!upstreamRes.ok ||
+        upstreamContentType.includes('text/html') ||
+        upstreamContentType.includes('text/plain') ||
+        (isVideoRequested && upstreamContentType.startsWith('image/')))
+    ) {
+      return Response.redirect(parsedTarget.toString(), 302);
+    }
 
     if (!upstreamRes.ok && upstreamRes.status !== 206) {
       return new Response(
@@ -294,6 +369,13 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       headers: responseHeaders,
     });
   } catch (err) {
+    if (
+      !isInline &&
+      (safeFilename.toLowerCase().endsWith('.mp4') ||
+        safeFilename.toLowerCase().endsWith('.mp3'))
+    ) {
+      return Response.redirect(parsedTarget.toString(), 302);
+    }
     return new Response(
       JSON.stringify({
         message:

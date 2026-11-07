@@ -1,15 +1,16 @@
 /**
- * Allowlist de sécurité pour le proxy de téléchargement en streaming VIDNEX.
- * Empêche tout abus SSRF en n'autorisant que les domaines CDN officiels de TikTok et Meta/Instagram.
+ * Allowlist de sécurité pour le proxy de téléchargement en streaming VIDNEX (`/api/download`).
+ * Empêche tout abus SSRF en n'autorisant que les domaines CDN officiels de TikTok (et TikWM) et Meta/Instagram.
  */
 
 const ALLOWED_CDN_DOMAINS = [
-  // TikTok & ByteDance CDNs
+  // TikTok, ByteDance & TikWM CDNs
   'tiktokcdn.com',
   'tiktokcdn-us.com',
   'tiktokcdn-eu.com',
   'tiktokv.com',
   'tiktok.com',
+  'tikwm.com',
   'musical.ly',
   'byteoversea.com',
   'ibytedtos.com',

@@ -56,7 +56,9 @@ export default {
       return new Response(
         JSON.stringify({
           status: 'ok',
-          engines: ['tiktok_direct', 'instagram_direct'],
+          platform: 'cloudflare-pages-functions',
+          engines: ['tiktok_tikwm_and_html', 'instagram_embed_graphql_and_session'],
+          igAccountConnected: Boolean(env?.IG_SESSION_ID),
         }),
         {
           headers: {
@@ -68,7 +70,7 @@ export default {
     }
 
     // Static assets fallback via Cloudflare Workers Static Assets binding
-    if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+    if (env?.ASSETS && typeof env.ASSETS.fetch === 'function') {
       return env.ASSETS.fetch(request);
     }
 

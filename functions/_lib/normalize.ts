@@ -1,5 +1,5 @@
 /**
- * Types et formateurs de réponses normalisées pour l'API VIDNEX.
+ * Types et formateurs de réponses normalisées pour l'API VIDNEX (`/api/extract`).
  */
 
 export type ErrorCode =
@@ -12,6 +12,7 @@ export type ErrorCode =
 export interface ExtractMediaItem {
   kind: 'video' | 'image' | 'audio';
   url: string;
+  thumbnail?: string;
   quality?: string;
   ext: string;
   size?: string;
@@ -22,12 +23,16 @@ export interface ExtractMediaItem {
 export interface ExtractResponse {
   ok: boolean;
   platform?: 'tiktok' | 'instagram';
-  type?: 'video' | 'image' | 'carousel';
+  type?: 'video' | 'image' | 'carousel' | 'profile';
   title?: string;
+  duration?: string;
   author?: {
     username: string;
     nickname?: string;
     avatar?: string;
+    followers?: string;
+    biography?: string;
+    verified?: boolean;
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];

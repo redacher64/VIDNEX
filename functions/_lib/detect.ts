@@ -1,19 +1,40 @@
 /**
  * Détection de plateforme et validation stricte d'URL pour VIDNEX.
- * Supporte TikTok (vidéos, photos, liens courts vm/vt) et Instagram (posts, reels, carrousels, tv).
+ * Supporte :
+ * - TikTok : vidéos, carrousels photos, liens courts (vm/vt.tiktok.com), et profils (@username)
+ * - Instagram : Reels, posts, carrousels, IGTV, Stories, et profils (@username)
  */
 
 export type SupportedPlatform = 'tiktok' | 'instagram';
+export type DetectedContentKind = 'video' | 'post' | 'profile' | 'story';
 
 export interface DetectionResult {
   isValid: boolean;
   platform?: SupportedPlatform;
+  kind?: DetectedContentKind;
   cleanUrl: string;
   identifier?: string;
   isShortLink?: boolean;
 }
 
-export function detectUrl(rawUrl: string): DetectionResult {
+const RESERVED_IG_PATHS = new Set([
+  'explore',
+  'direct',
+  'accounts',
+  'reels',
+  'stories',
+  'p',
+  'reel',
+  'tv',
+  'about',
+  'legal',
+  'developer',
+]);
+
+export function detectUrl(
+  rawUrl: string,
+  preferredPlatform: SupportedPlatform = 'instagram'
+): DetectionResult {
   if (!rawUrl || typeof rawUrl !== 'string') {
     return { isValid: false, cleanUrl: '' };
   }
@@ -21,6 +42,24 @@ export function detectUrl(rawUrl: string): DetectionResult {
   let trimmed = rawUrl.trim();
   if (!trimmed) {
     return { isValid: false, cleanUrl: '' };
+  }
+
+  // 0. Détection directe d'un pseudo @username
+  const handleMatch = trimmed.match(/^@([A-Za-z0-9._]{1,30})$/);
+  if (handleMatch) {
+    const handle = handleMatch[1];
+    const platform = preferredPlatform === 'tiktok' ? 'tiktok' : 'instagram';
+    return {
+      isValid: true,
+      platform,
+      kind: 'profile',
+      cleanUrl:
+        platform === 'tiktok'
+          ? `https://www.tiktok.com/@${handle}`
+          : `https://www.instagram.com/${handle}/`,
+      identifier: handle,
+      isShortLink: false,
+    };
   }
 
   // Ajouter protocole si manquant
@@ -50,13 +89,26 @@ export function detectUrl(rawUrl: string): DetectionResult {
       hostname === 'vt.tiktok.com' ||
       parsed.pathname.startsWith('/t/');
 
-    // Extraire l'ID numérique de vidéo si présent
-    const videoIdMatch = parsed.pathname.match(/\/video\/([0-9]+)/i) ||
+    const videoIdMatch =
+      parsed.pathname.match(/\/video\/([0-9]+)/i) ||
       parsed.pathname.match(/\/photo\/([0-9]+)/i);
+
+    const profileOnlyMatch = parsed.pathname.match(/^\/@([A-Za-z0-9._]+)\/?$/i);
+    if (profileOnlyMatch && !videoIdMatch) {
+      return {
+        isValid: true,
+        platform: 'tiktok',
+        kind: 'profile',
+        cleanUrl: `https://www.tiktok.com/@${profileOnlyMatch[1]}`,
+        identifier: profileOnlyMatch[1],
+        isShortLink: false,
+      };
+    }
 
     return {
       isValid: true,
       platform: 'tiktok',
+      kind: 'video',
       cleanUrl: parsed.toString(),
       identifier: videoIdMatch?.[1],
       isShortLink,
@@ -70,14 +122,42 @@ export function detectUrl(rawUrl: string): DetectionResult {
     hostname.endsWith('.instagram.com')
   ) {
     const path = parsed.pathname;
-    const shortcodeMatch = path.match(/\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
 
+    // Post, Reel, Carrousel ou IGTV
+    const shortcodeMatch = path.match(/\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
     if (shortcodeMatch) {
       return {
         isValid: true,
         platform: 'instagram',
+        kind: 'post',
         cleanUrl: `https://www.instagram.com/p/${shortcodeMatch[1]}/`,
         identifier: shortcodeMatch[1],
+        isShortLink: false,
+      };
+    }
+
+    // Story Instagram
+    const storyMatch = path.match(/\/stories\/([A-Za-z0-9._]+)(?:\/([0-9]+))?/i);
+    if (storyMatch) {
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'story',
+        cleanUrl: parsed.toString(),
+        identifier: storyMatch[1],
+        isShortLink: false,
+      };
+    }
+
+    // Profil Instagram (/username/)
+    const profileMatch = path.match(/^\/([A-Za-z0-9._]{1,30})\/?$/i);
+    if (profileMatch && !RESERVED_IG_PATHS.has(profileMatch[1].toLowerCase())) {
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'profile',
+        cleanUrl: `https://www.instagram.com/${profileMatch[1]}/`,
+        identifier: profileMatch[1],
         isShortLink: false,
       };
     }

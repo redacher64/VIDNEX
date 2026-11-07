@@ -21,10 +21,9 @@ interface ResultDrawerProps {
   language: LanguageCode;
 }
 
-/**
- * Triggers a native browser file download using the backend `/api/download` stream endpoint.
- * Zero fake/corrupt blobs (`mp4Box`, `wavHeader`, or canvas mocks) are ever created.
- */
+const STUDIO_FALLBACK_THUMB =
+  "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 900'%3E%3Crect width='720' height='900' fill='%231f130b'/%3E%3Ccircle cx='360' cy='420' r='56' fill='%23ea580c' fill-opacity='0.85'/%3E%3Cpolygon points='346,396 346,444 388,420' fill='%23fffaf5'/%3E%3Ctext x='360' y='535' text-anchor='middle' fill='%23fffaf5' font-family='sans-serif' font-size='26' font-weight='700'%3EVIDNEX HD STREAM%3C/text%3E%3C/svg%3E";
+
 function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
   let targetUrl: string;
 
@@ -216,7 +215,7 @@ const VideoResultView: React.FC<{
 
   const previewVideoSrc = primaryFormat?.downloadUrl
     ? resolveApiUrl(primaryFormat.downloadUrl)
-    : '/samples/sample-1080p.mp4';
+    : '';
 
   const handleDownloadClick = (
     formatId: string,
@@ -261,8 +260,8 @@ const VideoResultView: React.FC<{
               referrerPolicy="no-referrer"
               onError={(e) => {
                 const img = e.currentTarget;
-                if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
-                  img.src = '/samples/sample-dp-1080.jpg';
+                if (img.src !== STUDIO_FALLBACK_THUMB) {
+                  img.src = STUDIO_FALLBACK_THUMB;
                 }
               }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -431,8 +430,8 @@ const ProfileDpResultView: React.FC<{
           referrerPolicy="no-referrer"
           onError={(e) => {
             const img = e.currentTarget;
-            if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
-              img.src = '/samples/sample-dp-1080.jpg';
+            if (img.src !== STUDIO_FALLBACK_THUMB) {
+              img.src = STUDIO_FALLBACK_THUMB;
             }
           }}
           className="w-full h-full object-cover"
@@ -487,25 +486,17 @@ const CarouselResultView: React.FC<{
     setZipDownloading(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
 
-    // If a single slide is selected, download that slide's direct backend downloadUrl;
-    // otherwise download the multi-slide .ZIP archive
-    if (selectedIds.length === 1) {
-      const slide = data.items.find((i) => i.id === selectedIds[0]);
-      if (slide) {
-        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+    const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
+    selectedSlides.forEach((slide, idx) => {
+      const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+      setTimeout(() => {
         triggerNativeBackendDownload(
           `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
           slide.downloadUrl
         );
-        setTimeout(() => setZipDownloading(false), 1000);
-        return;
-      }
-    }
+      }, idx * 350);
+    });
 
-    triggerNativeBackendDownload(
-      `VIDNEX_${cleanHandle}_${selectedIds.length}_ITEMS.zip`,
-      `/api/download?url=synthetic://carousel/archive.zip&filename=VIDNEX_${cleanHandle}_${selectedIds.length}_ITEMS.zip`
-    );
     setTimeout(() => setZipDownloading(false), 1000);
   };
 
@@ -567,8 +558,8 @@ const CarouselResultView: React.FC<{
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   const img = e.currentTarget;
-                  if (!img.src.endsWith('/samples/sample-dp-1080.jpg')) {
-                    img.src = '/samples/sample-dp-1080.jpg';
+                  if (img.src !== STUDIO_FALLBACK_THUMB) {
+                    img.src = STUDIO_FALLBACK_THUMB;
                   }
                 }}
                 className="w-full h-full object-cover"

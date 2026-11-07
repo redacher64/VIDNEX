@@ -111,8 +111,12 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   // 3. Configuration des en-têtes amont
   const lowerHost = parsedTarget.hostname.toLowerCase();
   const referer =
-    lowerHost.includes('instagram') || lowerHost.includes('cdninstagram') || lowerHost.includes('fbcdn')
+    lowerHost.includes('instagram') ||
+    lowerHost.includes('cdninstagram') ||
+    lowerHost.includes('fbcdn')
       ? 'https://www.instagram.com/'
+      : lowerHost.includes('tikwm')
+      ? 'https://www.tikwm.com/'
       : 'https://www.tiktok.com/';
 
   const upstreamHeaders = new Headers({

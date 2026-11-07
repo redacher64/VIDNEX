@@ -1,46 +1,64 @@
-# 🚀 Guide de Déploiement 100 % Gratuit (Cloudflare Pages)
+# 🚀 Structure & Guide Cloudflare Pages — Téléchargement Gratuit Instagram & TikTok
 
-Ce guide détaille le déploiement de **VIDNEX** sur **Cloudflare Pages** : **0 € à vie, sans carte bancaire**, avec **bande passante CDN illimitée** et **100 000 requêtes serverless Pages Functions gratuites par jour**.
-
----
-
-## ⚡ Caractéristiques de l'Hébergement
-
-- **0 € / mois à vie** : Aucune carte bancaire requise.
-- **Bande passante CDN mondiale illimitée**.
-- **Pages Functions natives (`/functions/api`)** : Exécution au plus près des utilisateurs sur le réseau Edge de Cloudflare.
-- **Zéro API tierce** : Ni RapidAPI, ni Cobalt, ni conteneur Docker.
+Ce projet est épuré et structuré exclusivement pour **Cloudflare Pages + Cloudflare Pages Functions** (aucun dossier Vercel `/server`, ni Docker/Hugging Face `/backend`).
 
 ---
 
-## 📋 Déploiement en 4 Étapes
+## 📁 Structure Finale du Projet
 
-### Étape 1 : Créer votre compte Cloudflare (Gratuit)
-1. Rendez-vous sur **[dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)**.
-2. Créez un compte gratuit avec votre adresse email.
+```text
+├── functions/                  # Backend Serverless Cloudflare Pages (100 % Gratuit)
+│   ├── _lib/
+│   │   ├── allowlist.ts        # Sécurité anti-SSRF (CDNs officiels TikTok, TikWM & Meta/Instagram)
+│   │   ├── detect.ts           # Détection d'URLs et @usernames (TikTok & Instagram)
+│   │   ├── http.ts             # Client HTTP Edge avec suivi des cookies et User-Agent navigateur
+│   │   ├── instagram.ts        # Moteur Instagram Gratuit (Niveau 1 Sans Compte + Niveau 2 Compte Backend)
+│   │   ├── normalize.ts        # Schéma JSON unifié (vidéo, carrousel, audio, profil DP)
+│   │   └── tiktok.ts           # Moteur TikTok Gratuit (Niveau 1 API Directe + Niveau 2 Scraping HTML)
+│   └── api/
+│       ├── extract.ts          # Endpoint GET/POST /api/extract
+│       └── download.ts         # Proxy de streaming direct GET /api/download (Zero-Buffering)
+├── public/
+│   └── _redirects              # Routage Cloudflare Pages (/api/* + SPA fallback)
+├── src/                        # Frontend React + Tailwind CSS + Vite
+├── worker.ts                   # Point d'entrée Cloudflare Worker / Dev local
+└── wrangler.jsonc              # Configuration Cloudflare Pages / Workers
+```
 
-### Étape 2 : Connecter votre dépôt GitHub
-1. Dans le tableau de bord Cloudflare, allez dans **Workers & Pages**.
-2. Cliquez sur **Create** > onglet **Pages** > **Connect to Git**.
-3. Sélectionnez votre dépôt GitHub : `VIDNEX`.
+---
 
-### Étape 3 : Configurer les paramètres de compilation
-Remplissez les champs exactement comme suit :
+## ⚙️ Comment fonctionne le téléchargement gratuit (TikTok & Instagram) ?
 
-| Paramètre | Valeur | Description |
-| :--- | :--- | :--- |
-| **Project name** | `vidnex` | Nom du projet |
-| **Production branch** | `main` | Branche Git de production |
-| **Framework preset** | `Vite` | Preset Vite |
-| **Build command** | `npm run build` | Compilation Vite (`tsc && vite build`) |
-| **Build output directory** | `dist` | Dossier de sortie statique |
-| **Root directory** | `/` *(laisser vide)* | Racine du projet |
+### 1. TikTok (Vidéos HD 1080p sans filigrane, Carrousels Photos, MP3, Profil DP)
+- **Faut-il connecter un compte ?** **Non, aucun compte n'est requis.**
+- **Fonctionnement** :
+  - **Niveau 1 (Prioritaire)** : Utilise le moteur gratuit **TikWM** (`https://www.tikwm.com/api/` avec `hd=1`) qui contourne le pare-feu WAF de TikTok sur les adresses IP Cloudflare et extrait directement le flux MP4 1080p sans filigrane, l'audio MP3 et les diaporamas photos.
+  - **Niveau 2 (Secours automatique)** : Si TikWM ne répond pas, analyse directement le JSON de réhydratation (`__UNIVERSAL_DATA_FOR_REHYDRATION__` / `SIGI_STATE`) de la page officielle TikTok.
 
-### Étape 4 : Variables d'environnement (Optionnel)
-- `IG_SESSION_ID` *(Optionnel)* : Pour déverrouiller l'accès aux contenus Instagram nécessitant une session.
-  Peut être ajouté via l'interface Cloudflare Pages ou avec :
-  ```bash
-  npx wrangler pages secret put IG_SESSION_ID
-  ```
+---
 
-Cliquez sur **Save and Deploy**. Votre site sera en ligne en moins d'une minute !
+### 2. Instagram (Reels HD, Publications, Carrousels, Photos de Profil DP)
+Instagram applique des restrictions progressives selon le type de publication. C'est pourquoi `functions/_lib/instagram.ts` intègre **2 options automatiques** :
+
+#### Option A — Sans compte connecté (Niveau 1 : Actif par défaut)
+- **Embed Captioned Officiel** (`/p/{shortcode}/embed/captioned/`) : Extrait gratuitement les vidéos, images et données embarquées publiques.
+- **API GraphQL Publique Anonyme** (`https://www.instagram.com/graphql/query`) : Lorsqu'un Reel masque son flux vidéo dans l'embed, interroge directement l'API GraphQL d'Instagram avec l'identifiant d'application web (`X-IG-App-ID: 936619743392459`) **sans compte**.
+- **Profils Publics (`@username`)** : Extrait la photo de profil HD 1080×1080 via `web_profile_info` et `og:image`.
+
+#### Option B — Connecter un compte Instagram sur le Backend Cloudflare Pages (Niveau 2 : Recommandé pour débloquer 100 % des Reels)
+Certains Reels Instagram (contenus soumis à une limite d'âge, Reels restreints aux utilisateurs connectés, Stories, ou lorsque l'IP Cloudflare atteint la limite anonyme d'Instagram) **exigent qu'un compte soit connecté côté backend**.
+
+👉 **Comment connecter un compte Instagram sur votre backend Cloudflare Pages (en 2 minutes) :**
+1. Créez ou utilisez un **compte Instagram secondaire** (n'utilisez jamais votre compte personnel principal).
+2. Ouvrez une fenêtre de **navigation privée** sur votre ordinateur (Chrome, Edge ou Brave) et connectez-vous à `https://www.instagram.com`.
+3. Appuyez sur **`F12`** (Outils de développement) > onglet **Application** (ou *Stockage*) > **Cookies** > `https://www.instagram.com`.
+4. Cherchez la ligne **`sessionid`** et copiez sa **Valeur** (ex. `123456789%3Aabcdef...`). *(Ne cliquez pas sur "Se déconnecter" avant de fermer la fenêtre privée, sinon le cookie sera invalidé).*
+5. Allez dans votre tableau de bord **Cloudflare Pages** :
+   - Ouvrez votre projet **`vidnex`** > **Settings** > **Environment variables**.
+   - Cliquez sur **Add variable** (choisissez le type **Secret / Encrypt**) :
+     - **Variable name** : `IG_SESSION_ID`
+     - **Value** : *(collez la valeur de votre `sessionid`)*
+   - *(Optionnel)* Vous pouvez aussi ajouter `IG_CSRF_TOKEN` avec la valeur du cookie `csrftoken`.
+6. Redéployez votre projet Cloudflare Pages (**Deployments** > **Retry deployment**).
+
+Dès que `IG_SESSION_ID` est présent, votre backend l'utilise automatiquement uniquement lorsque le Niveau 1 sans compte est bloqué par Instagram !

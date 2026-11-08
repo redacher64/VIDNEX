@@ -48,6 +48,7 @@ export default {
           env: {
             IG_SESSION_ID: env.IG_SESSION_ID,
             IG_CSRF_TOKEN: env.IG_CSRF_TOKEN,
+            IG_COOKIES: env.IG_COOKIES,
             TIKWM_API_KEY: env.TIKWM_API_KEY,
             TT_COOKIE: env.TT_COOKIE,
           },
@@ -62,7 +63,7 @@ export default {
           status: 'ok',
           platform: 'cloudflare-pages-functions',
           engines: ['tiktok_tikwm_and_html', 'instagram_embed_graphql_and_session'],
-          igAccountConnected: Boolean(env.IG_SESSION_ID),
+          igAccountConnected: Boolean(env.IG_SESSION_ID || env.IG_COOKIES),
         }),
         {
           headers: {

@@ -8,6 +8,10 @@ import { isAllowedMediaHost } from '../../functions/_lib/allowlist.ts';
 import { sanitizeFilename } from '../../functions/api/download.ts';
 import { mapErrorCodeToHttpStatus } from '../../functions/_lib/normalize.ts';
 import { checkRateLimit, resetRateLimitBuckets } from '../../functions/_lib/rateLimit.ts';
+import {
+  parseInstagramCookies,
+  shortcodeToMediaId,
+} from '../../functions/_lib/instagram.ts';
 import worker from '../../worker.ts';
 
 describe('VIDNEX URL Detection & Security Suite', () => {
@@ -142,6 +146,23 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(esMsg.includes('Contenido no encontrado'));
     assert.ok(ptMsg.includes('Conteúdo não encontrado'));
     assert.ok(arMsg.includes('لم يتم العثور'));
+  });
+
+  it('Parses Instagram Cookie-Editor JSON arrays and converts shortcodes to numeric media IDs', () => {
+    const parsed = parseInstagramCookies({
+      IG_COOKIES: JSON.stringify([
+        { name: 'ds_user_id', value: '44596047994' },
+        { name: 'csrftoken', value: 'XrP_I3yunQXQR6ZWugyQb7' },
+        { name: 'sessionid', value: '44596047994%3Atest%3A19' },
+      ]),
+    });
+    assert.equal(parsed.hasSession, true);
+    assert.equal(parsed.dsUserId, '44596047994');
+    assert.equal(parsed.csrfToken, 'XrP_I3yunQXQR6ZWugyQb7');
+    assert.ok(parsed.cookieHeader.includes('sessionid=44596047994%3Atest%3A19'));
+
+    const mediaId = shortcodeToMediaId('C8x9kLmN2pQ');
+    assert.ok(mediaId && /^\d+$/.test(mediaId));
   });
 
   it('Cloudflare Worker router handles /api/health, rejects unsupported URLs (400), blocks SSRF (403), and enforces IP rate limiting (429)', async () => {

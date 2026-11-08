@@ -19,6 +19,7 @@ import {
 export interface Env {
   IG_SESSION_ID?: string;
   IG_CSRF_TOKEN?: string;
+  IG_COOKIES?: string;
   TIKWM_API_KEY?: string;
   TT_COOKIE?: string;
 }

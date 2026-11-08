@@ -1,18 +1,18 @@
 /**
- * Moteur d'extraction Instagram 100 % Sans Compte pour Cloudflare Pages Functions.
+ * Moteur d'extraction Instagram Hybride (Session Authentifiée + 3 Niveaux Sans Compte)
+ * pour Cloudflare Pages Functions / Workers.
  *
- * Stratégie Multi-Niveaux Robuste (Zéro cookie `IG_SESSION_ID` requis) :
+ * - Niveau 0 (Session Authentifiée - Cookies Compte Instagram) :
+ *   Si `IG_COOKIES` (JSON Cookie-Editor ou chaîne `Cookie`) ou `IG_SESSION_ID` est fourni,
+ *   convertit le `shortcode` en `media_id` numérique et interroge l'API officielle
+ *   `/api/v1/media/{media_id}/info/` ainsi que GraphQL authentifié (débloque les Reels
+ *   restreints, les Carrousels HD, les Profils HD et les Stories).
  * - Niveau 1 (GraphQL Public / POST API) : Interroge `https://www.instagram.com/graphql/query`
- *   et `https://www.instagram.com/api/graphql` avec les `doc_id` publics actuels
- *   (`8845758582119845`, `10015901848480474`, `7950326061742207`) et en-têtes réalistes
- *   (`X-IG-App-ID: 936619743392459`, `Sec-Fetch-Mode: cors`, `User-Agent` mobile/desktop).
+ *   et `https://www.instagram.com/api/graphql` avec les `doc_id` publics actuels.
  * - Niveau 2 (Embed Captioned amélioré + OpenGraph) : Analyse `/p/{shortcode}/embed/captioned/`
- *   en parsant `window.__additionalDataLoaded`, `contextJSON` (chaîne JSON échappée) et les
- *   balises meta OpenGraph (`og:video`, `og:image`).
- * - Niveau 3 (Fallback Passerelles Publiques Gratuites Sans Clé) : Si les Niveaux 1 et 2
- *   sont bloqués par le WAF d'Instagram sur l'IP Cloudflare, interroge automatiquement les
- *   passerelles publiques sans clé (`api.vxinstagram.com`, `d.ddinstagram.com`) pour extraire
- *   le flux CDN officiel (`*.cdninstagram.com` / `*.fbcdn.net`).
+ *   en parsant `window.__additionalDataLoaded`, `contextJSON` et les balises meta OpenGraph.
+ * - Niveau 3 (Fallback Passerelles Publiques Gratuites Sans Clé) : Bascule automatiquement sur
+ *   `api.vxinstagram.com` / `d.ddinstagram.com` si l'IP Cloudflare est filtrée.
  */
 
 import { fetchWithContext, BROWSER_USER_AGENT } from './http.ts';
@@ -21,6 +21,9 @@ import type { ExtractResponse, ExtractMediaItem } from './normalize.ts';
 const IG_WEB_APP_ID = '936619743392459';
 const IG_ASBD_ID = '129477';
 const IG_LSD_TOKEN = 'AVqbxe3J_YA';
+const IG_BASE64_ALPHABET =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
 const MOBILE_USER_AGENT =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
 
@@ -33,6 +36,129 @@ const IG_GRAPHQL_DOC_IDS = [
 export interface InstagramEnv {
   IG_SESSION_ID?: string;
   IG_CSRF_TOKEN?: string;
+  IG_COOKIES?: string;
+}
+
+export interface ParsedInstagramAuth {
+  cookieHeader: string;
+  sessionId: string;
+  csrfToken: string;
+  dsUserId: string;
+  igDid: string;
+  hasSession: boolean;
+}
+
+/**
+ * Analyse `IG_COOKIES` (format JSON exporté par Cookie-Editor `[...]` ou chaîne `k=v; k2=v2`)
+ * ainsi que `IG_SESSION_ID` / `IG_CSRF_TOKEN` pour construire un en-tête `Cookie` complet.
+ */
+export function parseInstagramCookies(env?: InstagramEnv): ParsedInstagramAuth {
+  const cookieMap = new Map<string, string>();
+
+  const rawCookies = env?.IG_COOKIES?.trim() || '';
+  if (rawCookies) {
+    if (rawCookies.startsWith('[')) {
+      try {
+        const arr = JSON.parse(rawCookies);
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            if (item && typeof item.name === 'string' && item.value != null) {
+              cookieMap.set(item.name.trim(), String(item.value).trim());
+            }
+          }
+        }
+      } catch {
+        // Ignorer si JSON malformé
+      }
+    } else {
+      for (const part of rawCookies.split(';')) {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx > 0) {
+          const k = part.slice(0, eqIdx).trim();
+          const v = part.slice(eqIdx + 1).trim();
+          if (k && v) {
+            cookieMap.set(k, v);
+          }
+        }
+      }
+    }
+  }
+
+  const rawSession = env?.IG_SESSION_ID?.trim() || '';
+  if (rawSession) {
+    if (rawSession.startsWith('[')) {
+      try {
+        const arr = JSON.parse(rawSession);
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            if (item && typeof item.name === 'string' && item.value != null) {
+              cookieMap.set(item.name.trim(), String(item.value).trim());
+            }
+          }
+        }
+      } catch {
+        // Ignorer
+      }
+    } else if (rawSession.includes('=')) {
+      for (const part of rawSession.split(';')) {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx > 0) {
+          const k = part.slice(0, eqIdx).trim();
+          const v = part.slice(eqIdx + 1).trim();
+          if (k && v) cookieMap.set(k, v);
+        }
+      }
+    } else if (!cookieMap.has('sessionid')) {
+      cookieMap.set('sessionid', rawSession);
+    }
+  }
+
+  const rawCsrf = env?.IG_CSRF_TOKEN?.trim() || '';
+  if (rawCsrf && !cookieMap.has('csrftoken')) {
+    cookieMap.set('csrftoken', rawCsrf);
+  }
+
+  const sessionId = cookieMap.get('sessionid') || '';
+  const csrfToken = cookieMap.get('csrftoken') || '';
+  const dsUserId =
+    cookieMap.get('ds_user_id') ||
+    (sessionId.includes('%3A') ? sessionId.split('%3A')[0] : sessionId.split(':')[0]) ||
+    '';
+  const igDid = cookieMap.get('ig_did') || '';
+
+  if (dsUserId && !cookieMap.has('ds_user_id')) {
+    cookieMap.set('ds_user_id', dsUserId);
+  }
+
+  const pairs: string[] = [];
+  for (const [k, v] of cookieMap.entries()) {
+    pairs.push(`${k}=${v}`);
+  }
+
+  return {
+    cookieHeader: pairs.join('; '),
+    sessionId,
+    csrfToken,
+    dsUserId,
+    igDid,
+    hasSession: Boolean(sessionId),
+  };
+}
+
+/**
+ * Convertit un `shortcode` Instagram (ex: `C8x9kLmN2pQ`) en `media_id` numérique (ex: `3399123456789012345`)
+ * pour interroger `/api/v1/media/{media_id}/info/`.
+ */
+export function shortcodeToMediaId(shortcode: string): string | null {
+  const clean = shortcode.trim().slice(0, 11);
+  if (!clean) return null;
+  let id = 0n;
+  for (let i = 0; i < clean.length; i++) {
+    const idx = IG_BASE64_ALPHABET.indexOf(clean[i]);
+    if (idx === -1) return null;
+    id = id * 64n + BigInt(idx);
+  }
+  return id > 0n ? id.toString(10) : null;
 }
 
 export function cleanEscapedUrl(raw: string): string {
@@ -72,9 +198,18 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
   const owner = media.owner || media.user || {};
   const username = String(owner.username || 'instagram_user').replace(/^@/, '');
   const nickname = String(owner.full_name || `@${username}`);
-  const avatar = owner.profile_pic_url_hd || owner.profile_pic_url
-    ? cleanEscapedUrl(String(owner.profile_pic_url_hd || owner.profile_pic_url))
-    : undefined;
+  const avatar =
+    owner.profile_pic_url_hd ||
+    owner.hd_profile_pic_url_info?.url ||
+    owner.profile_pic_url
+      ? cleanEscapedUrl(
+          String(
+            owner.profile_pic_url_hd ||
+              owner.hd_profile_pic_url_info?.url ||
+              owner.profile_pic_url
+          )
+        )
+      : undefined;
   const caption =
     media.edge_media_to_caption?.edges?.[0]?.node?.text ||
     media.caption?.text ||
@@ -104,8 +239,8 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
           thumbnail: imgUrl ? cleanEscapedUrl(imgUrl) : undefined,
           quality: '1080p',
           ext: 'mp4',
-          width: node.dimensions?.width || undefined,
-          height: node.dimensions?.height || undefined,
+          width: node.dimensions?.width || node.original_width || undefined,
+          height: node.dimensions?.height || node.original_height || undefined,
         });
       } else if (imgUrl) {
         const cleanImg = cleanEscapedUrl(imgUrl);
@@ -115,8 +250,8 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
           thumbnail: cleanImg,
           quality: '1080p',
           ext: 'jpg',
-          width: node.dimensions?.width || undefined,
-          height: node.dimensions?.height || undefined,
+          width: node.dimensions?.width || node.original_width || undefined,
+          height: node.dimensions?.height || node.original_height || undefined,
         });
       }
     }
@@ -224,8 +359,8 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
           thumbnail: cleanImg,
           quality: '1080p',
           ext: 'jpg',
-          width: media.dimensions?.width || undefined,
-          height: media.dimensions?.height || undefined,
+          width: media.dimensions?.width || media.original_width || undefined,
+          height: media.dimensions?.height || media.original_height || undefined,
         },
       ],
     };
@@ -235,12 +370,95 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
 }
 
 /**
- * NIVEAU 1 : Requête POST GraphQL Publique / API GraphQL Instagram (Sans compte)
+ * NIVEAU 0 : API REST Authentifiée (`/api/v1/media/{mediaId}/info/`) lorsque les cookies de session sont présents.
+ */
+async function queryAuthenticatedInstagramApiV1(
+  shortcodeOrId: string,
+  auth: ParsedInstagramAuth,
+  isStory = false
+): Promise<ExtractResponse | null> {
+  if (!auth.hasSession) return null;
+
+  const mediaId = /^\d+$/.test(shortcodeOrId)
+    ? shortcodeOrId
+    : isStory
+    ? null
+    : shortcodeToMediaId(shortcodeOrId);
+
+  const headers: Record<string, string> = {
+    'User-Agent': BROWSER_USER_AGENT,
+    'X-IG-App-ID': IG_WEB_APP_ID,
+    'X-ASBD-ID': IG_ASBD_ID,
+    'X-CSRFToken': auth.csrfToken || 'missing',
+    'X-IG-WWW-Claim': '0',
+    'X-Requested-With': 'XMLHttpRequest',
+    Cookie: auth.cookieHeader,
+    Referer: 'https://www.instagram.com/',
+    Accept: 'application/json, text/plain, */*',
+  };
+
+  if (mediaId) {
+    try {
+      const infoRes = await fetchWithContext(
+        `https://www.instagram.com/api/v1/media/${mediaId}/info/`,
+        { headers, timeoutMs: 7500 }
+      );
+      if (infoRes.response.ok) {
+        const json: any = await infoRes.response.json().catch(() => null);
+        const item = json?.items?.[0];
+        const parsed = parseMediaNode(item, shortcodeOrId);
+        if (parsed) return parsed;
+      }
+    } catch {
+      // Continuer vers GraphQL
+    }
+  }
+
+  // Si c'est une Story par nom d'utilisateur (ex: `stories/username`)
+  if (isStory && !/^\d+$/.test(shortcodeOrId)) {
+    const cleanUser = shortcodeOrId.replace(/^@/, '').split('/')[0];
+    try {
+      const profileRes = await fetchWithContext(
+        `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(cleanUser)}`,
+        { headers, timeoutMs: 7500 }
+      );
+      if (profileRes.response.ok) {
+        const pJson: any = await profileRes.response.json().catch(() => null);
+        const userId = pJson?.data?.user?.id;
+        if (userId) {
+          const reelsRes = await fetchWithContext(
+            `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(String(userId))}`,
+            { headers, timeoutMs: 7500 }
+          );
+          if (reelsRes.response.ok) {
+            const rJson: any = await reelsRes.response.json().catch(() => null);
+            const reelItems: any[] =
+              rJson?.reels?.[userId]?.items ||
+              rJson?.reels_media?.[0]?.items ||
+              [];
+            if (reelItems.length > 0) {
+              const latestStory = reelItems[reelItems.length - 1];
+              const parsed = parseMediaNode(latestStory, cleanUser);
+              if (parsed) return parsed;
+            }
+          }
+        }
+      }
+    } catch {
+      // Continuer
+    }
+  }
+
+  return null;
+}
+
+/**
+ * NIVEAU 1 : Requête POST GraphQL (`/graphql/query` & `/api/graphql`)
+ * Fonctionne avec ou sans cookies de session.
  */
 async function queryInstagramGraphQL(
   shortcode: string,
-  sessionId?: string,
-  csrfToken?: string
+  auth: ParsedInstagramAuth
 ): Promise<ExtractResponse | null> {
   const endpoints = [
     'https://www.instagram.com/graphql/query',
@@ -256,7 +474,7 @@ async function queryInstagramGraphQL(
           'X-IG-App-ID': IG_WEB_APP_ID,
           'X-ASBD-ID': IG_ASBD_ID,
           'X-FB-LSD': IG_LSD_TOKEN,
-          'X-CSRFToken': csrfToken || 'missing',
+          'X-CSRFToken': auth.csrfToken || 'missing',
           'X-Requested-With': 'XMLHttpRequest',
           'Sec-Fetch-Dest': 'empty',
           'Sec-Fetch-Mode': 'cors',
@@ -266,19 +484,14 @@ async function queryInstagramGraphQL(
           Accept: '*/*',
         };
 
-        if (sessionId) {
-          const cleanSession = sessionId.includes('sessionid=')
-            ? sessionId
-            : `sessionid=${sessionId}`;
-          headers['Cookie'] = csrfToken
-            ? `${cleanSession}; csrftoken=${csrfToken};`
-            : `${cleanSession};`;
+        if (auth.hasSession && auth.cookieHeader) {
+          headers['Cookie'] = auth.cookieHeader;
         }
 
         const body = new URLSearchParams({
-          av: '0',
+          av: auth.dsUserId || '0',
           __d: 'www',
-          __user: '0',
+          __user: auth.dsUserId || '0',
           __a: '1',
           __req: '1',
           lsd: IG_LSD_TOKEN,
@@ -332,7 +545,8 @@ async function queryInstagramGraphQL(
  * NIVEAU 2 : Embed Captioned amélioré (`window.__additionalDataLoaded` + `contextJSON` + OpenGraph)
  */
 async function extractViaInstagramEmbedAndOg(
-  shortcode: string
+  shortcode: string,
+  auth?: ParsedInstagramAuth
 ): Promise<{
   videoOrCarousel: ExtractResponse | null;
   staticImageFallback: ExtractResponse | null;
@@ -342,14 +556,19 @@ async function extractViaInstagramEmbedAndOg(
 
   try {
     const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/captioned/`;
+    const embedHeaders: Record<string, string> = {
+      'User-Agent': MOBILE_USER_AGENT,
+      Referer: 'https://www.instagram.com/',
+      'Sec-Fetch-Dest': 'iframe',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'cross-site',
+    };
+    if (auth?.hasSession && auth.cookieHeader) {
+      embedHeaders['Cookie'] = auth.cookieHeader;
+    }
+
     const embedFetch = await fetchWithContext(embedUrl, {
-      headers: {
-        'User-Agent': MOBILE_USER_AGENT,
-        Referer: 'https://www.instagram.com/',
-        'Sec-Fetch-Dest': 'iframe',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'cross-site',
-      },
+      headers: embedHeaders,
       timeoutMs: 8500,
     });
 
@@ -574,13 +793,10 @@ async function extractViaInstagramEmbedAndOg(
 
 /**
  * NIVEAU 3 : Fallback Passerelles Publiques Gratuites Sans Clé (Anti-WAF Cloudflare)
- * Interroge les résolveurs publics sans clé (vxinstagram / ddinstagram) qui extraient
- * les vraies URLs CDN (`*.cdninstagram.com` / `*.fbcdn.net`) d'un Reel ou post public.
  */
 async function extractViaPublicFreeFallbacks(
   shortcode: string
 ): Promise<ExtractResponse | null> {
-  // 3A. Passerelle JSON publique vxinstagram / instafix
   const jsonGateways = [
     `https://api.vxinstagram.com/p/${shortcode}`,
     `https://d.ddinstagram.com/p/${shortcode}`,
@@ -683,7 +899,6 @@ async function extractViaPublicFreeFallbacks(
           }
         }
       } else {
-        // Extraction des meta tags og:video / twitter:player:stream depuis la réponse HTML de la passerelle
         const html = await res.response.text();
         const ogVideo =
           html.match(/<meta\s+property="og:video(?::secure_url)?"\s+content="([^"]+)"/i)?.[1] ||
@@ -741,10 +956,9 @@ async function extractViaPublicFreeFallbacks(
  */
 async function extractInstagramProfile(
   rawUsername: string,
-  env?: InstagramEnv
+  auth: ParsedInstagramAuth
 ): Promise<ExtractResponse> {
   const username = rawUsername.replace(/^@/, '').trim();
-  const sessionId = env?.IG_SESSION_ID?.trim();
 
   // 1. API officielle Web Profile Info
   try {
@@ -752,12 +966,13 @@ async function extractInstagramProfile(
       'User-Agent': BROWSER_USER_AGENT,
       'X-IG-App-ID': IG_WEB_APP_ID,
       'X-ASBD-ID': IG_ASBD_ID,
+      'X-CSRFToken': auth.csrfToken || 'missing',
       'X-Requested-With': 'XMLHttpRequest',
       Referer: `https://www.instagram.com/${username}/`,
       Accept: 'application/json',
     };
-    if (sessionId) {
-      headers['Cookie'] = `sessionid=${encodeURIComponent(sessionId)};`;
+    if (auth.hasSession && auth.cookieHeader) {
+      headers['Cookie'] = auth.cookieHeader;
     }
 
     const apiRes = await fetchWithContext(
@@ -867,23 +1082,33 @@ export async function extractInstagram(
   env?: InstagramEnv,
   kind: 'post' | 'profile' | 'story' = 'post'
 ): Promise<ExtractResponse> {
+  const auth = parseInstagramCookies(env);
+
   if (kind === 'profile') {
-    return extractInstagramProfile(identifier, env);
+    return extractInstagramProfile(identifier, auth);
   }
 
   const shortcode = identifier.trim();
-  const sessionId = env?.IG_SESSION_ID?.trim();
-  const csrfToken = env?.IG_CSRF_TOKEN?.trim();
 
   // ===========================================================================
-  // NIVEAU 1 : GraphQL Public / POST API (`https://www.instagram.com/graphql/query`)
+  // NIVEAU 0 : API REST Authentifiée (`/api/v1/media/{mediaId}/info/` & Stories)
+  // ===========================================================================
+  if (auth.hasSession) {
+    const apiV1Result = await queryAuthenticatedInstagramApiV1(
+      shortcode,
+      auth,
+      kind === 'story'
+    );
+    if (apiV1Result) {
+      return apiV1Result;
+    }
+  }
+
+  // ===========================================================================
+  // NIVEAU 1 : GraphQL Public / Authentifié POST API (`/graphql/query`)
   // ===========================================================================
   if (kind !== 'story') {
-    const graphqlResult = await queryInstagramGraphQL(
-      shortcode,
-      sessionId,
-      csrfToken
-    );
+    const graphqlResult = await queryInstagramGraphQL(shortcode, auth);
     if (graphqlResult) {
       return graphqlResult;
     }
@@ -895,7 +1120,7 @@ export async function extractInstagram(
   let staticImageFallback: ExtractResponse | null = null;
 
   if (kind !== 'story') {
-    const embedResult = await extractViaInstagramEmbedAndOg(shortcode);
+    const embedResult = await extractViaInstagramEmbedAndOg(shortcode, auth);
     if (embedResult.notFound) {
       return {
         ok: false,
@@ -934,7 +1159,7 @@ export async function extractInstagram(
     error: {
       code: 'PRIVATE_OR_LOGIN_REQUIRED',
       message:
-        'Ce contenu Instagram est privé, soumis à une restriction d\'âge ou temporairement inaccessible sans compte.',
+        'Ce contenu Instagram est privé, soumis à une restriction d\'âge ou temporairement inaccessible.',
     },
   };
 }

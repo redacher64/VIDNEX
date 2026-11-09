@@ -1,5 +1,6 @@
 import { type AdminEnv } from './_lib/db.ts';
 import { isRequestAdminAuthenticated } from './_lib/auth.ts';
+import { applySeoHtmlRewriter } from './_lib/seoRewriter.ts';
 
 export interface MiddlewareContext {
   request: Request;
@@ -21,9 +22,10 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
   const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
   const isAdminApi = pathname === '/api/admin' || pathname.startsWith('/api/admin/');
 
-  // Fast path: public routes pass straight through with zero overhead
+  // Public routes pass through and undergo Edge SEO rewriting for HTML pages
   if (!isAdminPage && !isAdminApi) {
-    return next();
+    const response = await next();
+    return applySeoHtmlRewriter(request, response);
   }
 
   // Enforce authentication on /api/admin/* (except /api/admin/login and preflight OPTIONS)

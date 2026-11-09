@@ -1,20 +1,23 @@
-import { SeoToolConfig, ToolSlug } from '../data/seoToolsConfig';
+import type { SeoToolConfig, ToolSlug } from '../data/seoToolsConfig.ts';
 
 export type LanguageCode = 'en' | 'fr' | 'es' | 'pt' | 'ar';
+
+export const DEFAULT_LANGUAGE: LanguageCode = 'en';
 
 export interface LanguageOption {
   code: LanguageCode;
   shortLabel: string;
   nativeName: string;
   dir: 'ltr' | 'rtl';
+  urlPrefix: string;
 }
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { code: 'en', shortLabel: 'EN', nativeName: 'English', dir: 'ltr' },
-  { code: 'fr', shortLabel: 'FR', nativeName: 'Français', dir: 'ltr' },
-  { code: 'es', shortLabel: 'ES', nativeName: 'Español', dir: 'ltr' },
-  { code: 'pt', shortLabel: 'PT', nativeName: 'Português', dir: 'ltr' },
-  { code: 'ar', shortLabel: 'AR', nativeName: 'العربية', dir: 'rtl' },
+  { code: 'en', shortLabel: 'EN', nativeName: 'English', dir: 'ltr', urlPrefix: '' },
+  { code: 'fr', shortLabel: 'FR', nativeName: 'Français', dir: 'ltr', urlPrefix: '/fr' },
+  { code: 'es', shortLabel: 'ES', nativeName: 'Español', dir: 'ltr', urlPrefix: '/es' },
+  { code: 'pt', shortLabel: 'PT', nativeName: 'Português', dir: 'ltr', urlPrefix: '/pt' },
+  { code: 'ar', shortLabel: 'AR', nativeName: 'العربية', dir: 'rtl', urlPrefix: '/ar' },
 ];
 
 export interface UiDictionary {
@@ -2150,3 +2153,11 @@ export function getLocalizedToolConfig(
     ...localized,
   };
 }
+
+export {
+  parsePathname,
+  buildLocalizedPath,
+  handleLegacyQueryRedirect,
+  isSupportedLanguage,
+  isValidToolSlug,
+} from '../utils/i18nRouting.ts';

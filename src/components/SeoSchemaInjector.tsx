@@ -4,6 +4,7 @@ import {
   LanguageCode,
   SUPPORTED_LANGUAGES,
 } from '../i18n/translations';
+import { buildLocalizedPath } from '../utils/i18nRouting';
 
 interface SeoSchemaInjectorProps {
   tool: SeoToolConfig;
@@ -15,7 +16,12 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   language,
 }) => {
   useEffect(() => {
-    // 1. Update Document Title, Meta Description & OpenGraph Tags
+    // 1. Update <html lang="..." dir="...">
+    document.documentElement.lang = language;
+    const langMeta = SUPPORTED_LANGUAGES.find((l) => l.code === language);
+    document.documentElement.dir = langMeta ? langMeta.dir : 'ltr';
+
+    // 2. Update Document Title, Meta Description & OpenGraph Tags
     document.title = tool.metaTitle;
 
     let metaDesc = document.querySelector(
@@ -28,10 +34,10 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
     }
     metaDesc.content = tool.metaDescription;
 
-    // 2. Inject / Update <link rel="canonical" href={canonicalUrl} /> & hreflang Tags
-    const baseUrl = `https://vidnex.space${tool.path}`;
-    const canonicalUrl =
-      language === 'en' ? baseUrl : `${baseUrl}?lang=${language}`;
+    // 3. Inject / Update <link rel="canonical" href={canonicalUrl} /> & hreflang Tags
+    const origin = 'https://vidnex.space';
+    const canonicalPath = buildLocalizedPath(language, tool.slug);
+    const canonicalUrl = `${origin}${canonicalPath}`;
 
     let canonicalLink = document.querySelector(
       'link[rel="canonical"]'
@@ -67,21 +73,20 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
       const link = document.createElement('link');
       link.rel = 'alternate';
       link.hreflang = langOpt.code;
-      link.href =
-        langOpt.code === 'en' ? baseUrl : `${baseUrl}?lang=${langOpt.code}`;
+      link.href = `${origin}${buildLocalizedPath(langOpt.code, tool.slug)}`;
       link.setAttribute('data-vidnex-hreflang', 'true');
       document.head.appendChild(link);
     });
 
-    // Add x-default hreflang tag
+    // Add x-default hreflang tag pointing to English root version
     const xDefaultLink = document.createElement('link');
     xDefaultLink.rel = 'alternate';
     xDefaultLink.hreflang = 'x-default';
-    xDefaultLink.href = baseUrl;
+    xDefaultLink.href = `${origin}${buildLocalizedPath('en', tool.slug)}`;
     xDefaultLink.setAttribute('data-vidnex-hreflang', 'true');
     document.head.appendChild(xDefaultLink);
 
-    // 3. Build Localized Schema.org JSON-LD Graph
+    // 4. Build Localized Schema.org JSON-LD Graph
     const schemaGraph = {
       '@context': 'https://schema.org',
       '@graph': [

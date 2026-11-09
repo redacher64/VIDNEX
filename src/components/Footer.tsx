@@ -4,6 +4,7 @@ import {
   getLocalizedToolConfig,
   LanguageCode,
 } from '../i18n/translations';
+import { buildLocalizedPath } from '../utils/i18nRouting';
 import { isPlatformSupported } from '../utils/urlDetector';
 import { LegalDocType } from './LegalModal';
 
@@ -56,7 +57,7 @@ export const Footer: React.FC<FooterProps> = ({
             return (
               <a
                 key={tool.slug}
-                href={`?tool=${tool.slug}`}
+                href={buildLocalizedPath(language, tool.slug)}
                 onClick={(e) => handleToolClick(e, tool.slug)}
                 className={`transition-colors ${
                   isActive

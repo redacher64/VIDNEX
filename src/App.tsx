@@ -24,7 +24,6 @@ import {
   subscribePublicConfig,
 } from './services/adsenseService';
 import {
-  ALL_TOOL_CONFIGS,
   DEFAULT_TOOL_BY_PLATFORM,
   SEO_TOOLS_CONFIG,
   ToolSlug,
@@ -34,54 +33,70 @@ import {
   LanguageCode,
   SUPPORTED_LANGUAGES,
 } from './i18n/translations';
+import {
+  buildLocalizedPath,
+  DEFAULT_LANGUAGE,
+  handleLegacyQueryRedirect,
+  isSupportedLanguage,
+  isValidToolSlug,
+  parsePathname,
+} from './utils/i18nRouting';
 
 const LazyAdminApp = React.lazy(() => import('./pages/admin/AdminApp'));
 
 function isAdminRoute(): boolean {
   if (typeof window === 'undefined') return false;
-  const pathname = window.location.pathname.replace(/\/+$/, '');
+  const parsed = parsePathname(window.location.pathname);
   const params = new URLSearchParams(window.location.search);
-  return pathname === '/admin' || pathname.startsWith('/admin/') || params.get('admin') === '1';
+  return (
+    parsed.isAdmin ||
+    window.location.pathname === '/admin' ||
+    window.location.pathname.startsWith('/admin/') ||
+    params.get('admin') === '1'
+  );
 }
 
 function resolveInitialToolFromLocation(): ToolSlug {
   if (typeof window === 'undefined') return 'instagram-reels';
+  const parsed = parsePathname(window.location.pathname);
+  if (
+    parsed.toolSlug &&
+    isPlatformSupported(SEO_TOOLS_CONFIG[parsed.toolSlug].platform)
+  ) {
+    return parsed.toolSlug;
+  }
   const params = new URLSearchParams(window.location.search);
   const toolParam = params.get('tool');
-  if (toolParam) {
-    const found = ALL_TOOL_CONFIGS.find(
-      (t) => t.slug === toolParam && isPlatformSupported(t.platform)
-    );
-    if (found) return found.slug;
+  if (toolParam && isValidToolSlug(toolParam)) {
+    const found = SEO_TOOLS_CONFIG[toolParam];
+    if (found && isPlatformSupported(found.platform)) return found.slug;
   }
   const hash = window.location.hash.replace(/^#\/?/, '');
-  if (hash) {
-    const matchedHash = ALL_TOOL_CONFIGS.find(
-      (t) =>
-        (t.slug === hash || t.path.replace(/^\//, '') === hash) &&
-        isPlatformSupported(t.platform)
-    );
-    if (matchedHash) return matchedHash.slug;
+  if (hash && isValidToolSlug(hash)) {
+    const matchedHash = SEO_TOOLS_CONFIG[hash];
+    if (matchedHash && isPlatformSupported(matchedHash.platform)) {
+      return matchedHash.slug;
+    }
   }
-  const cleanPath = window.location.pathname.replace(/\/+$/, '');
-  const matched = ALL_TOOL_CONFIGS.find(
-    (t) => t.path === cleanPath && isPlatformSupported(t.platform)
-  );
-  return matched ? matched.slug : 'instagram-reels';
+  return 'instagram-reels';
 }
 
 function resolveInitialLanguage(): LanguageCode {
-  if (typeof window === 'undefined') return 'en';
+  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
+  const parsed = parsePathname(window.location.pathname);
+  if (parsed.lang && parsed.lang !== DEFAULT_LANGUAGE) {
+    return parsed.lang;
+  }
   const params = new URLSearchParams(window.location.search);
-  const urlLang = params.get('lang') as LanguageCode | null;
-  if (urlLang && SUPPORTED_LANGUAGES.some((l) => l.code === urlLang)) {
+  const urlLang = params.get('lang');
+  if (urlLang && isSupportedLanguage(urlLang)) {
     return urlLang;
   }
-  const saved = localStorage.getItem('vidnex_lang') as LanguageCode | null;
-  if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
+  const saved = localStorage.getItem('vidnex_lang');
+  if (saved && isSupportedLanguage(saved)) {
     return saved;
   }
-  return 'en';
+  return DEFAULT_LANGUAGE;
 }
 
 export function App() {
@@ -169,8 +184,14 @@ export function App() {
   }, [language]);
 
   useEffect(() => {
+    handleLegacyQueryRedirect();
+  }, []);
+
+  useEffect(() => {
     const handlePopState = () => {
-      setActiveToolSlug(resolveInitialToolFromLocation());
+      const parsed = parsePathname(window.location.pathname);
+      setLanguage(parsed.lang);
+      setActiveToolSlug(parsed.toolSlug || 'instagram-reels');
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -179,21 +200,9 @@ export function App() {
   const handleSelectTool = useCallback(
     (slug: ToolSlug) => {
       setActiveToolSlug(slug);
-      const targetConfig = SEO_TOOLS_CONFIG[slug];
       if (typeof window !== 'undefined') {
-        const isStaticOrDev =
-          window.location.protocol === 'file:' ||
-          window.location.port === '5500' ||
-          window.location.hostname === '127.0.0.1' ||
-          window.location.hostname === 'localhost' ||
-          window.location.pathname.endsWith('.html') ||
-          window.location.search.includes('tool=');
-
-        const nextUrl = isStaticOrDev
-          ? `?tool=${slug}${language === 'en' ? '' : `&lang=${language}`}`
-          : `${targetConfig.path}${language === 'en' ? '' : `?lang=${language}`}`;
-
-        if (window.location.pathname + window.location.search !== nextUrl) {
+        const nextUrl = buildLocalizedPath(language, slug);
+        if (window.location.pathname !== nextUrl) {
           window.history.pushState({ slug, language }, '', nextUrl);
         }
       }
@@ -205,24 +214,14 @@ export function App() {
     (nextLang: LanguageCode) => {
       setLanguage(nextLang);
       if (typeof window !== 'undefined') {
-        const isStaticOrDev =
-          window.location.protocol === 'file:' ||
-          window.location.port === '5500' ||
-          window.location.hostname === '127.0.0.1' ||
-          window.location.hostname === 'localhost' ||
-          window.location.pathname.endsWith('.html') ||
-          window.location.search.includes('tool=');
-
-        const targetPath = SEO_TOOLS_CONFIG[activeToolSlug].path;
-        const nextUrl = isStaticOrDev
-          ? `?tool=${activeToolSlug}${nextLang === 'en' ? '' : `&lang=${nextLang}`}`
-          : `${targetPath}${nextLang === 'en' ? '' : `?lang=${nextLang}`}`;
-
-        window.history.replaceState(
-          { slug: activeToolSlug, language: nextLang },
-          '',
-          nextUrl
-        );
+        const nextUrl = buildLocalizedPath(nextLang, activeToolSlug);
+        if (window.location.pathname !== nextUrl) {
+          window.history.pushState(
+            { slug: activeToolSlug, language: nextLang },
+            '',
+            nextUrl
+          );
+        }
       }
     },
     [activeToolSlug]
@@ -311,6 +310,7 @@ export function App() {
 
       <Header
         activePlatform={activeTool.platform}
+        activeToolSlug={activeToolSlug}
         onSelectPlatform={handleSelectPlatform}
         theme={theme}
         onToggleTheme={handleToggleTheme}

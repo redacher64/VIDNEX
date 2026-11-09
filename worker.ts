@@ -30,6 +30,7 @@ import {
 } from './functions/api/admin/blocklist.ts';
 import { onRequestGet as adminActivityGet } from './functions/api/admin/activity.ts';
 import { onRequest as adminMiddleware } from './functions/_middleware.ts';
+import { applySeoHtmlRewriter } from './functions/_lib/seoRewriter.ts';
 import type { ExecutionContextLike } from './functions/_lib/db.ts';
 
 export interface WorkerEnv extends ExtractEnv {
@@ -142,7 +143,22 @@ async function routeInner(
 
   // Static assets fallback via Cloudflare Workers Static Assets binding
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
-    return env.ASSETS.fetch(request);
+    let response = await env.ASSETS.fetch(request);
+
+    // Ensure SPA fallback serves index.html with HTTP 200 on all localized routes (/fr, /fr/:toolSlug, etc.)
+    if (response.status === 404 && request.method === 'GET') {
+      const fallbackUrl = new URL('/index.html', url.origin);
+      const fallbackReq = new Request(fallbackUrl.toString(), request);
+      const fallbackRes = await env.ASSETS.fetch(fallbackReq);
+      if (fallbackRes.ok) {
+        response = new Response(fallbackRes.body, {
+          status: 200,
+          headers: fallbackRes.headers,
+        });
+      }
+    }
+
+    return applySeoHtmlRewriter(request, response);
   }
 
   return new Response('Not Found', { status: 404 });

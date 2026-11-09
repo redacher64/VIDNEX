@@ -1,4 +1,4 @@
-import { PlatformId } from '../utils/urlDetector';
+import type { PlatformId } from '../utils/urlDetector.ts';
 
 export type ToolSlug =
   // Instagram Suite (4 Sub-Tools)

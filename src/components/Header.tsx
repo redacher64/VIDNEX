@@ -6,6 +6,8 @@ import {
   SUPPORTED_LANGUAGES,
   UI_TRANSLATIONS,
 } from '../i18n/translations';
+import { buildLocalizedPath } from '../utils/i18nRouting';
+import { ToolSlug } from '../data/seoToolsConfig';
 
 export interface ToolTab {
   id: PlatformId;
@@ -33,6 +35,7 @@ const SOON_BADGE_BY_LANG: Record<LanguageCode, string> = {
 
 interface HeaderProps {
   activePlatform: PlatformId;
+  activeToolSlug?: ToolSlug;
   onSelectPlatform: (platform: PlatformId) => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -42,6 +45,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   activePlatform,
+  activeToolSlug,
   onSelectPlatform,
   theme,
   onToggleTheme,
@@ -89,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: VIDNEX Brand Wordmark */}
         <a
-          href="#top"
+          href={buildLocalizedPath(language)}
           dir="ltr"
           onClick={(e) => {
             e.preventDefault();
@@ -236,11 +240,13 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
                 {SUPPORTED_LANGUAGES.map((langOpt) => {
                   const isSelected = langOpt.code === language;
+                  const targetHref = buildLocalizedPath(langOpt.code, activeToolSlug);
                   return (
-                    <button
+                    <a
                       key={langOpt.code}
-                      type="button"
-                      onClick={() => {
+                      href={targetHref}
+                      onClick={(e) => {
+                        e.preventDefault();
                         onSelectLanguage(langOpt.code);
                         setLangMenuOpen(false);
                       }}
@@ -254,7 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <span className="font-mono text-[10px] opacity-75">
                         {langOpt.shortLabel}
                       </span>
-                    </button>
+                    </a>
                   );
                 })}
               </div>

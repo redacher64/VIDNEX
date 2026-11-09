@@ -9,7 +9,10 @@ export type ErrorCode =
   | 'PRIVATE_OR_LOGIN_REQUIRED'
   | 'RATE_LIMITED'
   | 'BLOCKED_BY_PLATFORM'
-  | 'TIMEOUT';
+  | 'TIMEOUT'
+  | 'MAINTENANCE'
+  | 'PLATFORM_DISABLED'
+  | 'BLOCKED';
 
 export interface ExtractMediaItem {
   kind: 'video' | 'image' | 'audio';
@@ -58,11 +61,15 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'UNSUPPORTED_URL':
       return 400;
     case 'PRIVATE_OR_LOGIN_REQUIRED':
+    case 'PLATFORM_DISABLED':
+    case 'BLOCKED':
       return 403;
     case 'NOT_FOUND':
       return 404;
     case 'RATE_LIMITED':
       return 429;
+    case 'MAINTENANCE':
+      return 503;
     case 'TIMEOUT':
       return 504;
     case 'BLOCKED_BY_PLATFORM':

@@ -16,7 +16,7 @@ import { BROWSER_USER_AGENT } from '../_lib/http.ts';
 import { detectUrl } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
-import { checkRateLimit, extractClientIp } from '../_lib/rateLimit.ts';
+import { checkRateLimit, extractClientIp } from '../_lib/ratelimit.ts';
 
 export interface PagesContext {
   request: Request;

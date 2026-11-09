@@ -39,8 +39,29 @@ export const SUPPORTED_BACKEND_PLATFORMS = new Set<PlatformId>([
   'tiktok',
 ]);
 
+let runtimeEnabledPlatforms: { tiktok: boolean; instagram: boolean } = {
+  tiktok: true,
+  instagram: true,
+};
+
+export function setRuntimePlatformStates(states: {
+  tiktok?: boolean;
+  instagram?: boolean;
+}): void {
+  runtimeEnabledPlatforms = {
+    tiktok: states.tiktok !== undefined ? states.tiktok : runtimeEnabledPlatforms.tiktok,
+    instagram:
+      states.instagram !== undefined
+        ? states.instagram
+        : runtimeEnabledPlatforms.instagram,
+  };
+}
+
 export function isPlatformSupported(platform: PlatformId): boolean {
-  return SUPPORTED_BACKEND_PLATFORMS.has(platform);
+  if (!SUPPORTED_BACKEND_PLATFORMS.has(platform)) return false;
+  if (platform === 'tiktok') return runtimeEnabledPlatforms.tiktok;
+  if (platform === 'instagram') return runtimeEnabledPlatforms.instagram;
+  return true;
 }
 
 export const SAMPLE_LINKS: SampleLink[] = [

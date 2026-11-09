@@ -1,5 +1,5 @@
 // VIDNEX v0.1.1 - Cloudflare Universal Media Downloader
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Header } from './components/Header';
 import { HeroOmnibox } from './components/HeroOmnibox';
 import { ResultDrawer } from './components/ResultDrawer';
@@ -18,6 +18,12 @@ import {
   MediaResult,
 } from './services/extractorService';
 import {
+  fetchPublicConfig,
+  getPublicConfigSnapshot,
+  PublicConfig,
+  subscribePublicConfig,
+} from './services/adsenseService';
+import {
   ALL_TOOL_CONFIGS,
   DEFAULT_TOOL_BY_PLATFORM,
   SEO_TOOLS_CONFIG,
@@ -28,6 +34,15 @@ import {
   LanguageCode,
   SUPPORTED_LANGUAGES,
 } from './i18n/translations';
+
+const LazyAdminApp = React.lazy(() => import('./pages/admin/AdminApp'));
+
+function isAdminRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  const pathname = window.location.pathname.replace(/\/+$/, '');
+  const params = new URLSearchParams(window.location.search);
+  return pathname === '/admin' || pathname.startsWith('/admin/') || params.get('admin') === '1';
+}
 
 function resolveInitialToolFromLocation(): ToolSlug {
   if (typeof window === 'undefined') return 'instagram-reels';
@@ -70,6 +85,11 @@ function resolveInitialLanguage(): LanguageCode {
 }
 
 export function App() {
+  const [isAdmin] = useState<boolean>(isAdminRoute);
+  const [publicConfig, setPublicConfig] = useState<PublicConfig>(
+    getPublicConfigSnapshot
+  );
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('vidnex_theme');
@@ -99,6 +119,19 @@ export function App() {
 
   const baseTool = SEO_TOOLS_CONFIG[activeToolSlug];
   const activeTool = getLocalizedToolConfig(baseTool, language);
+
+  useEffect(() => {
+    if (isAdmin) return;
+    fetchPublicConfig();
+    return subscribePublicConfig((cfg) => {
+      setPublicConfig({ ...cfg });
+      if (!cfg.platforms.instagram && cfg.platforms.tiktok && activeTool.platform === 'instagram') {
+        setActiveToolSlug('tiktok-no-watermark');
+      } else if (!cfg.platforms.tiktok && cfg.platforms.instagram && activeTool.platform === 'tiktok') {
+        setActiveToolSlug('instagram-reels');
+      }
+    });
+  }, [isAdmin, activeTool.platform]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -230,6 +263,20 @@ export function App() {
     }
   };
 
+  if (isAdmin) {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
+            Chargement du panneau d’administration…
+          </div>
+        }
+      >
+        <LazyAdminApp />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden">
       {/* Ambient Orange Depth Glows */}
@@ -238,6 +285,17 @@ export function App() {
       <div className="absolute top-32 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl pointer-events-none z-0" />
 
       <SeoSchemaInjector tool={activeTool} language={language} />
+
+      {publicConfig.maintenance && (
+        <div
+          role="status"
+          className="relative z-50 bg-amber-500 text-[#140e0a] px-4 py-2.5 text-center font-mono text-xs font-bold shadow-sm"
+        >
+          {language === 'fr'
+            ? 'Maintenance programmée en cours : les extractions sont temporairement suspendues.'
+            : 'Scheduled maintenance in progress: media extractions are temporarily paused.'}
+        </div>
+      )}
 
       <Header
         activePlatform={activeTool.platform}

@@ -110,6 +110,12 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
       'The platform temporarily restricted public extraction requests. Please try again shortly.',
     TIMEOUT:
       'Upstream media extraction timed out. Please try again.',
+    MAINTENANCE:
+      'VIDNEX is temporarily undergoing scheduled maintenance. Please try again shortly.',
+    PLATFORM_DISABLED:
+      'This platform extractor is temporarily disabled by the administrator.',
+    BLOCKED:
+      'This request or resource has been restricted by the administrator.',
     NETWORK_ERROR:
       'Unable to reach the VIDNEX extraction API (/api/extract).',
   },
@@ -121,11 +127,17 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
     PRIVATE_OR_LOGIN_REQUIRED:
       'Ce contenu est privé ou nécessite une session connectée (secret IG_SESSION_ID optionnel dans Cloudflare Pages).',
     RATE_LIMITED:
-      'Trop de requêtes simultanées vers la passerelle média. Veuillez réessayer dans quelques secondes.',
+      'Limite de requêtes atteinte. Veuillez patienter quelques secondes avant de relancer une extraction.',
     BLOCKED_BY_PLATFORM:
       'La plateforme a temporairement restreint les requêtes publiques. Veuillez réessayer dans quelques instants.',
     TIMEOUT:
       'Le délai d\'attente a expiré lors de la récupération du média. Veuillez réessayer.',
+    MAINTENANCE:
+      'VIDNEX est temporairement en maintenance programmée. Veuillez réessayer dans quelques instants.',
+    PLATFORM_DISABLED:
+      'L\'extraction pour cette plateforme est temporairement désactivée par l\'administrateur.',
+    BLOCKED:
+      'Cette requête ou ressource a été bloquée par l\'administrateur.',
     NETWORK_ERROR:
       'Impossible de joindre le service d\'extraction VIDNEX (/api/extract).',
   },
@@ -142,6 +154,12 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
       'La plataforma restringió temporalmente las solicitudes públicas. Inténtalo de nuevo en unos momentos.',
     TIMEOUT:
       'Se agotó el tiempo de espera al recuperar el archivo multimedia. Inténtalo de nuevo.',
+    MAINTENANCE:
+      'VIDNEX está temporalmente en mantenimiento. Inténtalo de nuevo en unos momentos.',
+    PLATFORM_DISABLED:
+      'La extracción para esta plataforma está desactivada temporalmente por el administrador.',
+    BLOCKED:
+      'Esta solicitud o recurso ha sido bloqueado por el administrador.',
     NETWORK_ERROR:
       'No se pudo conectar con el servicio de extracción VIDNEX (/api/extract).',
   },
@@ -158,6 +176,12 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
       'A plataforma restringiu temporariamente as requisições públicas. Tente novamente em instantes.',
     TIMEOUT:
       'O tempo limite expirou ao buscar a mídia. Tente novamente.',
+    MAINTENANCE:
+      'O VIDNEX está temporariamente em manutenção. Tente novamente em instantes.',
+    PLATFORM_DISABLED:
+      'A extração para esta plataforma está temporariamente desativada pelo administrador.',
+    BLOCKED:
+      'Esta solicitação ou recurso foi bloqueado pelo administrador.',
     NETWORK_ERROR:
       'Não foi possível conectar ao serviço de extração VIDNEX (/api/extract).',
   },
@@ -174,6 +198,12 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
       'قامت المنصة بتقييد الطلبات العامة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.',
     TIMEOUT:
       'انتهت مهلة الاتصال أثناء جلب الوسائط. يرجى المحاولة مرة أخرى.',
+    MAINTENANCE:
+      'الخدمة في وضع الصيانة المؤقتة. يرجى المحاولة مرة أخرى قريباً.',
+    PLATFORM_DISABLED:
+      'تم تعطيل الاستخراج لهذه المنصة مؤقتاً من قبل المسؤول.',
+    BLOCKED:
+      'تم حظر هذا الطلب أو الرابط من قبل المسؤول.',
     NETWORK_ERROR:
       'تعذر الاتصال بخدمة الاستخراج VIDNEX (/api/extract).',
   },

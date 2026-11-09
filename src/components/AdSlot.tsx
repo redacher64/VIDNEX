@@ -1,9 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ENABLE_ADS,
   ADSENSE_CLIENT_ID,
   IS_ADSENSE_CONFIGURED,
 } from '../config/appConfig';
+import {
+  ensureAdSenseScriptLoaded,
+  isAdSenseEnabled,
+  subscribePublicConfig,
+} from '../services/adsenseService';
 import { LanguageCode } from '../i18n/translations';
 
 export type AdSlotFormat =
@@ -84,22 +88,21 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   language = 'fr',
   className = '',
 }) => {
+  const [adsEnabled, setAdsEnabled] = useState<boolean>(() => isAdSenseEnabled());
+
   useEffect(() => {
-    if (!ENABLE_ADS || !IS_ADSENSE_CONFIGURED || typeof window === 'undefined') {
+    setAdsEnabled(isAdSenseEnabled());
+    return subscribePublicConfig(() => {
+      setAdsEnabled(isAdSenseEnabled());
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!adsEnabled || !IS_ADSENSE_CONFIGURED || typeof window === 'undefined') {
       return;
     }
 
-    const scriptId = 'vidnex-adsense-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.async = true;
-      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(
-        ADSENSE_CLIENT_ID
-      )}`;
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
+    ensureAdSenseScriptLoaded();
 
     try {
       const w = window as unknown as { adsbygoogle?: unknown[] };
@@ -108,9 +111,9 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     } catch {
       // Ignore AdSense push errors if blocked by browser adblocker
     }
-  }, [slotId]);
+  }, [slotId, adsEnabled]);
 
-  if (!ENABLE_ADS) {
+  if (!adsEnabled) {
     return null;
   }
 

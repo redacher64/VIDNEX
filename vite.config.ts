@@ -1,19 +1,31 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { createMemoryD1Database } from './functions/_lib/db';
 
 /**
  * Pont de développement local Cloudflare Pages Functions (`/functions/api/*`).
- * Permet d'exécuter `/api/extract` et `/api/download` directement dans `vite` (`npm run dev`)
- * sans avoir besoin d'un dossier `/server` ou `/backend` externe.
+ * Permet d'exécuter `/api/extract`, `/api/download`, `/api/public-config` et `/api/admin/*`
+ * directement dans `vite` (`npm run dev`) avec une instance D1 en mémoire.
  */
 function cloudflarePagesFunctionsDevBridge(): Plugin {
+  const localDevDb = createMemoryD1Database();
+
   return {
     name: 'cloudflare-pages-functions-dev-bridge',
     configureServer(server) {
       const env = loadEnv(server.config.mode, process.cwd(), '');
 
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url || !req.url.startsWith('/api/')) {
+        if (!req.url) {
+          return next();
+        }
+
+        // Add X-Robots-Tag: noindex, nofollow on /admin HTML navigation in dev
+        if (req.url === '/admin' || req.url.startsWith('/admin?') || req.url.startsWith('/admin/')) {
+          res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        if (!req.url.startsWith('/api/')) {
           return next();
         }
 
@@ -49,11 +61,31 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
             body: body && body.length > 0 ? body : undefined,
           });
 
-          const webRes: Response = await worker.fetch(
-            webReq,
-            { ...process.env, ...env },
-            {}
-          );
+          const mergedEnv = {
+            ...process.env,
+            ...env,
+            DB: localDevDb,
+            ADMIN_PASSWORD:
+              env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'vidnex-admin-dev',
+            SESSION_SECRET:
+              env.SESSION_SECRET ||
+              process.env.SESSION_SECRET ||
+              'vidnex-local-dev-hmac-secret-key-2026',
+            IP_HASH_SALT:
+              env.IP_HASH_SALT || process.env.IP_HASH_SALT || 'vidnex-local-dev-ip-salt',
+          };
+
+          const pendingTasks: Promise<unknown>[] = [];
+          const ctx = {
+            waitUntil(p: Promise<unknown>) {
+              pendingTasks.push(p.catch(() => {}));
+            },
+          };
+
+          const webRes: Response = await worker.fetch(webReq, mergedEnv, ctx);
+          if (pendingTasks.length > 0) {
+            await Promise.allSettled(pendingTasks);
+          }
 
           res.statusCode = webRes.status;
           webRes.headers.forEach((value, key) => {

@@ -6,6 +6,17 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "vidnex.space",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.vidnex.space",
+      "custom_domain": true
+    }
+  ],
   "build": {
     "command": "npm run build"
   },

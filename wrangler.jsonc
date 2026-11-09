@@ -21,7 +21,7 @@
     {
       "binding": "DB",
       "database_name": "vidnex-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "087ec6de-586d-41eb-a47d-0eb7f6ceb9c9",
       "migrations_dir": "migrations"
     }
   ]

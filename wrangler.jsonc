@@ -15,6 +15,10 @@
     {
       "pattern": "www.vidnex.space",
       "custom_domain": true
+    },
+    {
+      "pattern": "redacher64.vidnex.space",
+      "custom_domain": true
     }
   ],
   "build": {

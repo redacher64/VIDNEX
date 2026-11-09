@@ -8,6 +8,7 @@
 import { detectUrl, type SupportedPlatform } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
+import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -140,15 +141,19 @@ async function handleExtract(
     const parsed = new URL(request.url);
     targetUrl = (parsed.searchParams.get('url') || '').trim();
     const p = parsed.searchParams.get('platform');
-    if (p === 'tiktok' || p === 'instagram') {
+    if (p === 'tiktok' || p === 'instagram' || p === 'x') {
       preferredPlatform = p;
+    } else if (p === 'twitter') {
+      preferredPlatform = 'x';
     }
   } else if (request.method === 'POST') {
     try {
       const body: any = await request.json().catch(() => ({}));
       targetUrl = String(body?.url || '').trim();
-      if (body?.platform === 'tiktok' || body?.platform === 'instagram') {
+      if (body?.platform === 'tiktok' || body?.platform === 'instagram' || body?.platform === 'x') {
         preferredPlatform = body.platform;
+      } else if (body?.platform === 'twitter') {
+        preferredPlatform = 'x';
       }
     } catch {
       targetUrl = '';
@@ -199,27 +204,54 @@ async function handleExtract(
   if (!targetUrl) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'Paramètre "url" manquant. Veuillez coller un lien TikTok ou Instagram.',
+      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram ou X (Twitter).',
       400
     );
   }
 
   // 1. Détection et validation d'URL
-  const detection = detectUrl(targetUrl, preferredPlatform);
+  let detection = detectUrl(targetUrl, preferredPlatform);
   if (!detection.isValid || !detection.platform) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'URL non supportée. VIDNEX prend en charge les vidéos, carrousels et profils TikTok et Instagram.',
+      'URL non supportée. VIDNEX prend en charge les vidéos, carrousels et profils TikTok, Instagram et X (Twitter).',
       400
     );
+  }
+
+  // Résolution des liens courts t.co (limite 3 redirections, timeout court), puis revalidation stricte
+  if (detection.platform === 'x' && detection.isShortLink) {
+    const resolvedTco = await resolveTcoShortLink(detection.cleanUrl);
+    if (!resolvedTco) {
+      return createErrorResponse(
+        'UNSUPPORTED_URL',
+        'Impossible de résoudre ce lien court t.co vers un tweet X valide.',
+        400
+      );
+    }
+    const revalidated = detectUrl(resolvedTco, 'x');
+    if (!revalidated.isValid || revalidated.platform !== 'x' || revalidated.isShortLink) {
+      return createErrorResponse(
+        'UNSUPPORTED_URL',
+        'Le lien court t.co ne pointe pas vers une publication X (Twitter) valide.',
+        400
+      );
+    }
+    detection = revalidated;
   }
 
   // Vérification 4 : Plateforme désactivée dans l'admin
   if (
     (detection.platform === 'tiktok' && !settings.platform_tiktok) ||
-    (detection.platform === 'instagram' && !settings.platform_instagram)
+    (detection.platform === 'instagram' && !settings.platform_instagram) ||
+    (detection.platform === 'x' && settings.platform_x === false)
   ) {
-    const label = detection.platform === 'tiktok' ? 'TikTok' : 'Instagram';
+    const label =
+      detection.platform === 'tiktok'
+        ? 'TikTok'
+        : detection.platform === 'instagram'
+        ? 'Instagram'
+        : 'X (Twitter)';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -257,6 +289,8 @@ async function handleExtract(
         ? 'story'
         : 'post'
     );
+  } else if (detection.platform === 'x') {
+    result = await extractX(detection.identifier || '');
   } else {
     return createErrorResponse(
       'UNSUPPORTED_URL',
@@ -301,13 +335,19 @@ async function handleExtract(
   // 3. Transformation des URLs d'items vers le proxy sécurisé /api/download
   const username = (result.author?.username || 'media').replace(/[^a-zA-Z0-9_-]/g, '');
   const sharedCookie = result.cookie;
+  const tweetOrMediaId = (detection.identifier || 'post').replace(/[^a-zA-Z0-9_-]/g, '');
 
   const transformedItems = (result.items || []).map((item, idx) => {
     const ext =
       item.ext ||
       (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'mp3' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
-    const safeFilename = `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
+    const safeFilename =
+      result.platform === 'x'
+        ? (result.items || []).length > 1
+          ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
+          : `x_${username}_${tweetOrMediaId}.${ext}`
+        : `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
     const itemCookie = item.cookie || sharedCookie;
 
     return {
@@ -315,7 +355,9 @@ async function handleExtract(
       thumbnail: item.thumbnail
         ? wrapDownloadUrl(
             item.thumbnail,
-            `VIDNEX_${result.platform}_${username}_slide_${idx + 1}.jpg`,
+            result.platform === 'x'
+              ? `x_${username}_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
+              : `VIDNEX_${result.platform}_${username}_slide_${idx + 1}.jpg`,
             true,
             { cookie: itemCookie }
           )

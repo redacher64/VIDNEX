@@ -1,8 +1,9 @@
 export type PlatformId =
   | 'instagram'
   | 'tiktok'
-  | 'youtube'
+  | 'x'
   | 'twitter'
+  | 'youtube'
   | 'facebook'
   | 'snapchat';
 
@@ -37,23 +38,35 @@ export interface SampleLink {
 export const SUPPORTED_BACKEND_PLATFORMS = new Set<PlatformId>([
   'instagram',
   'tiktok',
+  'x',
+  'twitter',
 ]);
 
-let runtimeEnabledPlatforms: { tiktok: boolean; instagram: boolean } = {
+let runtimeEnabledPlatforms: {
+  tiktok: boolean;
+  instagram: boolean;
+  x: boolean;
+} = {
   tiktok: true,
   instagram: true,
+  x: true,
 };
 
 export function setRuntimePlatformStates(states: {
   tiktok?: boolean;
   instagram?: boolean;
+  x?: boolean;
 }): void {
   runtimeEnabledPlatforms = {
-    tiktok: states.tiktok !== undefined ? states.tiktok : runtimeEnabledPlatforms.tiktok,
+    tiktok:
+      states.tiktok !== undefined
+        ? states.tiktok
+        : runtimeEnabledPlatforms.tiktok,
     instagram:
       states.instagram !== undefined
         ? states.instagram
         : runtimeEnabledPlatforms.instagram,
+    x: states.x !== undefined ? states.x : runtimeEnabledPlatforms.x,
   };
 }
 
@@ -61,6 +74,7 @@ export function isPlatformSupported(platform: PlatformId): boolean {
   if (!SUPPORTED_BACKEND_PLATFORMS.has(platform)) return false;
   if (platform === 'tiktok') return runtimeEnabledPlatforms.tiktok;
   if (platform === 'instagram') return runtimeEnabledPlatforms.instagram;
+  if (platform === 'x' || platform === 'twitter') return runtimeEnabledPlatforms.x;
   return true;
 }
 
@@ -73,13 +87,6 @@ export const SAMPLE_LINKS: SampleLink[] = [
     url: 'https://www.instagram.com/reel/C8x9kLmN2pQ/',
   },
   {
-    id: 'ig-dp',
-    label: 'IG Profile HD DP',
-    platform: 'instagram',
-    subType: 'Profile',
-    url: 'https://www.instagram.com/natgeo/',
-  },
-  {
     id: 'tiktok-vid',
     label: 'TikTok No-WM',
     platform: 'tiktok',
@@ -87,11 +94,18 @@ export const SAMPLE_LINKS: SampleLink[] = [
     url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
   },
   {
-    id: 'ig-carousel',
-    label: 'IG Carousel',
+    id: 'x-vid',
+    label: 'X (Twitter) MP4',
+    platform: 'x',
+    subType: 'Video',
+    url: 'https://x.com/reactiive_/status/2040511285998313827',
+  },
+  {
+    id: 'ig-dp',
+    label: 'IG Profile HD DP',
     platform: 'instagram',
-    subType: 'Carousel',
-    url: 'https://www.instagram.com/p/C9aBcDeFgHi/',
+    subType: 'Profile',
+    url: 'https://www.instagram.com/natgeo/',
   },
   {
     id: 'tiktok-dp',
@@ -116,11 +130,35 @@ const RESERVED_IG_PATHS = new Set([
   'developer',
 ]);
 
+const RESERVED_X_USERS = new Set([
+  'home',
+  'explore',
+  'notifications',
+  'messages',
+  'settings',
+  'search',
+  'compose',
+  'login',
+  'signup',
+  'tos',
+  'privacy',
+]);
+
+const REJECTED_MIRROR_DOMAINS = [
+  'fxtwitter.com',
+  'vxtwitter.com',
+  'fixupx.com',
+  'fixvx.com',
+  'twittpr.com',
+  'nitter.net',
+  'bettertwitfix.com',
+];
+
 /**
  * Real-time deterministic parser for social media URLs and @handles.
  * Synchronized with `functions/_lib/detect.ts`.
- * Platforms without active backend extractors (YouTube, X, Facebook, Snapchat)
- * are recognized with `isComingSoon: true` and `isValid: false`.
+ * Active backend extractors: Instagram, TikTok, X (Twitter).
+ * Coming Soon: YouTube, Facebook, Snapchat.
  */
 export function detectMediaUrl(
   rawInput: string,
@@ -165,6 +203,32 @@ export function detectMediaUrl(
   const urlWithProtocol = /^https?:\/\//i.test(trimmed)
     ? trimmed
     : `https://${trimmed}`;
+
+  // Reject third-party X mirror domains (fxtwitter, vxtwitter, fixupx, etc.)
+  try {
+    const parsedHost = new URL(urlWithProtocol).hostname
+      .toLowerCase()
+      .replace(/^www\./, '');
+    if (
+      REJECTED_MIRROR_DOMAINS.some(
+        (m) => parsedHost === m || parsedHost.endsWith(`.${m}`)
+      ) ||
+      parsedHost.includes('fxtwitter') ||
+      parsedHost.includes('vxtwitter') ||
+      parsedHost.includes('fixupx') ||
+      parsedHost.includes('twittpr')
+    ) {
+      return {
+        isValid: false,
+        platform: null,
+        mediaType: null,
+        badgeLabel: '',
+        normalizedUrl: trimmed,
+      };
+    }
+  } catch {
+    // Continue
+  }
 
   // 1. INSTAGRAM DETECTION (instagram.com & instagr.am)
   const igReelMatch = urlWithProtocol.match(
@@ -266,7 +330,50 @@ export function detectMediaUrl(
     };
   }
 
-  // 3. YOUTUBE DETECTION (Coming Soon)
+  // 3. X / TWITTER DETECTION (x.com, twitter.com, mobile.twitter.com, m.twitter.com, t.co)
+  const tcoShortMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:www\.)?t\.co\/([A-Za-z0-9]{4,25})\/?(?:\?.*)?$/i
+  );
+  if (tcoShortMatch) {
+    return {
+      isValid: true,
+      platform: 'x',
+      mediaType: 'video',
+      badgeLabel: 'X (Twitter) Short Link',
+      identifier: tcoShortMatch[1],
+      normalizedUrl: `https://t.co/${tcoShortMatch[1]}`,
+    };
+  }
+
+  const xIStatusMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|mobile|m)\.)?(?:x\.com|twitter\.com)\/i\/(?:web\/)?status\/(\d+)(?:\/(?:video|photo)\/\d+)?\/?(?:\?.*)?$/i
+  );
+  if (xIStatusMatch) {
+    return {
+      isValid: true,
+      platform: 'x',
+      mediaType: 'video',
+      badgeLabel: 'X (Twitter) Post',
+      identifier: xIStatusMatch[1],
+      normalizedUrl: `https://x.com/i/status/${xIStatusMatch[1]}`,
+    };
+  }
+
+  const xPostMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|mobile|m)\.)?(?:x\.com|twitter\.com)\/([A-Za-z0-9_]{1,30})\/status\/(\d+)(?:\/(?:video|photo)\/\d+)?\/?(?:\?.*)?$/i
+  );
+  if (xPostMatch && !RESERVED_X_USERS.has(xPostMatch[1].toLowerCase())) {
+    return {
+      isValid: true,
+      platform: 'x',
+      mediaType: 'video',
+      badgeLabel: `X Post (@${xPostMatch[1]})`,
+      identifier: xPostMatch[2],
+      normalizedUrl: `https://x.com/${xPostMatch[1]}/status/${xPostMatch[2]}`,
+    };
+  }
+
+  // 4. YOUTUBE DETECTION (Coming Soon)
   const ytShortsMatch = urlWithProtocol.match(
     /(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/i
   );
@@ -293,22 +400,6 @@ export function detectMediaUrl(
       mediaType: 'video',
       badgeLabel: 'YouTube Video (Soon)',
       identifier: ytVideoMatch[1],
-      normalizedUrl: urlWithProtocol,
-    };
-  }
-
-  // 4. X / TWITTER DETECTION (Coming Soon)
-  const xPostMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\/([A-Za-z0-9_]+)\/status\/([0-9]+)/i
-  );
-  if (xPostMatch) {
-    return {
-      isValid: false,
-      isComingSoon: true,
-      platform: 'twitter',
-      mediaType: 'video',
-      badgeLabel: `X Post (@${xPostMatch[1]}) (Soon)`,
-      identifier: xPostMatch[2],
       normalizedUrl: urlWithProtocol,
     };
   }

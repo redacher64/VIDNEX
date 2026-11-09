@@ -13,7 +13,7 @@ import { type AdminEnv, getDb } from './db.ts';
 export const LOG_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 
 export interface ExtractionLogEvent {
-  platform: 'tiktok' | 'instagram' | 'unknown';
+  platform: 'tiktok' | 'instagram' | 'x' | 'unknown';
   status: 'success' | 'error';
   errorCode?: string | null;
   durationMs: number;
@@ -72,7 +72,11 @@ export async function logExtractionEvent(
       .bind(ts, event.platform, event.status, errorCode, durationMs, event.ipHash)
       .run();
 
-    if (event.platform === 'tiktok' || event.platform === 'instagram') {
+    if (
+      event.platform === 'tiktok' ||
+      event.platform === 'instagram' ||
+      event.platform === 'x'
+    ) {
       if (event.status === 'success') {
         await db
           .prepare(
@@ -111,7 +115,7 @@ export async function logExtractionEvent(
  */
 export async function recordEngineHealthTest(
   env: AdminEnv,
-  platform: 'tiktok' | 'instagram',
+  platform: 'tiktok' | 'instagram' | 'x',
   ok: boolean,
   errorCode: string | null,
   nowMs = Date.now()

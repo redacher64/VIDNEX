@@ -66,6 +66,7 @@ export const PlatformIcon: React.FC<{
           <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
         </svg>
       );
+    case 'x':
     case 'twitter':
       return (
         <svg viewBox="0 0 24 24" fill="currentColor" className={className}>

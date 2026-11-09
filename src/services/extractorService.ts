@@ -26,8 +26,8 @@ export type ResultPayloadType = 'video' | 'profile_dp' | 'carousel';
 export interface VideoFormatOption {
   id: string;
   label: string;
-  quality: '1080p' | '720p' | 'MP3';
-  container: 'MP4' | 'MP3';
+  quality: string;
+  container: 'MP4' | 'MP3' | 'JPG' | 'PNG';
   fileSize?: string;
   noWatermark: boolean;
   downloadUrl: string;
@@ -99,11 +99,13 @@ export type MediaResult =
 const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   en: {
     UNSUPPORTED_URL:
-      'Unsupported link. Currently, Instagram (Reels, Posts, Carousels, Profiles) and TikTok (Videos, Photos, Profiles) are supported.',
+      'Unsupported link. Currently, Instagram, TikTok, and X (Twitter) links are supported.',
     NOT_FOUND:
-      'Media not found. The video or post may have been deleted or made private.',
+      'Media not found. The tweet, video, or post may have been deleted.',
+    NO_MEDIA:
+      'This tweet does not contain any video or image.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'This content is private or requires a logged-in session (IG_SESSION_ID secret in Cloudflare Pages).',
+      'This content is private, deleted, age-restricted, or marked as sensitive media.',
     RATE_LIMITED:
       'Rate limit reached on upstream gateway. Please retry in a few seconds.',
     BLOCKED_BY_PLATFORM:
@@ -121,11 +123,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   fr: {
     UNSUPPORTED_URL:
-      'Ce lien n\'est pas supporté. Seules les vidéos, photos et profils TikTok et Instagram sont pris en charge.',
+      'Ce lien n\'est pas supporté. Seuls les liens TikTok, Instagram et X (Twitter) sont pris en charge.',
     NOT_FOUND:
-      'Contenu introuvable. La vidéo ou publication a peut-être été supprimée ou est privée.',
+      'Contenu introuvable. Le tweet, la vidéo ou la publication a peut-être été supprimé.',
+    NO_MEDIA:
+      'Ce tweet ne contient ni vidéo ni image.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Ce contenu est privé ou nécessite une session connectée (secret IG_SESSION_ID optionnel dans Cloudflare Pages).',
+      'Ce contenu est privé, restreint par l\'âge, marqué comme sensible ou nécessite une session connectée.',
     RATE_LIMITED:
       'Limite de requêtes atteinte. Veuillez patienter quelques secondes avant de relancer une extraction.',
     BLOCKED_BY_PLATFORM:
@@ -143,11 +147,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   es: {
     UNSUPPORTED_URL:
-      'Enlace no compatible. Solo se admiten vídeos, fotos y perfiles de TikTok e Instagram.',
+      'Enlace no compatible. Solo se admiten enlaces de TikTok, Instagram y X (Twitter).',
     NOT_FOUND:
-      'Contenido no encontrado. Es posible que el vídeo o la publicación se haya eliminado o sea privado.',
+      'Contenido no encontrado. Es posible que el tweet, vídeo o publicación haya sido eliminado.',
+    NO_MEDIA:
+      'Este tweet no contiene ningún vídeo ni imagen.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Este contenido es privado o requiere inicio de sesión en el servidor.',
+      'Este contenido es privado, sensible o tiene restricción de edad.',
     RATE_LIMITED:
       'Límite de solicitudes alcanzado temporalmente. Inténtalo de nuevo en unos segundos.',
     BLOCKED_BY_PLATFORM:
@@ -165,11 +171,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   pt: {
     UNSUPPORTED_URL:
-      'Link não suportado. Apenas vídeos, fotos e perfis do TikTok e Instagram são suportados.',
+      'Link não suportado. Apenas links do TikTok, Instagram e X (Twitter) são suportados.',
     NOT_FOUND:
-      'Conteúdo não encontrado. O vídeo ou publicação pode ter sido removido ou tornado privado.',
+      'Conteúdo não encontrado. O tweet, vídeo ou publicação pode ter sido removido.',
+    NO_MEDIA:
+      'Este tweet não contém nenhum vídeo ou imagem.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Este conteúdo é privado ou requer autenticação no servidor.',
+      'Este conteúdo é privado, sensível ou possui restrição de idade.',
     RATE_LIMITED:
       'Limite de requisições atingido temporariamente. Tente novamente em alguns segundos.',
     BLOCKED_BY_PLATFORM:
@@ -187,11 +195,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   ar: {
     UNSUPPORTED_URL:
-      'هذا الرابط غير مدعوم. يتم حالياً دعم مقاطع الفيديو والصور والملفات الشخصية من تيك توك وإنستغرام فقط.',
+      'هذا الرابط غير مدعوم. يتم حالياً دعم تيك توك وإنستغرام وإكس (تويتر) فقط.',
     NOT_FOUND:
-      'لم يتم العثور على المحتوى. ربما تم حذف الفيديو أو المنشور أو أنه خاص.',
+      'لم يتم العثور على المحتوى. ربما تم حذف التغريدة أو الفيديو أو المنشور.',
+    NO_MEDIA:
+      'هذه التغريدة لا تحتوي على أي فيديو أو صورة.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'هذا المحتوى خاص أو يتطلب تسجيل الدخول.',
+      'هذا المحتوى خاص أو مقيد بالعمر أو مصنف كمحتوى حساس.',
     RATE_LIMITED:
       'تم تجاوز حد الطلبات المؤقت. يرجى المحاولة مرة أخرى بعد ثوانٍ.',
     BLOCKED_BY_PLATFORM:
@@ -229,9 +239,12 @@ export async function extractMediaFromUrl(
     throw new Error(getLocalizedErrorMessage('UNSUPPORTED_URL', language));
   }
 
+  const normalizedPlatform =
+    detected.platform === 'twitter' ? 'x' : detected.platform;
+
   const queryParams = new URLSearchParams({
     url: detected.normalizedUrl || url,
-    platform: detected.platform,
+    platform: normalizedPlatform,
   });
 
   const queryUrl = resolveApiUrl(`/api/extract?${queryParams.toString()}`);
@@ -254,7 +267,7 @@ export async function extractMediaFromUrl(
         },
         body: JSON.stringify({
           url: detected.normalizedUrl || url,
-          platform: detected.platform,
+          platform: normalizedPlatform,
         }),
       });
     } catch {
@@ -283,7 +296,11 @@ export async function extractMediaFromUrl(
   });
   const badgeLabel =
     detected.badgeLabel ||
-    (platform === 'tiktok' ? 'TikTok Video' : 'Instagram Reel');
+    (platform === 'tiktok'
+      ? 'TikTok Video'
+      : platform === 'x' || platform === 'twitter'
+      ? `X Post (${creatorHandle})`
+      : 'Instagram Reel');
 
   // 1. Format Photo de Profil (DP)
   if (data.type === 'profile' || detected.mediaType === 'profile') {
@@ -363,38 +380,55 @@ export async function extractMediaFromUrl(
     };
   }
 
-  // 3. Format Vidéo / Image HD
-  const videoItems = (data.items || []).filter(
+  // 3. Format Vidéo (multi-qualités MP4) ou Image Unique HD
+  const mediaItems = (data.items || []).filter(
     (it: any) => it.kind === 'video' || it.kind === 'image'
   );
-  const primaryVideo = videoItems[0] || data.items?.[0];
-  const sdVideo = videoItems.find((it: any) => it.quality === '720p');
+  const primaryMedia = mediaItems[0] || data.items?.[0];
   const audioItem = (data.items || []).find((it: any) => it.kind === 'audio');
 
   const formats: VideoFormatOption[] = [];
 
-  if (primaryVideo) {
+  if (mediaItems.length > 0) {
+    mediaItems.forEach((it: any, index: number) => {
+      const isImage = it.kind === 'image' || data.type === 'image';
+      const extUpper = String(it.ext || (isImage ? 'jpg' : 'mp4')).toUpperCase();
+      const container: VideoFormatOption['container'] =
+        extUpper === 'PNG' ? 'PNG' : isImage ? 'JPG' : 'MP4';
+      const qualityLabel = String(
+        it.quality || (isImage ? 'Original' : index === 0 ? '1080p' : '720p')
+      );
+
+      let label: string;
+      if (isImage) {
+        label = `Download Original Image (${container} ${qualityLabel})`;
+      } else if (index === 0) {
+        label = `Download HD ${qualityLabel} (MP4)`;
+      } else {
+        label = `Download MP4 ${qualityLabel}`;
+      }
+
+      formats.push({
+        id: `fmt-${index}-${qualityLabel}`,
+        label,
+        quality: qualityLabel,
+        container,
+        fileSize: it.size || undefined,
+        noWatermark: true,
+        downloadUrl: resolveApiUrl(it.url),
+        isPrimary: index === 0,
+      });
+    });
+  } else if (primaryMedia) {
     formats.push({
       id: 'hd-1080p',
       label: 'Download HD 1080p (No Watermark)',
       quality: '1080p',
       container: 'MP4',
-      fileSize: primaryVideo.size || undefined,
+      fileSize: primaryMedia.size || undefined,
       noWatermark: true,
-      downloadUrl: resolveApiUrl(primaryVideo.url),
+      downloadUrl: resolveApiUrl(primaryMedia.url),
       isPrimary: true,
-    });
-  }
-
-  if (sdVideo && sdVideo.url !== primaryVideo?.url) {
-    formats.push({
-      id: 'sd-720p',
-      label: 'Download SD 720p',
-      quality: '720p',
-      container: 'MP4',
-      fileSize: sdVideo.size || undefined,
-      noWatermark: true,
-      downloadUrl: resolveApiUrl(sdVideo.url),
     });
   }
 
@@ -411,10 +445,10 @@ export async function extractMediaFromUrl(
   }
 
   const realResolution =
-    primaryVideo?.width && primaryVideo?.height
-      ? `${primaryVideo.width} × ${primaryVideo.height}`
-      : primaryVideo?.quality === '1080p'
-      ? '1080p HD'
+    primaryMedia?.width && primaryMedia?.height
+      ? `${primaryMedia.width} × ${primaryMedia.height}`
+      : primaryMedia?.quality
+      ? `${primaryMedia.quality} HD`
       : undefined;
 
   return {
@@ -429,10 +463,15 @@ export async function extractMediaFromUrl(
     extractedAt: nowTime,
     title: data.title || creatorHandle,
     duration: data.duration || undefined,
-    aspectRatio: '9:16',
+    aspectRatio:
+      primaryMedia?.width &&
+      primaryMedia?.height &&
+      primaryMedia.width >= primaryMedia.height
+        ? '16:9'
+        : '9:16',
     resolution: realResolution,
     codec: undefined,
-    thumbnailUrl: resolveApiUrl(data.thumbnail || primaryVideo?.url || ''),
+    thumbnailUrl: resolveApiUrl(data.thumbnail || primaryMedia?.url || ''),
     formats,
   };
 }

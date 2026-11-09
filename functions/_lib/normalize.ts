@@ -6,6 +6,7 @@
 export type ErrorCode =
   | 'UNSUPPORTED_URL'
   | 'NOT_FOUND'
+  | 'NO_MEDIA'
   | 'PRIVATE_OR_LOGIN_REQUIRED'
   | 'RATE_LIMITED'
   | 'BLOCKED_BY_PLATFORM'
@@ -29,7 +30,7 @@ export interface ExtractMediaItem {
 
 export interface ExtractResponse {
   ok: boolean;
-  platform?: 'tiktok' | 'instagram';
+  platform?: 'tiktok' | 'instagram' | 'x';
   type?: 'video' | 'image' | 'carousel' | 'profile';
   title?: string;
   duration?: string;
@@ -66,6 +67,8 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
       return 403;
     case 'NOT_FOUND':
       return 404;
+    case 'NO_MEDIA':
+      return 422;
     case 'RATE_LIMITED':
       return 429;
     case 'MAINTENANCE':

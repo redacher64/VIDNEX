@@ -16,6 +16,7 @@ import { BROWSER_USER_AGENT } from '../_lib/http.ts';
 import { detectUrl } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
+import { extractX } from '../_lib/x.ts';
 import { checkRateLimit, extractClientIp } from '../_lib/ratelimit.ts';
 
 export interface PagesContext {
@@ -79,6 +80,9 @@ export function inferRefererForHost(hostname: string): string {
     lower.includes('instagram')
   ) {
     return 'https://www.instagram.com/';
+  }
+  if (lower.includes('twimg.com') || lower.includes('twitter') || lower === 'x.com') {
+    return 'https://x.com/';
   }
   if (lower.includes('tikwm')) {
     return 'https://www.tikwm.com/';
@@ -410,6 +414,19 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
               isInline,
               rangeHeader,
               freshItem.cookie || fresh.cookie
+            );
+          }
+        }
+      } else if (detection.isValid && detection.platform === 'x') {
+        const fresh = await extractX(detection.identifier || '');
+        if (fresh.ok && fresh.items?.length) {
+          const freshItem = fresh.items[0];
+          if (freshItem?.url) {
+            attempt = await fetchMediaStreamWithManualRedirects(
+              freshItem.url,
+              method,
+              isInline,
+              rangeHeader
             );
           }
         }

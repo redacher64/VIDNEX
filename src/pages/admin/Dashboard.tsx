@@ -26,6 +26,7 @@ interface StatsResponse {
   platforms: {
     tiktok: PlatformStats;
     instagram: PlatformStats;
+    x?: PlatformStats;
   };
   errors: Array<{ code: string; count: number }>;
   daily: DailyBucket[];
@@ -62,6 +63,7 @@ export const Dashboard: React.FC = () => {
   const counts = data?.counts || { today: 0, last7d: 0, last30d: 0 };
   const tiktok = data?.platforms.tiktok || { total: 0, success: 0, error: 0, successRate: 0 };
   const instagram = data?.platforms.instagram || { total: 0, success: 0, error: 0, successRate: 0 };
+  const xStats = data?.platforms.x || { total: 0, success: 0, error: 0, successRate: 0 };
   const daily = data?.daily || [];
   const maxDaily = Math.max(1, ...daily.map((d) => d.total));
   const totalErrors = (data?.errors || []).reduce((acc, item) => acc + item.count, 0);
@@ -137,10 +139,11 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Taux de succès et d'échec par plateforme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { key: 'tiktok', label: 'TikTok (TikWM / HTML)', stats: tiktok },
-          { key: 'instagram', label: 'Instagram (Embed / GraphQL / Session)', stats: instagram },
+          { key: 'instagram', label: 'Instagram (Embed / GraphQL)', stats: instagram },
+          { key: 'x', label: 'X / Twitter (Syndication)', stats: xStats },
         ].map(({ key, label, stats }) => {
           const failRate =
             stats.total > 0 ? Math.round((stats.error / stats.total) * 1000) / 10 : 0;

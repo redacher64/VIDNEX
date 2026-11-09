@@ -48,8 +48,9 @@ export interface SeoToolConfig {
 export const DEFAULT_TOOL_BY_PLATFORM: Record<PlatformId, ToolSlug> = {
   instagram: 'instagram-reels',
   tiktok: 'tiktok-no-watermark',
-  youtube: 'youtube-shorts',
+  x: 'x-video',
   twitter: 'x-video',
+  youtube: 'youtube-shorts',
   facebook: 'facebook-reels',
   snapchat: 'snapchat-spotlight',
 };
@@ -526,7 +527,7 @@ export const SEO_TOOLS_CONFIG: Record<ToolSlug, SeoToolConfig> = {
   'x-video': {
     slug: 'x-video',
     path: '/x-video',
-    platform: 'twitter',
+    platform: 'x',
     shortLabel: 'X Video / GIF',
     h1: 'X (Twitter) Video & GIF Downloader',
     subtitle:
@@ -665,5 +666,6 @@ export const SEO_TOOLS_CONFIG: Record<ToolSlug, SeoToolConfig> = {
 export const ALL_TOOL_CONFIGS: SeoToolConfig[] = Object.values(SEO_TOOLS_CONFIG);
 
 export function getToolsByPlatform(platform: PlatformId): SeoToolConfig[] {
-  return ALL_TOOL_CONFIGS.filter((tool) => tool.platform === platform);
+  const normalized = platform === 'twitter' ? 'x' : platform;
+  return ALL_TOOL_CONFIGS.filter((tool) => tool.platform === normalized);
 }

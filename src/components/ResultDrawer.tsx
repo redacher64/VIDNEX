@@ -247,11 +247,14 @@ const VideoResultView: React.FC<{
     }, 1000);
   };
 
+  const isSingleImage =
+    primaryFormat?.container === 'JPG' || primaryFormat?.container === 'PNG';
+
   return (
     <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-stretch relative z-10">
       {/* Left: Warm Framed Media Preview Card with Click-to-Play Inline Video */}
       <div className="relative w-full sm:w-52 aspect-[4/5] rounded-2xl overflow-hidden bg-[#1f130b] shrink-0 shadow-md border-2 border-orange-300 dark:border-orange-800/80 group">
-        {isPlayingPreview ? (
+        {isPlayingPreview && !isSingleImage ? (
           <video
             src={previewVideoSrc}
             controls
@@ -262,8 +265,10 @@ const VideoResultView: React.FC<{
         ) : (
           <button
             type="button"
-            onClick={() => setIsPlayingPreview(true)}
-            aria-label="Play video preview"
+            onClick={() => {
+              if (!isSingleImage) setIsPlayingPreview(true);
+            }}
+            aria-label={isSingleImage ? data.title : 'Play video preview'}
             className="w-full h-full relative block text-left cursor-pointer"
           >
             <img
@@ -289,7 +294,7 @@ const VideoResultView: React.FC<{
           </button>
         )}
         <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-gradient-to-r from-orange-600 to-amber-500 text-white font-mono text-[10px] uppercase font-bold shadow-sm pointer-events-none">
-          {t.noWatermarkBadge}
+          {isSingleImage ? t.originalJpglBadge : t.noWatermarkBadge}
         </span>
       </div>
 
@@ -327,7 +332,7 @@ const VideoResultView: React.FC<{
         </div>
 
         <div className="space-y-2.5">
-          {/* Primary Button: Download HD 1080p */}
+          {/* Primary Button: Best Quality MP4 or Original Image */}
           {primaryFormat && (
             <button
               type="button"
@@ -356,18 +361,22 @@ const VideoResultView: React.FC<{
                 <span>
                   {activeDownloadId === primaryFormat.id
                     ? t.startingStream
-                    : t.downloadHd1080}
+                    : isSingleImage
+                    ? `${t.originalJpglBadge} (${primaryFormat.quality})`
+                    : primaryFormat.quality === '1080p'
+                    ? t.downloadHd1080
+                    : `${t.downloadHd1080.split('1080p')[0].trim()} ${primaryFormat.quality} (MP4)`}
                 </span>
               </span>
-              {primaryFormat.fileSize && (
-                <span dir="ltr" className="font-mono text-xs opacity-90">
-                  {primaryFormat.fileSize}
-                </span>
-              )}
+              <span dir="ltr" className="font-mono text-xs opacity-90">
+                {primaryFormat.fileSize
+                  ? primaryFormat.fileSize
+                  : `${primaryFormat.container} · ${primaryFormat.quality}`}
+              </span>
             </button>
           )}
 
-          {/* Compact Secondary Buttons: 720p + Audio MP3 */}
+          {/* Secondary Quality / Format Buttons (e.g., 720p, 540p, 480p, 360p, 320p, MP3) */}
           {secondaryFormats.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {secondaryFormats.map((fmt) => (
@@ -387,18 +396,20 @@ const VideoResultView: React.FC<{
                   <span>
                     {activeDownloadId === fmt.id
                       ? t.saving
-                      : fmt.quality === '720p'
+                      : fmt.container === 'MP3'
+                      ? t.extractAudioMp3
+                      : fmt.quality === '720p' &&
+                        data.platform !== 'x' &&
+                        data.platform !== 'twitter'
                       ? t.downloadSd720
-                      : t.extractAudioMp3}
+                      : `${fmt.container} · ${fmt.quality}`}
                   </span>
-                  {fmt.fileSize && (
-                    <span
-                      dir="ltr"
-                      className="font-mono text-[11px] text-orange-700 dark:text-amber-400"
-                    >
-                      {fmt.fileSize}
-                    </span>
-                  )}
+                  <span
+                    dir="ltr"
+                    className="font-mono text-[11px] text-orange-700 dark:text-amber-400"
+                  >
+                    {fmt.fileSize || fmt.quality}
+                  </span>
                 </button>
               ))}
             </div>

@@ -37,6 +37,15 @@ const ALLOWED_CDN_WILDCARD_DOMAINS = [
 ];
 
 /**
+ * Hôtes exacts autorisés pour les médias X / Twitter (pas de wildcard *.twimg.com trop large).
+ */
+const ALLOWED_EXACT_MEDIA_HOSTS = new Set([
+  'video.twimg.com',
+  'pbs.twimg.com',
+  'abs.twimg.com',
+]);
+
+/**
  * Domaines où SEULS les sous-domaines stricts (`*.domain`) sont autorisés,
  * mais JAMAIS le domaine nu (`facebook.com`, `instagram.com`, `tiktok.com`).
  */
@@ -97,9 +106,24 @@ export function isAllowedMediaHost(hostname: string): boolean {
     lower === 'www.tiktok.com' ||
     lower === 'm.tiktok.com' ||
     lower === 'vm.tiktok.com' ||
-    lower === 'vt.tiktok.com'
+    lower === 'vt.tiktok.com' ||
+    lower === 'x.com' ||
+    lower === 'www.x.com' ||
+    lower === 'twitter.com' ||
+    lower === 'www.twitter.com' ||
+    lower === 'mobile.twitter.com' ||
+    lower === 'm.twitter.com' ||
+    lower === 't.co' ||
+    lower === 'twimg.com' ||
+    lower === 'www.twimg.com' ||
+    lower === 'cdn.syndication.twimg.com'
   ) {
     return false;
+  }
+
+  // Autoriser strictement les 3 hôtes médias officiels de X (pas de wildcard *.twimg.com)
+  if (ALLOWED_EXACT_MEDIA_HOSTS.has(lower)) {
+    return true;
   }
 
   if (

@@ -13,6 +13,7 @@ interface SystemSettings {
   maintenance: boolean;
   platform_tiktok: boolean;
   platform_instagram: boolean;
+  platform_x: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
 }
@@ -29,6 +30,7 @@ export const Controls: React.FC = () => {
     maintenance: false,
     platform_tiktok: true,
     platform_instagram: true,
+    platform_x: true,
     rate_limit_per_min: 30,
     ads_enabled: true,
   });
@@ -272,6 +274,40 @@ export const Controls: React.FC = () => {
             <span
               className={`block w-5 h-5 rounded-full bg-white transition-transform ${
                 settings.platform_instagram ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* X (Twitter) Toggle */}
+        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4 md:col-span-2">
+          <div className="space-y-1">
+            <h3 className="font-display text-sm font-bold text-white">
+              Extracteur X (Twitter)
+            </h3>
+            <p className="text-xs text-orange-200/65">
+              Désactive uniquement X / Twitter (renvoie PLATFORM_DISABLED et grise X côté public).
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings.platform_x !== false}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                platform_x: settings.platform_x === false ? true : false,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.platform_x !== false
+                ? 'bg-emerald-500'
+                : 'bg-[#120c08] border border-orange-900/80'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+                settings.platform_x !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>

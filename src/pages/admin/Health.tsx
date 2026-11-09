@@ -10,7 +10,7 @@ import {
 } from './AdminIcons';
 
 interface EngineRow {
-  platform: 'tiktok' | 'instagram';
+  platform: 'tiktok' | 'instagram' | 'x';
   last_success_ts: number | null;
   last_test_ts: number | null;
   last_test_ok: number | null;
@@ -22,11 +22,13 @@ export const Health: React.FC = () => {
   const [engines, setEngines] = useState<{
     tiktok: EngineRow;
     instagram: EngineRow;
+    x?: EngineRow;
   } | null>(null);
   const [igCookieConfigured, setIgCookieConfigured] = useState(false);
   const [tiktokUrl, setTiktokUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
-  const [testingPlatform, setTestingPlatform] = useState<'tiktok' | 'instagram' | null>(null);
+  const [xUrl, setXUrl] = useState('');
+  const [testingPlatform, setTestingPlatform] = useState<'tiktok' | 'instagram' | 'x' | null>(null);
   const [testFeedback, setTestFeedback] = useState<
     Record<string, { ok: boolean; message: string }>
   >({});
@@ -47,6 +49,7 @@ export const Health: React.FC = () => {
         setIgCookieConfigured(Boolean(data.instagramCookie?.configured));
         setTiktokUrl((prev) => prev || data.engines?.tiktok?.test_url || '');
         setInstagramUrl((prev) => prev || data.engines?.instagram?.test_url || '');
+        setXUrl((prev) => prev || data.engines?.x?.test_url || '');
       }
     } catch {
       // Ignore error
@@ -57,8 +60,10 @@ export const Health: React.FC = () => {
     loadHealth();
   }, []);
 
-  const handleTestEngine = async (platform: 'tiktok' | 'instagram') => {
-    const urlToTest = (platform === 'tiktok' ? tiktokUrl : instagramUrl).trim();
+  const handleTestEngine = async (platform: 'tiktok' | 'instagram' | 'x') => {
+    const urlToTest = (
+      platform === 'tiktok' ? tiktokUrl : platform === 'instagram' ? instagramUrl : xUrl
+    ).trim();
     if (!urlToTest) {
       setTestFeedback((prev) => ({
         ...prev,
@@ -156,13 +161,25 @@ export const Health: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {(['tiktok', 'instagram'] as const).map((platform) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {(['tiktok', 'instagram', 'x'] as const).map((platform) => {
           const info = engines?.[platform];
           const isHealthy = info?.last_test_ok !== 0;
-          const inputValue = platform === 'tiktok' ? tiktokUrl : instagramUrl;
-          const setInputValue = platform === 'tiktok' ? setTiktokUrl : setInstagramUrl;
+          const inputValue =
+            platform === 'tiktok' ? tiktokUrl : platform === 'instagram' ? instagramUrl : xUrl;
+          const setInputValue =
+            platform === 'tiktok'
+              ? setTiktokUrl
+              : platform === 'instagram'
+              ? setInstagramUrl
+              : setXUrl;
           const feedback = testFeedback[platform];
+          const platformLabel =
+            platform === 'tiktok'
+              ? 'TikTok'
+              : platform === 'instagram'
+              ? 'Instagram'
+              : 'X (Twitter)';
 
           return (
             <div
@@ -178,8 +195,8 @@ export const Health: React.FC = () => {
                         : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
                     }`}
                   />
-                  <h3 className="font-display text-base font-bold text-white capitalize">
-                    Moteur {platform === 'tiktok' ? 'TikTok' : 'Instagram'}
+                  <h3 className="font-display text-base font-bold text-white">
+                    Moteur {platformLabel}
                   </h3>
                 </div>
 
@@ -211,18 +228,14 @@ export const Health: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="block text-xs font-mono text-orange-200/75">
-                  URL de test {platform === 'tiktok' ? 'TikTok' : 'Instagram'} (saisie admin)
+                  URL de test {platformLabel} (saisie admin)
                 </label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="url"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={
-                      platform === 'tiktok'
-                        ? 'Collez une URL TikTok publique à tester…'
-                        : 'Collez une URL Instagram publique à tester…'
-                    }
+                    placeholder={`Collez une URL ${platformLabel} publique à tester…`}
                     className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#120c08] border border-orange-900/70 text-xs text-white placeholder-orange-200/35 font-mono focus:outline-none focus:border-orange-500"
                   />
                   <button

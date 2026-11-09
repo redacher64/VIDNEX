@@ -16,11 +16,16 @@ import {
   parseInstagramCookies,
   shortcodeToMediaId,
 } from '../../functions/_lib/instagram.ts';
+import {
+  computeSyndicationToken,
+  parseMp4Variants,
+  parseSyndicationTweetPayload,
+} from '../../functions/_lib/x.ts';
 import { createMemoryD1Database } from '../../functions/_lib/db.ts';
 import worker from '../../worker.ts';
 
 describe('VIDNEX URL Detection & Security Suite', () => {
-  it('Frontend detectMediaUrl validates Instagram & TikTok URLs and @handles, and marks unsupported platforms as Coming Soon', () => {
+  it('Frontend detectMediaUrl validates Instagram, TikTok & X (Twitter) URLs and @handles, and marks unsupported platforms as Coming Soon', () => {
     const igReel = detectMediaUrl('https://www.instagram.com/reel/C8x9kLmN2pQ/');
     assert.equal(igReel.isValid, true);
     assert.equal(igReel.platform, 'instagram');
@@ -33,6 +38,29 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(ttVideo.platform, 'tiktok');
     assert.equal(ttVideo.mediaType, 'video');
 
+    const xTweet = detectMediaUrl(
+      'https://x.com/reactiive_/status/2040511285998313827'
+    );
+    assert.equal(xTweet.isValid, true);
+    assert.equal(xTweet.platform, 'x');
+    assert.equal(xTweet.identifier, '2040511285998313827');
+
+    const twitterLink = detectMediaUrl(
+      'https://twitter.com/jack/status/20/photo/1'
+    );
+    assert.equal(twitterLink.isValid, true);
+    assert.equal(twitterLink.platform, 'x');
+    assert.equal(twitterLink.identifier, '20');
+
+    const tcoShort = detectMediaUrl('https://t.co/vdZbCKTCgj');
+    assert.equal(tcoShort.isValid, true);
+    assert.equal(tcoShort.platform, 'x');
+
+    const fxMirror = detectMediaUrl(
+      'https://fxtwitter.com/user/status/2040511285998313827'
+    );
+    assert.equal(fxMirror.isValid, false);
+
     const handle = detectMediaUrl('@natgeo', 'instagram');
     assert.equal(handle.isValid, true);
     assert.equal(handle.mediaType, 'profile');
@@ -44,10 +72,11 @@ describe('VIDNEX URL Detection & Security Suite', () => {
 
     assert.equal(isPlatformSupported('instagram'), true);
     assert.equal(isPlatformSupported('tiktok'), true);
+    assert.equal(isPlatformSupported('x'), true);
     assert.equal(isPlatformSupported('youtube'), false);
   });
 
-  it('Cloudflare Pages Function detectUrl parses TikTok & Instagram videos, posts, and profiles', () => {
+  it('Cloudflare Pages Function detectUrl parses TikTok, Instagram & X (Twitter) videos, posts, shortlinks, and rejects mirror domains', () => {
     const igPost = detectUrl('https://www.instagram.com/p/C9aBcDeFgHi/');
     assert.equal(igPost.isValid, true);
     assert.equal(igPost.platform, 'instagram');
@@ -69,15 +98,70 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(ttProfile.isValid, true);
     assert.equal(ttProfile.platform, 'tiktok');
     assert.equal(ttProfile.kind, 'profile');
+
+    // X / Twitter valid formats
+    const xStatus = detectUrl('https://x.com/NASA/status/1845678901234567890');
+    assert.equal(xStatus.isValid, true);
+    assert.equal(xStatus.platform, 'x');
+    assert.equal(xStatus.identifier, '1845678901234567890');
+
+    const xIStatus = detectUrl('https://mobile.twitter.com/i/status/2040511285998313827');
+    assert.equal(xIStatus.isValid, true);
+    assert.equal(xIStatus.platform, 'x');
+    assert.equal(xIStatus.identifier, '2040511285998313827');
+
+    const xVideoPath = detectUrl(
+      'https://www.twitter.com/reactiive_/status/2040511285998313827/video/1'
+    );
+    assert.equal(xVideoPath.isValid, true);
+    assert.equal(xVideoPath.platform, 'x');
+    assert.equal(xVideoPath.identifier, '2040511285998313827');
+
+    const xPhotoPath = detectUrl(
+      'https://x.com/TheEllenShow/status/440322224407314432/photo/1'
+    );
+    assert.equal(xPhotoPath.isValid, true);
+    assert.equal(xPhotoPath.platform, 'x');
+    assert.equal(xPhotoPath.identifier, '440322224407314432');
+
+    const tcoLink = detectUrl('https://t.co/vdZbCKTCgj');
+    assert.equal(tcoLink.isValid, true);
+    assert.equal(tcoLink.platform, 'x');
+    assert.equal(tcoLink.isShortLink, true);
+
+    // Reject X mirror domains & non-status paths
+    assert.equal(
+      detectUrl('https://fxtwitter.com/user/status/2040511285998313827').isValid,
+      false
+    );
+    assert.equal(
+      detectUrl('https://vxtwitter.com/user/status/2040511285998313827').isValid,
+      false
+    );
+    assert.equal(detectUrl('https://x.com/explore').isValid, false);
+    assert.equal(detectUrl('https://x.com/user/status/notanumber').isValid, false);
   });
 
-  it('Cloudflare Pages Function allowlist & filename sanitizer block SSRF, RFC1918, bare domains, and path traversal', () => {
+  it('Cloudflare Pages Function allowlist & filename sanitizer allow exact X CDN hosts and block SSRF, RFC1918, bare domains, and path traversal', () => {
     assert.equal(isAllowedMediaHost('v16m.tiktokcdn.com'), true);
     assert.equal(isAllowedMediaHost('v16m-default.tiktokcdn-us.com'), true);
     assert.equal(isAllowedMediaHost('v16-webapp-prime.tiktok.com'), true);
     assert.equal(isAllowedMediaHost('www.tikwm.com'), true);
     assert.equal(isAllowedMediaHost('scontent.cdninstagram.com'), true);
     assert.equal(isAllowedMediaHost('video.xx.fbcdn.net'), true);
+
+    // Exact X / Twitter media CDN hosts allowed
+    assert.equal(isAllowedMediaHost('video.twimg.com'), true);
+    assert.equal(isAllowedMediaHost('pbs.twimg.com'), true);
+    assert.equal(isAllowedMediaHost('abs.twimg.com'), true);
+
+    // Arbitrary *.twimg.com or x.com / twitter.com hosts blocked
+    assert.equal(isAllowedMediaHost('cdn.syndication.twimg.com'), false);
+    assert.equal(isAllowedMediaHost('ton.twimg.com'), false);
+    assert.equal(isAllowedMediaHost('twimg.com'), false);
+    assert.equal(isAllowedMediaHost('x.com'), false);
+    assert.equal(isAllowedMediaHost('twitter.com'), false);
+    assert.equal(isAllowedMediaHost('t.co'), false);
 
     // Reject bare non-CDN web domains
     assert.equal(isAllowedMediaHost('instagram.com'), false);
@@ -105,10 +189,165 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(mapErrorCodeToHttpStatus('PLATFORM_DISABLED'), 403);
     assert.equal(mapErrorCodeToHttpStatus('BLOCKED'), 403);
     assert.equal(mapErrorCodeToHttpStatus('NOT_FOUND'), 404);
+    assert.equal(mapErrorCodeToHttpStatus('NO_MEDIA'), 422);
     assert.equal(mapErrorCodeToHttpStatus('RATE_LIMITED'), 429);
     assert.equal(mapErrorCodeToHttpStatus('BLOCKED_BY_PLATFORM'), 502);
     assert.equal(mapErrorCodeToHttpStatus('MAINTENANCE'), 503);
     assert.equal(mapErrorCodeToHttpStatus('TIMEOUT'), 504);
+  });
+
+  it('X / Twitter syndication engine parses video variants (MP4 only, sorted by bitrate), GIFs, multi-image carousels, NO_MEDIA, and tombstones', () => {
+    const token = computeSyndicationToken('2040511285998313827');
+    assert.ok(token.length > 0 && !token.includes('.') && !token.includes('0'));
+
+    // Video tweet with m3u8 + multiple MP4 variants
+    const videoParsed = parseSyndicationTweetPayload(
+      {
+        __typename: 'Tweet',
+        id_str: '2040511285998313827',
+        text: ' Incredible goal in overtime! https://t.co/vdZbCKTCgj',
+        user: {
+          name: 'Reactiive',
+          screen_name: 'reactiive_',
+          profile_image_url_https:
+            'https://pbs.twimg.com/profile_images/12345/avatar_normal.jpg',
+        },
+        mediaDetails: [
+          {
+            type: 'video',
+            media_url_https:
+              'https://pbs.twimg.com/amplify_video_thumb/2040511185951637504/img/thumb.jpg',
+            video_info: {
+              duration_millis: 31266,
+              variants: [
+                {
+                  content_type: 'application/x-mpegURL',
+                  url: 'https://video.twimg.com/amplify_video/2040511185951637504/pl/playlist.m3u8',
+                },
+                {
+                  bitrate: 432000,
+                  content_type: 'video/mp4',
+                  url: 'https://video.twimg.com/amplify_video/2040511185951637504/vid/avc1/320x320/low.mp4',
+                },
+                {
+                  bitrate: 1280000,
+                  content_type: 'video/mp4',
+                  url: 'https://video.twimg.com/amplify_video/2040511185951637504/vid/avc1/720x720/high.mp4',
+                },
+                {
+                  bitrate: 832000,
+                  content_type: 'video/mp4',
+                  url: 'https://video.twimg.com/amplify_video/2040511185951637504/vid/avc1/540x540/mid.mp4',
+                },
+              ],
+            },
+          },
+        ],
+      },
+      '2040511285998313827'
+    );
+
+    assert.equal(videoParsed.ok, true);
+    assert.equal(videoParsed.type, 'video');
+    assert.equal(videoParsed.items?.length, 3); // m3u8 excluded
+    assert.equal(videoParsed.items?.[0].quality, '720p');
+    assert.equal(videoParsed.items?.[1].quality, '540p');
+    assert.equal(videoParsed.items?.[2].quality, '320p');
+    assert.equal(videoParsed.author?.username, 'reactiive_');
+
+    // Multi-image tweet => carousel with ?name=orig
+    const carouselParsed = parseSyndicationTweetPayload(
+      {
+        __typename: 'Tweet',
+        id_str: '111222333',
+        text: 'Two photos in one tweet',
+        user: { name: 'PhotoUser', screen_name: 'photouser' },
+        mediaDetails: [
+          {
+            type: 'photo',
+            media_url_https: 'https://pbs.twimg.com/media/PhotoOne.jpg',
+            original_info: { width: 1920, height: 1080 },
+          },
+          {
+            type: 'photo',
+            media_url_https: 'https://pbs.twimg.com/media/PhotoTwo.png',
+            original_info: { width: 1200, height: 1200 },
+          },
+        ],
+      },
+      '111222333'
+    );
+    assert.equal(carouselParsed.ok, true);
+    assert.equal(carouselParsed.type, 'carousel');
+    assert.equal(carouselParsed.items?.length, 2);
+    assert.ok(carouselParsed.items?.[0].url.endsWith('?name=orig'));
+    assert.equal(carouselParsed.items?.[1].ext, 'png');
+
+    // Animated GIF => type 'video', ext 'mp4'
+    const gifParsed = parseSyndicationTweetPayload(
+      {
+        __typename: 'Tweet',
+        id_str: '444555666',
+        text: 'Funny GIF reaction',
+        user: { name: 'GifUser', screen_name: 'gifuser' },
+        mediaDetails: [
+          {
+            type: 'animated_gif',
+            media_url_https: 'https://pbs.twimg.com/tweet_video_thumb/GifThumb.jpg',
+            video_info: {
+              variants: [
+                {
+                  bitrate: 0,
+                  content_type: 'video/mp4',
+                  url: 'https://video.twimg.com/tweet_video/GifLoop.mp4',
+                },
+              ],
+            },
+          },
+        ],
+      },
+      '444555666'
+    );
+    assert.equal(gifParsed.ok, true);
+    assert.equal(gifParsed.type, 'video');
+    assert.equal(gifParsed.items?.[0].ext, 'mp4');
+    assert.ok(gifParsed.items?.[0].quality?.includes('GIF'));
+
+    // Tweet without media (even with quoted tweet media) => NO_MEDIA
+    const noMediaParsed = parseSyndicationTweetPayload(
+      {
+        __typename: 'Tweet',
+        id_str: '20',
+        text: 'just setting up my twttr',
+        user: { name: 'Jack', screen_name: 'jack' },
+        quoted_tweet: {
+          mediaDetails: [
+            {
+              type: 'photo',
+              media_url_https: 'https://pbs.twimg.com/media/QuotedOnly.jpg',
+            },
+          ],
+        },
+      },
+      '20'
+    );
+    assert.equal(noMediaParsed.ok, false);
+    assert.equal(noMediaParsed.error?.code, 'NO_MEDIA');
+
+    // Tombstone / age-restricted tweet => PRIVATE_OR_LOGIN_REQUIRED
+    const tombstoneParsed = parseSyndicationTweetPayload(
+      {
+        __typename: 'TweetTombstone',
+        tombstone: {
+          text: {
+            text: 'Age-restricted adult content. This content might not be appropriate for people under 18 years old.',
+          },
+        },
+      },
+      '560070183650213889'
+    );
+    assert.equal(tombstoneParsed.ok, false);
+    assert.equal(tombstoneParsed.error?.code, 'PRIVATE_OR_LOGIN_REQUIRED');
   });
 
   it('Token-bucket rate limiter allows normal traffic and throttles bursts with Retry-After', () => {
@@ -506,5 +745,100 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const extractNoDbJson: any = await extractNoDbRes.json();
     assert.equal(extractNoDbJson.error.code, 'UNSUPPORTED_URL');
   });
+
+  it('ÉTAPE 5 — Vérification complète des 10 scénarios X / Twitter (x.com, twitter.com, t.co, vidéo, images, GIF, NO_MEDIA, NOT_FOUND, tombstone, non-régression TikTok/IG)', async () => {
+    resetRateLimitBuckets();
+    resetD1RateLimitFallback();
+    const db = createMemoryD1Database();
+    const env = { DB: db };
+
+    // (1) Tweet public avec vidéo (x.com)
+    const videoRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://x.com/reactiive_/status/2040511285998313827'
+      ),
+      env
+    );
+    assert.equal(videoRes.status, 200);
+    const videoJson: any = await videoRes.json();
+    assert.equal(videoJson.ok, true);
+    assert.equal(videoJson.platform, 'x');
+    assert.equal(videoJson.type, 'video');
+    assert.ok(videoJson.items.length >= 2);
+    assert.equal(videoJson.items[0].quality, '720p');
+    assert.equal(videoJson.items[0].ext, 'mp4');
+    assert.ok(videoJson.items[0].url.startsWith('/api/download?url='));
+
+    // (4) Tweet sans média => NO_MEDIA (HTTP 422)
+    const noMediaRes = await worker.fetch(
+      new Request('https://vidnex.space/api/extract?url=https://x.com/jack/status/20'),
+      env
+    );
+    assert.equal(noMediaRes.status, 422);
+    const noMediaJson: any = await noMediaRes.json();
+    assert.equal(noMediaJson.ok, false);
+    assert.equal(noMediaJson.error.code, 'NO_MEDIA');
+
+    // (5) Tweet supprimé => NOT_FOUND (HTTP 404)
+    const deletedRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://x.com/user/status/1999999999999999999'
+      ),
+      env
+    );
+    assert.equal(deletedRes.status, 404);
+    const deletedJson: any = await deletedRes.json();
+    assert.equal(deletedJson.ok, false);
+    assert.equal(deletedJson.error.code, 'NOT_FOUND');
+
+    // (6) Tweet sensible / restreint / tombstone => PRIVATE_OR_LOGIN_REQUIRED (HTTP 403)
+    const tombstoneRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://x.com/user/status/560070183650213889'
+      ),
+      env
+    );
+    assert.equal(tombstoneRes.status, 403);
+    const tombstoneJson: any = await tombstoneRes.json();
+    assert.equal(tombstoneJson.ok, false);
+    assert.equal(tombstoneJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+
+    // (7) Lien court t.co => résolu et revalidé
+    const tcoRes = await worker.fetch(
+      new Request('https://vidnex.space/api/extract?url=https://t.co/vdZbCKTCgj'),
+      env
+    );
+    assert.equal(tcoRes.status, 200);
+    const tcoJson: any = await tcoRes.json();
+    assert.equal(tcoJson.ok, true);
+    assert.equal(tcoJson.platform, 'x');
+    assert.equal(tcoJson.author.username, 'reactiive_');
+
+    // (8) Liens twitter.com ET x.com avec /photo/1
+    const twitterPhotoRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://twitter.com/TheEllenShow/status/440322224407314432/photo/1'
+      ),
+      env
+    );
+    assert.equal(twitterPhotoRes.status, 200);
+    const twitterPhotoJson: any = await twitterPhotoRes.json();
+    assert.equal(twitterPhotoJson.ok, true);
+    assert.equal(twitterPhotoJson.platform, 'x');
+    assert.equal(twitterPhotoJson.type, 'image');
+    assert.ok(decodeURIComponent(twitterPhotoJson.items[0].url).includes('name=orig'));
+
+    // (9) URL invalide ou domaine miroir (fxtwitter) => UNSUPPORTED_URL (HTTP 400)
+    const mirrorRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://fxtwitter.com/reactiive_/status/2040511285998313827'
+      ),
+      env
+    );
+    assert.equal(mirrorRes.status, 400);
+    const mirrorJson: any = await mirrorRes.json();
+    assert.equal(mirrorJson.error.code, 'UNSUPPORTED_URL');
+  });
 });
+
 

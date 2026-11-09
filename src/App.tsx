@@ -125,10 +125,15 @@ export function App() {
     fetchPublicConfig();
     return subscribePublicConfig((cfg) => {
       setPublicConfig({ ...cfg });
-      if (!cfg.platforms.instagram && cfg.platforms.tiktok && activeTool.platform === 'instagram') {
-        setActiveToolSlug('tiktok-no-watermark');
-      } else if (!cfg.platforms.tiktok && cfg.platforms.instagram && activeTool.platform === 'tiktok') {
-        setActiveToolSlug('instagram-reels');
+      if (activeTool.platform === 'instagram' && !cfg.platforms.instagram) {
+        if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
+        else if (cfg.platforms.x) setActiveToolSlug('x-video');
+      } else if (activeTool.platform === 'tiktok' && !cfg.platforms.tiktok) {
+        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
+        else if (cfg.platforms.x) setActiveToolSlug('x-video');
+      } else if (activeTool.platform === 'x' && !cfg.platforms.x) {
+        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
+        else if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
       }
     });
   }, [isAdmin, activeTool.platform]);

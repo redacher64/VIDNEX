@@ -9,10 +9,12 @@ export interface SystemSettings {
   maintenance: boolean;
   platform_tiktok: boolean;
   platform_instagram: boolean;
+  platform_x: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
   test_url_tiktok: string;
   test_url_instagram: string;
+  test_url_x: string;
 }
 
 export interface BlocklistEntry {
@@ -26,10 +28,12 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   maintenance: false,
   platform_tiktok: true,
   platform_instagram: true,
+  platform_x: true,
   rate_limit_per_min: 30,
   ads_enabled: true,
   test_url_tiktok: '',
   test_url_instagram: '',
+  test_url_x: '',
 };
 
 /**
@@ -68,12 +72,16 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       platform_instagram: map.has('platform_instagram')
         ? map.get('platform_instagram') !== 'false'
         : true,
+      platform_x: map.has('platform_x')
+        ? map.get('platform_x') !== 'false'
+        : true,
       rate_limit_per_min: rateLimit,
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
         : true,
       test_url_tiktok: map.get('test_url_tiktok') ?? '',
       test_url_instagram: map.get('test_url_instagram') ?? '',
+      test_url_x: map.get('test_url_x') ?? '',
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -102,6 +110,9 @@ export async function updateSystemSettings(
   if (typeof partial.platform_instagram === 'boolean') {
     entries.push(['platform_instagram', String(partial.platform_instagram)]);
   }
+  if (typeof partial.platform_x === 'boolean') {
+    entries.push(['platform_x', String(partial.platform_x)]);
+  }
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));
     entries.push(['rate_limit_per_min', String(clamped)]);
@@ -114,6 +125,9 @@ export async function updateSystemSettings(
   }
   if (typeof partial.test_url_instagram === 'string') {
     entries.push(['test_url_instagram', partial.test_url_instagram.trim()]);
+  }
+  if (typeof partial.test_url_x === 'string') {
+    entries.push(['test_url_x', partial.test_url_x.trim()]);
   }
 
   for (const [key, value] of entries) {

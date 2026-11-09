@@ -15,10 +15,12 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
   ('maintenance', 'false'),
   ('platform_tiktok', 'true'),
   ('platform_instagram', 'true'),
+  ('platform_x', 'true'),
   ('rate_limit_per_min', '30'),
   ('ads_enabled', 'true'),
   ('test_url_tiktok', ''),
-  ('test_url_instagram', '');
+  ('test_url_instagram', ''),
+  ('test_url_x', '');
 
 CREATE TABLE IF NOT EXISTS request_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +45,8 @@ CREATE TABLE IF NOT EXISTS engine_status (
 
 INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES
   ('tiktok', NULL, NULL, NULL, NULL),
-  ('instagram', NULL, NULL, NULL, NULL);
+  ('instagram', NULL, NULL, NULL, NULL),
+  ('x', NULL, NULL, NULL, NULL);
 
 CREATE TABLE IF NOT EXISTS blocklist (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

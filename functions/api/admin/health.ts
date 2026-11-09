@@ -3,6 +3,7 @@ import { verifyCsrfAndJson } from '../../_lib/auth.ts';
 import { detectUrl } from '../../_lib/detect.ts';
 import { extractTikTok } from '../../_lib/tiktok.ts';
 import { extractInstagram } from '../../_lib/instagram.ts';
+import { extractX, resolveTcoShortLink } from '../../_lib/x.ts';
 import { getSystemSettings, updateSystemSettings } from '../../_lib/settings.ts';
 import { logExtractionEvent, recordEngineHealthTest } from '../../_lib/logger.ts';
 
@@ -44,6 +45,14 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       last_error_code: null as string | null,
       test_url: settings.test_url_instagram || '',
     },
+    x: {
+      platform: 'x',
+      last_success_ts: null as number | null,
+      last_test_ts: null as number | null,
+      last_test_ok: null as number | null,
+      last_error_code: null as string | null,
+      test_url: settings.test_url_x || '',
+    },
   };
 
   if (db) {
@@ -61,7 +70,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         }>();
 
       for (const row of res.results || []) {
-        if (row.platform === 'tiktok' || row.platform === 'instagram') {
+        if (row.platform === 'tiktok' || row.platform === 'instagram' || row.platform === 'x') {
           defaultEngines[row.platform] = {
             ...defaultEngines[row.platform],
             last_success_ts: row.last_success_ts,
@@ -105,7 +114,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const db = getDb(env);
   let body: {
     action?: 'test_engine' | 'test_ig_cookie';
-    platform?: 'tiktok' | 'instagram';
+    platform?: 'tiktok' | 'instagram' | 'x';
     url?: string;
   } = {};
 
@@ -164,9 +173,9 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const platform = body.platform;
   const testUrl = (body.url || '').trim();
 
-  if (platform !== 'tiktok' && platform !== 'instagram') {
+  if (platform !== 'tiktok' && platform !== 'instagram' && platform !== 'x') {
     return new Response(
-      JSON.stringify({ ok: false, message: 'Plateforme invalide (tiktok ou instagram requis).' }),
+      JSON.stringify({ ok: false, message: 'Plateforme invalide (tiktok, instagram ou x requis).' }),
       {
         status: 400,
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
@@ -191,19 +200,34 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   if (db) {
     await updateSystemSettings(
       env,
-      platform === 'tiktok' ? { test_url_tiktok: testUrl } : { test_url_instagram: testUrl }
+      platform === 'tiktok'
+        ? { test_url_tiktok: testUrl }
+        : platform === 'instagram'
+        ? { test_url_instagram: testUrl }
+        : { test_url_x: testUrl }
     );
   }
 
-  const detection = detectUrl(testUrl, platform);
+  let detection = detectUrl(testUrl, platform);
+  if (detection.isValid && detection.platform === 'x' && detection.isShortLink) {
+    const resolved = await resolveTcoShortLink(detection.cleanUrl);
+    if (resolved) {
+      detection = detectUrl(resolved, 'x');
+    } else {
+      detection = { ...detection, isValid: false };
+    }
+  }
+
   if (!detection.isValid || detection.platform !== platform) {
     await recordEngineHealthTest(env, platform, false, 'UNSUPPORTED_URL');
+    const label =
+      platform === 'tiktok' ? 'TikTok' : platform === 'instagram' ? 'Instagram' : 'X (Twitter)';
     return new Response(
       JSON.stringify({
         ok: false,
         testOk: false,
         errorCode: 'UNSUPPORTED_URL',
-        message: `L'URL saisie n'est pas une URL ${platform === 'tiktok' ? 'TikTok' : 'Instagram'} valide.`,
+        message: `L'URL saisie n'est pas une URL ${label} valide.`,
       }),
       {
         status: 200,
@@ -221,7 +245,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
           detection.kind === 'profile' ? 'profile' : 'video',
           detection.identifier
         )
-      : await extractInstagram(
+      : platform === 'instagram'
+      ? await extractInstagram(
           detection.identifier || '',
           env,
           detection.kind === 'profile'
@@ -229,7 +254,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
             : detection.kind === 'story'
             ? 'story'
             : 'post'
-        );
+        )
+      : await extractX(detection.identifier || '');
 
   const durationMs = Date.now() - startedAt;
   const testOk = Boolean(result.ok && !result.error);

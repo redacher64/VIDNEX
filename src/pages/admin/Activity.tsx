@@ -98,7 +98,11 @@ export const Activity: React.FC = () => {
                       {new Date(row.ts < 10_000_000_000 ? row.ts * 1000 : row.ts).toLocaleString('fr-FR')}
                     </td>
                     <td className="py-3 px-4 capitalize text-white font-semibold">
-                      {row.platform}
+                      {row.platform === 'x'
+                        ? 'X (Twitter)'
+                        : row.platform === 'facebook'
+                        ? 'Facebook'
+                        : row.platform}
                     </td>
                     <td className="py-3 px-4">
                       <span

@@ -40,22 +40,26 @@ export const SUPPORTED_BACKEND_PLATFORMS = new Set<PlatformId>([
   'tiktok',
   'x',
   'twitter',
+  'facebook',
 ]);
 
 let runtimeEnabledPlatforms: {
   tiktok: boolean;
   instagram: boolean;
   x: boolean;
+  facebook: boolean;
 } = {
   tiktok: true,
   instagram: true,
   x: true,
+  facebook: true,
 };
 
 export function setRuntimePlatformStates(states: {
   tiktok?: boolean;
   instagram?: boolean;
   x?: boolean;
+  facebook?: boolean;
 }): void {
   runtimeEnabledPlatforms = {
     tiktok:
@@ -67,6 +71,10 @@ export function setRuntimePlatformStates(states: {
         ? states.instagram
         : runtimeEnabledPlatforms.instagram,
     x: states.x !== undefined ? states.x : runtimeEnabledPlatforms.x,
+    facebook:
+      states.facebook !== undefined
+        ? states.facebook
+        : runtimeEnabledPlatforms.facebook,
   };
 }
 
@@ -75,6 +83,7 @@ export function isPlatformSupported(platform: PlatformId): boolean {
   if (platform === 'tiktok') return runtimeEnabledPlatforms.tiktok;
   if (platform === 'instagram') return runtimeEnabledPlatforms.instagram;
   if (platform === 'x' || platform === 'twitter') return runtimeEnabledPlatforms.x;
+  if (platform === 'facebook') return runtimeEnabledPlatforms.facebook;
   return true;
 }
 
@@ -101,18 +110,18 @@ export const SAMPLE_LINKS: SampleLink[] = [
     url: 'https://x.com/reactiive_/status/2040511285998313827',
   },
   {
+    id: 'fb-vid',
+    label: 'Facebook HD',
+    platform: 'facebook',
+    subType: 'Video',
+    url: 'https://www.facebook.com/facebook/videos/10153231379946729/',
+  },
+  {
     id: 'ig-dp',
     label: 'IG Profile HD DP',
     platform: 'instagram',
     subType: 'Profile',
     url: 'https://www.instagram.com/natgeo/',
-  },
-  {
-    id: 'tiktok-dp',
-    label: 'TikTok Profile DP',
-    platform: 'tiktok',
-    subType: 'Profile',
-    url: 'https://www.tiktok.com/@tiktok',
   },
 ];
 
@@ -404,35 +413,122 @@ export function detectMediaUrl(
     };
   }
 
-  // 5. FACEBOOK DETECTION (Coming Soon)
-  const fbReelMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.|m\.|web\.)?facebook\.com\/reel\/([0-9]+)/i
-  );
-  if (fbReelMatch) {
-    return {
-      isValid: false,
-      isComingSoon: true,
-      platform: 'facebook',
-      mediaType: 'reel',
-      badgeLabel: 'Facebook Reel (Soon)',
-      identifier: fbReelMatch[1],
-      normalizedUrl: urlWithProtocol,
-    };
-  }
+  // 5. FACEBOOK DETECTION (facebook.com, www/m/web.facebook.com, fb.watch, fb.com)
+  try {
+    const parsedFb = new URL(urlWithProtocol);
+    const fbHost = parsedFb.hostname.toLowerCase();
+    const isFbDomain =
+      fbHost === 'facebook.com' ||
+      fbHost === 'www.facebook.com' ||
+      fbHost === 'm.facebook.com' ||
+      fbHost === 'web.facebook.com' ||
+      fbHost === 'fb.watch' ||
+      fbHost === 'www.fb.watch' ||
+      fbHost === 'fb.com' ||
+      fbHost === 'www.fb.com' ||
+      fbHost === 'm.fb.com';
 
-  const fbVideoMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.|m\.|web\.|fb\.watch)?(?:facebook\.com\/(?:watch\/?\?v=|.*\/videos\/)|fb\.watch\/)([A-Za-z0-9_-]+)/i
-  );
-  if (fbVideoMatch) {
-    return {
-      isValid: false,
-      isComingSoon: true,
-      platform: 'facebook',
-      mediaType: 'video',
-      badgeLabel: 'Facebook Video (Soon)',
-      identifier: fbVideoMatch[1],
-      normalizedUrl: urlWithProtocol,
-    };
+    if (isFbDomain) {
+      const fbPath = parsedFb.pathname.replace(/\/+$/, '');
+      const fbPathLower = fbPath.toLowerCase();
+
+      // Reject photos, stories, and lives in V1
+      if (
+        fbPathLower.startsWith('/photo') ||
+        fbPathLower.startsWith('/photos') ||
+        fbPathLower.includes('/photos/') ||
+        fbPathLower.startsWith('/stories') ||
+        fbPathLower.includes('/stories/') ||
+        fbPathLower.includes('/live/') ||
+        fbPathLower.endsWith('/live')
+      ) {
+        return {
+          isValid: false,
+          platform: null,
+          mediaType: null,
+          badgeLabel: '',
+          normalizedUrl: trimmed,
+        };
+      }
+
+      // 5a. fb.watch/{code}
+      if (fbHost === 'fb.watch' || fbHost === 'www.fb.watch') {
+        const watchShort = fbPath.match(/^\/([A-Za-z0-9_-]{3,40})$/);
+        if (watchShort) {
+          return {
+            isValid: true,
+            platform: 'facebook',
+            mediaType: 'video',
+            badgeLabel: 'Facebook Watch Link',
+            identifier: watchShort[1],
+            normalizedUrl: `https://fb.watch/${watchShort[1]}/`,
+          };
+        }
+      }
+
+      // 5b. /share/v/{code} or /share/r/{code}
+      const fbShareMatch = fbPath.match(/^\/share\/(v|r)\/([A-Za-z0-9_-]{3,60})$/i);
+      if (fbShareMatch) {
+        const shareKind = fbShareMatch[1].toLowerCase();
+        const shareCode = fbShareMatch[2];
+        return {
+          isValid: true,
+          platform: 'facebook',
+          mediaType: shareKind === 'r' ? 'reel' : 'video',
+          badgeLabel: shareKind === 'r' ? 'Facebook Reel' : 'Facebook Video',
+          identifier: shareCode,
+          normalizedUrl: `https://www.facebook.com/share/${shareKind}/${shareCode}/`,
+        };
+      }
+
+      // 5c. /reel/{id} or /reels/{id}
+      const fbReelMatch = fbPath.match(/^\/reels?\/(\d{5,30})$/i);
+      if (fbReelMatch) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          mediaType: 'reel',
+          badgeLabel: 'Facebook Reel',
+          identifier: fbReelMatch[1],
+          normalizedUrl: `https://www.facebook.com/reel/${fbReelMatch[1]}`,
+        };
+      }
+
+      // 5d. /watch/?v={id} or /watch?v={id} or /video.php?v={id}
+      if (fbPathLower === '/watch' || fbPathLower === '/video.php') {
+        const vId = (parsedFb.searchParams.get('v') || '').trim();
+        if (/^\d{5,30}$/.test(vId)) {
+          return {
+            isValid: true,
+            platform: 'facebook',
+            mediaType: 'video',
+            badgeLabel: 'Facebook Watch Video',
+            identifier: vId,
+            normalizedUrl:
+              fbPathLower === '/video.php'
+                ? `https://www.facebook.com/video.php?v=${vId}`
+                : `https://www.facebook.com/watch/?v=${vId}`,
+          };
+        }
+      }
+
+      // 5e. /{page}/videos/{id} or /{page}/videos/{titre}/{id}
+      const fbPageVideoMatch = fbPath.match(
+        /^\/([^/]+)\/videos\/(?:[^/]+\/)?(\d{5,30})$/i
+      );
+      if (fbPageVideoMatch) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          mediaType: 'video',
+          badgeLabel: 'Facebook Video',
+          identifier: fbPageVideoMatch[2],
+          normalizedUrl: `https://www.facebook.com/${fbPageVideoMatch[1]}/videos/${fbPageVideoMatch[2]}/`,
+        };
+      }
+    }
+  } catch {
+    // Continue
   }
 
   // 6. SNAPCHAT DETECTION (Coming Soon)

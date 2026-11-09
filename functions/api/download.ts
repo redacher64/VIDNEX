@@ -17,6 +17,7 @@ import { detectUrl } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX } from '../_lib/x.ts';
+import { extractFacebook } from '../_lib/facebook.ts';
 import { checkRateLimit, extractClientIp } from '../_lib/ratelimit.ts';
 
 export interface PagesContext {
@@ -71,8 +72,14 @@ function inferMimeType(
   return isInline ? 'image/jpeg' : 'video/mp4';
 }
 
-export function inferRefererForHost(hostname: string): string {
+export function inferRefererForHost(hostname: string, isFacebookHint = false): string {
   const lower = hostname.toLowerCase();
+  if (
+    isFacebookHint ||
+    (lower.includes('fbcdn') && (lower.includes('video') || lower.startsWith('fb')))
+  ) {
+    return 'https://www.facebook.com/';
+  }
   if (
     lower.includes('cdninstagram') ||
     lower.includes('fbcdn') ||
@@ -419,6 +426,19 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
         }
       } else if (detection.isValid && detection.platform === 'x') {
         const fresh = await extractX(detection.identifier || '');
+        if (fresh.ok && fresh.items?.length) {
+          const freshItem = fresh.items[0];
+          if (freshItem?.url) {
+            attempt = await fetchMediaStreamWithManualRedirects(
+              freshItem.url,
+              method,
+              isInline,
+              rangeHeader
+            );
+          }
+        }
+      } else if (detection.isValid && detection.platform === 'facebook') {
+        const fresh = await extractFacebook(detection.cleanUrl, detection.identifier);
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];
           if (freshItem?.url) {

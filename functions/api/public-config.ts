@@ -26,6 +26,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         tiktok: settings.platform_tiktok,
         instagram: settings.platform_instagram,
         x: settings.platform_x,
+        facebook: settings.platform_facebook,
       },
       ads_enabled: settings.ads_enabled,
     }),

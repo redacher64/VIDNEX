@@ -16,10 +16,19 @@ import { Activity } from './Activity';
 
 type AdminTab = 'dashboard' | 'health' | 'controls' | 'activity';
 
+function resolveInitialAdminTab(): AdminTab {
+  if (typeof window === 'undefined') return 'dashboard';
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab === 'health' || tab === 'controls' || tab === 'activity' || tab === 'dashboard') {
+    return tab;
+  }
+  return 'dashboard';
+}
+
 export const AdminApp: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>(resolveInitialAdminTab);
 
   // Inject <meta name="robots" content="noindex, nofollow"> on /admin mount
   useEffect(() => {
@@ -176,7 +185,7 @@ export const AdminApp: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
-        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'dashboard' && <Dashboard onNavigateTab={setActiveTab} />}
         {activeTab === 'health' && <Health />}
         {activeTab === 'controls' && <Controls />}
         {activeTab === 'activity' && <Activity />}

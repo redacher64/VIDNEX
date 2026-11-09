@@ -99,13 +99,13 @@ export type MediaResult =
 const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   en: {
     UNSUPPORTED_URL:
-      'Unsupported link. Currently, Instagram, TikTok, and X (Twitter) links are supported.',
+      'Unsupported link. Currently, Instagram, TikTok, X (Twitter), and Facebook links are supported.',
     NOT_FOUND:
-      'Media not found. The tweet, video, or post may have been deleted.',
+      'Media not found. The video, Reel, tweet, or post may have been deleted.',
     NO_MEDIA:
-      'This tweet does not contain any video or image.',
+      'This post does not contain any downloadable video or image.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'This content is private, deleted, age-restricted, or marked as sensitive media.',
+      'This video is not public or requires a login. Only public videos can be downloaded.',
     RATE_LIMITED:
       'Rate limit reached on upstream gateway. Please retry in a few seconds.',
     BLOCKED_BY_PLATFORM:
@@ -123,13 +123,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   fr: {
     UNSUPPORTED_URL:
-      'Ce lien n\'est pas supporté. Seuls les liens TikTok, Instagram et X (Twitter) sont pris en charge.',
+      'Ce lien n\'est pas supporté. Seuls les liens TikTok, Instagram, X (Twitter) et Facebook sont pris en charge.',
     NOT_FOUND:
-      'Contenu introuvable. Le tweet, la vidéo ou la publication a peut-être été supprimé.',
+      'Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.',
     NO_MEDIA:
-      'Ce tweet ne contient ni vidéo ni image.',
+      'Cette publication ne contient aucune vidéo téléchargeable.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Ce contenu est privé, restreint par l\'âge, marqué comme sensible ou nécessite une session connectée.',
+      'Cette vidéo n\'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.',
     RATE_LIMITED:
       'Limite de requêtes atteinte. Veuillez patienter quelques secondes avant de relancer une extraction.',
     BLOCKED_BY_PLATFORM:
@@ -147,13 +147,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   es: {
     UNSUPPORTED_URL:
-      'Enlace no compatible. Solo se admiten enlaces de TikTok, Instagram y X (Twitter).',
+      'Enlace no compatible. Solo se admiten enlaces de TikTok, Instagram, X (Twitter) y Facebook.',
     NOT_FOUND:
-      'Contenido no encontrado. Es posible que el tweet, vídeo o publicación haya sido eliminado.',
+      'Contenido no encontrado. Es posible que el vídeo, Reel o publicación haya sido eliminado.',
     NO_MEDIA:
-      'Este tweet no contiene ningún vídeo ni imagen.',
+      'Esta publicación no contiene ningún vídeo ni imagen.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Este contenido es privado, sensible o tiene restricción de edad.',
+      'Este vídeo no es público o requiere iniciar sesión. Solo se pueden descargar vídeos públicos.',
     RATE_LIMITED:
       'Límite de solicitudes alcanzado temporalmente. Inténtalo de nuevo en unos segundos.',
     BLOCKED_BY_PLATFORM:
@@ -171,13 +171,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   pt: {
     UNSUPPORTED_URL:
-      'Link não suportado. Apenas links do TikTok, Instagram e X (Twitter) são suportados.',
+      'Link não suportado. Apenas links do TikTok, Instagram, X (Twitter) e Facebook são suportados.',
     NOT_FOUND:
-      'Conteúdo não encontrado. O tweet, vídeo ou publicação pode ter sido removido.',
+      'Conteúdo não encontrado. O vídeo, Reel ou publicação pode ter sido removido.',
     NO_MEDIA:
-      'Este tweet não contém nenhum vídeo ou imagem.',
+      'Esta publicação não contém nenhum vídeo ou imagem.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'Este conteúdo é privado, sensível ou possui restrição de idade.',
+      'Este vídeo não é público ou requer login. Apenas vídeos públicos podem ser baixados.',
     RATE_LIMITED:
       'Limite de requisições atingido temporariamente. Tente novamente em alguns segundos.',
     BLOCKED_BY_PLATFORM:
@@ -195,13 +195,13 @@ const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
   },
   ar: {
     UNSUPPORTED_URL:
-      'هذا الرابط غير مدعوم. يتم حالياً دعم تيك توك وإنستغرام وإكس (تويتر) فقط.',
+      'هذا الرابط غير مدعوم. يتم حالياً دعم تيك توك وإنستغرام وإكس (تويتر) وفيسبوك.',
     NOT_FOUND:
-      'لم يتم العثور على المحتوى. ربما تم حذف التغريدة أو الفيديو أو المنشور.',
+      'لم يتم العثور على المحتوى. ربما تم حذف الفيديو أو المنشور.',
     NO_MEDIA:
-      'هذه التغريدة لا تحتوي على أي فيديو أو صورة.',
+      'هذا المنشور لا يحتوي على أي فيديو أو صورة.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      'هذا المحتوى خاص أو مقيد بالعمر أو مصنف كمحتوى حساس.',
+      'هذا الفيديو غير عام أو يتطلب تسجيل الدخول. يمكن تنزيل الفيديوهات العامة فقط.',
     RATE_LIMITED:
       'تم تجاوز حد الطلبات المؤقت. يرجى المحاولة مرة أخرى بعد ثوانٍ.',
     BLOCKED_BY_PLATFORM:
@@ -300,6 +300,8 @@ export async function extractMediaFromUrl(
       ? 'TikTok Video'
       : platform === 'x' || platform === 'twitter'
       ? `X Post (${creatorHandle})`
+      : platform === 'facebook'
+      ? 'Facebook Video'
       : 'Instagram Reel');
 
   // 1. Format Photo de Profil (DP)
@@ -448,7 +450,9 @@ export async function extractMediaFromUrl(
     primaryMedia?.width && primaryMedia?.height
       ? `${primaryMedia.width} × ${primaryMedia.height}`
       : primaryMedia?.quality
-      ? `${primaryMedia.quality} HD`
+      ? primaryMedia.quality === 'HD' || primaryMedia.quality === 'SD'
+        ? `MP4 · ${primaryMedia.quality}`
+        : `${primaryMedia.quality} HD`
       : undefined;
 
   return {

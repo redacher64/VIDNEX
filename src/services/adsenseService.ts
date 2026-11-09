@@ -11,6 +11,7 @@ export interface PublicConfig {
     tiktok: boolean;
     instagram: boolean;
     x: boolean;
+    facebook: boolean;
   };
   ads_enabled: boolean;
 }
@@ -21,6 +22,7 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
     tiktok: true,
     instagram: true,
     x: true,
+    facebook: true,
   },
   ads_enabled: ENABLE_ADS,
 };
@@ -66,6 +68,7 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
           tiktok: data.platforms?.tiktok !== false,
           instagram: data.platforms?.instagram !== false,
           x: data.platforms?.x !== false,
+          facebook: data.platforms?.facebook !== false,
         },
         ads_enabled:
           typeof data.ads_enabled === 'boolean' ? data.ads_enabled : ENABLE_ADS,

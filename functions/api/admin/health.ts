@@ -4,6 +4,7 @@ import { detectUrl } from '../../_lib/detect.ts';
 import { extractTikTok } from '../../_lib/tiktok.ts';
 import { extractInstagram } from '../../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../../_lib/x.ts';
+import { extractFacebook, resolveFacebookRedirect } from '../../_lib/facebook.ts';
 import { getSystemSettings, updateSystemSettings } from '../../_lib/settings.ts';
 import { logExtractionEvent, recordEngineHealthTest } from '../../_lib/logger.ts';
 
@@ -53,6 +54,14 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       last_error_code: null as string | null,
       test_url: settings.test_url_x || '',
     },
+    facebook: {
+      platform: 'facebook',
+      last_success_ts: null as number | null,
+      last_test_ts: null as number | null,
+      last_test_ok: null as number | null,
+      last_error_code: null as string | null,
+      test_url: settings.test_url_facebook || '',
+    },
   };
 
   if (db) {
@@ -70,7 +79,12 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         }>();
 
       for (const row of res.results || []) {
-        if (row.platform === 'tiktok' || row.platform === 'instagram' || row.platform === 'x') {
+        if (
+          row.platform === 'tiktok' ||
+          row.platform === 'instagram' ||
+          row.platform === 'x' ||
+          row.platform === 'facebook'
+        ) {
           defaultEngines[row.platform] = {
             ...defaultEngines[row.platform],
             last_success_ts: row.last_success_ts,
@@ -114,7 +128,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const db = getDb(env);
   let body: {
     action?: 'test_engine' | 'test_ig_cookie';
-    platform?: 'tiktok' | 'instagram' | 'x';
+    platform?: 'tiktok' | 'instagram' | 'x' | 'facebook';
     url?: string;
   } = {};
 
@@ -173,9 +187,17 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const platform = body.platform;
   const testUrl = (body.url || '').trim();
 
-  if (platform !== 'tiktok' && platform !== 'instagram' && platform !== 'x') {
+  if (
+    platform !== 'tiktok' &&
+    platform !== 'instagram' &&
+    platform !== 'x' &&
+    platform !== 'facebook'
+  ) {
     return new Response(
-      JSON.stringify({ ok: false, message: 'Plateforme invalide (tiktok, instagram ou x requis).' }),
+      JSON.stringify({
+        ok: false,
+        message: 'Plateforme invalide (tiktok, instagram, x ou facebook requis).',
+      }),
       {
         status: 400,
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
@@ -204,7 +226,9 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
         ? { test_url_tiktok: testUrl }
         : platform === 'instagram'
         ? { test_url_instagram: testUrl }
-        : { test_url_x: testUrl }
+        : platform === 'x'
+        ? { test_url_x: testUrl }
+        : { test_url_facebook: testUrl }
     );
   }
 
@@ -216,12 +240,56 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     } else {
       detection = { ...detection, isValid: false };
     }
+  } else if (detection.isValid && detection.platform === 'facebook' && detection.isShortLink) {
+    const resolved = await resolveFacebookRedirect(detection.cleanUrl);
+    if (resolved.ok && resolved.finalUrl) {
+      detection = detectUrl(resolved.finalUrl, 'facebook');
+    } else {
+      const errCode = resolved.errorCode || 'UNSUPPORTED_URL';
+      await recordEngineHealthTest(env, 'facebook', false, errCode);
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          testOk: false,
+          errorCode: errCode,
+          message:
+            resolved.errorMessage || "Impossible de résoudre l'URL courte Facebook.",
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+        }
+      );
+    }
+  }
+
+  if (detection.platform === 'facebook' && detection.isLoginRedirect) {
+    await recordEngineHealthTest(env, 'facebook', false, 'PRIVATE_OR_LOGIN_REQUIRED');
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        testOk: false,
+        errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
+        message:
+          "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+      }
+    );
   }
 
   if (!detection.isValid || detection.platform !== platform) {
     await recordEngineHealthTest(env, platform, false, 'UNSUPPORTED_URL');
     const label =
-      platform === 'tiktok' ? 'TikTok' : platform === 'instagram' ? 'Instagram' : 'X (Twitter)';
+      platform === 'tiktok'
+        ? 'TikTok'
+        : platform === 'instagram'
+        ? 'Instagram'
+        : platform === 'x'
+        ? 'X (Twitter)'
+        : 'Facebook';
     return new Response(
       JSON.stringify({
         ok: false,
@@ -255,7 +323,9 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
             ? 'story'
             : 'post'
         )
-      : await extractX(detection.identifier || '');
+      : platform === 'x'
+      ? await extractX(detection.identifier || '')
+      : await extractFacebook(detection.cleanUrl, detection.identifier);
 
   const durationMs = Date.now() - startedAt;
   const testOk = Boolean(result.ok && !result.error);

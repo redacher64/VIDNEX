@@ -8,12 +8,14 @@ import {
   CheckCircle2,
   AlertOctagon,
 } from './AdminIcons';
+import { fetchPublicConfig } from '../../services/adsenseService';
 
 interface SystemSettings {
   maintenance: boolean;
   platform_tiktok: boolean;
   platform_instagram: boolean;
   platform_x: boolean;
+  platform_facebook: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
 }
@@ -31,6 +33,7 @@ export const Controls: React.FC = () => {
     platform_tiktok: true,
     platform_instagram: true,
     platform_x: true,
+    platform_facebook: true,
     rate_limit_per_min: 30,
     ads_enabled: true,
   });
@@ -49,8 +52,16 @@ export const Controls: React.FC = () => {
       const settingsJson = await settingsRes.json();
       const blockJson = await blockRes.json();
 
-      if (settingsRes.ok && settingsJson.ok) {
-        setSettings(settingsJson.settings);
+      if (settingsRes.ok && settingsJson.ok && settingsJson.settings) {
+        setSettings({
+          maintenance: Boolean(settingsJson.settings.maintenance),
+          platform_tiktok: settingsJson.settings.platform_tiktok !== false,
+          platform_instagram: settingsJson.settings.platform_instagram !== false,
+          platform_x: settingsJson.settings.platform_x !== false,
+          platform_facebook: settingsJson.settings.platform_facebook !== false,
+          rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 30,
+          ads_enabled: settingsJson.settings.ads_enabled !== false,
+        });
       }
       if (blockRes.ok && blockJson.ok) {
         setBlocklist(blockJson.items || []);
@@ -79,8 +90,17 @@ export const Controls: React.FC = () => {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setSettings(data.settings);
+        setSettings({
+          maintenance: Boolean(data.settings.maintenance),
+          platform_tiktok: data.settings.platform_tiktok !== false,
+          platform_instagram: data.settings.platform_instagram !== false,
+          platform_x: data.settings.platform_x !== false,
+          platform_facebook: data.settings.platform_facebook !== false,
+          rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 30,
+          ads_enabled: data.settings.ads_enabled !== false,
+        });
         setStatusMessage('Paramètres enregistrés dans Cloudflare D1.');
+        await fetchPublicConfig();
       }
     } finally {
       setSaving(false);
@@ -163,6 +183,7 @@ export const Controls: React.FC = () => {
           <button
             type="button"
             role="switch"
+            aria-label="Mode Maintenance Global"
             aria-checked={settings.maintenance}
             onClick={() =>
               persistSettings({ ...settings, maintenance: !settings.maintenance })
@@ -195,6 +216,7 @@ export const Controls: React.FC = () => {
           <button
             type="button"
             role="switch"
+            aria-label="Monétisation Google AdSense"
             aria-checked={settings.ads_enabled}
             onClick={() =>
               persistSettings({ ...settings, ads_enabled: !settings.ads_enabled })
@@ -214,9 +236,20 @@ export const Controls: React.FC = () => {
         {/* TikTok Toggle */}
         <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="font-display text-sm font-bold text-white">
-              Extracteur TikTok
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-sm font-bold text-white">
+                Extracteur TikTok
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.platform_tiktok
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.platform_tiktok ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
             <p className="text-xs text-orange-200/65">
               Désactive uniquement TikTok (renvoie PLATFORM_DISABLED et grise TikTok côté public).
             </p>
@@ -224,6 +257,7 @@ export const Controls: React.FC = () => {
           <button
             type="button"
             role="switch"
+            aria-label="Extracteur TikTok"
             aria-checked={settings.platform_tiktok}
             onClick={() =>
               persistSettings({
@@ -248,9 +282,20 @@ export const Controls: React.FC = () => {
         {/* Instagram Toggle */}
         <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="font-display text-sm font-bold text-white">
-              Extracteur Instagram
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-sm font-bold text-white">
+                Extracteur Instagram
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.platform_instagram
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.platform_instagram ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
             <p className="text-xs text-orange-200/65">
               Désactive uniquement Instagram (renvoie PLATFORM_DISABLED et grise Instagram côté public).
             </p>
@@ -258,6 +303,7 @@ export const Controls: React.FC = () => {
           <button
             type="button"
             role="switch"
+            aria-label="Extracteur Instagram"
             aria-checked={settings.platform_instagram}
             onClick={() =>
               persistSettings({
@@ -280,18 +326,30 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* X (Twitter) Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4 md:col-span-2">
+        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="font-display text-sm font-bold text-white">
-              Extracteur X (Twitter)
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-sm font-bold text-white">
+                Extracteur X (Twitter)
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.platform_x !== false
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.platform_x !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
             <p className="text-xs text-orange-200/65">
-              Désactive uniquement X / Twitter (renvoie PLATFORM_DISABLED et grise X côté public).
+              Désactive uniquement X (Twitter) (renvoie PLATFORM_DISABLED et grise X (Twitter) côté public).
             </p>
           </div>
           <button
             type="button"
             role="switch"
+            aria-label="Extracteur X (Twitter)"
             aria-checked={settings.platform_x !== false}
             onClick={() =>
               persistSettings({
@@ -308,6 +366,52 @@ export const Controls: React.FC = () => {
             <span
               className={`block w-5 h-5 rounded-full bg-white transition-transform ${
                 settings.platform_x !== false ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Facebook Toggle */}
+        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-sm font-bold text-white">
+                Extracteur Facebook
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.platform_facebook !== false
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.platform_facebook !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
+            <p className="text-xs text-orange-200/65">
+              Désactive uniquement Facebook (renvoie PLATFORM_DISABLED et grise Facebook côté public).
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Extracteur Facebook"
+            aria-checked={settings.platform_facebook !== false}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                platform_facebook: settings.platform_facebook === false ? true : false,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.platform_facebook !== false
+                ? 'bg-emerald-500'
+                : 'bg-[#120c08] border border-orange-900/80'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+                settings.platform_facebook !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>

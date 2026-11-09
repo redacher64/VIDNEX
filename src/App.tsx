@@ -128,12 +128,19 @@ export function App() {
       if (activeTool.platform === 'instagram' && !cfg.platforms.instagram) {
         if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
         else if (cfg.platforms.x) setActiveToolSlug('x-video');
+        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
       } else if (activeTool.platform === 'tiktok' && !cfg.platforms.tiktok) {
         if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
         else if (cfg.platforms.x) setActiveToolSlug('x-video');
+        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
       } else if (activeTool.platform === 'x' && !cfg.platforms.x) {
         if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
         else if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
+        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
+      } else if (activeTool.platform === 'facebook' && !cfg.platforms.facebook) {
+        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
+        else if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
+        else if (cfg.platforms.x) setActiveToolSlug('x-video');
       }
     });
   }, [isAdmin, activeTool.platform]);

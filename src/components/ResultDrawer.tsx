@@ -41,9 +41,20 @@ function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string)
   const targetUrl = buildDownloadEndpointUrl(filename, rawDownloadUrl);
   if (!targetUrl) return;
 
+  let downloadAttr = filename;
+  try {
+    const parsed = new URL(targetUrl, window.location.origin);
+    const backendName = parsed.searchParams.get('filename');
+    if (backendName) {
+      downloadAttr = backendName;
+    }
+  } catch {
+    // Keep fallback filename
+  }
+
   const anchor = document.createElement('a');
   anchor.href = targetUrl;
-  anchor.download = filename;
+  anchor.download = downloadAttr;
   anchor.rel = 'noopener noreferrer';
   document.body.appendChild(anchor);
   anchor.click();
@@ -365,6 +376,8 @@ const VideoResultView: React.FC<{
                     ? `${t.originalJpglBadge} (${primaryFormat.quality})`
                     : primaryFormat.quality === '1080p'
                     ? t.downloadHd1080
+                    : primaryFormat.quality === 'HD'
+                    ? `${t.downloadHd1080.split('1080p')[0].trim()} (MP4)`
                     : `${t.downloadHd1080.split('1080p')[0].trim()} ${primaryFormat.quality} (MP4)`}
                 </span>
               </span>

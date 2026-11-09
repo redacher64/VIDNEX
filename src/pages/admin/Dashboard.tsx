@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshCw, TrendingUp, CheckCircle2, AlertTriangle, BarChart3 } from './AdminIcons';
+import {
+  RefreshCw,
+  TrendingUp,
+  CheckCircle2,
+  AlertTriangle,
+  BarChart3,
+  HeartPulse,
+} from './AdminIcons';
 
 interface DailyBucket {
   day: string;
@@ -15,6 +22,14 @@ interface PlatformStats {
   successRate: number;
 }
 
+interface EngineHealthSummary {
+  platform: 'tiktok' | 'instagram' | 'x' | 'facebook';
+  last_success_ts: number | null;
+  last_test_ts: number | null;
+  last_test_ok: number | null;
+  last_error_code: string | null;
+}
+
 interface StatsResponse {
   ok: boolean;
   dbConnected: boolean;
@@ -26,14 +41,54 @@ interface StatsResponse {
   platforms: {
     tiktok: PlatformStats;
     instagram: PlatformStats;
-    x?: PlatformStats;
+    x: PlatformStats;
+    facebook: PlatformStats;
   };
   errors: Array<{ code: string; count: number }>;
   daily: DailyBucket[];
 }
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onNavigateTab?: (tab: 'dashboard' | 'health' | 'controls' | 'activity') => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   const [data, setData] = useState<StatsResponse | null>(null);
+  const [engines, setEngines] = useState<{
+    tiktok: EngineHealthSummary;
+    instagram: EngineHealthSummary;
+    x: EngineHealthSummary;
+    facebook: EngineHealthSummary;
+  }>({
+    tiktok: {
+      platform: 'tiktok',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
+    instagram: {
+      platform: 'instagram',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
+    x: {
+      platform: 'x',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
+    facebook: {
+      platform: 'facebook',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,14 +96,27 @@ export const Dashboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/stats', {
-        headers: { Accept: 'application/json' },
-      });
-      const json = await res.json();
-      if (!res.ok || !json.ok) {
+      const [statsRes, healthRes] = await Promise.all([
+        fetch('/api/admin/stats', { headers: { Accept: 'application/json' } }),
+        fetch('/api/admin/health', { headers: { Accept: 'application/json' } }),
+      ]);
+      const json = await statsRes.json();
+      if (!statsRes.ok || !json.ok) {
         throw new Error(json.message || 'Erreur lors du chargement des métriques.');
       }
       setData(json);
+
+      if (healthRes.ok) {
+        const healthJson = await healthRes.json().catch(() => null);
+        if (healthJson?.ok && healthJson.engines) {
+          setEngines((prev) => ({
+            tiktok: healthJson.engines.tiktok || prev.tiktok,
+            instagram: healthJson.engines.instagram || prev.instagram,
+            x: healthJson.engines.x || prev.x,
+            facebook: healthJson.engines.facebook || prev.facebook,
+          }));
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur réseau');
     } finally {
@@ -64,6 +132,7 @@ export const Dashboard: React.FC = () => {
   const tiktok = data?.platforms.tiktok || { total: 0, success: 0, error: 0, successRate: 0 };
   const instagram = data?.platforms.instagram || { total: 0, success: 0, error: 0, successRate: 0 };
   const xStats = data?.platforms.x || { total: 0, success: 0, error: 0, successRate: 0 };
+  const facebookStats = data?.platforms.facebook || { total: 0, success: 0, error: 0, successRate: 0 };
   const daily = data?.daily || [];
   const maxDaily = Math.max(1, ...daily.map((d) => d.total));
   const totalErrors = (data?.errors || []).reduce((acc, item) => acc + item.count, 0);
@@ -138,12 +207,81 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Résumé Santé des moteurs (TikTok, Instagram, X (Twitter)) */}
+      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <HeartPulse className="w-4 h-4 text-orange-400" />
+            <h3 className="font-display text-sm font-bold text-white">
+              Santé des moteurs
+            </h3>
+          </div>
+          {onNavigateTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateTab('health')}
+              className="text-xs font-mono text-orange-300 hover:text-orange-200 underline underline-offset-4 cursor-pointer"
+            >
+              Ouvrir les tests de santé →
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {(
+            [
+              { key: 'tiktok', label: 'TikTok', sub: 'TikWM / HTML' },
+              { key: 'instagram', label: 'Instagram', sub: 'Embed / GraphQL' },
+              { key: 'x', label: 'X (Twitter)', sub: 'Syndication twimg' },
+              { key: 'facebook', label: 'Facebook', sub: 'HTML / Mobile' },
+            ] as const
+          ).map(({ key, label, sub }) => {
+            const eng = engines[key];
+            const isOk = eng?.last_test_ok !== 0;
+            return (
+              <div
+                key={key}
+                className="p-3.5 rounded-xl bg-[#120c08] border border-orange-950/80 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                      isOk
+                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                        : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]'
+                    }`}
+                  />
+                  <div>
+                    <span className="font-display text-xs font-bold text-white block">
+                      {label}
+                    </span>
+                    <span className="font-mono text-[10px] text-orange-200/55 block">
+                      {sub}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    isOk
+                      ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                      : 'bg-red-950/60 border-red-700/60 text-red-300'
+                  }`}
+                >
+                  {isOk ? 'En ligne' : `Hors ligne${eng?.last_error_code ? ` (${eng.last_error_code})` : ''}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Taux de succès et d'échec par plateforme */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { key: 'tiktok', label: 'TikTok (TikWM / HTML)', stats: tiktok },
           { key: 'instagram', label: 'Instagram (Embed / GraphQL)', stats: instagram },
-          { key: 'x', label: 'X / Twitter (Syndication)', stats: xStats },
+          { key: 'x', label: 'X (Twitter) (Syndication)', stats: xStats },
+          { key: 'facebook', label: 'Facebook (HTML / Mobile)', stats: facebookStats },
         ].map(({ key, label, stats }) => {
           const failRate =
             stats.total > 0 ? Math.round((stats.error / stats.total) * 1000) / 10 : 0;

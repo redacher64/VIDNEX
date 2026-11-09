@@ -10,7 +10,7 @@ import {
 } from './AdminIcons';
 
 interface EngineRow {
-  platform: 'tiktok' | 'instagram' | 'x';
+  platform: 'tiktok' | 'instagram' | 'x' | 'facebook';
   last_success_ts: number | null;
   last_test_ts: number | null;
   last_test_ok: number | null;
@@ -18,17 +18,67 @@ interface EngineRow {
   test_url: string;
 }
 
+export const DEFAULT_X_TEST_URL = 'https://x.com/reactiive_/status/2040511285998313827';
+
+export const DEFAULT_ENGINE_TEST_URLS: Record<'tiktok' | 'instagram' | 'x' | 'facebook', string> = {
+  tiktok: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
+  instagram: 'https://www.instagram.com/reel/C8x9kLmN2pQ/',
+  x: DEFAULT_X_TEST_URL,
+  facebook: '',
+};
+
+export function getEngineStatusLabel(lastTestOk: number | null | undefined): 'En ligne' | 'Hors ligne' {
+  return lastTestOk !== 0 ? 'En ligne' : 'Hors ligne';
+}
+
 export const Health: React.FC = () => {
   const [engines, setEngines] = useState<{
     tiktok: EngineRow;
     instagram: EngineRow;
-    x?: EngineRow;
-  } | null>(null);
+    x: EngineRow;
+    facebook: EngineRow;
+  }>({
+    tiktok: {
+      platform: 'tiktok',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: DEFAULT_ENGINE_TEST_URLS.tiktok,
+    },
+    instagram: {
+      platform: 'instagram',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: DEFAULT_ENGINE_TEST_URLS.instagram,
+    },
+    x: {
+      platform: 'x',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: DEFAULT_X_TEST_URL,
+    },
+    facebook: {
+      platform: 'facebook',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: '',
+    },
+  });
   const [igCookieConfigured, setIgCookieConfigured] = useState(false);
-  const [tiktokUrl, setTiktokUrl] = useState('');
-  const [instagramUrl, setInstagramUrl] = useState('');
-  const [xUrl, setXUrl] = useState('');
-  const [testingPlatform, setTestingPlatform] = useState<'tiktok' | 'instagram' | 'x' | null>(null);
+  const [tiktokUrl, setTiktokUrl] = useState(DEFAULT_ENGINE_TEST_URLS.tiktok);
+  const [instagramUrl, setInstagramUrl] = useState(DEFAULT_ENGINE_TEST_URLS.instagram);
+  const [xUrl, setXUrl] = useState(DEFAULT_X_TEST_URL);
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [testingPlatform, setTestingPlatform] = useState<
+    'tiktok' | 'instagram' | 'x' | 'facebook' | null
+  >(null);
   const [testFeedback, setTestFeedback] = useState<
     Record<string, { ok: boolean; message: string }>
   >({});
@@ -45,11 +95,45 @@ export const Health: React.FC = () => {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setEngines(data.engines);
+        setEngines((prev) => ({
+          tiktok: data.engines?.tiktok
+            ? {
+                ...data.engines.tiktok,
+                test_url: data.engines.tiktok.test_url || DEFAULT_ENGINE_TEST_URLS.tiktok,
+              }
+            : prev.tiktok,
+          instagram: data.engines?.instagram
+            ? {
+                ...data.engines.instagram,
+                test_url: data.engines.instagram.test_url || DEFAULT_ENGINE_TEST_URLS.instagram,
+              }
+            : prev.instagram,
+          x: data.engines?.x
+            ? {
+                ...data.engines.x,
+                test_url: data.engines.x.test_url || DEFAULT_X_TEST_URL,
+              }
+            : prev.x,
+          facebook: data.engines?.facebook
+            ? {
+                ...data.engines.facebook,
+                test_url: data.engines.facebook.test_url || '',
+              }
+            : prev.facebook,
+        }));
         setIgCookieConfigured(Boolean(data.instagramCookie?.configured));
-        setTiktokUrl((prev) => prev || data.engines?.tiktok?.test_url || '');
-        setInstagramUrl((prev) => prev || data.engines?.instagram?.test_url || '');
-        setXUrl((prev) => prev || data.engines?.x?.test_url || '');
+        if (data.engines?.tiktok?.test_url) {
+          setTiktokUrl(data.engines.tiktok.test_url);
+        }
+        if (data.engines?.instagram?.test_url) {
+          setInstagramUrl(data.engines.instagram.test_url);
+        }
+        if (data.engines?.x?.test_url) {
+          setXUrl(data.engines.x.test_url);
+        }
+        if (typeof data.engines?.facebook?.test_url === 'string' && data.engines.facebook.test_url) {
+          setFacebookUrl(data.engines.facebook.test_url);
+        }
       }
     } catch {
       // Ignore error
@@ -60,10 +144,20 @@ export const Health: React.FC = () => {
     loadHealth();
   }, []);
 
-  const handleTestEngine = async (platform: 'tiktok' | 'instagram' | 'x') => {
-    const urlToTest = (
-      platform === 'tiktok' ? tiktokUrl : platform === 'instagram' ? instagramUrl : xUrl
+  const handleTestEngine = async (platform: 'tiktok' | 'instagram' | 'x' | 'facebook') => {
+    const rawUrl = (
+      platform === 'tiktok'
+        ? tiktokUrl
+        : platform === 'instagram'
+        ? instagramUrl
+        : platform === 'x'
+        ? xUrl
+        : facebookUrl
     ).trim();
+    const urlToTest =
+      rawUrl ||
+      engines[platform]?.test_url?.trim() ||
+      DEFAULT_ENGINE_TEST_URLS[platform];
     if (!urlToTest) {
       setTestFeedback((prev) => ({
         ...prev,
@@ -157,92 +251,123 @@ export const Health: React.FC = () => {
           Santé des moteurs d’extraction
         </h2>
         <p className="text-xs text-orange-200/65 font-mono">
-          Vérification en direct sur l’URL saisie par l’administrateur (aucune URL codée en dur)
+          Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, X (Twitter) et Facebook)
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {(['tiktok', 'instagram', 'x'] as const).map((platform) => {
-          const info = engines?.[platform];
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {(['tiktok', 'instagram', 'x', 'facebook'] as const).map((platform) => {
+          const info = engines[platform];
           const isHealthy = info?.last_test_ok !== 0;
+          const statusLabel = getEngineStatusLabel(info?.last_test_ok);
           const inputValue =
-            platform === 'tiktok' ? tiktokUrl : platform === 'instagram' ? instagramUrl : xUrl;
+            platform === 'tiktok'
+              ? tiktokUrl
+              : platform === 'instagram'
+              ? instagramUrl
+              : platform === 'x'
+              ? xUrl
+              : facebookUrl;
           const setInputValue =
             platform === 'tiktok'
               ? setTiktokUrl
               : platform === 'instagram'
               ? setInstagramUrl
-              : setXUrl;
+              : platform === 'x'
+              ? setXUrl
+              : setFacebookUrl;
           const feedback = testFeedback[platform];
           const platformLabel =
             platform === 'tiktok'
               ? 'TikTok'
               : platform === 'instagram'
               ? 'Instagram'
-              : 'X (Twitter)';
+              : platform === 'x'
+              ? 'X (Twitter)'
+              : 'Facebook';
+          const engineDesc =
+            platform === 'tiktok'
+              ? 'TikWM / HTML'
+              : platform === 'instagram'
+              ? 'Embed / GraphQL'
+              : platform === 'x'
+              ? 'Syndication twimg.com'
+              : 'HTML / Mobile Multi-Niveaux';
 
           return (
             <div
               key={platform}
-              className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4"
+              data-testid={`health-row-${platform}`}
+              data-platform={platform}
+              className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex flex-col gap-4"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-3 h-3 rounded-full shrink-0 ${
+                        isHealthy
+                          ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]'
+                          : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
+                      }`}
+                    />
+                    <div className="min-w-0">
+                      <h3 className="font-display text-base font-bold text-white truncate">
+                        Moteur {platformLabel}
+                      </h3>
+                      <span className="text-[10px] font-mono text-orange-200/55 block truncate">
+                        Plateforme: {platform} · {engineDesc}
+                      </span>
+                    </div>
+                  </div>
+
                   <span
-                    className={`w-3 h-3 rounded-full ${
+                    className={`text-xs font-mono px-2.5 py-1 rounded-md border shrink-0 ${
                       isHealthy
-                        ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]'
-                        : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
+                        ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                        : 'bg-red-950/60 border-red-700/60 text-red-300'
                     }`}
-                  />
-                  <h3 className="font-display text-base font-bold text-white">
-                    Moteur {platformLabel}
-                  </h3>
-                </div>
-
-                <span
-                  className={`text-xs font-mono px-2.5 py-1 rounded-md border ${
-                    isHealthy
-                      ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                      : 'bg-red-950/60 border-red-700/60 text-red-300'
-                  }`}
-                >
-                  {isHealthy ? 'OPÉRATIONNEL' : `ERREUR (${info?.last_error_code || 'KO'})`}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-[#120c08] p-3.5 rounded-xl border border-orange-950/80">
-                <div>
-                  <span className="text-orange-200/50 block text-[10px]">DERNIÈRE RÉUSSITE</span>
-                  <span className="text-orange-100 font-medium">
-                    {formatTs(info?.last_success_ts)}
+                  >
+                    {statusLabel}
+                    {!isHealthy && info?.last_error_code ? ` (${info.last_error_code})` : ''}
                   </span>
                 </div>
-                <div>
-                  <span className="text-orange-200/50 block text-[10px]">DERNIER TEST MANUEL</span>
-                  <span className="text-orange-100 font-medium">
-                    {formatTs(info?.last_test_ts)}
-                  </span>
+
+                <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-[#120c08] p-3.5 rounded-xl border border-orange-950/80">
+                  <div>
+                    <span className="text-orange-200/50 block text-[10px]">DERNIÈRE RÉUSSITE</span>
+                    <span className="text-orange-100 font-medium">
+                      {formatTs(info?.last_success_ts)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-orange-200/50 block text-[10px]">DERNIER TEST MANUEL</span>
+                    <span className="text-orange-100 font-medium">
+                      {formatTs(info?.last_test_ts)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <label className="block text-xs font-mono text-orange-200/75">
                   URL de test {platformLabel} (saisie admin)
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     type="url"
+                    aria-label={`URL de test ${platformLabel}`}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={`Collez une URL ${platformLabel} publique à tester…`}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#120c08] border border-orange-900/70 text-xs text-white placeholder-orange-200/35 font-mono focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#120c08] border border-orange-900/70 text-xs text-white placeholder-orange-200/35 font-mono focus:outline-none focus:border-orange-500"
                   />
                   <button
                     type="button"
+                    aria-label={`Tester maintenant ${platformLabel}`}
                     onClick={() => handleTestEngine(platform)}
                     disabled={testingPlatform === platform}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5" />
                     <span>
@@ -250,24 +375,24 @@ export const Health: React.FC = () => {
                     </span>
                   </button>
                 </div>
-              </div>
 
-              {feedback && (
-                <div
-                  className={`p-3 rounded-xl text-xs font-mono flex items-start gap-2 border ${
-                    feedback.ok
-                      ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-200'
-                      : 'bg-red-950/40 border-red-800/60 text-red-200'
-                  }`}
-                >
-                  {feedback.ok ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                  )}
-                  <span>{feedback.message}</span>
-                </div>
-              )}
+                {feedback && (
+                  <div
+                    className={`p-3 rounded-xl text-xs font-mono flex items-start gap-2 border ${
+                      feedback.ok
+                        ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-200'
+                        : 'bg-red-950/40 border-red-800/60 text-red-200'
+                    }`}
+                  >
+                    {feedback.ok ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    )}
+                    <span>{feedback.message}</span>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

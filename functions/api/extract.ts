@@ -9,6 +9,7 @@ import { detectUrl, type SupportedPlatform } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
+import { extractFacebook, resolveFacebookRedirect } from '../_lib/facebook.ts';
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -141,19 +142,28 @@ async function handleExtract(
     const parsed = new URL(request.url);
     targetUrl = (parsed.searchParams.get('url') || '').trim();
     const p = parsed.searchParams.get('platform');
-    if (p === 'tiktok' || p === 'instagram' || p === 'x') {
+    if (p === 'tiktok' || p === 'instagram' || p === 'x' || p === 'facebook') {
       preferredPlatform = p;
     } else if (p === 'twitter') {
       preferredPlatform = 'x';
+    } else if (p === 'fb') {
+      preferredPlatform = 'facebook';
     }
   } else if (request.method === 'POST') {
     try {
       const body: any = await request.json().catch(() => ({}));
       targetUrl = String(body?.url || '').trim();
-      if (body?.platform === 'tiktok' || body?.platform === 'instagram' || body?.platform === 'x') {
+      if (
+        body?.platform === 'tiktok' ||
+        body?.platform === 'instagram' ||
+        body?.platform === 'x' ||
+        body?.platform === 'facebook'
+      ) {
         preferredPlatform = body.platform;
       } else if (body?.platform === 'twitter') {
         preferredPlatform = 'x';
+      } else if (body?.platform === 'fb') {
+        preferredPlatform = 'facebook';
       }
     } catch {
       targetUrl = '';
@@ -204,17 +214,36 @@ async function handleExtract(
   if (!targetUrl) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram ou X (Twitter).',
+      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram, X (Twitter) ou Facebook.',
       400
     );
   }
 
   // 1. Détection et validation d'URL
   let detection = detectUrl(targetUrl, preferredPlatform);
+
+  if (detection.platform === 'facebook' && detection.isLoginRedirect) {
+    scheduleAsyncLog(
+      ctx,
+      logExtractionEvent(env, {
+        platform: 'facebook',
+        status: 'error',
+        errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
+        durationMs: Date.now() - startedAt,
+        ipHash,
+      })
+    );
+    return createErrorResponse(
+      'PRIVATE_OR_LOGIN_REQUIRED',
+      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      403
+    );
+  }
+
   if (!detection.isValid || !detection.platform) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'URL non supportée. VIDNEX prend en charge les vidéos, carrousels et profils TikTok, Instagram et X (Twitter).',
+      'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter) et Facebook.',
       400
     );
   }
@@ -240,18 +269,73 @@ async function handleExtract(
     detection = revalidated;
   }
 
+  // Résolution des liens de partage Facebook (/share/v/, /share/r/, fb.watch) avec limite 4 sauts et anti-SSRF
+  if (detection.platform === 'facebook' && detection.isShortLink) {
+    const resolvedFb = await resolveFacebookRedirect(detection.cleanUrl);
+    if (!resolvedFb.ok || !resolvedFb.finalUrl) {
+      const errCode = resolvedFb.errorCode || 'UNSUPPORTED_URL';
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: 'facebook',
+          status: 'error',
+          errorCode: errCode,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+        })
+      );
+      return createErrorResponse(
+        errCode,
+        resolvedFb.errorMessage ||
+          'Impossible de résoudre ce lien de partage Facebook vers une vidéo publique valide.',
+        mapErrorCodeToHttpStatus(errCode)
+      );
+    }
+
+    const revalidatedFb = detectUrl(resolvedFb.finalUrl, 'facebook');
+    if (revalidatedFb.isLoginRedirect) {
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: 'facebook',
+          status: 'error',
+          errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
+          durationMs: Date.now() - startedAt,
+          ipHash,
+        })
+      );
+      return createErrorResponse(
+        'PRIVATE_OR_LOGIN_REQUIRED',
+        "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+        403
+      );
+    }
+
+    if (!revalidatedFb.isValid || revalidatedFb.platform !== 'facebook') {
+      return createErrorResponse(
+        'UNSUPPORTED_URL',
+        'Le lien Facebook résolu ne pointe pas vers une vidéo ou un Reel public pris en charge.',
+        400
+      );
+    }
+    detection = revalidatedFb;
+  }
+
   // Vérification 4 : Plateforme désactivée dans l'admin
   if (
     (detection.platform === 'tiktok' && !settings.platform_tiktok) ||
     (detection.platform === 'instagram' && !settings.platform_instagram) ||
-    (detection.platform === 'x' && settings.platform_x === false)
+    (detection.platform === 'x' && settings.platform_x === false) ||
+    (detection.platform === 'facebook' && settings.platform_facebook === false)
   ) {
     const label =
       detection.platform === 'tiktok'
         ? 'TikTok'
         : detection.platform === 'instagram'
         ? 'Instagram'
-        : 'X (Twitter)';
+        : detection.platform === 'x'
+        ? 'X (Twitter)'
+        : 'Facebook';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -291,6 +375,8 @@ async function handleExtract(
     );
   } else if (detection.platform === 'x') {
     result = await extractX(detection.identifier || '');
+  } else if (detection.platform === 'facebook') {
+    result = await extractFacebook(detection.cleanUrl, detection.identifier);
   } else {
     return createErrorResponse(
       'UNSUPPORTED_URL',
@@ -343,7 +429,9 @@ async function handleExtract(
       (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'mp3' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
     const safeFilename =
-      result.platform === 'x'
+      result.platform === 'facebook'
+        ? `facebook_${tweetOrMediaId}.${ext}`
+        : result.platform === 'x'
         ? (result.items || []).length > 1
           ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
           : `x_${username}_${tweetOrMediaId}.${ext}`
@@ -355,7 +443,9 @@ async function handleExtract(
       thumbnail: item.thumbnail
         ? wrapDownloadUrl(
             item.thumbnail,
-            result.platform === 'x'
+            result.platform === 'facebook'
+              ? `facebook_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
+              : result.platform === 'x'
               ? `x_${username}_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : `VIDNEX_${result.platform}_${username}_slide_${idx + 1}.jpg`,
             true,

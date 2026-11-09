@@ -8,7 +8,7 @@
  * et toute URL non conforme avec `isValid: false` (qui renvoie `UNSUPPORTED_URL` · HTTP 400).
  */
 
-export type SupportedPlatform = 'tiktok' | 'instagram' | 'x';
+export type SupportedPlatform = 'tiktok' | 'instagram' | 'x' | 'facebook';
 export type ContentKind = 'video' | 'slideshow' | 'reel' | 'post' | 'story' | 'profile';
 
 export interface DetectionResult {
@@ -18,6 +18,23 @@ export interface DetectionResult {
   identifier?: string;
   cleanUrl: string;
   isShortLink?: boolean;
+  isLoginRedirect?: boolean;
+}
+
+const ALLOWED_FACEBOOK_HOSTS = new Set([
+  'facebook.com',
+  'www.facebook.com',
+  'm.facebook.com',
+  'web.facebook.com',
+  'fb.watch',
+  'www.fb.watch',
+  'fb.com',
+  'www.fb.com',
+  'm.fb.com',
+]);
+
+export function isAllowedFacebookHost(hostname: string): boolean {
+  return ALLOWED_FACEBOOK_HOSTS.has(hostname.trim().toLowerCase());
 }
 
 const RESERVED_IG_SEGMENTS = new Set([
@@ -408,6 +425,169 @@ export function detectUrl(
           cleanUrl: `https://x.com/${user}/status/${tweetId}`,
         };
       }
+    }
+
+    return {
+      isValid: false,
+      platform: null,
+      kind: null,
+      identifier: undefined,
+      cleanUrl: trimmed,
+    };
+  }
+
+  // =========================================================================
+  // 4. FACEBOOK (facebook.com, www.facebook.com, m.facebook.com, web.facebook.com, fb.watch, fb.com)
+  // =========================================================================
+  if (isAllowedFacebookHost(parsed.hostname)) {
+    const rawHost = parsed.hostname.toLowerCase();
+
+    // Détection immédiate d'une page de connexion (/login)
+    if (
+      pathname === '/login' ||
+      pathname.startsWith('/login/') ||
+      pathname.startsWith('/login.php')
+    ) {
+      return {
+        isValid: false,
+        platform: 'facebook',
+        kind: null,
+        identifier: undefined,
+        cleanUrl: parsed.toString(),
+        isLoginRedirect: true,
+      };
+    }
+
+    // V1 : Rejeter explicitement les photos, stories et lives avec UNSUPPORTED_URL
+    if (
+      pathname.startsWith('/photo') ||
+      pathname.startsWith('/photos/') ||
+      pathname.startsWith('/stories/') ||
+      pathname.includes('/live/') ||
+      pathname.startsWith('/watch/live')
+    ) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Format 1 : Lien court fb.watch/{code} (ou fb.watch/v/{code})
+    if (rawHost === 'fb.watch' || rawHost === 'www.fb.watch') {
+      const fbWatchMatch = pathname.match(/^\/(?:v\/)?([A-Za-z0-9_-]{3,40})\/?$/);
+      if (fbWatchMatch && fbWatchMatch[1].toLowerCase() !== 'login') {
+        const code = fbWatchMatch[1];
+        return {
+          isValid: true,
+          platform: 'facebook',
+          kind: 'video',
+          identifier: code,
+          cleanUrl: `https://fb.watch/${code}/`,
+          isShortLink: true,
+        };
+      }
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Format 2 : /reel/{id} (ou /reels/{id})
+    const fbReelMatch = pathname.match(/^\/(?:reel|reels)\/([0-9A-Za-z_-]{5,45})\/?$/i);
+    if (fbReelMatch) {
+      const reelId = fbReelMatch[1];
+      return {
+        isValid: true,
+        platform: 'facebook',
+        kind: 'reel',
+        identifier: reelId,
+        cleanUrl: `https://www.facebook.com/reel/${reelId}`,
+      };
+    }
+
+    // Format 3 : /watch/?v={id} et /watch?v={id} (ou /watch/{id})
+    if (pathname === '/watch' || pathname === '/watch/') {
+      const vParam = parsed.searchParams.get('v')?.trim() || '';
+      if (/^\d{5,30}$/.test(vParam)) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          kind: 'video',
+          identifier: vParam,
+          cleanUrl: `https://www.facebook.com/watch/?v=${vParam}`,
+        };
+      }
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Format 4 : /video.php?v={id}
+    if (pathname === '/video.php' || pathname === '/video.php/') {
+      const vParam = (
+        parsed.searchParams.get('v') ||
+        parsed.searchParams.get('id') ||
+        ''
+      ).trim();
+      if (/^\d{5,30}$/.test(vParam)) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          kind: 'video',
+          identifier: vParam,
+          cleanUrl: `https://www.facebook.com/watch/?v=${vParam}`,
+        };
+      }
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Format 5 : /{page}/videos/{id} et /{page}/videos/{titre}/{id} (ou /videos/{id})
+    const fbPageVideoMatch =
+      pathname.match(
+        /^\/([A-Za-z0-9._-]+)\/videos\/(?:[^/]+\/)?(\d{5,30})\/?$/i
+      ) || pathname.match(/^\/videos\/(\d{5,30})\/?$/i);
+    if (fbPageVideoMatch) {
+      const isDirectVideos = fbPageVideoMatch.length === 2;
+      const pageName = isDirectVideos ? 'facebook' : fbPageVideoMatch[1];
+      const videoId = isDirectVideos ? fbPageVideoMatch[1] : fbPageVideoMatch[2];
+      return {
+        isValid: true,
+        platform: 'facebook',
+        kind: 'video',
+        identifier: videoId,
+        cleanUrl: `https://www.facebook.com/${pageName}/videos/${videoId}/`,
+      };
+    }
+
+    // Format 6 : /share/v/{code} et /share/r/{code} (liens de partage à résoudre)
+    const fbShareMatch = pathname.match(/^\/share\/([vr])\/([A-Za-z0-9_-]{4,45})\/?$/i);
+    if (fbShareMatch) {
+      const shareType = fbShareMatch[1].toLowerCase();
+      const shareCode = fbShareMatch[2];
+      return {
+        isValid: true,
+        platform: 'facebook',
+        kind: shareType === 'r' ? 'reel' : 'video',
+        identifier: shareCode,
+        cleanUrl: `https://www.facebook.com/share/${shareType}/${shareCode}/`,
+        isShortLink: true,
+      };
     }
 
     return {

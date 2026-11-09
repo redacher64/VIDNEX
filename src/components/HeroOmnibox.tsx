@@ -20,11 +20,11 @@ import { PlatformIcon } from './icons/PlatformIcons';
 import { AdSlot } from './AdSlot';
 
 const COMING_SOON_MESSAGE_BY_LANG: Record<LanguageCode, string> = {
-  en: 'This platform is coming soon! Currently, Instagram, TikTok, and X (Twitter) are active.',
-  fr: 'Cette plateforme arrive bientôt ! Actuellement, Instagram, TikTok et X (Twitter) sont disponibles.',
-  es: '¡Esta plataforma estará disponible pronto! Actualmente admitimos Instagram, TikTok y X (Twitter).',
-  pt: 'Esta plataforma estará disponível em breve! Atualmente suportamos Instagram, TikTok e X (Twitter).',
-  ar: 'هذه المنصة ستتوفر قريباً! حالياً ندعم إنستغرام وتيك توك وإكس (تويتر) بالكامل.',
+  en: 'This platform is coming soon! Currently, Instagram, TikTok, X (Twitter), and Facebook are active.',
+  fr: 'Cette plateforme arrive bientôt ! Actuellement, Instagram, TikTok, X (Twitter) et Facebook sont disponibles.',
+  es: '¡Esta plataforma estará disponible pronto! Actualmente admitimos Instagram, TikTok, X (Twitter) y Facebook.',
+  pt: 'Esta plataforma estará disponível em breve! Atualmente suportamos Instagram, TikTok, X (Twitter) e Facebook.',
+  ar: 'هذه المنصة ستتوفر قريباً! حالياً ندعم إنستغرام وتيك توك وإكس (تويتر) وفيسبوك بالكامل.',
 };
 
 interface HeroOmniboxProps {
@@ -140,6 +140,11 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
         activeTool.slug !== 'x-video'
       ) {
         onSelectTool('x-video');
+      } else if (
+        detected.platform === 'facebook' &&
+        activeTool.slug !== 'facebook-reels'
+      ) {
+        onSelectTool('facebook-reels');
       } else if (detected.platform !== activeTool.platform) {
         onSelectPlatform(detected.platform);
       }

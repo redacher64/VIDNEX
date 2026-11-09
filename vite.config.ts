@@ -30,6 +30,18 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
         }
 
         try {
+          let body: Uint8Array | undefined;
+          if (req.method !== 'GET' && req.method !== 'HEAD') {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+            }
+            const buf = Buffer.concat(chunks);
+            if (buf.length > 0) {
+              body = new Uint8Array(buf);
+            }
+          }
+
           const workerMod = await import('./worker.ts');
           const worker = workerMod.default;
 
@@ -46,19 +58,10 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
             }
           }
 
-          let body: Buffer | undefined;
-          if (req.method !== 'GET' && req.method !== 'HEAD') {
-            const chunks: Buffer[] = [];
-            for await (const chunk of req) {
-              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-            }
-            body = Buffer.concat(chunks);
-          }
-
           const webReq = new Request(fullUrl, {
             method: req.method || 'GET',
             headers,
-            body: body && body.length > 0 ? body : undefined,
+            body,
           });
 
           const mergedEnv = {

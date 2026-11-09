@@ -102,6 +102,13 @@ export function isAllowedMediaHost(hostname: string): boolean {
     lower === 'www.instagram.com' ||
     lower === 'facebook.com' ||
     lower === 'www.facebook.com' ||
+    lower === 'm.facebook.com' ||
+    lower === 'web.facebook.com' ||
+    lower === 'fb.watch' ||
+    lower === 'www.fb.watch' ||
+    lower === 'fb.com' ||
+    lower === 'www.fb.com' ||
+    lower === 'm.fb.com' ||
     lower === 'tiktok.com' ||
     lower === 'www.tiktok.com' ||
     lower === 'm.tiktok.com' ||

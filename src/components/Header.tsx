@@ -18,8 +18,8 @@ export const PLATFORM_TABS: ToolTab[] = [
   { id: 'instagram', label: 'Instagram', isPrimary: true, supported: true },
   { id: 'tiktok', label: 'TikTok', isPrimary: true, supported: true },
   { id: 'x', label: 'X (Twitter)', isPrimary: true, supported: true },
-  { id: 'youtube', label: 'YouTube', isPrimary: true, supported: false },
-  { id: 'facebook', label: 'Facebook', isPrimary: false, supported: false },
+  { id: 'facebook', label: 'Facebook', isPrimary: true, supported: true },
+  { id: 'youtube', label: 'YouTube', isPrimary: false, supported: false },
   { id: 'snapchat', label: 'Snapchat', isPrimary: false, supported: false },
 ];
 

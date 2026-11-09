@@ -10,11 +10,13 @@ export interface SystemSettings {
   platform_tiktok: boolean;
   platform_instagram: boolean;
   platform_x: boolean;
+  platform_facebook: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
   test_url_tiktok: string;
   test_url_instagram: string;
   test_url_x: string;
+  test_url_facebook: string;
 }
 
 export interface BlocklistEntry {
@@ -29,11 +31,13 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   platform_tiktok: true,
   platform_instagram: true,
   platform_x: true,
+  platform_facebook: true,
   rate_limit_per_min: 30,
   ads_enabled: true,
   test_url_tiktok: '',
   test_url_instagram: '',
   test_url_x: '',
+  test_url_facebook: '',
 };
 
 /**
@@ -75,6 +79,9 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       platform_x: map.has('platform_x')
         ? map.get('platform_x') !== 'false'
         : true,
+      platform_facebook: map.has('platform_facebook')
+        ? map.get('platform_facebook') !== 'false'
+        : true,
       rate_limit_per_min: rateLimit,
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
@@ -82,6 +89,7 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       test_url_tiktok: map.get('test_url_tiktok') ?? '',
       test_url_instagram: map.get('test_url_instagram') ?? '',
       test_url_x: map.get('test_url_x') ?? '',
+      test_url_facebook: map.get('test_url_facebook') ?? '',
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -113,6 +121,9 @@ export async function updateSystemSettings(
   if (typeof partial.platform_x === 'boolean') {
     entries.push(['platform_x', String(partial.platform_x)]);
   }
+  if (typeof partial.platform_facebook === 'boolean') {
+    entries.push(['platform_facebook', String(partial.platform_facebook)]);
+  }
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));
     entries.push(['rate_limit_per_min', String(clamped)]);
@@ -128,6 +139,9 @@ export async function updateSystemSettings(
   }
   if (typeof partial.test_url_x === 'string') {
     entries.push(['test_url_x', partial.test_url_x.trim()]);
+  }
+  if (typeof partial.test_url_facebook === 'string') {
+    entries.push(['test_url_facebook', partial.test_url_facebook.trim()]);
   }
 
   for (const [key, value] of entries) {

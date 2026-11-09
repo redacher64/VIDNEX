@@ -120,7 +120,7 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [react(), cloudflarePagesFunctionsDevBridge()],
   build: {
     emptyOutDir: true,

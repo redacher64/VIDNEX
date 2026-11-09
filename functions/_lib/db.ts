@@ -73,6 +73,93 @@ export async function hashIpAddress(
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+const bootstrappedDbs = new WeakSet<object>();
+
+const D1_BOOTSTRAP_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
+  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('rate_limit_per_min', '30'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', '')`,
+  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
+  `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT)`,
+  `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES ('tiktok', NULL, NULL, NULL, NULL), ('instagram', NULL, NULL, NULL, NULL)`,
+  `CREATE TABLE IF NOT EXISTS blocklist (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, value TEXT NOT NULL, created_ts INTEGER NOT NULL, UNIQUE(type, value))`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (ip_hash TEXT NOT NULL, window INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (ip_hash, window))`,
+  `CREATE TABLE IF NOT EXISTS login_attempts (ip_hash TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, window_start_ts INTEGER NOT NULL, blocked_until_ts INTEGER)`,
+];
+
+async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boolean> {
+  const msg = err instanceof Error ? err.message : String(err || '');
+  if (!msg.toLowerCase().includes('no such table')) {
+    return false;
+  }
+  if (bootstrappedDbs.has(rawDb)) {
+    return false;
+  }
+  try {
+    await rawDb.batch(D1_BOOTSTRAP_STATEMENTS.map((sql) => rawDb.prepare(sql)));
+    bootstrappedDbs.add(rawDb);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function wrapAutoBootstrapD1(rawDb: D1Database): D1Database {
+  const wrapStmt = (sql: string, boundValues: unknown[] = []): D1PreparedStatement => {
+    const createInner = () => {
+      const stmt = rawDb.prepare(sql);
+      return boundValues.length > 0 ? stmt.bind(...boundValues) : stmt;
+    };
+    return {
+      bind(...values: unknown[]) {
+        return wrapStmt(sql, values);
+      },
+      async first<T = Record<string, unknown>>(colName?: string): Promise<T | null> {
+        try {
+          return await createInner().first<T>(colName);
+        } catch (err) {
+          if (await ensureSchemaOnError(rawDb, err)) {
+            return await createInner().first<T>(colName);
+          }
+          throw err;
+        }
+      },
+      async run(): Promise<D1Result> {
+        try {
+          return await createInner().run();
+        } catch (err) {
+          if (await ensureSchemaOnError(rawDb, err)) {
+            return await createInner().run();
+          }
+          throw err;
+        }
+      },
+      async all<T = Record<string, unknown>>(): Promise<D1Result<T>> {
+        try {
+          return await createInner().all<T>();
+        } catch (err) {
+          if (await ensureSchemaOnError(rawDb, err)) {
+            return await createInner().all<T>();
+          }
+          throw err;
+        }
+      },
+    };
+  };
+
+  return {
+    prepare(query: string) {
+      return wrapStmt(query, []);
+    },
+    batch<T = unknown>(statements: D1PreparedStatement[]) {
+      return rawDb.batch<T>(statements);
+    },
+    exec(query: string) {
+      return rawDb.exec(query);
+    },
+  };
+}
+
 /**
  * Retourne le binding D1 `env.DB` s'il est disponible et actif, ou `null` si D1 est coupé.
  */
@@ -81,7 +168,7 @@ export function getDb(env?: AdminEnv): D1Database | null {
     return null;
   }
   if (env.DB && typeof env.DB.prepare === 'function') {
-    return env.DB;
+    return wrapAutoBootstrapD1(env.DB);
   }
   return null;
 }

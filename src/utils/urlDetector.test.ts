@@ -1356,4 +1356,74 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'noindex, nofollow'
     );
   });
+
+  it('ÉTAPE 1 à 7 (OPENGRAPH, TWITTER CARDS, IMAGES /OG/, FAVICONS & SHAREBUTTON) — Métadonnées sociales par page/langue, troncature propre arabe/latin, liens de partage sans suivi, et accès robots', async () => {
+    const {
+      buildHeadMetadataForRoute,
+      clampSocialText,
+    } = await import('../i18n/hreflang.ts');
+    const { buildSocialShareUrls } = await import(
+      '../components/ShareButton.tsx'
+    );
+    const { OG_IMAGES, SITE_URL } = await import('../config/site.ts');
+
+    // 1. Vérifie que chaque plateforme utilise son image dédiée avec hash en URL absolue https
+    const frHome = buildHeadMetadataForRoute('fr', 'home');
+    assert.equal(frHome.ogImage, `${SITE_URL}${OG_IMAGES.default}`);
+    assert.equal(frHome.ogImageSecureUrl, `${SITE_URL}${OG_IMAGES.default}`);
+    assert.equal(frHome.twitterImage, `${SITE_URL}${OG_IMAGES.default}`);
+    assert.equal(frHome.ogImageWidth, '1200');
+    assert.equal(frHome.ogImageHeight, '630');
+    assert.equal(frHome.ogImageType, 'image/jpeg');
+    assert.equal(frHome.ogUrl, frHome.canonicalUrl);
+    assert.equal(frHome.ogLocale, 'fr_FR');
+    assert.ok(frHome.ogImageAlt.length > 20);
+
+    const arTiktok = buildHeadMetadataForRoute('ar', 'tiktok');
+    assert.equal(arTiktok.ogImage, `${SITE_URL}${OG_IMAGES.tiktok}`);
+    assert.equal(arTiktok.ogUrl, 'https://vidnex.space/ar/tiktok-video-downloader');
+    assert.equal(arTiktok.ogLocale, 'ar_AR');
+    assert.ok(arTiktok.ogTitle.length <= 60);
+    assert.ok(
+      arTiktok.ogDescription.length >= 90 && arTiktok.ogDescription.length <= 150
+    );
+
+    const enInsta = buildHeadMetadataForRoute('en', 'instagram');
+    assert.equal(enInsta.ogImage, `${SITE_URL}${OG_IMAGES.instagram}`);
+    const esX = buildHeadMetadataForRoute('es', 'x');
+    assert.equal(esX.ogImage, `${SITE_URL}${OG_IMAGES.x}`);
+    const deFb = buildHeadMetadataForRoute('de', 'facebook');
+    assert.equal(deFb.ogImage, `${SITE_URL}${OG_IMAGES.facebook}`);
+
+    // 2. Troncature propre sans couper un mot ni un caractère arabe en deux
+    const longAr =
+      'أداة مجانية لتحميل الفيديوهات العامة من تيك توك بدون علامة مائية وريلز إنستغرام وفيديوهات إكس وفيسبوك بجودة عالية مباشرة عبر المتصفح بدون حساب';
+    const clampedAr = clampSocialText(longAr, 60);
+    assert.ok([...clampedAr].length <= 60);
+    assert.ok(clampedAr.endsWith('…'));
+    assert.ok(!clampedAr.includes('\uFFFD'));
+
+    // 3. ShareButton : URLs de partage propres utilisant l'URL canonique exacte sans paramètres de suivi
+    const shareUrls = buildSocialShareUrls('fr', 'tiktok');
+    assert.equal(
+      shareUrls.canonicalUrl,
+      'https://vidnex.space/telecharger-video-tiktok'
+    );
+    assert.ok(shareUrls.whatsapp.startsWith('https://wa.me/?text='));
+    assert.ok(
+      shareUrls.telegram.startsWith(
+        'https://t.me/share/url?url=https%3A%2F%2Fvidnex.space%2Ftelecharger-video-tiktok'
+      )
+    );
+    assert.ok(
+      shareUrls.facebook.startsWith(
+        'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvidnex.space%2Ftelecharger-video-tiktok'
+      )
+    );
+    assert.ok(
+      shareUrls.x.startsWith(
+        'https://x.com/intent/tweet?url=https%3A%2F%2Fvidnex.space%2Ftelecharger-video-tiktok'
+      )
+    );
+  });
 });

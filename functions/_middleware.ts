@@ -77,7 +77,9 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
 
   const response = await next();
 
-  if (isAdminPage || isAnyApi || isPreviewHost) {
+  const isOgAsset = pathname.startsWith('/og/');
+
+  if (!isOgAsset && (isAdminPage || isAnyApi || isPreviewHost)) {
     const headers = new Headers(response.headers);
     headers.set('X-Robots-Tag', 'noindex, nofollow');
     return new Response(response.body, {

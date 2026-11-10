@@ -114,6 +114,18 @@
       "BLOCKED": "L'accesso è stato temporaneamente limitato per motivi di sicurezza.",
       "RATE_LIMITED": "Hai raggiunto il limite di richieste al minuto. Attendi qualche istante prima di riprovare.",
       "NETWORK_ERROR": "Impossibile connettersi al server. Controlla la connessione Internet e riprova."
+    },
+    "share": {
+      "buttonLabel": "Condividi",
+      "buttonAria": "Condividi questo strumento sui social network",
+      "menuTitle": "Condividi strumento",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Copia link",
+      "copied": "Link copiato!",
+      "shareOnAria": "Condividi su {network}"
     }
   },
   "home": {
@@ -187,7 +199,10 @@
         "question": "VIDNEX conserva una cronologia dei miei download?",
         "answer": "No. I link vengono elaborati al volo e nessun file multimediale viene archiviato sui nostri server."
       }
-    ]
+    ],
+    "ogTitle": "VIDNEX — Scaricare video da TikTok, Instagram, X e Facebook",
+    "ogDescription": "Scarica video pubblici da TikTok senza filigrana, Instagram Reels, X (Twitter) e Facebook in MP4 o MP3 gratis direttamente dal browser.",
+    "ogImageAlt": "Anteprima VIDNEX: scaricatore di video pubblici da TikTok, Instagram, X e Facebook in MP4"
   },
   "platforms": {
     "tiktok": {
@@ -259,7 +274,10 @@
           "question": "Come salvare il video nella galleria di un iPhone?",
           "answer": "Da Safari (iOS 13+), tocca Scarica MP4. Una volta salvato nell'app File, apri il video e seleziona Condividi > Salva video."
         }
-      ]
+      ],
+      "ogTitle": "Scaricare video TikTok senza filigrana in MP4 | VIDNEX",
+      "ogDescription": "Scarica video pubblici di TikTok senza filigrana (watermark) in qualità MP4 HD o estrai l'audio in MP3 gratis dal browser su smartphone e PC.",
+      "ogImageAlt": "Anteprima scaricatore video TikTok senza filigrana in MP4 HD e audio MP3 su VIDNEX"
     },
     "instagram": {
       "slug": "scaricare-reel-instagram",
@@ -330,7 +348,10 @@
           "question": "Devo inserire le credenziali del mio account Instagram?",
           "answer": "Mai. VIDNEX funziona senza registrazione e non chiede mai nome utente o password."
         }
-      ]
+      ],
+      "ogTitle": "Scaricare Reels e video Instagram in MP4 gratis | VIDNEX",
+      "ogDescription": "Scarica Instagram Reels, video e caroselli pubblici in formato MP4 e JPG direttamente su telefono o PC senza accedere al tuo account.",
+      "ogImageAlt": "Anteprima scaricatore Reels, caroselli e foto profilo Instagram pubblici su VIDNEX"
     },
     "x": {
       "slug": "scaricare-video-x-twitter",
@@ -401,7 +422,10 @@
           "question": "Cosa succede se un tweet contiene più video?",
           "answer": "Se un tweet pubblico include fino a 4 video allegati, ciascun video verrà mostrato separatamente con il relativo pulsante di download."
         }
-      ]
+      ],
+      "ogTitle": "Scaricare video da X (Twitter) in MP4 HD gratis | VIDNEX",
+      "ogDescription": "Scarica video e GIF dai tweet pubblici di X (Twitter) in formato MP4 scegliendo la risoluzione (1080p, 720p) direttamente dal browser.",
+      "ogImageAlt": "Anteprima scaricatore video e GIF pubblici da X (Twitter) in formato MP4 HD su VIDNEX"
     },
     "facebook": {
       "slug": "scaricare-video-facebook",
@@ -472,7 +496,10 @@
           "question": "Il file MP4 scaricato include l'audio?",
           "answer": "Sì, il nostro estrattore dà priorità ai flussi MP4 completi che includono sia il video sia l'audio in un unico file."
         }
-      ]
+      ],
+      "ogTitle": "Scaricare video Facebook e Reels in MP4 HD / SD | VIDNEX",
+      "ogDescription": "Scarica video pubblici di Facebook, Facebook Reels e link fb.watch in formato MP4 in qualità HD o SD gratis direttamente dal browser.",
+      "ogImageAlt": "Anteprima scaricatore video Facebook Watch e Reels pubblici in qualità MP4 HD e SD"
     }
   }
 }

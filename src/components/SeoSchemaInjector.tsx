@@ -52,10 +52,12 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
 
     upsertNameMeta('description', meta.description);
     upsertNameMeta('robots', meta.robots);
+    upsertNameMeta('theme-color', meta.themeColor);
     upsertNameMeta('twitter:card', meta.twitterCard);
-    upsertNameMeta('twitter:title', meta.ogTitle);
-    upsertNameMeta('twitter:description', meta.ogDescription);
-    upsertNameMeta('twitter:image', meta.ogImage);
+    upsertNameMeta('twitter:title', meta.twitterTitle);
+    upsertNameMeta('twitter:description', meta.twitterDescription);
+    upsertNameMeta('twitter:image', meta.twitterImage);
+    upsertNameMeta('twitter:image:alt', meta.twitterImageAlt);
 
     let canonicalLink = document.querySelector(
       'link[rel="canonical"]'
@@ -73,6 +75,11 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
     upsertPropertyMeta('og:description', meta.ogDescription);
     upsertPropertyMeta('og:url', meta.ogUrl);
     upsertPropertyMeta('og:image', meta.ogImage);
+    upsertPropertyMeta('og:image:secure_url', meta.ogImageSecureUrl);
+    upsertPropertyMeta('og:image:type', meta.ogImageType);
+    upsertPropertyMeta('og:image:width', meta.ogImageWidth);
+    upsertPropertyMeta('og:image:height', meta.ogImageHeight);
+    upsertPropertyMeta('og:image:alt', meta.ogImageAlt);
     upsertPropertyMeta('og:locale', meta.ogLocale);
 
     document

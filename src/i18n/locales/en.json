@@ -47,10 +47,26 @@
     },
     "sections": {
       "bentoCards": [
-        { "id": "nw", "metric": "CLEAN STREAM", "title": "TikTok videos without added watermarks" },
-        { "id": "br", "metric": "NATIVE QUALITY", "title": "Original MP4 HD/SD & AAC/MP3 audio" },
-        { "id": "pr", "metric": "ZERO STORAGE", "title": "Stateless memory proxy with no file archiving" },
-        { "id": "sp", "metric": "CROSS-DEVICE", "title": "Works on iOS, Android, Windows & macOS" }
+        {
+          "id": "nw",
+          "metric": "CLEAN STREAM",
+          "title": "TikTok videos without added watermarks"
+        },
+        {
+          "id": "br",
+          "metric": "NATIVE QUALITY",
+          "title": "Original MP4 HD/SD & AAC/MP3 audio"
+        },
+        {
+          "id": "pr",
+          "metric": "ZERO STORAGE",
+          "title": "Stateless memory proxy with no file archiving"
+        },
+        {
+          "id": "sp",
+          "metric": "CROSS-DEVICE",
+          "title": "Works on iOS, Android, Windows & macOS"
+        }
       ],
       "workflowProtocol": "HOW IT WORKS",
       "howToHeading": "How to download public videos in 3 steps",
@@ -98,15 +114,32 @@
       "BLOCKED": "This request or resource has been restricted by the administrator.",
       "RATE_LIMITED": "Per-minute request limit reached. Please wait a few seconds before trying again.",
       "NETWORK_ERROR": "Unable to reach the VIDNEX extraction service (/api/extract)."
+    },
+    "share": {
+      "buttonLabel": "Share",
+      "buttonAria": "Share this tool page on social networks",
+      "menuTitle": "Share this tool",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Copy link",
+      "copied": "Link copied!",
+      "shareOnAria": "Share on {network}"
     }
   },
   "home": {
     "metaTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
-    "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) videos, and Facebook Watch clips in HD MP4 for free with no account required.",
+    "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) clips, and Facebook videos in HD MP4 for free in your browser.",
     "h1": "Public Video Downloader for TikTok, Instagram, X & Facebook",
     "subtitle": "Save public social videos, Reels, photo carousels, and MP3 audio tracks directly in your browser without registration.",
     "placeholder": "https://www.tiktok.com/@username/video/...",
-    "specs": ["HD & SD MP4", "NO WATERMARK TIKTOK", "NO LOGIN NEEDED", "PUBLIC MEDIA ONLY"],
+    "specs": [
+      "HD & SD MP4",
+      "NO WATERMARK TIKTOK",
+      "NO LOGIN NEEDED",
+      "PUBLIC MEDIA ONLY"
+    ],
     "editorial": {
       "heading": "One unified web tool for saving public social media videos",
       "subheading": "Built on Cloudflare Pages to resolve original MP4 video streams and MP3 audio without re-encoding.",
@@ -166,7 +199,10 @@
         "question": "Does VIDNEX work on iPhone, iPad, and Android phones?",
         "answer": "Yes. You can save MP4 and MP3 files directly using Safari on iOS/iPadOS or Chrome and Firefox on Android, Windows, and macOS."
       }
-    ]
+    ],
+    "ogTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
+    "ogDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) clips, and Facebook videos in HD MP4 for free in your browser.",
+    "ogImageAlt": "VIDNEX preview: download public TikTok, Instagram, X and Facebook videos in HD MP4"
   },
   "platforms": {
     "tiktok": {
@@ -178,7 +214,12 @@
       "shortLabel": "TikTok Video",
       "breadcrumbLabel": "TikTok Downloader",
       "placeholder": "https://www.tiktok.com/@tiktok/video/7106594312292453675",
-      "specs": ["NO WATERMARK", "HD MP4 & MP3", "VM.TIKTOK LINKS", "PUBLIC POSTS ONLY"],
+      "specs": [
+        "NO WATERMARK",
+        "HD MP4 & MP3",
+        "VM.TIKTOK LINKS",
+        "PUBLIC POSTS ONLY"
+      ],
       "editorial": {
         "heading": "How the watermark-free TikTok downloader works",
         "subheading": "Extract clean source MP4 streams, Photo Mode carousels, and original MP3 audio from public TikTok links.",
@@ -234,18 +275,26 @@
           "question": "Why does video resolution vary from one TikTok post to another?",
           "answer": "VIDNEX delivers the exact source file uploaded by the creator without artificial upscaling. If the original video was uploaded in 1080p or 720p, that exact stream is provided."
         }
-      ]
+      ],
+      "ogTitle": "TikTok Video Downloader Without Watermark (HD MP4) | VIDNEX",
+      "ogDescription": "Download public TikTok videos without watermark in HD MP4, extract MP3 audio tracks, or save Photo Mode slideshows online for free on mobile and PC.",
+      "ogImageAlt": "VIDNEX TikTok video downloader preview — save MP4 without watermark and MP3 audio"
     },
     "instagram": {
       "slug": "instagram-reels-downloader",
-      "metaTitle": "Instagram Reels Downloader — Save HD MP4 & Carousels | VIDNEX",
+      "metaTitle": "Instagram Reels & Carousel Downloader in MP4 HD | VIDNEX",
       "metaDescription": "Download public Instagram Reels in original MP4 quality, batch-save multi-photo carousels as ZIP, and view full-size profile pictures online for free.",
       "h1": "Instagram Reels & Carousel Downloader (HD MP4)",
       "subtitle": "Save public Instagram Reels in clean MP4, extract multi-slide carousels, and view full-resolution profile pictures without logging in.",
       "shortLabel": "Instagram Reels",
       "breadcrumbLabel": "Instagram Downloader",
       "placeholder": "https://www.instagram.com/reel/C8x9kLmN2pQ/",
-      "specs": ["REELS HD MP4", "CAROUSEL .ZIP", "FULL-SIZE DP", "PUBLIC POSTS ONLY"],
+      "specs": [
+        "REELS HD MP4",
+        "CAROUSEL .ZIP",
+        "FULL-SIZE DP",
+        "PUBLIC POSTS ONLY"
+      ],
       "editorial": {
         "heading": "Save public Instagram Reels, photos, and carousels in original quality",
         "subheading": "Direct CDN extraction for /reel/, /p/, and public profile links on mobile and desktop.",
@@ -301,18 +350,26 @@
           "question": "How do I download a full-size Instagram profile picture?",
           "answer": "Enter the public profile URL (such as instagram.com/natgeo) or type @natgeo into the search box and press Download."
         }
-      ]
+      ],
+      "ogTitle": "Instagram Reels & Carousel Downloader in MP4 HD | VIDNEX",
+      "ogDescription": "Download public Instagram Reels in original MP4 quality, batch-save multi-photo carousels as ZIP, and view full-size profile pictures online for free.",
+      "ogImageAlt": "VIDNEX Instagram downloader preview — save public Reels, carousels and profile photos"
     },
     "x": {
       "slug": "x-twitter-video-downloader",
       "metaTitle": "X (Twitter) Video & GIF Downloader to MP4 HD | VIDNEX",
-      "metaDescription": "Download public X (formerly Twitter) videos and animated GIFs as MP4 files in 1080p, 720p, or SD. Supports x.com, twitter.com, and t.co links for free.",
+      "metaDescription": "Download public X (Twitter) videos and animated GIFs as MP4 files in 1080p, 720p, or SD. Supports x.com, twitter.com, and t.co links free.",
       "h1": "X (Twitter) Video & GIF Downloader (MP4 HD)",
       "subtitle": "Save public videos, animated GIFs converted to MP4, and high-resolution images from x.com and twitter.com posts.",
       "shortLabel": "X / Twitter Video",
       "breadcrumbLabel": "X (Twitter) Downloader",
       "placeholder": "https://x.com/user/status/2040511285998313827",
-      "specs": ["X.COM & TWITTER.COM", "BITRATE SELECTION", "GIFS TO MP4", "T.CO SHORTLINKS"],
+      "specs": [
+        "X.COM & TWITTER.COM",
+        "BITRATE SELECTION",
+        "GIFS TO MP4",
+        "T.CO SHORTLINKS"
+      ],
       "editorial": {
         "heading": "Extract public X (Twitter) videos and GIFs as standard MP4 files",
         "subheading": "Choose from every available MP4 resolution variant attached to a public tweet.",
@@ -368,7 +425,10 @@
           "question": "Why does an age-restricted tweet return an error?",
           "answer": "X blocks anonymous syndication access to age-restricted or sensitive tweets, requiring a logged-in account. VIDNEX only extracts publicly accessible tweets."
         }
-      ]
+      ],
+      "ogTitle": "X (Twitter) Video & GIF Downloader to MP4 HD | VIDNEX",
+      "ogDescription": "Download public X (Twitter) videos and animated GIFs as MP4 files in 1080p, 720p, or SD. Supports x.com, twitter.com, and t.co links free.",
+      "ogImageAlt": "VIDNEX X (Twitter) downloader preview — save public videos and GIFs in HD MP4"
     },
     "facebook": {
       "slug": "facebook-video-downloader",
@@ -379,7 +439,12 @@
       "shortLabel": "Facebook Video",
       "breadcrumbLabel": "Facebook Downloader",
       "placeholder": "https://www.facebook.com/facebook/videos/10153231379946729/",
-      "specs": ["WATCH & REELS", "HD & SD MP4", "FB.WATCH LINKS", "NO LOGIN REQUIRED"],
+      "specs": [
+        "WATCH & REELS",
+        "HD & SD MP4",
+        "FB.WATCH LINKS",
+        "NO LOGIN REQUIRED"
+      ],
       "editorial": {
         "heading": "Download public Facebook videos and Reels in HD or SD",
         "subheading": "Two-level public extraction for facebook.com/watch, /reel/, /share/v/, and fb.watch URLs without an account.",
@@ -435,7 +500,10 @@
           "question": "Are Facebook photos, stories, or Live streams supported?",
           "answer": "No. Currently, the Facebook extractor supports public uploaded videos and public Reels only."
         }
-      ]
+      ],
+      "ogTitle": "Facebook Video & Reels Downloader (HD & SD MP4) | VIDNEX",
+      "ogDescription": "Download public Facebook Watch videos, Reels, and fb.watch share links in HD or SD MP4 for free on mobile and desktop without logging into Facebook.",
+      "ogImageAlt": "VIDNEX Facebook downloader preview — save public Watch videos and Reels in HD MP4"
     }
   },
   "legal": {
@@ -461,11 +529,14 @@
             "We strictly limit extraction to public posts accessible without authentication. VIDNEX never bypasses login walls, private accounts, or digital rights management controls."
           ]
         }
-      ]
+      ],
+      "ogTitle": "About VIDNEX — Stateless Public Media Resolver",
+      "ogDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using stateless Cloudflare Pages Functions with zero file storage.",
+      "ogImageAlt": "About VIDNEX — Public social media video resolver and architecture"
     },
     "privacy": {
       "metaTitle": "Privacy Policy & Cookie Disclosures | VIDNEX",
-      "metaDescription": "Read the VIDNEX Privacy Policy: ephemeral URL processing, zero video storage on disk, hashed anti-abuse counters, and Google AdSense cookie disclosures.",
+      "metaDescription": "Read the VIDNEX Privacy Policy: ephemeral URL processing, zero video storage on disk, hashed anti-abuse counters, and AdSense disclosures.",
       "h1": "Privacy Policy",
       "breadcrumbLabel": "Privacy Policy",
       "updatedAt": "November 10, 2026",
@@ -491,7 +562,10 @@
             "Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Users may opt out of personalized advertising at any time by visiting Google Ads Settings (adssettings.google.com)."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Privacy Policy & Cookie Disclosures | VIDNEX",
+      "ogDescription": "Read the VIDNEX Privacy Policy: ephemeral URL processing, zero video storage on disk, hashed anti-abuse counters, and AdSense disclosures.",
+      "ogImageAlt": "VIDNEX Privacy Policy and ephemeral data processing disclosures"
     },
     "terms": {
       "metaTitle": "Terms of Service & Acceptable Use | VIDNEX",
@@ -514,7 +588,10 @@
             "VIDNEX may only be used with public social media posts. Attempting to use automated bots, scrapers, or excessive request bursts against VIDNEX endpoints is prohibited and automatically throttled by our rate limiter."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Terms of Service & Acceptable Use | VIDNEX",
+      "ogDescription": "Review the VIDNEX Terms of Service covering personal use, copyright responsibility, public-only media limits, and anti-abuse rate limiting.",
+      "ogImageAlt": "VIDNEX Terms of Service and acceptable use guidelines"
     },
     "contact": {
       "metaTitle": "Contact VIDNEX — Support & Compliance Inquiries",
@@ -531,7 +608,10 @@
             "When reporting a technical issue, please include the platform name (TikTok, Instagram, X, or Facebook), your browser/device type, and the public URL you tested."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Contact VIDNEX — Support & Compliance Inquiries",
+      "ogDescription": "Contact the VIDNEX team via email for technical questions, bug reports, or copyright compliance inquiries.",
+      "ogImageAlt": "Contact the VIDNEX technical and compliance support team"
     },
     "dmca": {
       "metaTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
@@ -554,7 +634,10 @@
             "Please send a notice to compliance@vidnex.space containing: (1) identification of the copyrighted work, (2) the exact public URL(s) to block, and (3) your contact details along with a good-faith statement that you are the copyright owner or authorized agent."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
+      "ogDescription": "Learn how copyright holders can request URL or domain blocking on VIDNEX through our DMCA compliance procedure.",
+      "ogImageAlt": "VIDNEX Copyright and DMCA takedown request policy"
     }
   }
 }

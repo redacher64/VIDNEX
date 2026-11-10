@@ -173,15 +173,92 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
             `<link rel="canonical" href="${esc(meta.canonicalUrl)}" />`
           )
           .replace(
+            /<meta\s+name="theme-color"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="theme-color" content="${esc(meta.themeColor)}" />`
+          )
+          .replace(
             /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
             `<meta name="robots" content="${esc(meta.robots)}" />`
           )
           .replace(
-            /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+            /<meta\s+name="description"[\s\S]*?\/>/i,
             `<meta name="description" content="${esc(meta.description)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:type" content="${esc(meta.ogType)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:site_name"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:site_name" content="${esc(meta.ogSiteName)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:title" content="${esc(meta.ogTitle)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:description"[\s\S]*?\/>/i,
+            `<meta property="og:description" content="${esc(meta.ogDescription)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:url" content="${esc(meta.ogUrl)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:image" content="${esc(meta.ogImage)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image:secure_url"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:image:secure_url" content="${esc(meta.ogImageSecureUrl)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:image:type" content="${esc(meta.ogImageType)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image:width"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:image:width" content="${esc(meta.ogImageWidth)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image:height"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:image:height" content="${esc(meta.ogImageHeight)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:image:alt"[\s\S]*?\/>/i,
+            `<meta property="og:image:alt" content="${esc(meta.ogImageAlt)}" />`
+          )
+          .replace(
+            /<meta\s+property="og:locale"\s+content="[^"]*"\s*\/?>/i,
+            `<meta property="og:locale" content="${esc(meta.ogLocale)}" />`
+          )
+          .replace(
+            /<meta\s+name="twitter:card"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="twitter:card" content="${esc(meta.twitterCard)}" />`
+          )
+          .replace(
+            /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="twitter:title" content="${esc(meta.twitterTitle)}" />`
+          )
+          .replace(
+            /<meta\s+name="twitter:description"[\s\S]*?\/>/i,
+            `<meta name="twitter:description" content="${esc(meta.twitterDescription)}" />`
+          )
+          .replace(
+            /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="twitter:image" content="${esc(meta.twitterImage)}" />`
+          )
+          .replace(
+            /<meta\s+name="twitter:image:alt"[\s\S]*?\/>/i,
+            `<meta name="twitter:image:alt" content="${esc(meta.twitterImageAlt)}" />`
           );
 
         const extra: string[] = [];
+        for (const altLoc of meta.ogLocaleAlternates) {
+          extra.push(
+            `    <meta property="og:locale:alternate" content="${esc(altLoc)}" />`
+          );
+        }
         for (const hl of meta.hreflangs) {
           extra.push(
             `    <link rel="alternate" hreflang="${esc(hl.hreflang)}" href="${esc(

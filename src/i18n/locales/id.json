@@ -114,6 +114,18 @@
       "BLOCKED": "Akses Anda dibatasi sementara karena alasan keamanan.",
       "RATE_LIMITED": "Anda telah mencapai batas permintaan per menit. Harap tunggu sebentar sebelum mencoba lagi.",
       "NETWORK_ERROR": "Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi."
+    },
+    "share": {
+      "buttonLabel": "Bagikan",
+      "buttonAria": "Bagikan alat ini di media sosial",
+      "menuTitle": "Bagikan alat ini",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Salin tautan",
+      "copied": "Tautan disalin!",
+      "shareOnAria": "Bagikan ke {network}"
     }
   },
   "home": {
@@ -187,7 +199,10 @@
         "question": "Apakah VIDNEX menyimpan riwayat unduhan saya?",
         "answer": "Tidak. Pemrosesan tautan dilakukan secara langsung dan kami tidak mengarsipkan file media di server kami."
       }
-    ]
+    ],
+    "ogTitle": "VIDNEX — Download Video TikTok, Instagram, X & Facebook MP4",
+    "ogDescription": "Unduh video publik TikTok tanpa watermark, Reels Instagram, X (Twitter), dan Facebook dalam format MP4 atau MP3 gratis lewat browser.",
+    "ogImageAlt": "Pratinjau VIDNEX: pengunduh video publik TikTok, Instagram, X, dan Facebook dalam MP4 HD"
   },
   "platforms": {
     "tiktok": {
@@ -259,7 +274,10 @@
           "question": "Bagaimana cara menyimpan video di iPhone?",
           "answer": "Gunakan browser Safari (iOS 13 ke atas), ketuk Unduh MP4, lalu buka file di aplikasi File dan pilih Bagikan > Simpan Video."
         }
-      ]
+      ],
+      "ogTitle": "Download Video TikTok Tanpa Watermark MP4 & MP3 | VIDNEX",
+      "ogDescription": "Unduh video TikTok publik tanpa watermark dalam kualitas MP4 HD atau ekstrak musik MP3 secara gratis lewat browser di HP Android, iPhone, dan PC.",
+      "ogImageAlt": "Pratinjau pengunduh video TikTok tanpa watermark dalam format MP4 HD dan MP3 di VIDNEX"
     },
     "instagram": {
       "slug": "download-reels-instagram",
@@ -330,7 +348,10 @@
           "question": "Apakah saya perlu login ke akun Instagram saya?",
           "answer": "Tidak pernah. Kami tidak meminta nama pengguna atau kata sandi Instagram Anda."
         }
-      ]
+      ],
+      "ogTitle": "Download Reels & Video Instagram MP4 Gratis | VIDNEX",
+      "ogDescription": "Unduh video Instagram Reels, postingan feed, dan karusel publik dalam format MP4 dan JPG langsung di HP atau PC tanpa login akun.",
+      "ogImageAlt": "Pratinjau pengunduh Reels, carousel, dan foto profil Instagram publik di VIDNEX"
     },
     "x": {
       "slug": "download-video-x-twitter",
@@ -401,7 +422,10 @@
           "question": "Bagaimana jika satu tweet berisi lebih dari satu video?",
           "answer": "Jika tweet publik memiliki hingga 4 video terlampir, setiap klip akan ditampilkan secara terpisah agar dapat diunduh satu per satu."
         }
-      ]
+      ],
+      "ogTitle": "Download Video X (Twitter) MP4 HD Gratis | VIDNEX",
+      "ogDescription": "Unduh video dan GIF dari tweet publik X (Twitter) dalam format MP4 dengan pilihan resolusi (1080p, 720p) langsung dari browser Anda.",
+      "ogImageAlt": "Pratinjau pengunduh video dan GIF publik X (Twitter) dalam format MP4 HD di VIDNEX"
     },
     "facebook": {
       "slug": "download-video-facebook",
@@ -472,7 +496,10 @@
           "question": "Apakah file MP4 yang diunduh sudah termasuk suara?",
           "answer": "Ya, ekstraktor kami memprioritaskan aliran MP4 gabungan yang memuat gambar video dan trek audio dalam satu file."
         }
-      ]
+      ],
+      "ogTitle": "Download Video Facebook & Reels MP4 HD / SD | VIDNEX",
+      "ogDescription": "Unduh video publik Facebook, Facebook Reels, dan tautan fb.watch dalam format MP4 kualitas HD atau SD secara gratis tanpa login.",
+      "ogImageAlt": "Pratinjau pengunduh video Facebook Watch dan Reels publik dalam kualitas HD dan SD"
     }
   }
 }

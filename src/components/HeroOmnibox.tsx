@@ -16,6 +16,7 @@ import {
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 import { AdSlot } from './AdSlot.tsx';
+import { ShareButton } from './ShareButton.tsx';
 
 interface HeroOmniboxProps {
   pageKey: 'home' | PlatformPageKey;
@@ -342,7 +343,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             )}
           </form>
 
-          {/* Direct Platform Links Pill Row (real <a href> links) */}
+          {/* Direct Platform Links Pill Row (real <a href> links) + ShareButton */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pInfo = bundle.platforms[pKey];
@@ -367,6 +368,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                 </a>
               );
             })}
+            <ShareButton pageKey={pageKey} language={language} />
           </div>
 
           {/* Quick Sample Test Links */}

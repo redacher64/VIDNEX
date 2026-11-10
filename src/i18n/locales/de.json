@@ -114,10 +114,22 @@
       "BLOCKED": "Ihr Zugriff wurde aus Sicherheitsgründen vorübergehend eingeschränkt.",
       "RATE_LIMITED": "Sie haben das Limit an Anfragen pro Minute erreicht. Bitte warten Sie einen Moment, bevor Sie es erneut versuchen.",
       "NETWORK_ERROR": "Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+    },
+    "share": {
+      "buttonLabel": "Teilen",
+      "buttonAria": "Dieses Tool in sozialen Netzwerken teilen",
+      "menuTitle": "Tool teilen",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Link kopieren",
+      "copied": "Link kopiert!",
+      "shareOnAria": "Auf {network} teilen"
     }
   },
   "home": {
-    "metaTitle": "VIDNEX — Videos von TikTok, Instagram, X & Facebook herunterladen",
+    "metaTitle": "Videos von TikTok, Instagram, X & FB laden | VIDNEX",
     "metaDescription": "Laden Sie öffentliche Videos von TikTok ohne Wasserzeichen, Instagram Reels, X (Twitter) und Facebook als MP4 oder MP3 kostenlos im Browser herunter.",
     "h1": "Öffentliche Videos von TikTok, Instagram, X und Facebook herunterladen",
     "subtitle": "Fügen Sie den Link eines öffentlichen Beitrags ein, um verfügbare Streams zu prüfen und das Video als MP4 oder Audiodatei zu speichern.",
@@ -187,12 +199,15 @@
         "question": "Werden meine heruntergeladenen Dateien gespeichert?",
         "answer": "Nein. Die Verarbeitung erfolgt unmittelbar bei der Anfrage; wir legen kein Archiv der abgerufenen Mediendateien an."
       }
-    ]
+    ],
+    "ogTitle": "Videos von TikTok, Instagram, X & FB laden | VIDNEX",
+    "ogDescription": "Laden Sie öffentliche Videos von TikTok ohne Wasserzeichen, Instagram Reels, X (Twitter) und Facebook als MP4 oder MP3 kostenlos im Browser herunter.",
+    "ogImageAlt": "VIDNEX Vorschau: Öffentliche Videos von TikTok, Instagram, X und Facebook als MP4 laden"
   },
   "platforms": {
     "tiktok": {
       "slug": "tiktok-video-herunterladen",
-      "metaTitle": "TikTok Video herunterladen ohne Wasserzeichen als MP4 | VIDNEX",
+      "metaTitle": "TikTok Video ohne Wasserzeichen als MP4 laden | VIDNEX",
       "metaDescription": "Öffentliche TikTok Videos ohne Wasserzeichen in MP4 HD herunterladen oder Audio als MP3 extrahieren – kostenlos im Browser auf Handy & PC.",
       "h1": "TikTok Videos ohne Wasserzeichen herunterladen",
       "subtitle": "Fügen Sie einen öffentlichen TikTok-Link (tiktok.com oder vm.tiktok.com) ein, um das Video als MP4 oder den Ton als MP3 zu speichern.",
@@ -259,7 +274,10 @@
           "question": "Wie speichere ich das Video auf einem iPhone?",
           "answer": "Tippen Sie in Safari (ab iOS 13) auf MP4 herunterladen. Die Datei landet in der Dateien-App und kann von dort über Teilen > Video sichern in den Fotos gespeichert werden."
         }
-      ]
+      ],
+      "ogTitle": "TikTok Video ohne Wasserzeichen als MP4 laden | VIDNEX",
+      "ogDescription": "Öffentliche TikTok Videos ohne Wasserzeichen in MP4 HD herunterladen oder Audio als MP3 extrahieren – kostenlos im Browser auf Handy & PC.",
+      "ogImageAlt": "VIDNEX TikTok-Downloader Vorschau: Videos ohne Wasserzeichen als MP4 HD und MP3 speichern"
     },
     "instagram": {
       "slug": "instagram-reels-herunterladen",
@@ -330,7 +348,10 @@
           "question": "Muss ich mich mit meinem Instagram-Konto anmelden?",
           "answer": "Nein. Wir fragen niemals nach Ihren Instagram-Zugangsdaten."
         }
-      ]
+      ],
+      "ogTitle": "Instagram Reels & Videos herunterladen als MP4 | VIDNEX",
+      "ogDescription": "Laden Sie öffentliche Instagram Reels, Videos und Karussell-Beiträge als MP4 und JPG kostenlos im Browser herunter – ohne Instagram-Login.",
+      "ogImageAlt": "VIDNEX Instagram-Downloader Vorschau: Reels, Karussells und Profilbilder speichern"
     },
     "x": {
       "slug": "x-twitter-video-herunterladen",
@@ -401,11 +422,14 @@
           "question": "Was passiert, wenn ein Tweet mehrere Videos enthält?",
           "answer": "Enthält ein öffentlicher Tweet bis zu vier Videos, werden alle Clips einzeln mit eigenem Download-Button dargestellt."
         }
-      ]
+      ],
+      "ogTitle": "X (Twitter) Videos herunterladen als MP4 in HD | VIDNEX",
+      "ogDescription": "Laden Sie Videos und GIFs aus öffentlichen Tweets von X (Twitter) als MP4 mit Qualitätsauswahl (1080p, 720p) kostenlos im Browser herunter.",
+      "ogImageAlt": "VIDNEX X (Twitter) Downloader Vorschau: Öffentliche Videos und GIFs als MP4 HD laden"
     },
     "facebook": {
       "slug": "facebook-video-herunterladen",
-      "metaTitle": "Facebook Videos & Reels herunterladen als MP4 HD / SD | VIDNEX",
+      "metaTitle": "Facebook Videos & Reels als MP4 HD/SD laden | VIDNEX",
       "metaDescription": "Laden Sie öffentliche Facebook-Videos, Facebook Reels und fb.watch-Links als MP4 in HD- oder SD-Qualität kostenlos im Browser herunter.",
       "h1": "Öffentliche Facebook-Videos und Reels herunterladen",
       "subtitle": "Fügen Sie einen öffentlichen Facebook-Videolink oder fb.watch-Link ein, um die MP4-Datei in HD oder SD zu speichern.",
@@ -472,7 +496,10 @@
           "question": "Enthält die heruntergeladene MP4-Datei Ton?",
           "answer": "Ja, unser Extractor bevorzugt kombinierte MP4-Streams, die Bild und Ton in einer einzigen Datei enthalten."
         }
-      ]
+      ],
+      "ogTitle": "Facebook Videos & Reels als MP4 HD/SD laden | VIDNEX",
+      "ogDescription": "Laden Sie öffentliche Facebook-Videos, Facebook Reels und fb.watch-Links als MP4 in HD- oder SD-Qualität kostenlos im Browser herunter.",
+      "ogImageAlt": "VIDNEX Facebook-Downloader Vorschau: Öffentliche Watch-Videos und Reels als MP4 laden"
     }
   }
 }

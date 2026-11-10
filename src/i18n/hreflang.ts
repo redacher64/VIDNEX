@@ -11,10 +11,14 @@
 
 import {
   buildAbsoluteUrl,
-  DEFAULT_OG_IMAGE,
   getCanonicalUrl,
+  getOgImageUrlForPage,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_TYPE,
+  OG_IMAGE_WIDTH,
   SITE_NAME,
   SITE_URL,
+  THEME_COLOR,
 } from '../config/site.ts';
 import {
   getLocaleDefinition,
@@ -31,6 +35,49 @@ import { getLocaleBundleSync } from './localeLoader.ts';
 export interface HreflangEntry {
   hreflang: string;
   href: string;
+}
+
+/**
+ * Coupe proprement une chaîne pour OpenGraph / Twitter sans jamais couper un mot
+ * ni un caractère / graphème arabe ou Unicode en deux.
+ */
+export function clampSocialText(text: string, maxChars: number): string {
+  const normalized = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  type SegmenterConstructor = new (
+    locale?: string,
+    options?: { granularity?: 'grapheme' | 'word' | 'sentence' }
+  ) => {
+    segment(input: string): Iterable<{ segment: string }>;
+  };
+
+  const IntlWithSegmenter =
+    typeof Intl !== 'undefined'
+      ? (Intl as unknown as { Segmenter?: SegmenterConstructor })
+      : undefined;
+
+  const graphemes: string[] =
+    IntlWithSegmenter && typeof IntlWithSegmenter.Segmenter === 'function'
+      ? Array.from(
+          new IntlWithSegmenter.Segmenter(undefined, {
+            granularity: 'grapheme',
+          }).segment(normalized),
+          (s) => s.segment
+        )
+      : Array.from(normalized);
+
+  if (graphemes.length <= maxChars) {
+    return normalized;
+  }
+
+  const limit = Math.max(1, maxChars - 1);
+  const sliced = graphemes.slice(0, limit).join('');
+  const lastSpace = sliced.lastIndexOf(' ');
+  const cleanCut =
+    lastSpace >= Math.floor(limit * 0.6) ? sliced.slice(0, lastSpace) : sliced;
+  return `${cleanCut.replace(/[,:;.\-–—\s]+$/u, '')}…`;
 }
 
 /**
@@ -101,15 +148,25 @@ export interface RouteHeadMetadata {
   description: string;
   canonicalUrl: string;
   robots: string;
+  themeColor: string;
   ogType: 'website';
   ogSiteName: string;
   ogTitle: string;
   ogDescription: string;
   ogUrl: string;
   ogImage: string;
+  ogImageSecureUrl: string;
+  ogImageType: string;
+  ogImageWidth: string;
+  ogImageHeight: string;
+  ogImageAlt: string;
   ogLocale: string;
   ogLocaleAlternates: string[];
   twitterCard: 'summary_large_image';
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage: string;
+  twitterImageAlt: string;
   hreflangs: HreflangEntry[];
   jsonLdGraph: Record<string, unknown>;
 }
@@ -126,26 +183,39 @@ export function buildHeadMetadataForRoute(
 ): RouteHeadMetadata {
   const localeMeta = LOCALES_CONFIG[locale] || LOCALES_CONFIG.fr;
   const bundle = getLocaleBundleSync(locale);
-  const ogImage = buildAbsoluteUrl(DEFAULT_OG_IMAGE);
+  const ogImage = getOgImageUrlForPage(pageKey);
 
   if (pageKey === 'admin') {
     const adminUrl = buildAbsoluteUrl('/admin');
+    const adminTitle = `Administration | ${SITE_NAME}`;
+    const adminDesc =
+      'Panneau d’administration et de supervision technique de la plateforme VIDNEX.';
     return {
       lang: 'fr',
       dir: 'ltr',
-      title: `Administration | ${SITE_NAME}`,
-      description: 'Panneau d’administration VIDNEX.',
+      title: adminTitle,
+      description: adminDesc,
       canonicalUrl: adminUrl,
       robots: 'noindex, nofollow',
+      themeColor: THEME_COLOR,
       ogType: 'website',
       ogSiteName: SITE_NAME,
-      ogTitle: `Administration | ${SITE_NAME}`,
-      ogDescription: 'Panneau d’administration VIDNEX.',
+      ogTitle: adminTitle,
+      ogDescription: adminDesc,
       ogUrl: adminUrl,
       ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt: 'Administration VIDNEX',
       ogLocale: 'fr_FR',
       ogLocaleAlternates: [],
       twitterCard: 'summary_large_image',
+      twitterTitle: adminTitle,
+      twitterDescription: adminDesc,
+      twitterImage: ogImage,
+      twitterImageAlt: 'Administration VIDNEX',
       hreflangs: [],
       jsonLdGraph: { '@context': 'https://schema.org', '@graph': [] },
     };
@@ -154,22 +224,34 @@ export function buildHeadMetadataForRoute(
   if (pageKey === 'not_found') {
     const nf = bundle.ui.notFound;
     const homeUrl = getPageCanonicalUrl(locale, 'home');
+    const nfTitle = clampSocialText(nf.title, 60);
+    const nfDesc = clampSocialText(nf.description, 150);
     return {
       lang: localeMeta.code,
       dir: localeMeta.dir,
-      title: nf.title,
-      description: nf.description,
+      title: nfTitle,
+      description: nfDesc,
       canonicalUrl: homeUrl,
       robots: 'noindex, nofollow',
+      themeColor: THEME_COLOR,
       ogType: 'website',
       ogSiteName: SITE_NAME,
-      ogTitle: nf.title,
-      ogDescription: nf.description,
+      ogTitle: nfTitle,
+      ogDescription: nfDesc,
       ogUrl: homeUrl,
       ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt: bundle.home.ogImageAlt,
       ogLocale: localeMeta.ogLocale,
       ogLocaleAlternates: [],
       twitterCard: 'summary_large_image',
+      twitterTitle: nfTitle,
+      twitterDescription: nfDesc,
+      twitterImage: ogImage,
+      twitterImageAlt: bundle.home.ogImageAlt,
       hreflangs: [],
       jsonLdGraph: { '@context': 'https://schema.org', '@graph': [] },
     };
@@ -182,6 +264,15 @@ export function buildHeadMetadataForRoute(
 
   if (pageKey === 'home') {
     const home = bundle.home;
+    const title = clampSocialText(home.metaTitle, 60);
+    const description = clampSocialText(home.metaDescription, 150);
+    const ogTitle = clampSocialText(home.ogTitle || home.metaTitle, 60);
+    const ogDescription = clampSocialText(
+      home.ogDescription || home.metaDescription,
+      150
+    );
+    const ogImageAlt = home.ogImageAlt || ogTitle;
+
     const graph: Record<string, unknown>[] = [
       {
         '@type': 'WebSite',
@@ -189,14 +280,14 @@ export function buildHeadMetadataForRoute(
         name: SITE_NAME,
         url: canonicalUrl,
         inLanguage: localeMeta.hreflang,
-        description: home.metaDescription,
+        description,
       },
       {
         '@type': 'Organization',
         '@id': `${SITE_URL}/#organization`,
         name: SITE_NAME,
         url: SITE_URL,
-        logo: buildAbsoluteUrl('/favicon.svg'),
+        logo: buildAbsoluteUrl('/icon-512.png'),
       },
       {
         '@type': 'FAQPage',
@@ -216,19 +307,29 @@ export function buildHeadMetadataForRoute(
     return {
       lang: localeMeta.code,
       dir: localeMeta.dir,
-      title: home.metaTitle,
-      description: home.metaDescription,
+      title,
+      description,
       canonicalUrl,
       robots: 'index, follow',
+      themeColor: THEME_COLOR,
       ogType: 'website',
       ogSiteName: SITE_NAME,
-      ogTitle: home.metaTitle,
-      ogDescription: home.metaDescription,
+      ogTitle,
+      ogDescription,
       ogUrl: canonicalUrl,
       ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
       ogLocale,
       ogLocaleAlternates,
       twitterCard: 'summary_large_image',
+      twitterTitle: ogTitle,
+      twitterDescription: ogDescription,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
       hreflangs,
       jsonLdGraph: {
         '@context': 'https://schema.org',
@@ -239,6 +340,15 @@ export function buildHeadMetadataForRoute(
 
   if (isPlatformPageKey(pageKey)) {
     const p = bundle.platforms[pageKey];
+    const title = clampSocialText(p.metaTitle, 60);
+    const description = clampSocialText(p.metaDescription, 150);
+    const ogTitle = clampSocialText(p.ogTitle || p.metaTitle, 60);
+    const ogDescription = clampSocialText(
+      p.ogDescription || p.metaDescription,
+      150
+    );
+    const ogImageAlt = p.ogImageAlt || ogTitle;
+
     const graph: Record<string, unknown>[] = [
       {
         '@type': 'WebApplication',
@@ -248,7 +358,8 @@ export function buildHeadMetadataForRoute(
         inLanguage: localeMeta.hreflang,
         applicationCategory: 'MultimediaApplication',
         operatingSystem: 'All',
-        description: p.metaDescription,
+        description,
+        image: ogImage,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -291,19 +402,29 @@ export function buildHeadMetadataForRoute(
     return {
       lang: localeMeta.code,
       dir: localeMeta.dir,
-      title: p.metaTitle,
-      description: p.metaDescription,
+      title,
+      description,
       canonicalUrl,
       robots: 'index, follow',
+      themeColor: THEME_COLOR,
       ogType: 'website',
       ogSiteName: SITE_NAME,
-      ogTitle: p.metaTitle,
-      ogDescription: p.metaDescription,
+      ogTitle,
+      ogDescription,
       ogUrl: canonicalUrl,
       ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
       ogLocale,
       ogLocaleAlternates,
       twitterCard: 'summary_large_image',
+      twitterTitle: ogTitle,
+      twitterDescription: ogDescription,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
       hreflangs,
       jsonLdGraph: {
         '@context': 'https://schema.org',
@@ -320,14 +441,23 @@ export function buildHeadMetadataForRoute(
     fallbackEn.legal?.[pageKey] ||
     fallbackFr.legal?.[pageKey]!;
 
+  const title = clampSocialText(legalDoc.metaTitle, 60);
+  const description = clampSocialText(legalDoc.metaDescription, 150);
+  const ogTitle = clampSocialText(legalDoc.ogTitle || legalDoc.metaTitle, 60);
+  const ogDescription = clampSocialText(
+    legalDoc.ogDescription || legalDoc.metaDescription,
+    150
+  );
+  const ogImageAlt = legalDoc.ogImageAlt || ogTitle;
+
   const graph: Record<string, unknown>[] = [
     {
       '@type': 'WebPage',
       '@id': `${canonicalUrl}#webpage`,
-      name: legalDoc.metaTitle,
+      name: title,
       url: canonicalUrl,
       inLanguage: localeMeta.hreflang,
-      description: legalDoc.metaDescription,
+      description,
     },
     {
       '@type': 'BreadcrumbList',
@@ -352,19 +482,29 @@ export function buildHeadMetadataForRoute(
   return {
     lang: localeMeta.code,
     dir: localeMeta.dir,
-    title: legalDoc.metaTitle,
-    description: legalDoc.metaDescription,
+    title,
+    description,
     canonicalUrl,
     robots: 'index, follow',
+    themeColor: THEME_COLOR,
     ogType: 'website',
     ogSiteName: SITE_NAME,
-    ogTitle: legalDoc.metaTitle,
-    ogDescription: legalDoc.metaDescription,
+    ogTitle,
+    ogDescription,
     ogUrl: canonicalUrl,
     ogImage,
+    ogImageSecureUrl: ogImage,
+    ogImageType: OG_IMAGE_TYPE,
+    ogImageWidth: OG_IMAGE_WIDTH,
+    ogImageHeight: OG_IMAGE_HEIGHT,
+    ogImageAlt,
     ogLocale,
     ogLocaleAlternates: [],
     twitterCard: 'summary_large_image',
+    twitterTitle: ogTitle,
+    twitterDescription: ogDescription,
+    twitterImage: ogImage,
+    twitterImageAlt: ogImageAlt,
     hreflangs: [], // Legal pages have NO hreflang per ÉTAPE 2 & 3
     jsonLdGraph: {
       '@context': 'https://schema.org',

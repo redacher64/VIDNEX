@@ -114,6 +114,18 @@
       "BLOCKED": "Güvenlik nedeniyle erişiminiz geçici olarak kısıtlandı.",
       "RATE_LIMITED": "Dakika başına istek sınırına ulaştınız. Tekrar denemeden önce lütfen biraz bekleyin.",
       "NETWORK_ERROR": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "share": {
+      "buttonLabel": "Paylaş",
+      "buttonAria": "Bu aracı sosyal ağlarda paylaş",
+      "menuTitle": "Aracı paylaş",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Bağlantıyı kopyala",
+      "copied": "Bağlantı kopyalandı!",
+      "shareOnAria": "{network} üzerinde paylaş"
     }
   },
   "home": {
@@ -187,7 +199,10 @@
         "question": "İndirdiğim videolar sitede kayıtlı kalıyor mu?",
         "answer": "Hayır. Bağlantılar anlık olarak işlenir ve sunucularımızda hiçbir medya dosyası arşivlenmez."
       }
-    ]
+    ],
+    "ogTitle": "VIDNEX — TikTok, Instagram, X ve Facebook Video İndirici",
+    "ogDescription": "TikTok filigransız videoları, Instagram Reels, X (Twitter) ve Facebook herkese açık videolarını MP4 veya MP3 olarak tarayıcıdan ücretsiz indirin.",
+    "ogImageAlt": "VIDNEX önizlemesi: TikTok, Instagram, X ve Facebook videolarını MP4 HD olarak indirin"
   },
   "platforms": {
     "tiktok": {
@@ -259,7 +274,10 @@
           "question": "iPhone'da videoyu galeriye nasıl kaydederim?",
           "answer": "Safari'de (iOS 13+) MP4 İndir'e dokunun. Dosyalar uygulamasına inen videoyu açıp Paylaş > Videoyu Kaydet seçeneğini kullanabilirsiniz."
         }
-      ]
+      ],
+      "ogTitle": "TikTok Filigransız Video İndir — MP4 HD ve MP3 | VIDNEX",
+      "ogDescription": "Herkese açık TikTok videolarını filigransız (logosuz) MP4 HD kalitesinde indirin veya sesini MP3 olarak tarayıcıdan ücretsiz kaydedin.",
+      "ogImageAlt": "VIDNEX TikTok video indirici önizlemesi: filigransız MP4 HD video ve MP3 ses kaydı"
     },
     "instagram": {
       "slug": "instagram-reels-indir",
@@ -330,7 +348,10 @@
           "question": "Instagram şifremi girmem gerekiyor mu?",
           "answer": "Asla. VIDNEX sizden hiçbir zaman kullanıcı adı veya şifre talep etmez."
         }
-      ]
+      ],
+      "ogTitle": "Instagram Reels ve Video İndir — MP4 Ücretsiz | VIDNEX",
+      "ogDescription": "Herkese açık Instagram Reels videolarını, gönderileri ve çoklu paylaşımları oturum açmadan MP4 ve JPG olarak ücretsiz indirin.",
+      "ogImageAlt": "VIDNEX Instagram indirici önizlemesi: herkese açık Reels, kaydırmalı post ve profil fotoğrafı"
     },
     "x": {
       "slug": "x-twitter-video-indir",
@@ -401,7 +422,10 @@
           "question": "Bir tweette birden fazla video varsa ne olur?",
           "answer": "Herkese açık bir tweette 4 adede kadar video varsa, her biri ayrı ayrı indirilebilecek şekilde listelenir."
         }
-      ]
+      ],
+      "ogTitle": "X (Twitter) Video İndir — MP4 HD Kalite Seçenekli | VIDNEX",
+      "ogDescription": "X (Twitter) üzerindeki herkese açık tweetlerden videoları ve GIF'leri çözünürlük seçerek (1080p, 720p) MP4 formatında ücretsiz indirin.",
+      "ogImageAlt": "VIDNEX X (Twitter) video ve GIF indirici önizlemesi: MP4 HD kalitesinde kayıt"
     },
     "facebook": {
       "slug": "facebook-video-indir",
@@ -472,7 +496,10 @@
           "question": "İndirilen MP4 dosyasında ses var mı?",
           "answer": "Evet, motorumuz görüntü ve sesi tek bir dosyada birleştiren MP4 akışlarına öncelik verir."
         }
-      ]
+      ],
+      "ogTitle": "Facebook Video ve Reels İndir — MP4 HD / SD | VIDNEX",
+      "ogDescription": "Herkese açık Facebook videolarını, Facebook Reels kliplerini ve fb.watch bağlantılarını HD veya SD MP4 olarak tarayıcıdan ücretsiz indirin.",
+      "ogImageAlt": "VIDNEX Facebook video ve Reels indirici önizlemesi: HD ve SD MP4 indirme aracı"
     }
   }
 }

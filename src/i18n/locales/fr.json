@@ -47,10 +47,26 @@
     },
     "sections": {
       "bentoCards": [
-        { "id": "nw", "metric": "FLUX DIRECT", "title": "Vidéos TikTok sans filigrane ajouté" },
-        { "id": "br", "metric": "QUALITÉ NATIVE", "title": "Résolution MP4 HD/SD et audio d'origine" },
-        { "id": "pr", "metric": "SANS STOCKAGE", "title": "Relais en mémoire vive sans archivage" },
-        { "id": "sp", "metric": "MULTI-APPAREILS", "title": "Compatible mobile Android, iOS, PC et Mac" }
+        {
+          "id": "nw",
+          "metric": "FLUX DIRECT",
+          "title": "Vidéos TikTok sans filigrane ajouté"
+        },
+        {
+          "id": "br",
+          "metric": "QUALITÉ NATIVE",
+          "title": "Résolution MP4 HD/SD et audio d'origine"
+        },
+        {
+          "id": "pr",
+          "metric": "SANS STOCKAGE",
+          "title": "Relais en mémoire vive sans archivage"
+        },
+        {
+          "id": "sp",
+          "metric": "MULTI-APPAREILS",
+          "title": "Compatible mobile Android, iOS, PC et Mac"
+        }
       ],
       "workflowProtocol": "MODE D'EMPLOI",
       "howToHeading": "Comment télécharger une vidéo en 3 étapes",
@@ -98,6 +114,18 @@
       "BLOCKED": "Cette requête ou ressource a été bloquée par l'administrateur.",
       "RATE_LIMITED": "Limite de requêtes par minute atteinte. Veuillez patienter quelques secondes avant de relancer.",
       "NETWORK_ERROR": "Impossible de joindre le service d'extraction VIDNEX (/api/extract)."
+    },
+    "share": {
+      "buttonLabel": "Partager",
+      "buttonAria": "Partager cette page sur les réseaux sociaux",
+      "menuTitle": "Partager cet outil",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Copier le lien",
+      "copied": "Lien copié !",
+      "shareOnAria": "Partager sur {network}"
     }
   },
   "home": {
@@ -106,7 +134,12 @@
     "h1": "Téléchargeur de vidéos publiques TikTok, Instagram, X et Facebook",
     "subtitle": "Enregistrez vos vidéos publiques, Reels, carrousels et extraits audio en MP4 ou MP3 directement depuis votre navigateur, sans inscription.",
     "placeholder": "https://www.tiktok.com/@utilisateur/video/...",
-    "specs": ["MP4 HD & SD", "TIKTOK SANS FILIGRANE", "SANS INSCRIPTION", " CONTENUS PUBLICS"],
+    "specs": [
+      "MP4 HD & SD",
+      "TIKTOK SANS FILIGRANE",
+      "SANS INSCRIPTION",
+      " CONTENUS PUBLICS"
+    ],
     "editorial": {
       "heading": "Un outil unique pour sauvegarder vos médias sociaux publics",
       "subheading": "Architecture légère sur Cloudflare Pages pour extraire les flux MP4 et MP3 d'origine sans réencodage.",
@@ -166,7 +199,10 @@
         "question": "Comment enregistrer une vidéo sur iPhone ou iPad (iOS) ?",
         "answer": "Sur Safari (iOS 13 et versions ultérieures), appuyez sur le bouton de téléchargement HD, validez l'enregistrement dans la fenêtre système, puis retrouvez votre fichier MP4 dans l'application Fichiers ou Téléchargements."
       }
-    ]
+    ],
+    "ogTitle": "Télécharger Vidéo TikTok, Instagram, X & Facebook | VIDNEX",
+    "ogDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X (Twitter) et Facebook en MP4 HD sans créer de compte.",
+    "ogImageAlt": "Aperçu VIDNEX : téléchargeur de vidéos publiques TikTok, Instagram, X et Facebook en MP4 HD"
   },
   "platforms": {
     "tiktok": {
@@ -178,7 +214,12 @@
       "shortLabel": "Vidéo TikTok",
       "breadcrumbLabel": "Téléchargeur TikTok",
       "placeholder": "https://www.tiktok.com/@utilisateur/video/7106594312292453675",
-      "specs": ["SANS FILIGRANE", "MP4 HD & MP3", "LIENS VM.TIKTOK", "CONTENUS PUBLICS"],
+      "specs": [
+        "SANS FILIGRANE",
+        "MP4 HD & MP3",
+        "LIENS VM.TIKTOK",
+        "CONTENUS PUBLICS"
+      ],
       "editorial": {
         "heading": "Comment fonctionne le téléchargeur TikTok sans filigrane",
         "subheading": "Récupérez la piste vidéo originale, les diaporamas Photo Mode et l'audio MP3 à partir d'un simple lien TikTok.",
@@ -234,7 +275,10 @@
           "question": "Pourquoi la qualité affichée dépend-elle de la vidéo d'origine ?",
           "answer": "VIDNEX ne modifie pas et ne gonfle pas artificiellement les vidéos : si le créateur a publié sa vidéo en 720p ou 1080p, vous recevez exactement la résolution maximale fournie par TikTok."
         }
-      ]
+      ],
+      "ogTitle": "Télécharger Vidéo TikTok Sans Filigrane en MP4 HD | VIDNEX",
+      "ogDescription": "Outil gratuit pour télécharger une vidéo TikTok sans filigrane en MP4 HD, extraire l'audio MP3 ou sauvegarder un diaporama photo sur mobile et PC.",
+      "ogImageAlt": "Aperçu du téléchargeur vidéo TikTok sans filigrane en MP4 HD et MP3 sur VIDNEX"
     },
     "instagram": {
       "slug": "telecharger-reel-instagram",
@@ -245,7 +289,12 @@
       "shortLabel": "Reels Instagram",
       "breadcrumbLabel": "Téléchargeur Instagram",
       "placeholder": "https://www.instagram.com/reel/C8x9kLmN2pQ/",
-      "specs": ["REELS MP4 HD", "CARROUSEL ZIP", "PHOTO DE PROFIL", "PUBLIC UNIQUEMENT"],
+      "specs": [
+        "REELS MP4 HD",
+        "CARROUSEL ZIP",
+        "PHOTO DE PROFIL",
+        "PUBLIC UNIQUEMENT"
+      ],
       "editorial": {
         "heading": "Sauvegarder facilement des Reels et publications publiques Instagram",
         "subheading": "Un extracteur direct pour conserver vos Reels, publications multi-slides et avatars publics sur mobile ou ordinateur.",
@@ -301,18 +350,26 @@
           "question": "Comment voir une photo de profil Instagram en grand ?",
           "answer": "Collez simplement le lien du profil (ex. instagram.com/natgeo) ou tapez @natgeo dans le champ de recherche pour afficher et télécharger l'image de profil."
         }
-      ]
+      ],
+      "ogTitle": "Télécharger Reel Instagram en MP4 HD & Carrousel | VIDNEX",
+      "ogDescription": "Téléchargez gratuitement des Reels Instagram, vidéos, photos de carrousel et photos de profil publiques en qualité originale MP4 et JPG sans compte.",
+      "ogImageAlt": "Aperçu du téléchargeur de Reels, carrousels et photos de profil Instagram sur VIDNEX"
     },
     "x": {
       "slug": "telecharger-video-x-twitter",
       "metaTitle": "Télécharger Vidéo X (Twitter) et GIF en MP4 HD | VIDNEX",
-      "metaDescription": "Téléchargez gratuitement n'importe quelle vidéo publique ou GIF animé depuis X (anciennement Twitter) en MP4 HD via un lien x.com, twitter.com ou t.co.",
+      "metaDescription": "Téléchargez gratuitement toute vidéo publique ou GIF animé depuis X (Twitter) en MP4 HD via un lien x.com, twitter.com ou t.co sans compte.",
       "h1": "Télécharger une vidéo X (Twitter) ou un GIF en MP4",
       "subtitle": "Extrayez les vidéos publiques, les GIFs convertis en MP4 et les images haute définition publiés sur x.com et twitter.com.",
       "shortLabel": "Vidéo X / Twitter",
       "breadcrumbLabel": "Téléchargeur X (Twitter)",
       "placeholder": "https://x.com/utilisateur/status/2040511285998313827",
-      "specs": ["X.COM & TWITTER.COM", "CHOIX DE RÉSOLUTION", "GIFS EN MP4", "LIENS COURTS T.CO"],
+      "specs": [
+        "X.COM & TWITTER.COM",
+        "CHOIX DE RÉSOLUTION",
+        "GIFS EN MP4",
+        "LIENS COURTS T.CO"
+      ],
       "editorial": {
         "heading": "Extraire les vidéos et GIFs publics de X (Twitter) au format MP4",
         "subheading": "Sélectionnez la résolution exacte parmi les variantes MP4 publiées dans un tweet public.",
@@ -368,7 +425,10 @@
           "question": "Pourquoi certains tweets contenant du texte renvoient-ils une erreur ?",
           "answer": "Si le tweet ne comporte ni vidéo, ni GIF, ni image (ou s'il s'agit d'un contenu restreint par une limite d'âge), l'outil vous indique qu'aucun média public téléchargeable n'est présent."
         }
-      ]
+      ],
+      "ogTitle": "Télécharger Vidéo X (Twitter) et GIF en MP4 HD | VIDNEX",
+      "ogDescription": "Téléchargez gratuitement toute vidéo publique ou GIF animé depuis X (Twitter) en MP4 HD via un lien x.com, twitter.com ou t.co sans compte.",
+      "ogImageAlt": "Aperçu du téléchargeur de vidéos et GIFs publics X (Twitter) en MP4 HD sur VIDNEX"
     },
     "facebook": {
       "slug": "telecharger-video-facebook",
@@ -379,7 +439,12 @@
       "shortLabel": "Vidéo Facebook",
       "breadcrumbLabel": "Téléchargeur Facebook",
       "placeholder": "https://www.facebook.com/facebook/videos/10153231379946729/",
-      "specs": ["VIDÉOS & REELS", "QUALITÉ HD & SD", "LIENS FB.WATCH", "SANS COMPTE"],
+      "specs": [
+        "VIDÉOS & REELS",
+        "QUALITÉ HD & SD",
+        "LIENS FB.WATCH",
+        "SANS COMPTE"
+      ],
       "editorial": {
         "heading": "Télécharger des vidéos et Reels publics Facebook en HD ou SD",
         "subheading": "Un résolveur direct pour les liens facebook.com/watch, /reel/, /share/v/ et fb.watch sans utiliser de compte Facebook.",
@@ -435,7 +500,10 @@
           "question": "Les photos, les stories et les Lives Facebook sont-ils supportés ?",
           "answer": "Non. Dans sa version actuelle, l'extracteur Facebook est dédié uniquement aux vidéos publiées et aux Reels publics."
         }
-      ]
+      ],
+      "ogTitle": "Télécharger Vidéo Facebook & Reel en MP4 HD/SD | VIDNEX",
+      "ogDescription": "Téléchargez gratuitement des vidéos publiques Facebook, Reels et liens fb.watch en MP4 HD ou SD sur mobile et ordinateur, sans connexion à un compte.",
+      "ogImageAlt": "Aperçu du téléchargeur de vidéos publiques Facebook Watch et Reels en MP4 HD sur VIDNEX"
     }
   },
   "legal": {
@@ -461,11 +529,14 @@
             "Nous limitons strictement le périmètre de l'outil aux publications publiques accessibles sans compte. Aucune fonctionnalité ne permet de contourner un mur de connexion, un compte privé ou une mesure de protection technique."
           ]
         }
-      ]
+      ],
+      "ogTitle": "À propos de VIDNEX — Outil d'extraction vidéo public",
+      "ogDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture sans stockage sur Cloudflare Pages et nos engagements de transparence.",
+      "ogImageAlt": "À propos de VIDNEX — Architecture technique et téléchargement de médias publics"
     },
     "privacy": {
       "metaTitle": "Politique de confidentialité & Cookies | VIDNEX",
-      "metaDescription": "Politique de confidentialité de VIDNEX : traitement éphémère des URLs, absence de stockage des vidéos, hachage anti-abus et gestion des cookies AdSense.",
+      "metaDescription": "Politique de confidentialité VIDNEX : traitement éphémère des URLs, zéro stockage vidéo, hachage anti-abus et gestion des cookies AdSense.",
       "h1": "Politique de confidentialité",
       "breadcrumbLabel": "Confidentialité",
       "updatedAt": "10 novembre 2026",
@@ -491,7 +562,10 @@
             "Les fournisseurs tiers, y compris Google, utilisent des cookies pour diffuser des annonces en fonction des visites antérieures des utilisateurs sur ce site ou sur d'autres pages web. Vous pouvez désactiver la publicité personnalisée à tout moment en consultant les Paramètres des annonces Google (adssettings.google.com)."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Politique de confidentialité & Cookies | VIDNEX",
+      "ogDescription": "Politique de confidentialité VIDNEX : traitement éphémère des URLs, zéro stockage vidéo, hachage anti-abus et gestion des cookies AdSense.",
+      "ogImageAlt": "Politique de confidentialité et protection des données sur VIDNEX"
     },
     "terms": {
       "metaTitle": "Conditions d'utilisation du service | VIDNEX",
@@ -514,7 +588,10 @@
             "L'outil est réservé aux publications publiques. Il est interdit d'utiliser VIDNEX pour tenter d'accéder à des contenus privés ou restreints, ou d'automatiser des requêtes massives par des robots (scraping). Un système de limitation de débit par minute protège l'infrastructure contre les usages abusifs."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Conditions d'utilisation du service | VIDNEX",
+      "ogDescription": "Consultez les conditions générales d'utilisation de VIDNEX : usage personnel, respect du droit d'auteur et interdiction d'extraction automatisée.",
+      "ogImageAlt": "Conditions générales d’utilisation du service VIDNEX"
     },
     "contact": {
       "metaTitle": "Contacter l'équipe VIDNEX | Assistance & Conformité",
@@ -531,11 +608,14 @@
             "Pour nous aider à traiter votre demande rapidement, merci d'indiquer dans votre message la plateforme concernée (TikTok, Instagram, X ou Facebook), le navigateur utilisé ainsi que l'URL publique concernée le cas échéant."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Contacter l'équipe VIDNEX | Assistance & Conformité",
+      "ogDescription": "Contactez l'équipe technique et conformité de VIDNEX par courrier électronique pour toute question, signalement de bug ou demande légale.",
+      "ogImageAlt": "Contacter l’équipe technique et conformité de VIDNEX"
     },
     "dmca": {
       "metaTitle": "Droits d'auteur & Procédure DMCA | VIDNEX",
-      "metaDescription": "Procédure de signalement de droits d'auteur et DMCA sur VIDNEX : comment demander le blocage d'une URL ou d'un compte créateur dans notre liste d'exclusion.",
+      "metaDescription": "Procédure de droits d’auteur et DMCA sur VIDNEX : comment demander le blocage immédiat d’une URL publique dans notre liste d’exclusion.",
       "h1": "Droits d'auteur et politique DMCA",
       "breadcrumbLabel": "Droits d'auteur / DMCA",
       "updatedAt": "10 novembre 2026",
@@ -554,7 +634,10 @@
             "Envoyez votre demande à l'adresse compliance@vidnex.space en précisant : (1) l'identification de l'œuvre protégée, (2) l'URL exacte de la publication concernée, et (3) vos coordonnées assorties d'une déclaration sur l'honneur attestant que vous êtes le titulaire des droits ou son représentant autorisé."
           ]
         }
-      ]
+      ],
+      "ogTitle": "Droits d'auteur & Procédure DMCA | VIDNEX",
+      "ogDescription": "Procédure de droits d’auteur et DMCA sur VIDNEX : comment demander le blocage immédiat d’une URL publique dans notre liste d’exclusion.",
+      "ogImageAlt": "Procédure de signalement de droits d’auteur et DMCA sur VIDNEX"
     }
   }
 }

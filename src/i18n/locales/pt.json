@@ -114,6 +114,18 @@
       "BLOCKED": "Seu acesso foi temporariamente restrito por motivos de segurança.",
       "RATE_LIMITED": "Você atingiu o limite de solicitações por minuto. Aguarde um momento antes de tentar novamente.",
       "NETWORK_ERROR": "Não foi possível conectar ao servidor. Verifique sua conexão com a internet e tente novamente."
+    },
+    "share": {
+      "buttonLabel": "Compartilhar",
+      "buttonAria": "Compartilhar esta ferramenta nas redes sociais",
+      "menuTitle": "Compartilhar ferramenta",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Copiar link",
+      "copied": "Link copiado!",
+      "shareOnAria": "Compartilhar no {network}"
     }
   },
   "home": {
@@ -187,7 +199,10 @@
         "question": "Os vídeos baixados ficam salvos no site?",
         "answer": "Não. O processamento é feito em tempo real e nenhum arquivo de mídia fica arquivado em nossos servidores."
       }
-    ]
+    ],
+    "ogTitle": "VIDNEX — Baixar vídeos do TikTok, Instagram, X e Facebook",
+    "ogDescription": "Baixe vídeos públicos do TikTok sem marca d'água, Reels do Instagram, X (Twitter) e Facebook em MP4 ou MP3 grátis direto no navegador.",
+    "ogImageAlt": "Prévia do VIDNEX: baixador de vídeos públicos do TikTok, Instagram, X e Facebook em MP4"
   },
   "platforms": {
     "tiktok": {
@@ -259,7 +274,10 @@
           "question": "Como salvar o vídeo na galeria do iPhone?",
           "answer": "No Safari (iOS 13 ou superior), toque em Baixar MP4. Após o download no app Arquivos, abra o vídeo e selecione Compartilhar > Salvar Vídeo."
         }
-      ]
+      ],
+      "ogTitle": "Baixar vídeo do TikTok sem marca d'água em MP4 | VIDNEX",
+      "ogDescription": "Baixe vídeos públicos do TikTok sem marca d'água em qualidade MP4 HD ou extraia o áudio em MP3 grátis pelo navegador no celular ou PC.",
+      "ogImageAlt": "Prévia do baixador de vídeos do TikTok sem marca d’água em MP4 HD e áudio MP3"
     },
     "instagram": {
       "slug": "baixar-reels-instagram",
@@ -330,7 +348,10 @@
           "question": "Preciso informar minha senha do Instagram?",
           "answer": "Nunca. O VIDNEX não solicita login, senha ou qualquer dado da sua conta."
         }
-      ]
+      ],
+      "ogTitle": "Baixar Reels e vídeos do Instagram em MP4 grátis | VIDNEX",
+      "ogDescription": "Baixe Reels, vídeos e carrosséis públicos do Instagram em formato MP4 e JPG diretamente no celular ou PC sem precisar fazer login.",
+      "ogImageAlt": "Prévia do baixador de Reels, carrosséis e fotos de perfil do Instagram no VIDNEX"
     },
     "x": {
       "slug": "baixar-video-x-twitter",
@@ -401,7 +422,10 @@
           "question": "E se o tweet tiver mais de um vídeo?",
           "answer": "Se o tweet público contiver até 4 vídeos anexados, o VIDNEX exibirá cada vídeo separadamente para download."
         }
-      ]
+      ],
+      "ogTitle": "Baixar vídeos do X (Twitter) em MP4 HD grátis | VIDNEX",
+      "ogDescription": "Baixe vídeos e GIFs de tweets públicos do X (Twitter) em formato MP4 escolhendo a resolução (1080p, 720p) direto pelo navegador.",
+      "ogImageAlt": "Prévia do baixador de vídeos e GIFs públicos do X (Twitter) em MP4 HD no VIDNEX"
     },
     "facebook": {
       "slug": "baixar-video-facebook",
@@ -472,7 +496,10 @@
           "question": "O vídeo MP4 baixado vem com áudio?",
           "answer": "Sim, priorizamos os fluxos MP4 completos que já trazem vídeo e áudio combinados no mesmo arquivo."
         }
-      ]
+      ],
+      "ogTitle": "Baixar vídeos do Facebook e Reels em MP4 HD / SD | VIDNEX",
+      "ogDescription": "Baixe vídeos públicos do Facebook, Facebook Reels e links fb.watch em formato MP4 em qualidade HD ou SD grátis pelo navegador.",
+      "ogImageAlt": "Prévia do baixador de vídeos e Reels públicos do Facebook em MP4 HD e SD no VIDNEX"
     }
   }
 }

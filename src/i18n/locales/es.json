@@ -114,6 +114,18 @@
       "BLOCKED": "Tu acceso ha sido restringido temporalmente por motivos de seguridad.",
       "RATE_LIMITED": "Has superado el límite de solicitudes por minuto. Espera un momento antes de volver a intentarlo.",
       "NETWORK_ERROR": "No se pudo conectar con el servidor. Comprueba tu conexión a Internet y vuelve a intentarlo."
+    },
+    "share": {
+      "buttonLabel": "Compartir",
+      "buttonAria": "Compartir esta herramienta en redes sociales",
+      "menuTitle": "Compartir herramienta",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "x": "X (Twitter)",
+      "copyLink": "Copiar enlace",
+      "copied": "¡Enlace copiado!",
+      "shareOnAria": "Compartir en {network}"
     }
   },
   "home": {
@@ -187,7 +199,10 @@
         "question": "¿VIDNEX guarda un historial de mis descargas?",
         "answer": "No almacenamos los archivos multimedia ni vinculamos las consultas a perfiles personales."
       }
-    ]
+    ],
+    "ogTitle": "VIDNEX — Descargar vídeos de TikTok, Instagram, X y Facebook",
+    "ogDescription": "Descarga vídeos públicos de TikTok sin marca de agua, Reels de Instagram, X (Twitter) y Facebook en MP4 o MP3 gratis desde tu navegador.",
+    "ogImageAlt": "Vista previa de VIDNEX: descargador de videos públicos de TikTok, Instagram, X y Facebook"
   },
   "platforms": {
     "tiktok": {
@@ -259,7 +274,10 @@
           "question": "¿Cómo guardar el vídeo en el carrete de un iPhone?",
           "answer": "Desde Safari (iOS 13+), pulsa Descargar MP4. El archivo se guardará en la app Archivos (Files), desde donde podrás tocar Compartir > Guardar vídeo."
         }
-      ]
+      ],
+      "ogTitle": "Descargar vídeos de TikTok sin marca de agua en MP4 | VIDNEX",
+      "ogDescription": "Descarga vídeos públicos de TikTok sin marca de agua en calidad MP4 HD o extrae el audio en MP3 gratis desde tu navegador móvil o PC.",
+      "ogImageAlt": "Vista previa del descargador de videos de TikTok sin marca de agua en MP4 HD y MP3"
     },
     "instagram": {
       "slug": "descargar-reels-instagram",
@@ -330,7 +348,10 @@
           "question": "¿Es necesario iniciar sesión con mi cuenta de Instagram?",
           "answer": "Nunca. VIDNEX funciona de manera anónima y jamás solicita tu usuario ni tu contraseña."
         }
-      ]
+      ],
+      "ogTitle": "Descargar Reels y vídeos de Instagram en MP4 gratis | VIDNEX",
+      "ogDescription": "Descarga Reels, vídeos y carruseles públicos de Instagram en formato MP4 y JPG directamente en tu móvil o PC sin iniciar sesión.",
+      "ogImageAlt": "Vista previa del descargador de Reels, carruseles y fotos de Instagram en VIDNEX"
     },
     "x": {
       "slug": "descargar-video-x-twitter",
@@ -401,7 +422,10 @@
           "question": "¿Se pueden descargar varios vídeos de un mismo tuit?",
           "answer": "Sí, si una publicación pública contiene hasta 4 vídeos adjuntos, cada uno aparecerá listado individualmente para su descarga."
         }
-      ]
+      ],
+      "ogTitle": "Descargar vídeos de X (Twitter) en MP4 HD gratis | VIDNEX",
+      "ogDescription": "Descarga vídeos y GIFs de tuits públicos de X (Twitter) en formato MP4 eligiendo la resolución (HD 1080p, 720p) desde tu navegador.",
+      "ogImageAlt": "Vista previa del descargador de videos y GIFs públicos de X (Twitter) en MP4 HD"
     },
     "facebook": {
       "slug": "descargar-video-facebook",
@@ -472,7 +496,10 @@
           "question": "¿El archivo MP4 descargado incluye sonido?",
           "answer": "Sí, nuestro motor prioriza las pistas MP4 progresivas que contienen tanto el vídeo como el audio integrados en un solo archivo."
         }
-      ]
+      ],
+      "ogTitle": "Descargar vídeos de Facebook y Reels en MP4 HD / SD | VIDNEX",
+      "ogDescription": "Descarga vídeos públicos de Facebook, Facebook Reels y enlaces fb.watch en formato MP4 en calidad HD o SD gratis y sin registro.",
+      "ogImageAlt": "Vista previa del descargador de videos y Reels públicos de Facebook en MP4 HD y SD"
     }
   }
 }

@@ -92,6 +92,30 @@ function createOgPngBuffer(width = 1200, height = 630) {
   ]);
 }
 
+function assertSocialLengths(locale, label, item) {
+  const title = item.ogTitle || item.metaTitle || '';
+  const desc = item.ogDescription || item.metaDescription || '';
+  const alt = item.ogImageAlt || '';
+  const titleLen = [...title].length;
+  const descLen = [...desc].length;
+
+  if (!title || titleLen > 60) {
+    throw new Error(
+      `[OG Validation Error] ${locale} (${label}): ogTitle length is ${titleLen} (must be 1..60 chars): "${title}"`
+    );
+  }
+  if (!desc || descLen < 90 || descLen > 150) {
+    throw new Error(
+      `[OG Validation Error] ${locale} (${label}): ogDescription length is ${descLen} (must be 90..150 chars): "${desc}"`
+    );
+  }
+  if (!alt || alt.trim().length < 15) {
+    throw new Error(
+      `[OG Validation Error] ${locale} (${label}): missing or too short ogImageAlt`
+    );
+  }
+}
+
 /**
  * Validates that all 10 locale JSON files exist and contain every required key.
  * Fails the build immediately if any key is missing or empty (ÉTAPE 1).
@@ -144,6 +168,7 @@ function loadAndValidateAllLocales(
     }
     const bundle = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     assertKeysMatch(bundle, refBundle, locale);
+    assertSocialLengths(locale, 'home', bundle.home);
 
     for (const pKey of PLATFORM_PAGE_KEYS) {
       if (!bundle.platforms[pKey]) {
@@ -151,6 +176,7 @@ function loadAndValidateAllLocales(
           `[i18n Validation Error] Missing platform "${pKey}" in ${locale}.json`
         );
       }
+      assertSocialLengths(locale, `platforms.${pKey}`, bundle.platforms[pKey]);
     }
 
     if (locale === 'fr' || locale === 'en' || locale === 'ar') {
@@ -160,6 +186,7 @@ function loadAndValidateAllLocales(
             `[i18n Validation Error] Missing legal page "${lKey}" in ${locale}.json`
           );
         }
+        assertSocialLengths(locale, `legal.${lKey}`, bundle.legal[lKey]);
       }
     }
 
@@ -168,7 +195,7 @@ function loadAndValidateAllLocales(
   }
 
   console.log(
-    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files (0 missing keys).`
+    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files (0 missing keys, 100% OG length compliance).`
   );
   return map;
 }
@@ -207,7 +234,11 @@ function buildHtmlDocument(
     `<link rel="canonical" href="${escapeHtml(meta.canonicalUrl)}" />`
   );
 
-  // 4. Replace meta robots
+  // 4. Replace meta theme-color and meta robots
+  html = html.replace(
+    /<meta\s+name="theme-color"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="theme-color" content="${escapeHtml(meta.themeColor)}" />`
+  );
   html = html.replace(
     /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
     `<meta name="robots" content="${escapeHtml(meta.robots)}" />`
@@ -215,14 +246,26 @@ function buildHtmlDocument(
 
   // 5. Replace meta description
   html = html.replace(
-    /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+    /<meta\s+name="description"[\s\S]*?\/>/i,
     `<meta name="description" content="${escapeHtml(meta.description)}" />`
   );
 
   // 6. Replace OpenGraph & Twitter tags in template
   html = html.replace(
+    /<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:type" content="${escapeHtml(meta.ogType)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:site_name"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:site_name" content="${escapeHtml(meta.ogSiteName)}" />`
+  );
+  html = html.replace(
     /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
     `<meta property="og:title" content="${escapeHtml(meta.ogTitle)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:description"[\s\S]*?\/>/i,
+    `<meta property="og:description" content="${escapeHtml(meta.ogDescription)}" />`
   );
   html = html.replace(
     /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
@@ -233,24 +276,48 @@ function buildHtmlDocument(
     `<meta property="og:image" content="${escapeHtml(meta.ogImage)}" />`
   );
   html = html.replace(
+    /<meta\s+property="og:image:secure_url"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:image:secure_url" content="${escapeHtml(meta.ogImageSecureUrl)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:image:type" content="${escapeHtml(meta.ogImageType)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:image:width"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:image:width" content="${escapeHtml(meta.ogImageWidth)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:image:height"\s+content="[^"]*"\s*\/?>/i,
+    `<meta property="og:image:height" content="${escapeHtml(meta.ogImageHeight)}" />`
+  );
+  html = html.replace(
+    /<meta\s+property="og:image:alt"[\s\S]*?\/>/i,
+    `<meta property="og:image:alt" content="${escapeHtml(meta.ogImageAlt)}" />`
+  );
+  html = html.replace(
     /<meta\s+property="og:locale"\s+content="[^"]*"\s*\/?>/i,
     `<meta property="og:locale" content="${escapeHtml(meta.ogLocale)}" />`
   );
   html = html.replace(
-    /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
-    `<meta property="og:description" content="${escapeHtml(meta.ogDescription)}" />`
+    /<meta\s+name="twitter:card"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:card" content="${escapeHtml(meta.twitterCard)}" />`
   );
   html = html.replace(
     /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
-    `<meta name="twitter:title" content="${escapeHtml(meta.ogTitle)}" />`
+    `<meta name="twitter:title" content="${escapeHtml(meta.twitterTitle)}" />`
   );
   html = html.replace(
-    /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
-    `<meta name="twitter:description" content="${escapeHtml(meta.ogDescription)}" />`
+    /<meta\s+name="twitter:description"[\s\S]*?\/>/i,
+    `<meta name="twitter:description" content="${escapeHtml(meta.twitterDescription)}" />`
   );
   html = html.replace(
     /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
-    `<meta name="twitter:image" content="${escapeHtml(meta.ogImage)}" />`
+    `<meta name="twitter:image" content="${escapeHtml(meta.twitterImage)}" />`
+  );
+  html = html.replace(
+    /<meta\s+name="twitter:image:alt"[\s\S]*?\/>/i,
+    `<meta name="twitter:image:alt" content="${escapeHtml(meta.twitterImageAlt)}" />`
   );
 
   // 7. Build extra head tags: og:locale:alternate, hreflang cluster, JSON-LD, and preloaded locale bundle
@@ -367,10 +434,18 @@ async function main() {
       '/src/i18n/localeLoader.ts'
     );
 
-    // 1. Generate 1200x630 og-default.png in public/ and dist/
-    const ogPng = createOgPngBuffer(1200, 630);
-    fs.writeFileSync(path.join(PUBLIC_DIR, 'og-default.png'), ogPng);
-    fs.writeFileSync(path.join(DIST_DIR, 'og-default.png'), ogPng);
+    // 1. Ensure committed OG images in public/og/ are present in dist/og/
+    const publicOgDir = path.join(PUBLIC_DIR, 'og');
+    const distOgDir = path.join(DIST_DIR, 'og');
+    if (fs.existsSync(publicOgDir)) {
+      fs.mkdirSync(distOgDir, { recursive: true });
+      for (const file of fs.readdirSync(publicOgDir)) {
+        fs.copyFileSync(
+          path.join(publicOgDir, file),
+          path.join(distOgDir, file)
+        );
+      }
+    }
 
     // 2. Load & validate all 10 locale JSON files
     const localesMap = loadAndValidateAllLocales(

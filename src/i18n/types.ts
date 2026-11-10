@@ -30,6 +30,9 @@ export interface PlatformPageContent {
   slug: string;
   metaTitle: string;
   metaDescription: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageAlt: string;
   h1: string;
   subtitle: string;
   shortLabel: string;
@@ -44,6 +47,9 @@ export interface PlatformPageContent {
 export interface HomePageContent {
   metaTitle: string;
   metaDescription: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageAlt: string;
   h1: string;
   subtitle: string;
   placeholder: string;
@@ -61,11 +67,27 @@ export interface LegalPageSection {
 export interface LegalPageContent {
   metaTitle: string;
   metaDescription: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageAlt: string;
   h1: string;
   breadcrumbLabel: string;
   updatedAt: string;
   intro: string;
   sections: LegalPageSection[];
+}
+
+export interface ShareUiDictionary {
+  buttonLabel: string;
+  buttonAria: string;
+  menuTitle: string;
+  whatsapp: string;
+  telegram: string;
+  facebook: string;
+  x: string;
+  copyLink: string;
+  copied: string;
+  shareOnAria: string;
 }
 
 export interface ErrorMessagesDictionary {
@@ -163,6 +185,7 @@ export interface LocaleBundle {
       switchCta: string;
       dismissAria: string;
     };
+    share: ShareUiDictionary;
     notFound: {
       title: string;
       heading: string;

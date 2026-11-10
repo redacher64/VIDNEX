@@ -284,7 +284,11 @@ const VideoResultView: React.FC<{
           >
             <img
               src={resolveApiUrl(data.thumbnailUrl)}
-              alt={data.title}
+              alt={data.title || `${data.badgeLabel} — ${data.creatorHandle}`}
+              width={480}
+              height={600}
+              loading="lazy"
+              decoding="async"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 const img = e.currentTarget;
@@ -479,7 +483,11 @@ const ProfileDpResultView: React.FC<{
       >
         <img
           src={resolveApiUrl(data.standardPreviewUrl || data.hdOriginalUrl)}
-          alt={data.creatorHandle}
+          alt={`${data.creatorName || data.creatorHandle} (${data.creatorHandle})`}
+          width={320}
+          height={320}
+          loading="lazy"
+          decoding="async"
           referrerPolicy="no-referrer"
           onError={(e) => {
             const img = e.currentTarget;
@@ -678,7 +686,11 @@ const CarouselResultView: React.FC<{
               >
                 <img
                   src={resolveApiUrl(slide.thumbnailUrl)}
-                  alt={`Slide ${slide.index}`}
+                  alt={`${data.creatorHandle} — #${slide.index} (${slide.mediaType})`}
+                  width={360}
+                  height={450}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     const img = e.currentTarget;

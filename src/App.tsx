@@ -1,106 +1,90 @@
-// VIDNEX v0.1.1 - Cloudflare Universal Media Downloader
+// VIDNEX v0.2.0 - International SEO & Universal Media Downloader
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { Header } from './components/Header';
-import { HeroOmnibox } from './components/HeroOmnibox';
-import { ResultDrawer } from './components/ResultDrawer';
-import { BelowFoldSeoSections } from './components/BelowFoldSeoSections';
-import { SeoSchemaInjector } from './components/SeoSchemaInjector';
-import { AdSlot } from './components/AdSlot';
-import { Footer } from './components/Footer';
-import { LegalDocType, LegalModal } from './components/LegalModal';
+import { Header } from './components/Header.tsx';
+import { HeroOmnibox } from './components/HeroOmnibox.tsx';
+import { ResultDrawer } from './components/ResultDrawer.tsx';
+import { BelowFoldSeoSections } from './components/BelowFoldSeoSections.tsx';
+import { SeoSchemaInjector } from './components/SeoSchemaInjector.tsx';
+import { LanguageSuggestionBanner } from './components/LanguageSuggestionBanner.tsx';
+import { LegalPageView } from './components/LegalPageView.tsx';
+import { NotFoundView } from './components/NotFoundView.tsx';
+import { AdSlot } from './components/AdSlot.tsx';
+import { Footer } from './components/Footer.tsx';
 import {
   DetectedUrlInfo,
-  isPlatformSupported,
   PlatformId,
-} from './utils/urlDetector';
+} from './utils/urlDetector.ts';
 import {
   extractMediaFromUrl,
   MediaResult,
-} from './services/extractorService';
+} from './services/extractorService.ts';
 import {
   fetchPublicConfig,
   getPublicConfigSnapshot,
   PublicConfig,
   subscribePublicConfig,
-} from './services/adsenseService';
+} from './services/adsenseService.ts';
 import {
-  DEFAULT_TOOL_BY_PLATFORM,
-  SEO_TOOLS_CONFIG,
-  ToolSlug,
-} from './data/seoToolsConfig';
+  DEFAULT_LOCALE,
+  getLocalizedPagePath,
+  isLegalPageKey,
+  isPlatformPageKey,
+  LOCALES_CONFIG,
+  type PageKey,
+  type PlatformPageKey,
+  type SupportedLocale,
+} from './i18n/config.ts';
 import {
-  getLocalizedToolConfig,
-  LanguageCode,
-  SUPPORTED_LANGUAGES,
-} from './i18n/translations';
+  getLocaleBundleSync,
+  loadLocaleBundle,
+} from './i18n/localeLoader.ts';
 import {
-  buildLocalizedPath,
-  DEFAULT_LANGUAGE,
   handleLegacyQueryRedirect,
   isSupportedLanguage,
-  isValidToolSlug,
   parsePathname,
-} from './utils/i18nRouting';
+} from './utils/i18nRouting.ts';
 
-const LazyAdminApp = React.lazy(() => import('./pages/admin/AdminApp'));
+const LazyAdminApp = React.lazy(() => import('./pages/admin/AdminApp.tsx'));
 
-function isAdminRoute(): boolean {
-  if (typeof window === 'undefined') return false;
-  const parsed = parsePathname(window.location.pathname);
-  const params = new URLSearchParams(window.location.search);
-  return (
-    parsed.isAdmin ||
-    window.location.pathname === '/admin' ||
-    window.location.pathname.startsWith('/admin/') ||
-    params.get('admin') === '1'
-  );
+interface AppProps {
+  initialPath?: string;
 }
 
-function resolveInitialToolFromLocation(): ToolSlug {
-  if (typeof window === 'undefined') return 'instagram-reels';
+function resolveInitialRouteState(initialPath?: string): {
+  lang: SupportedLocale;
+  pageKey: PageKey | 'admin' | 'not_found';
+} {
+  if (initialPath) {
+    const parsed = parsePathname(initialPath);
+    return {
+      lang: parsed.lang,
+      pageKey: parsed.isAdmin ? 'admin' : parsed.pageKey,
+    };
+  }
+  if (typeof window === 'undefined') {
+    return { lang: DEFAULT_LOCALE, pageKey: 'home' };
+  }
   const parsed = parsePathname(window.location.pathname);
-  if (
-    parsed.toolSlug &&
-    isPlatformSupported(SEO_TOOLS_CONFIG[parsed.toolSlug].platform)
-  ) {
-    return parsed.toolSlug;
-  }
   const params = new URLSearchParams(window.location.search);
-  const toolParam = params.get('tool');
-  if (toolParam && isValidToolSlug(toolParam)) {
-    const found = SEO_TOOLS_CONFIG[toolParam];
-    if (found && isPlatformSupported(found.platform)) return found.slug;
+  if (parsed.isAdmin || params.get('admin') === '1') {
+    return { lang: DEFAULT_LOCALE, pageKey: 'admin' };
   }
-  const hash = window.location.hash.replace(/^#\/?/, '');
-  if (hash && isValidToolSlug(hash)) {
-    const matchedHash = SEO_TOOLS_CONFIG[hash];
-    if (matchedHash && isPlatformSupported(matchedHash.platform)) {
-      return matchedHash.slug;
-    }
-  }
-  return 'instagram-reels';
-}
-
-function resolveInitialLanguage(): LanguageCode {
-  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
-  const parsed = parsePathname(window.location.pathname);
-  if (parsed.lang && parsed.lang !== DEFAULT_LANGUAGE) {
-    return parsed.lang;
-  }
-  const params = new URLSearchParams(window.location.search);
   const urlLang = params.get('lang');
   if (urlLang && isSupportedLanguage(urlLang)) {
-    return urlLang;
+    return { lang: urlLang, pageKey: parsed.pageKey };
   }
-  const saved = localStorage.getItem('vidnex_lang');
-  if (saved && isSupportedLanguage(saved)) {
-    return saved;
-  }
-  return DEFAULT_LANGUAGE;
+  return { lang: parsed.lang, pageKey: parsed.pageKey };
 }
 
-export function App() {
-  const [isAdmin] = useState<boolean>(isAdminRoute);
+export function App({ initialPath }: AppProps = {}) {
+  const initialRoute = resolveInitialRouteState(initialPath);
+
+  const [language, setLanguage] = useState<SupportedLocale>(initialRoute.lang);
+  const [pageKey, setPageKey] = useState<PageKey | 'admin' | 'not_found'>(
+    initialRoute.pageKey
+  );
+  const [, setLocaleRevision] = useState(0);
+
   const [publicConfig, setPublicConfig] = useState<PublicConfig>(
     getPublicConfigSnapshot
   );
@@ -113,16 +97,6 @@ export function App() {
     return 'light';
   });
 
-  const [language, setLanguage] = useState<LanguageCode>(resolveInitialLanguage);
-
-  const [activeToolSlug, setActiveToolSlug] = useState<ToolSlug>(
-    resolveInitialToolFromLocation
-  );
-
-  const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocType | null>(
-    null
-  );
-
   // Extraction State Machine
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionError, setExtractionError] = useState<string | null>(null);
@@ -132,33 +106,35 @@ export function App() {
     detected: DetectedUrlInfo;
   } | null>(null);
 
-  const baseTool = SEO_TOOLS_CONFIG[activeToolSlug];
-  const activeTool = getLocalizedToolConfig(baseTool, language);
+  const isAdmin = pageKey === 'admin';
+  const activePlatform: PlatformId = isPlatformPageKey(
+    pageKey as PageKey
+  )
+    ? (pageKey as PlatformPageKey)
+    : 'tiktok';
+
+  // Ensure the active language chunk is loaded dynamically on the client
+  useEffect(() => {
+    let cancelled = false;
+    loadLocaleBundle(language)
+      .then(() => {
+        if (!cancelled) {
+          setLocaleRevision((r) => r + 1);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
 
   useEffect(() => {
     if (isAdmin) return;
     fetchPublicConfig();
     return subscribePublicConfig((cfg) => {
       setPublicConfig({ ...cfg });
-      if (activeTool.platform === 'instagram' && !cfg.platforms.instagram) {
-        if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
-        else if (cfg.platforms.x) setActiveToolSlug('x-video');
-        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
-      } else if (activeTool.platform === 'tiktok' && !cfg.platforms.tiktok) {
-        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
-        else if (cfg.platforms.x) setActiveToolSlug('x-video');
-        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
-      } else if (activeTool.platform === 'x' && !cfg.platforms.x) {
-        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
-        else if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
-        else if (cfg.platforms.facebook) setActiveToolSlug('facebook-reels');
-      } else if (activeTool.platform === 'facebook' && !cfg.platforms.facebook) {
-        if (cfg.platforms.instagram) setActiveToolSlug('instagram-reels');
-        else if (cfg.platforms.tiktok) setActiveToolSlug('tiktok-no-watermark');
-        else if (cfg.platforms.x) setActiveToolSlug('x-video');
-      }
     });
-  }, [isAdmin, activeTool.platform]);
+  }, [isAdmin]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -169,41 +145,61 @@ export function App() {
       root.classList.add('light');
       root.classList.remove('dark');
     }
-    localStorage.setItem('vidnex_theme', theme);
+    try {
+      localStorage.setItem('vidnex_theme', theme);
+    } catch {
+      // ignore
+    }
   }, [theme]);
 
   useEffect(() => {
     const root = document.documentElement;
-    const langMeta =
-      SUPPORTED_LANGUAGES.find((l) => l.code === language) ||
-      SUPPORTED_LANGUAGES[0];
-
+    const langMeta = LOCALES_CONFIG[language] || LOCALES_CONFIG.fr;
     root.lang = langMeta.code;
     root.dir = langMeta.dir;
-    localStorage.setItem('vidnex_lang', langMeta.code);
   }, [language]);
 
   useEffect(() => {
-    handleLegacyQueryRedirect();
+    const res = handleLegacyQueryRedirect();
+    if (res.redirected) {
+      const parsed = parsePathname(window.location.pathname);
+      setLanguage(parsed.lang);
+      setPageKey(parsed.isAdmin ? 'admin' : parsed.pageKey);
+    }
   }, []);
 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parsePathname(window.location.pathname);
       setLanguage(parsed.lang);
-      setActiveToolSlug(parsed.toolSlug || 'instagram-reels');
+      setPageKey(parsed.isAdmin ? 'admin' : parsed.pageKey);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const handleSelectTool = useCallback(
-    (slug: ToolSlug) => {
-      setActiveToolSlug(slug);
+  const handleNavigatePage = useCallback(
+    (nextPage: PageKey) => {
+      // If navigating to a legal page in a locale that points to /en/..., switch to 'en'
+      let targetLocale = language;
+      if (
+        isLegalPageKey(nextPage) &&
+        language !== 'fr' &&
+        language !== 'en' &&
+        language !== 'ar'
+      ) {
+        targetLocale = 'en';
+        setLanguage('en');
+      }
+      setPageKey(nextPage);
       if (typeof window !== 'undefined') {
-        const nextUrl = buildLocalizedPath(language, slug);
+        const nextUrl = getLocalizedPagePath(targetLocale, nextPage);
         if (window.location.pathname !== nextUrl) {
-          window.history.pushState({ slug, language }, '', nextUrl);
+          window.history.pushState(
+            { pageKey: nextPage, language: targetLocale },
+            '',
+            nextUrl
+          );
         }
       }
     },
@@ -211,28 +207,43 @@ export function App() {
   );
 
   const handleSelectLanguage = useCallback(
-    (nextLang: LanguageCode) => {
-      setLanguage(nextLang);
+    (nextLang: SupportedLocale) => {
+      try {
+        localStorage.setItem('vidnex_lang', nextLang);
+      } catch {
+        // ignore
+      }
+      const currentValidPage: PageKey =
+        pageKey === 'admin' || pageKey === 'not_found' ? 'home' : pageKey;
+
+      let effectivePage: PageKey = currentValidPage;
+      let effectiveLang: SupportedLocale = nextLang;
+
+      // If on a legal page and switching to a language without native legal page, point to /en/{legal}
+      if (
+        isLegalPageKey(currentValidPage) &&
+        nextLang !== 'fr' &&
+        nextLang !== 'en' &&
+        nextLang !== 'ar'
+      ) {
+        effectivePage = 'home';
+      }
+
+      setLanguage(effectiveLang);
+      setPageKey(effectivePage);
+
       if (typeof window !== 'undefined') {
-        const nextUrl = buildLocalizedPath(nextLang, activeToolSlug);
+        const nextUrl = getLocalizedPagePath(effectiveLang, effectivePage);
         if (window.location.pathname !== nextUrl) {
           window.history.pushState(
-            { slug: activeToolSlug, language: nextLang },
+            { pageKey: effectivePage, language: effectiveLang },
             '',
             nextUrl
           );
         }
       }
     },
-    [activeToolSlug]
-  );
-
-  const handleSelectPlatform = useCallback(
-    (platform: PlatformId) => {
-      const defaultSlug = DEFAULT_TOOL_BY_PLATFORM[platform];
-      handleSelectTool(defaultSlug);
-    },
-    [handleSelectTool]
+    [pageKey]
   );
 
   const handleToggleTheme = () => {
@@ -253,7 +264,7 @@ export function App() {
         setExtractionError(
           err instanceof Error
             ? err.message
-            : 'An unexpected error occurred during stream extraction.'
+            : getLocaleBundleSync(language).ui.errors.BLOCKED_BY_PLATFORM
         );
       } finally {
         setIsExtracting(false);
@@ -276,42 +287,61 @@ export function App() {
 
   if (isAdmin) {
     return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
-            Chargement du panneau d’administration…
-          </div>
-        }
-      >
-        <LazyAdminApp />
-      </Suspense>
+      <>
+        <SeoSchemaInjector pageKey="admin" language="fr" />
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
+              Chargement du panneau d’administration…
+            </div>
+          }
+        >
+          <LazyAdminApp />
+        </Suspense>
+      </>
     );
   }
 
+  const bundle = getLocaleBundleSync(language);
+  const currentLangMeta = LOCALES_CONFIG[language] || LOCALES_CONFIG.fr;
+  const activeToolPageKey: 'home' | PlatformPageKey = isPlatformPageKey(
+    pageKey as PageKey
+  )
+    ? (pageKey as PlatformPageKey)
+    : 'home';
+
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden">
+    <div
+      dir={currentLangMeta.dir}
+      className="relative min-h-screen flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden"
+    >
       {/* Ambient Orange Depth Glows */}
       <div className="ambient-orange-glow absolute -top-24 left-1/2 -translate-x-1/2 w-[1040px] h-[520px] bg-gradient-to-b from-orange-500/20 via-amber-400/15 to-transparent rounded-full blur-3xl pointer-events-none z-0" />
       <div className="absolute top-32 left-10 w-72 h-72 bg-orange-400/10 rounded-full blur-2xl pointer-events-none z-0" />
       <div className="absolute top-32 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl pointer-events-none z-0" />
 
-      <SeoSchemaInjector tool={activeTool} language={language} />
+      <SeoSchemaInjector pageKey={pageKey} language={language} />
 
       {publicConfig.maintenance && (
         <div
           role="status"
           className="relative z-50 bg-amber-500 text-[#140e0a] px-4 py-2.5 text-center font-mono text-xs font-bold shadow-sm"
         >
-          {language === 'fr'
-            ? 'Maintenance programmée en cours : les extractions sont temporairement suspendues.'
-            : 'Scheduled maintenance in progress: media extractions are temporarily paused.'}
+          {bundle.ui.errors.MAINTENANCE}
         </div>
       )}
 
+      {/* Client-only Language Suggestion Banner (never rendered during static pre-rendering) */}
+      <LanguageSuggestionBanner
+        currentLocale={language}
+        pageKey={pageKey === 'not_found' ? 'home' : pageKey}
+        onSelectLocale={handleSelectLanguage}
+      />
+
       <Header
-        activePlatform={activeTool.platform}
-        activeToolSlug={activeToolSlug}
-        onSelectPlatform={handleSelectPlatform}
+        activePageKey={pageKey}
+        activePlatform={activePlatform}
+        onNavigatePage={handleNavigatePage}
         theme={theme}
         onToggleTheme={handleToggleTheme}
         language={language}
@@ -319,50 +349,58 @@ export function App() {
       />
 
       <main className="flex-1 relative z-10">
-        <HeroOmnibox
-          activeTool={activeTool}
-          onSelectTool={handleSelectTool}
-          onSelectPlatform={handleSelectPlatform}
-          onSubmitUrl={handleSubmitUrl}
-          onEscapeClear={handleCloseDrawer}
-          isExtracting={isExtracting}
-          language={language}
-        />
+        {pageKey === 'not_found' ? (
+          <NotFoundView
+            locale={language}
+            onNavigatePage={(target) => handleNavigatePage(target)}
+          />
+        ) : isLegalPageKey(pageKey) ? (
+          <LegalPageView
+            legalKey={pageKey}
+            locale={language}
+            onNavigatePage={(target) => handleNavigatePage(target)}
+          />
+        ) : (
+          <>
+            <HeroOmnibox
+              pageKey={activeToolPageKey}
+              activePlatform={activePlatform}
+              onNavigatePage={(target) => handleNavigatePage(target)}
+              onSubmitUrl={handleSubmitUrl}
+              onEscapeClear={handleCloseDrawer}
+              isExtracting={isExtracting}
+              language={language}
+            />
 
-        <ResultDrawer
-          isLoading={isExtracting}
-          error={extractionError}
-          result={mediaResult}
-          onClose={handleCloseDrawer}
-          onRetry={handleRetryExtraction}
-          language={language}
-        />
+            <ResultDrawer
+              isLoading={isExtracting}
+              error={extractionError}
+              result={mediaResult}
+              onClose={handleCloseDrawer}
+              onRetry={handleRetryExtraction}
+              language={language}
+            />
 
-        <AdSlot
-          slotId="vidnex-post-result-leaderboard"
-          format="leaderboard"
-          language={language}
-        />
+            <AdSlot
+              slotId="vidnex-post-result-leaderboard"
+              format="leaderboard"
+              language={language}
+            />
 
-        <BelowFoldSeoSections
-          activeTool={activeTool}
-          onSelectTool={handleSelectTool}
-          language={language}
-        />
+            <BelowFoldSeoSections
+              pageKey={activeToolPageKey}
+              onNavigatePage={(target) => handleNavigatePage(target)}
+              language={language}
+            />
+          </>
+        )}
       </main>
 
       <Footer
-        activeToolSlug={activeToolSlug}
-        onSelectTool={handleSelectTool}
-        onOpenLegal={(doc) => setActiveLegalDoc(doc)}
+        activePageKey={pageKey}
+        onNavigatePage={handleNavigatePage}
         language={language}
-      />
-
-      <LegalModal
-        activeDoc={activeLegalDoc}
-        onSelectDoc={setActiveLegalDoc}
-        onClose={() => setActiveLegalDoc(null)}
-        language={language}
+        onSelectLanguage={handleSelectLanguage}
       />
     </div>
   );

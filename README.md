@@ -1,27 +1,56 @@
-# VIDNEX — Universal Media Downloader (Instagram & TikTok)
+# VIDNEX — Universal Media Downloader (TikTok, Instagram, X & Facebook)
 
-Application web moderne (**React 18 + TypeScript + Vite 6 + Tailwind CSS**) propulsée par **Cloudflare Workers / Pages Functions** (`worker.ts` + `functions/`) et **Cloudflare D1** pour l'administration.
+Application web moderne (**React 18 + TypeScript + Vite 6 + Tailwind CSS**) propulsée par **Cloudflare Pages Functions / Workers** (`functions/` + `worker.ts`) et **Cloudflare D1** pour l'administration, avec **pré-rendu statique (SSG) en 10 langues**.
 
 ---
 
 ## 🌟 Caractéristiques Principales
 
-- **100 % Gratuit & Sans Compte Obligatoire** :
-  - **Instagram (3 niveaux sans compte)** : API GraphQL publique (`doc_id` officiels) + scraping `/embed/captioned/` (`contextJSON`) + passerelles publiques de secours (`vxinstagram` / `ddinstagram`).
-  - **TikTok (2 niveaux sans clé en dur)** : API publique TikWM + extraction directe du JSON de réhydratation (`__UNIVERSAL_DATA_FOR_REHYDRATION__`) avec transfert automatique des cookies CDN (`tt_chain_token`, `ttwid`).
+- **4 Plateformes Publiques (100 % Gratuit & Sans Compte)** :
+  - **TikTok** : Vidéos MP4 HD sans filigrane, diaporamas photos et pistes audio MP3.
+  - **Instagram** : Reels MP4, publications photos/vidéos et carrousels multi-slides (`.ZIP`).
+  - **X (Twitter)** : Vidéos MP4 multi-débits (triées par bitrate), GIFs animés convertis en MP4 et images originales (`?name=orig`).
+  - **Facebook** : Vidéos publiques et Reels en qualité HD (`browser_native_hd_url`) et SD (`browser_native_sd_url`) avec résolution sécurisée des liens `fb.watch` et `/share/`.
+- **SEO Technique & International (10 Langues — 65 Pages Pré-rendues)** :
+  - **Langues supportées** : Français (`fr`, par défaut à la racine `/` sans préfixe), Anglais (`/en`), Arabe (`/ar`, support natif `dir="rtl"`), Espagnol (`/es`), Portugais (`/pt`), Allemand (`/de`), Turc (`/tr`), Indonésien (`/id`), Italien (`/it`) et Russe (`/ru`).
+  - **Pré-rendu statique au build (`scripts/prerender.mjs`)** : chaque route publique génère son propre fichier `dist/.../index.html` contenant le `<h1>`, un guide éditorial de 300 à 500 mots, la FAQ, les liens internes `<a href>`, `<link rel="canonical">`, les balises `hreflang` réciproques (+ `x-default`) et les schémas JSON-LD (`WebSite`, `Organization`, `WebApplication`, `BreadcrumbList`, `FAQPage`).
+  - **Code-splitting par langue (`src/i18n/localeLoader.ts`)** : chaque langue est isolée dans son propre fichier JSON (`src/i18n/locales/{code}.json`) afin qu'un visiteur ne télécharge jamais les 9 autres langues.
+  - **Validation stricte au build (`scripts/verify-seo.mjs`)** : le build échoue automatiquement s'il manque une clé de traduction, si deux pages partagent le même `<title>` ou `<meta name="description">`, si un `hreflang` n'est pas réciproque ou si un lien interne est cassé.
 - **Panneau d'Administration `/admin` (Cloudflare D1 natif, 0 API tierce)** :
   - **Dashboard analytique** : extractions aujourd'hui / 7 j / 30 j, taux de succès par plateforme, répartition des erreurs, graphique SVG/CSS des 30 derniers jours.
-  - **Santé des moteurs** : statut temps réel TikTok & Instagram, test d'extraction en direct sur URL fournie par l'admin, vérification du cookie Instagram sans jamais exposer sa valeur.
-  - **Contrôles & Sécurité** : mode maintenance global, activation/désactivation par plateforme, limite de requêtes/min par IP, liste de blocage (`ip_hash`, `domain`, `url`), interrupteur Google AdSense.
-  - **Résilience totale** : si D1 est indisponible, l'extraction publique continue de fonctionner sans interruption.
-- **Téléchargement Carrousel `.ZIP` Réel** :
-  - Assemblage d'une véritable archive binaire `.ZIP` standard (PKZIP STORE + CRC32) côté client avec barre de progression en direct et téléchargement individuel par diapositive.
-- **Sécurité Edge & Protection Anti-SSRF** :
-  - Liste blanche stricte des sous-domaines CDN médias officiels et blocage complet des plages privées RFC 1918.
-  - Suivi manuel des redirections (`redirect: 'manual'`, max 4 sauts vérifiés) et limite de taille à 250 Mo (`HTTP 413`).
-- **Internationalisation (5 langues) & SEO** :
-  - Interface, erreurs API et mentions légales traduites en **Français, Anglais, Espagnol, Portugais et Arabe (RTL)**.
-  - Injection dynamique de `<link rel="canonical">`, `hreflang`, OpenGraph, Schema.org JSON-LD, `robots.txt` et `sitemap.xml`.
+  - **Santé des moteurs** : statut temps réel TikTok, Instagram, X & Facebook, bouton « Tester maintenant » par plateforme.
+  - **Contrôles & Sécurité** : mode maintenance global, interrupteurs par plateforme, limite de requêtes/min par IP, liste de blocage (`ip_hash`, `domain`, `url`), interrupteur Google AdSense différé.
+
+---
+
+## 🌐 Configuration Cloudflare : Redirection 301 (`www` → sans `www`) & Anti-Duplication
+
+Pour éviter toute duplication de contenu dans Google :
+1. **Sous-domaines techniques (`.pages.dev` / `.workers.dev`)** : `functions/_middleware.ts` et `worker.ts` injectent automatiquement l'en-tête HTTP `X-Robots-Tag: noindex, nofollow` lorsque l'hôte se termine par `.pages.dev` ou `.workers.dev`, ainsi que sur `/admin` et `/api/*`.
+2. **Redirection 301 `www` vers le domaine canonique (`vidnex.space`)** :
+   Dans le tableau de bord Cloudflare de votre domaine (`Rules > Redirect Rules` ou `Bulk Redirects`), créez une règle de redirection :
+   - **When incoming requests match** : `Hostname equals www.vidnex.space`
+   - **Then** : `Type: Dynamic`, `Expression: concat("https://vidnex.space", http.request.uri.path)`, `Status code: 301 (Permanent Redirect)`, `Preserve query string: Enabled`.
+
+---
+
+## 🚀 Indexation Rapide : Google Search Console, Bing Webmaster Tools & IndexNow
+
+### 1. Google Search Console (Google n'utilise PAS IndexNow)
+- Ajoutez la propriété `https://vidnex.space` dans [Google Search Console](https://search.google.com/search-console).
+- Dans l'onglet **Sitemaps**, soumettez : `https://vidnex.space/sitemap.xml`.
+
+### 2. Bing Webmaster Tools & Protocole IndexNow
+- Le fichier de clé publique IndexNow est hébergé statiquement à la racine : `/vidnex2026indexnowkey9f8a7b6c5d4e3f2a1b0c.txt`.
+- Après chaque déploiement en production sur `https://vidnex.space`, exécutez manuellement la commande suivante pour notifier instantanément **Bing, Yandex, Naver et Seznam** des 65 URLs publiques :
+
+```bash
+# Vérifier le payload JSON sans envoyer de requête réseau :
+npm run indexnow -- --dry-run
+
+# Notifier IndexNow (Bing / Yandex) après mise en ligne sur https://vidnex.space :
+npm run indexnow
+```
 
 ---
 
@@ -29,17 +58,17 @@ Application web moderne (**React 18 + TypeScript + Vite 6 + Tailwind CSS**) prop
 
 Le panneau `/admin` intègre nativement :
 1. **Comparaison en temps constant** (`SHA-256` + XOR) du mot de passe `ADMIN_PASSWORD`.
-2. **Cookie de session signé `HMAC-SHA256`** (`SESSION_SECRET`) via Web Crypto API avec les attributs `HttpOnly`, `Secure`, `SameSite=Strict` et expiration de `12h`.
-3. **Protection anti-brute-force D1** (`login_attempts`) : blocage automatique de 15 minutes après 5 tentatives échouées.
-4. **Protection CSRF** : exigence stricte de `Content-Type: application/json` et validation de l'en-tête `Origin` sur toutes les routes de modification (`POST`, `PUT`, `DELETE`).
-5. **Désindexation complète** : en-tête HTTP `X-Robots-Tag: noindex, nofollow` via `functions/_middleware.ts` et balise `<meta name="robots" content="noindex, nofollow">`.
+2. **Cookie de session signé `HMAC-SHA256`** (`SESSION_SECRET`) via Web Crypto API (`HttpOnly`, `Secure`, `SameSite=Strict`, `12h`).
+3. **Protection anti-brute-force D1** (`login_attempts`) : blocage automatique de 15 minutes après 5 échecs.
+4. **Protection CSRF** : validation de `Content-Type: application/json` et de l'en-tête `Origin`.
+5. **Désindexation complète** : `X-Robots-Tag: noindex, nofollow` et `<meta name="robots" content="noindex, nofollow">`.
 
 > **Couche supplémentaire optionnelle (Cloudflare Access / Zero Trust)** :
-> Pour une défense en profondeur maximale, vous pouvez placer les chemins `/admin*` et `/api/admin/*` derrière une politique **Cloudflare Access (Zero Trust)** gratuite (jusqu'à 50 utilisateurs) dans le dashboard Cloudflare (*Zero Trust > Access > Applications*), exigeant un code OTP par e-mail ou Google/GitHub SSO avant même d'atteindre le Worker.
+> Vous pouvez protéger `/admin*` et `/api/admin/*` derrière une politique **Cloudflare Access (Zero Trust)** gratuite dans le dashboard Cloudflare (*Zero Trust > Access > Applications*).
 
 ---
 
-## 🛠️ Commandes de Développement & Vérification
+## 🛠️ Commandes de Développement & Build
 
 ```bash
 # 1. Installer les dépendances
@@ -48,14 +77,12 @@ npm install
 # 2. Lancer le serveur de développement Vite (port 3000)
 npm run dev
 
-# 3. Lancer les tests unitaires et d'intégration Edge + Admin D1 (node:test)
+# 3. Lancer la suite de tests unitaires et d'intégration (node:test)
 npm test
 
 # 4. Vérifier le typage TypeScript (Frontend + Backend Cloudflare)
 npm run lint
 
-# 5. Compiler pour la production (dist/)
+# 5. Compiler, pré-rendre les 65 pages HTML + sitemap.xml et auditer le SEO (dist/)
 npm run build
 ```
-
-Consultez **[SETUP.md](./SETUP.md)** pour les commandes exactes de création de la base Cloudflare D1, d'application des migrations et de configuration des secrets.

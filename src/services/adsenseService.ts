@@ -82,6 +82,23 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
   return currentPublicConfig;
 }
 
+let adsenseScheduled = false;
+
+function injectAdSenseTagNow(): void {
+  const scriptId = 'vidnex-adsense-script';
+  if (typeof document === 'undefined' || document.getElementById(scriptId)) {
+    return;
+  }
+  const script = document.createElement('script');
+  script.id = scriptId;
+  script.async = true;
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(
+    ADSENSE_CLIENT_ID
+  )}`;
+  script.crossOrigin = 'anonymous';
+  document.head.appendChild(script);
+}
+
 export function ensureAdSenseScriptLoaded(): void {
   if (
     typeof window === 'undefined' ||
@@ -91,15 +108,39 @@ export function ensureAdSenseScriptLoaded(): void {
     return;
   }
 
-  const scriptId = 'vidnex-adsense-script';
-  if (!document.getElementById(scriptId)) {
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.async = true;
-    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(
-      ADSENSE_CLIENT_ID
-    )}`;
-    script.crossOrigin = 'anonymous';
-    document.head.appendChild(script);
+  if (adsenseScheduled || document.getElementById('vidnex-adsense-script')) {
+    return;
+  }
+  adsenseScheduled = true;
+
+  const events = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const;
+  let triggered = false;
+
+  const triggerLoad = () => {
+    if (triggered) return;
+    triggered = true;
+    events.forEach((evt) =>
+      window.removeEventListener(evt, triggerLoad, { capture: true })
+    );
+    injectAdSenseTagNow();
+  };
+
+  events.forEach((evt) =>
+    window.addEventListener(evt, triggerLoad, {
+      once: true,
+      passive: true,
+      capture: true,
+    })
+  );
+
+  const ric = (
+    window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+    }
+  ).requestIdleCallback;
+  if (typeof ric === 'function') {
+    ric(() => triggerLoad(), { timeout: 3500 });
+  } else {
+    setTimeout(triggerLoad, 3500);
   }
 }

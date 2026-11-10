@@ -1,53 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ALL_TOOL_CONFIGS,
-  SeoToolConfig,
-  ToolSlug,
-} from '../data/seoToolsConfig';
-import {
-  getLocalizedToolConfig,
-  LanguageCode,
-  UI_TRANSLATIONS,
-} from '../i18n/translations';
-import { isPlatformSupported } from '../utils/urlDetector';
-import { AdSlot } from './AdSlot';
-import { PlatformIcon } from './icons/PlatformIcons';
-
-const SOON_BADGE_BY_LANG: Record<LanguageCode, string> = {
-  en: 'Soon',
-  fr: 'Bientôt',
-  es: 'Pronto',
-  pt: 'Em breve',
-  ar: 'قريباً',
-};
+  getLocalizedPagePath,
+  PLATFORM_PAGE_KEYS,
+  type PlatformPageKey,
+  type SupportedLocale,
+} from '../i18n/config.ts';
+import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { isPlatformSupported } from '../utils/urlDetector.ts';
+import { AdSlot } from './AdSlot.tsx';
+import { PlatformIcon } from './icons/PlatformIcons.tsx';
 
 interface BelowFoldSeoSectionsProps {
-  activeTool: SeoToolConfig;
-  onSelectTool: (slug: ToolSlug) => void;
-  language: LanguageCode;
+  pageKey: 'home' | PlatformPageKey;
+  onNavigatePage: (pageKey: 'home' | PlatformPageKey) => void;
+  language: SupportedLocale;
 }
 
 export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
-  activeTool,
-  onSelectTool,
+  pageKey,
+  onNavigatePage,
   language,
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const t = UI_TRANSLATIONS[language].sections;
-  const soonBadge = SOON_BADGE_BY_LANG[language] || 'Soon';
+  const bundle = getLocaleBundleSync(language);
+  const t = bundle.ui.sections;
+  const pageContent =
+    pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
+  const editorial = pageContent.editorial;
 
   useEffect(() => {
     setOpenFaqIndex(0);
-  }, [activeTool.slug, language]);
+  }, [pageKey, language]);
 
-  const handleToolSelect = (slug: ToolSlug) => {
-    onSelectTool(slug);
+  const handlePageSelect = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    target: 'home' | PlatformPageKey
+  ) => {
+    e.preventDefault();
+    onNavigatePage(target);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="w-full">
-      {/* 1. LIVE PIPELINE TELEMETRY / SPECS RIBBON */}
+      {/* 1. SPECS RIBBON */}
       <section className="w-full bg-gradient-to-r from-orange-50 via-white to-amber-50/60 dark:from-[#1c140e] dark:via-[#140e0a] dark:to-[#1c140e] border-b border-orange-200/60 dark:border-orange-900/40 shadow-sm py-5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
           {t.bentoCards.map((card, idx) => (
@@ -71,10 +67,10 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         </div>
       </section>
 
-      {/* 2. 3-COLUMN HOW IT WORKS BENTO GRID */}
+      {/* 2. 3-STEP HOW IT WORKS BENTO GRID */}
       <section
         aria-labelledby="howto-heading"
-        className="w-full py-16 bg-[#fffaf5] dark:bg-[#140e0a]"
+        className="w-full py-14 bg-[#fffaf5] dark:bg-[#140e0a]"
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
@@ -90,12 +86,12 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
               </h2>
             </div>
             <p className="text-sm text-[#6c4e40] dark:text-orange-200/75 max-w-md leading-relaxed">
-              {activeTool.subtitle}
+              {pageContent.subtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {activeTool.howToSteps.map((step, idx) => (
+            {pageContent.howToSteps.map((step, idx) => (
               <div
                 key={step.number}
                 className="bg-white/90 dark:bg-[#1c140e]/90 backdrop-blur-md p-6 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-card-warm flex flex-col justify-between hover:shadow-orange-glow hover:border-orange-400 transition-all duration-300 group"
@@ -105,7 +101,10 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                     <span className="font-mono text-xs font-bold text-white px-3 py-1 bg-gradient-to-r from-orange-600 to-amber-600 rounded-lg shadow-sm">
                       {t.stepOf} {step.number}
                     </span>
-                    <span className="font-mono text-xs text-orange-600 dark:text-amber-400 font-semibold">
+                    <span
+                      dir="ltr"
+                      className="font-mono text-xs text-orange-600 dark:text-amber-400 font-semibold"
+                    >
                       0{idx + 1} / 03
                     </span>
                   </div>
@@ -128,13 +127,73 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                   </div>
                   <div className="w-full bg-orange-200/70 dark:bg-orange-950 h-1.5 rounded-full overflow-hidden">
                     <div
-                      style={{ width: idx === 0 ? '100%' : idx === 1 ? '96%' : '100%' }}
+                      style={{
+                        width: idx === 0 ? '100%' : idx === 1 ? '96%' : '100%',
+                      }}
                       className="bg-gradient-to-r from-orange-600 to-amber-500 h-full shadow-[0_0_8px_#ea580c]"
                     />
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ORIGINAL EDITORIAL CONTENT SECTION (300-500 WORDS PER PAGE & LANGUAGE) */}
+      <section
+        aria-labelledby="editorial-heading"
+        className="w-full py-14 bg-white/75 dark:bg-[#18110c] border-t border-orange-200/60 dark:border-orange-900/40"
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              <h2
+                id="editorial-heading"
+                className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5]"
+              >
+                {editorial.heading}
+              </h2>
+              <p className="text-sm font-medium text-orange-800 dark:text-amber-400">
+                {editorial.subheading}
+              </p>
+              {editorial.paragraphs.map((paragraph, idx) => (
+                <p
+                  key={idx}
+                  className="text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed"
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+
+            <div className="lg:col-span-5 space-y-5">
+              <div className="p-6 rounded-2xl bg-[#fffaf5] dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm">
+                <h3 className="font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-3">
+                  {editorial.formatsTitle}
+                </h3>
+                <ul className="space-y-2.5">
+                  {editorial.formatsList.map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2.5 text-xs sm:text-sm text-[#6c4e40] dark:text-orange-200/80 leading-relaxed"
+                    >
+                      <span className="mt-1 w-2 h-2 rounded-full bg-orange-600 dark:bg-amber-400 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50">
+                <h3 className="font-display text-sm sm:text-base font-bold text-[#1f130b] dark:text-[#fffaf5] mb-1.5">
+                  {editorial.limitsTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-[#6c4e40] dark:text-orange-200/75 leading-relaxed">
+                  {editorial.limitsText}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -146,39 +205,40 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         language={language}
       />
 
-      {/* 3. PLATFORM COMPATIBILITY & DEDICATED TOOLS MATRIX */}
-      <section className="w-full py-16 bg-gradient-to-b from-orange-50/50 via-orange-100/30 to-orange-50/50 dark:from-[#1a110b] dark:via-[#140e0a] dark:to-[#1a110b] border-y border-orange-200/60 dark:border-orange-900/40">
+      {/* 4. DEDICATED PLATFORM PAGES DIRECTORY WITH REAL <a href> LINKS */}
+      <section className="w-full py-14 bg-gradient-to-b from-orange-50/50 via-orange-100/30 to-orange-50/50 dark:from-[#1a110b] dark:via-[#140e0a] dark:to-[#1a110b] border-y border-orange-200/60 dark:border-orange-900/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
               <span className="font-mono text-[11px] text-orange-700 dark:text-amber-400 tracking-widest uppercase font-bold">
-                {t.losslessPipeline}
+                VIDNEX
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5] mt-1.5">
-                {t.techMatrixHeading}
+                {t.platformsHeading}
               </h2>
             </div>
-            <span className="font-mono text-xs text-orange-900 dark:text-orange-200 font-semibold">
-              {t.specializedEndpoints}
-            </span>
+            <p className="text-xs sm:text-sm text-[#6c4e40] dark:text-orange-200/80 max-w-md">
+              {t.platformsSubheading}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {ALL_TOOL_CONFIGS.map((rawTool) => {
-              const tool = getLocalizedToolConfig(rawTool, language);
-              const isCurrent = tool.slug === activeTool.slug;
-              const supported = isPlatformSupported(tool.platform);
+            {PLATFORM_PAGE_KEYS.map((pKey) => {
+              const pInfo = bundle.platforms[pKey];
+              const isCurrent = pageKey === pKey;
+              const supported = isPlatformSupported(pKey);
+              const href = getLocalizedPagePath(language, pKey);
+
               return (
-                <button
-                  key={tool.slug}
-                  type="button"
-                  disabled={!supported}
-                  onClick={() => {
-                    if (supported) handleToolSelect(tool.slug);
+                <a
+                  key={pKey}
+                  href={href}
+                  onClick={(e) => {
+                    if (supported) handlePageSelect(e, pKey);
                   }}
-                  className={`p-5 text-left rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                  className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between group ${
                     !supported
-                      ? 'bg-white/60 dark:bg-[#1c140e]/50 border-orange-200/50 dark:border-orange-900/30 opacity-60 cursor-not-allowed'
+                      ? 'bg-white/60 dark:bg-[#1c140e]/50 border-orange-200/50 dark:border-orange-900/30 opacity-60 pointer-events-none'
                       : isCurrent
                       ? 'bg-white dark:bg-[#231710] border-2 border-orange-500 shadow-orange-glow'
                       : 'bg-white/90 dark:bg-[#1c140e]/90 border-orange-200/80 dark:border-orange-900/60 shadow-card-warm hover:shadow-orange-glow hover:border-orange-400'
@@ -188,45 +248,39 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="inline-flex items-center gap-2 font-display text-base font-bold text-[#1f130b] dark:text-[#fffaf5]">
                         <span className="text-orange-600 dark:text-amber-400">
-                          <PlatformIcon
-                            platform={tool.platform}
-                            className="w-4 h-4"
-                          />
+                          <PlatformIcon platform={pKey} className="w-4 h-4" />
                         </span>
-                        <span>{tool.shortLabel}</span>
+                        <span>{pInfo.shortLabel}</span>
                       </span>
-                      {supported ? (
-                        <span className="font-mono text-[10px] font-bold text-orange-700 dark:text-amber-400 uppercase">
-                          {tool.specs[0]}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950 font-mono text-[10px] font-bold text-orange-800 dark:text-amber-400 uppercase">
-                          {soonBadge}
-                        </span>
-                      )}
+                      <span className="font-mono text-[10px] font-bold text-orange-700 dark:text-amber-400 uppercase">
+                        MP4 HD
+                      </span>
                     </div>
+                    <h3 className="font-display text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] mb-1.5">
+                      {pInfo.h1}
+                    </h3>
                     <p className="text-xs text-[#6c4e40] dark:text-orange-200/75 line-clamp-2 leading-relaxed mb-4">
-                      {tool.subtitle}
+                      {pInfo.subtitle}
                     </p>
                   </div>
 
                   <div className="pt-2.5 border-t border-orange-100 dark:border-orange-900/40 flex items-center justify-between font-mono text-[11px] text-orange-900/75 dark:text-orange-200/75">
-                    <span>{tool.specs[1]}</span>
-                    <span className="text-orange-600 dark:text-amber-400 font-bold">
-                      {supported ? '→' : soonBadge}
+                    <span>{t.openToolCta}</span>
+                    <span className="text-orange-600 dark:text-amber-400 font-bold rtl:rotate-180">
+                      →
                     </span>
                   </div>
-                </button>
+                </a>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* 4. EDITORIAL FAQ ACCORDION + SIDE COLUMN AD (300×600) */}
+      {/* 5. EDITORIAL FAQ ACCORDION (ALL ANSWERS PRESENT IN DOM FOR STATIC SEO) */}
       <section
         aria-labelledby="faq-heading"
-        className="w-full py-16 pb-20 bg-[#fffaf5] dark:bg-[#140e0a]"
+        className="w-full py-14 pb-20 bg-[#fffaf5] dark:bg-[#140e0a]"
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="mb-10">
@@ -243,7 +297,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-3">
-              {activeTool.faqs.map((faq, idx) => {
+              {pageContent.faqs.map((faq, idx) => {
                 const isOpen = openFaqIndex === idx;
                 return (
                   <div
@@ -256,7 +310,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                       onClick={() =>
                         setOpenFaqIndex((prev) => (prev === idx ? null : idx))
                       }
-                      className="w-full p-5 text-left flex items-center justify-between gap-4 font-display text-base font-semibold text-[#1f130b] dark:text-[#fffaf5] hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
+                      className="w-full p-5 text-start flex items-center justify-between gap-4 font-display text-base font-semibold text-[#1f130b] dark:text-[#fffaf5] hover:text-orange-600 dark:hover:text-amber-400 transition-colors"
                     >
                       <span>{faq.question}</span>
                       <span
@@ -268,11 +322,15 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                       </span>
                     </button>
 
-                    {isOpen && (
-                      <div className="px-5 pb-5 pt-3 text-sm text-[#6c4e40] dark:text-orange-200/75 leading-relaxed border-t border-orange-100 dark:border-orange-900/40">
-                        {faq.answer}
-                      </div>
-                    )}
+                    <div
+                      className={
+                        isOpen
+                          ? 'px-5 pb-5 pt-3 text-sm text-[#6c4e40] dark:text-orange-200/75 leading-relaxed border-t border-orange-100 dark:border-orange-900/40'
+                          : 'hidden'
+                      }
+                    >
+                      {faq.answer}
+                    </div>
                   </div>
                 );
               })}

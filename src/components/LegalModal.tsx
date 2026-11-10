@@ -11,9 +11,11 @@ interface LegalModalProps {
   language: LanguageCode;
 }
 
-const LEGAL_TAB_LABELS: Record<
-  LanguageCode,
-  Record<LegalDocType, string> & { closeLabel: string }
+const LEGAL_TAB_LABELS: Partial<
+  Record<
+    LanguageCode,
+    Record<LegalDocType, string> & { closeLabel: string }
+  >
 > = {
   en: {
     terms: 'Terms of Service',
@@ -52,9 +54,8 @@ interface LegalDocumentContent {
   paragraphs: string[];
 }
 
-const LEGAL_CONTENT: Record<
-  LanguageCode,
-  Record<LegalDocType, LegalDocumentContent>
+const LEGAL_CONTENT: Partial<
+  Record<LanguageCode, Record<LegalDocType, LegalDocumentContent>>
 > = {
   en: {
     terms: {
@@ -192,8 +193,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({
 
   if (!activeDoc) return null;
 
-  const labels = LEGAL_TAB_LABELS[language] || LEGAL_TAB_LABELS.en;
-  const contentDict = LEGAL_CONTENT[language] || LEGAL_CONTENT.en;
+  const labels = LEGAL_TAB_LABELS[language] || LEGAL_TAB_LABELS.en!;
+  const contentDict = LEGAL_CONTENT[language] || LEGAL_CONTENT.en!;
   const currentContent = contentDict[activeDoc];
   const isRtl = language === 'ar';
 

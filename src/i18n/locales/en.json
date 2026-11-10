@@ -1,0 +1,560 @@
+{
+  "locale": "en",
+  "ui": {
+    "nav": {
+      "home": "Home",
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "x": "X (Twitter)",
+      "facebook": "Facebook",
+      "morePlatforms": "More",
+      "soonBadge": "Soon",
+      "languageLabel": "Language",
+      "switchToDark": "Switch to dark mode",
+      "switchToLight": "Switch to light mode"
+    },
+    "omnibox": {
+      "inputAriaLabel": "Public video or post URL",
+      "pasteButton": "Paste",
+      "pastedFeedback": "Pasted!",
+      "clearInputAria": "Clear input URL",
+      "downloadButton": "Download",
+      "extractingButton": "Extracting…",
+      "trySampleLabel": "Try sample link:",
+      "errEmptyInput": "Please paste a public TikTok, Instagram, X (Twitter), or Facebook URL.",
+      "errInvalidUrl": "Unrecognized link. Please enter a valid public URL from TikTok, Instagram, X, or Facebook.",
+      "errClipboardBlocked": "Clipboard access was blocked by your browser. Please press Ctrl+V or Cmd+V to paste.",
+      "comingSoonNotice": "This platform is coming soon! Currently supported: TikTok, Instagram, X, and Facebook."
+    },
+    "drawer": {
+      "bypassingWatermark": "RESOLVING SOURCE STREAM",
+      "resolvingStream": "Fetching direct media file from origin CDN…",
+      "extractionInterrupted": "EXTRACTION INTERRUPTED",
+      "retryExtraction": "Try Again",
+      "dismiss": "Dismiss",
+      "clearResult": "Close result card",
+      "noWatermarkBadge": "NO WATERMARK",
+      "originalJpgBadge": "ORIGINAL IMAGE",
+      "startingStream": "Starting download…",
+      "saving": "Saving…",
+      "downloadHdMp4": "Download HD (MP4)",
+      "downloadSdMp4": "Download SD (MP4)",
+      "extractAudioMp3": "Extract Audio (MP3)",
+      "downloadAllZip": "Download All (.ZIP)",
+      "buildingZip": "Building ZIP archive…",
+      "viewFullSizeDp": "Full-Size Preview",
+      "downloadHdJpg": "Download HD Photo (JPG)"
+    },
+    "sections": {
+      "bentoCards": [
+        { "id": "nw", "metric": "CLEAN STREAM", "title": "TikTok videos without added watermarks" },
+        { "id": "br", "metric": "NATIVE QUALITY", "title": "Original MP4 HD/SD & AAC/MP3 audio" },
+        { "id": "pr", "metric": "ZERO STORAGE", "title": "Stateless memory proxy with no file archiving" },
+        { "id": "sp", "metric": "CROSS-DEVICE", "title": "Works on iOS, Android, Windows & macOS" }
+      ],
+      "workflowProtocol": "HOW IT WORKS",
+      "howToHeading": "How to download public videos in 3 steps",
+      "stepOf": "STEP",
+      "readyStatus": "READY",
+      "platformsHeading": "Dedicated downloaders by social platform",
+      "platformsSubheading": "Select the specialized extractor for your public TikTok, Instagram, X (Twitter), or Facebook link.",
+      "openToolCta": "Open tool",
+      "knowledgeBase": "FREQUENTLY ASKED QUESTIONS",
+      "faqHeading": "Common questions about downloading public social videos",
+      "breadcrumbHome": "Home"
+    },
+    "footer": {
+      "platformsTitle": "Platform Downloaders",
+      "legalTitle": "Trust & Legal",
+      "languagesTitle": "Available Languages",
+      "about": "About Us",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "contact": "Contact",
+      "dmca": "Copyright / DMCA",
+      "copyrightNotice": "© 2026 VIDNEX — Stateless Public Media Resolver."
+    },
+    "banner": {
+      "suggestText": "This page is also available in your browser language:",
+      "switchCta": "Switch to English",
+      "dismissAria": "Dismiss language suggestion"
+    },
+    "notFound": {
+      "title": "Page Not Found (404) | VIDNEX",
+      "heading": "404 — Page Not Found",
+      "description": "The address you requested does not match any active page on VIDNEX. Return to the homepage or choose one of our platform tools below.",
+      "backHomeCta": "Back to VIDNEX Home",
+      "tryPlatformsLabel": "Browse platform downloaders:"
+    },
+    "errors": {
+      "UNSUPPORTED_URL": "Unsupported link. Currently, public TikTok, Instagram, X (Twitter), and Facebook links are supported.",
+      "NOT_FOUND": "Media not found. The video, Reel, tweet, or post may have been deleted.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "This video is not public or requires a login. Only public videos can be downloaded.",
+      "BLOCKED_BY_PLATFORM": "The source platform temporarily restricted public requests. Please try again in a moment.",
+      "TIMEOUT": "The 8-second request timeout expired while fetching the media. Please try again.",
+      "NO_MEDIA": "This post does not contain any downloadable video or image.",
+      "MAINTENANCE": "VIDNEX is temporarily undergoing scheduled maintenance. Please try again shortly.",
+      "PLATFORM_DISABLED": "This platform extractor is temporarily disabled by the administrator.",
+      "BLOCKED": "This request or resource has been restricted by the administrator.",
+      "RATE_LIMITED": "Per-minute request limit reached. Please wait a few seconds before trying again.",
+      "NETWORK_ERROR": "Unable to reach the VIDNEX extraction service (/api/extract)."
+    }
+  },
+  "home": {
+    "metaTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
+    "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) videos, and Facebook Watch clips in HD MP4 for free with no account required.",
+    "h1": "Public Video Downloader for TikTok, Instagram, X & Facebook",
+    "subtitle": "Save public social videos, Reels, photo carousels, and MP3 audio tracks directly in your browser without registration.",
+    "placeholder": "https://www.tiktok.com/@username/video/...",
+    "specs": ["HD & SD MP4", "NO WATERMARK TIKTOK", "NO LOGIN NEEDED", "PUBLIC MEDIA ONLY"],
+    "editorial": {
+      "heading": "One unified web tool for saving public social media videos",
+      "subheading": "Built on Cloudflare Pages to resolve original MP4 video streams and MP3 audio without re-encoding.",
+      "paragraphs": [
+        "VIDNEX is a free web utility designed to resolve and download publicly shared videos from TikTok, Instagram, X (formerly Twitter), and Facebook. Instead of re-compressing video frames or stamping third-party logos onto your file, VIDNEX queries public post metadata to deliver the original MP4, JPG, or MP3 stream hosted on the platform's content delivery network.",
+        "Every extraction runs ephemerally: when you paste a public link into the input bar, our serverless gateway validates the URL format, detects the available quality variants (such as 1080p, 720p, or standard definition), and streams the file straight to your device. No media files are archived or stored on our servers.",
+        "Each supported network has dedicated format handling. On TikTok, VIDNEX locates the clean video stream without the bouncing username overlay, extracts Photo Mode slideshows, and isolates MP3 audio tracks. On Instagram, it supports public Reels, multi-slide carousels with batch ZIP archiving, and full-size profile pictures. On X and Facebook, it extracts direct MP4 variants from public tweets, Watch videos, and Reels."
+      ],
+      "formatsTitle": "Supported platforms and file formats",
+      "formatsList": [
+        "TikTok: watermark-free MP4 video, Photo Mode JPG slideshows, and original MP3 audio.",
+        "Instagram: public Reels in MP4, multi-slide photo/video carousels (.ZIP), and HD profile pictures.",
+        "X (Twitter): public tweet videos and animated GIFs saved as MP4 sorted by bitrate.",
+        "Facebook: public Watch videos, fb.watch shortlinks, and Facebook Reels in HD or SD MP4."
+      ],
+      "limitsTitle": "Privacy boundaries and public-content policy",
+      "limitsText": "VIDNEX only processes public posts that can be viewed without logging in. Private accounts, closed Facebook group videos, subscriber-only stories, and age-restricted posts behind a login wall cannot be downloaded."
+    },
+    "howToSteps": [
+      {
+        "number": "01",
+        "title": "Copy the public post URL",
+        "description": "Open TikTok, Instagram, X, or Facebook, tap the Share button on any public video, and select Copy Link.",
+        "codeHint": "PUBLIC URL COPIED"
+      },
+      {
+        "number": "02",
+        "title": "Paste the link into VIDNEX",
+        "description": "Paste the copied address into the input field above. VIDNEX automatically detects the platform and validates the link.",
+        "codeHint": "AUTO PLATFORM DETECT"
+      },
+      {
+        "number": "03",
+        "title": "Save MP4 video or MP3 audio",
+        "description": "Choose your preferred quality option (HD MP4, SD MP4, or MP3 audio) to save the file directly to your device.",
+        "codeHint": "DIRECT STREAM SAVE"
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Do I need to create an account or install software to use VIDNEX?",
+        "answer": "No. VIDNEX runs entirely inside your mobile or desktop web browser for free, with no registration or browser extension required."
+      },
+      {
+        "question": "Which social media platforms are currently supported?",
+        "answer": "VIDNEX supports four platforms: TikTok (videos, photo slideshows, MP3), Instagram (Reels, carousels, profile pictures), X / Twitter (public videos and GIFs), and Facebook (public Watch videos and Reels)."
+      },
+      {
+        "question": "Why do some links return a private or login-required message?",
+        "answer": "When a video belongs to a private account, a restricted Facebook group, or a protected tweet, the source platform blocks anonymous access. VIDNEX respects these privacy controls and only resolves public media."
+      },
+      {
+        "question": "Does VIDNEX store copies of downloaded videos?",
+        "answer": "No. Media streams are proxied in volatile memory directly to your browser and are never saved to disk on our servers."
+      },
+      {
+        "question": "Does VIDNEX work on iPhone, iPad, and Android phones?",
+        "answer": "Yes. You can save MP4 and MP3 files directly using Safari on iOS/iPadOS or Chrome and Firefox on Android, Windows, and macOS."
+      }
+    ]
+  },
+  "platforms": {
+    "tiktok": {
+      "slug": "tiktok-video-downloader",
+      "metaTitle": "TikTok Video Downloader Without Watermark (HD MP4) | VIDNEX",
+      "metaDescription": "Download public TikTok videos without watermark in HD MP4, extract MP3 audio tracks, or save Photo Mode slideshows online for free on mobile and PC.",
+      "h1": "TikTok Video Downloader Without Watermark",
+      "subtitle": "Save public TikTok videos in clean MP4 without the username overlay, download photo slideshows, or extract MP3 audio.",
+      "shortLabel": "TikTok Video",
+      "breadcrumbLabel": "TikTok Downloader",
+      "placeholder": "https://www.tiktok.com/@tiktok/video/7106594312292453675",
+      "specs": ["NO WATERMARK", "HD MP4 & MP3", "VM.TIKTOK LINKS", "PUBLIC POSTS ONLY"],
+      "editorial": {
+        "heading": "How the watermark-free TikTok downloader works",
+        "subheading": "Extract clean source MP4 streams, Photo Mode carousels, and original MP3 audio from public TikTok links.",
+        "paragraphs": [
+          "Saving a video through the native TikTok mobile app overlays a bouncing username watermark and an end-screen bumper over the footage. The VIDNEX TikTok downloader resolves the clean source video stream hosted on TikTok's content delivery servers, allowing you to save the unedited MP4 file without added overlays.",
+          "Both desktop web URLs (tiktok.com/@creator/video/...) and shortened mobile share links (vm.tiktok.com and vt.tiktok.com) are accepted. Shortlinks are resolved automatically so you can paste links copied straight from the iOS or Android app.",
+          "In addition to standard vertical videos, VIDNEX detects TikTok Photo Mode slideshows. When you paste a slideshow URL, every high-resolution JPG slide is listed individually alongside a one-click .ZIP batch download option and the background MP3 audio track."
+        ],
+        "formatsTitle": "Available TikTok formats and resolutions",
+        "formatsList": [
+          "Clean MP4 video: source resolution uploaded by the creator (up to 1080p when available) without watermark.",
+          "MP3 audio track: direct extraction of original voiceovers, music, and trending sounds.",
+          "Photo Mode Slideshows: individual JPG images or a single uncompressed .ZIP archive.",
+          "Profile Picture (DP): full-size avatar preview and download via profile URL or @handle."
+        ],
+        "limitsTitle": "Public TikTok content policy",
+        "limitsText": "Only public TikTok posts can be resolved. Videos from private accounts, deleted posts, or active TikTok Live broadcasts are not supported."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copy the TikTok video link",
+          "description": "Open the TikTok app or website, tap Share on a public video, and tap Copy Link.",
+          "codeHint": "tiktok.com/@user/video/{ID}"
+        },
+        {
+          "number": "02",
+          "title": "Paste into the TikTok downloader",
+          "description": "Paste the link into the input box above and press the Download button.",
+          "codeHint": "CLEAN STREAM LOOKUP"
+        },
+        {
+          "number": "03",
+          "title": "Download MP4 without watermark or MP3",
+          "description": "Click Download HD (MP4) for the clean video file or Extract Audio (MP3) for the sound track.",
+          "codeHint": "DIRECT MP4 / MP3"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Are shortened vm.tiktok.com and vt.tiktok.com links supported?",
+          "answer": "Yes. Shortened links generated by the mobile TikTok app are automatically followed and validated before extracting the video."
+        },
+        {
+          "question": "How can I download only the MP3 sound from a TikTok video?",
+          "answer": "After pasting the TikTok link and running the extraction, click the secondary 'Extract Audio (MP3)' button inside the result card."
+        },
+        {
+          "question": "What happens when I paste a TikTok Photo Mode slideshow link?",
+          "answer": "VIDNEX automatically switches to carousel view, allowing you to save each photo individually, download all slides as a .ZIP file, or save the background audio."
+        },
+        {
+          "question": "Why does video resolution vary from one TikTok post to another?",
+          "answer": "VIDNEX delivers the exact source file uploaded by the creator without artificial upscaling. If the original video was uploaded in 1080p or 720p, that exact stream is provided."
+        }
+      ]
+    },
+    "instagram": {
+      "slug": "instagram-reels-downloader",
+      "metaTitle": "Instagram Reels Downloader — Save HD MP4 & Carousels | VIDNEX",
+      "metaDescription": "Download public Instagram Reels in original MP4 quality, batch-save multi-photo carousels as ZIP, and view full-size profile pictures online for free.",
+      "h1": "Instagram Reels & Carousel Downloader (HD MP4)",
+      "subtitle": "Save public Instagram Reels in clean MP4, extract multi-slide carousels, and view full-resolution profile pictures without logging in.",
+      "shortLabel": "Instagram Reels",
+      "breadcrumbLabel": "Instagram Downloader",
+      "placeholder": "https://www.instagram.com/reel/C8x9kLmN2pQ/",
+      "specs": ["REELS HD MP4", "CAROUSEL .ZIP", "FULL-SIZE DP", "PUBLIC POSTS ONLY"],
+      "editorial": {
+        "heading": "Save public Instagram Reels, photos, and carousels in original quality",
+        "subheading": "Direct CDN extraction for /reel/, /p/, and public profile links on mobile and desktop.",
+        "paragraphs": [
+          "Instagram does not include a built-in web button to download public Reels or multi-slide carousel posts for offline viewing. The VIDNEX Instagram downloader parses public post metadata from /reel/, /p/, and /tv/ URLs to locate the underlying MP4 video and JPG image streams.",
+          "When you submit an Instagram Reel link, VIDNEX extracts the original vertical MP4 video with its AAC audio track intact. When you paste a multi-slide carousel link containing up to 20 photos and videos, every slide is displayed in an interactive grid so you can download individual items or package the entire post into a single .ZIP archive.",
+          "You can also inspect public profile pictures by pasting an Instagram profile URL or typing @username directly into the input bar to view and save the uncompressed square avatar."
+        ],
+        "formatsTitle": "Supported Instagram media types",
+        "formatsList": [
+          "Instagram Reels & Videos (/reel/ and /p/): original H.264 MP4 stream with audio.",
+          "Multi-Slide Carousels: individual JPG/MP4 slides or one-click batch .ZIP download.",
+          "Single Photo Posts: full-resolution JPG image extraction.",
+          "Profile Pictures (DP): full-size avatar lookup from @username or profile URL."
+        ],
+        "limitsTitle": "Public Instagram accounts only",
+        "limitsText": "Only posts from public Instagram profiles can be extracted. Private accounts, Close Friends stories, and age-gated content requiring an Instagram login are not supported."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copy the Instagram Reel or post link",
+          "description": "Tap the Share icon or three-dot menu on a public Instagram Reel or post and choose Copy Link.",
+          "codeHint": "instagram.com/reel/{CODE}"
+        },
+        {
+          "number": "02",
+          "title": "Paste the URL into VIDNEX",
+          "description": "Paste the link into the input field above. VIDNEX automatically detects whether it is a Reel, carousel, or profile.",
+          "codeHint": "MEDIA STREAM PARSE"
+        },
+        {
+          "number": "03",
+          "title": "Download MP4, JPG, or .ZIP",
+          "description": "Save the MP4 video directly or download all slides from a carousel post.",
+          "codeHint": "ORIGINAL CDN FILE"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I download all photos and videos from an Instagram carousel at once?",
+          "answer": "Yes. Multi-slide Instagram posts include a 'Download All (.ZIP)' button that bundles every photo and video slide into a single archive."
+        },
+        {
+          "question": "Do I need to log in with my Instagram credentials?",
+          "answer": "No. VIDNEX never asks for your Instagram username or password and works anonymously on public posts."
+        },
+        {
+          "question": "Can VIDNEX download posts from a private Instagram account?",
+          "answer": "No. Private Instagram posts are restricted to approved followers and cannot be accessed by public tools."
+        },
+        {
+          "question": "How do I download a full-size Instagram profile picture?",
+          "answer": "Enter the public profile URL (such as instagram.com/natgeo) or type @natgeo into the search box and press Download."
+        }
+      ]
+    },
+    "x": {
+      "slug": "x-twitter-video-downloader",
+      "metaTitle": "X (Twitter) Video & GIF Downloader to MP4 HD | VIDNEX",
+      "metaDescription": "Download public X (formerly Twitter) videos and animated GIFs as MP4 files in 1080p, 720p, or SD. Supports x.com, twitter.com, and t.co links for free.",
+      "h1": "X (Twitter) Video & GIF Downloader (MP4 HD)",
+      "subtitle": "Save public videos, animated GIFs converted to MP4, and high-resolution images from x.com and twitter.com posts.",
+      "shortLabel": "X / Twitter Video",
+      "breadcrumbLabel": "X (Twitter) Downloader",
+      "placeholder": "https://x.com/user/status/2040511285998313827",
+      "specs": ["X.COM & TWITTER.COM", "BITRATE SELECTION", "GIFS TO MP4", "T.CO SHORTLINKS"],
+      "editorial": {
+        "heading": "Extract public X (Twitter) videos and GIFs as standard MP4 files",
+        "subheading": "Choose from every available MP4 resolution variant attached to a public tweet.",
+        "paragraphs": [
+          "Videos and animated GIFs embedded inside X (formerly Twitter) posts are streamed through players that prevent standard right-click saving on web and mobile apps. The VIDNEX X downloader queries the public syndication metadata of the tweet to list every direct MP4 variant generated by the platform.",
+          "When a video is uploaded to X, the platform encodes multiple MP4 bitrates and resolutions—such as 1080p, 720p, 480p, and 360p. VIDNEX filters out fragmented HLS playlists (.m3u8), sorts the progressive MP4 files from highest bitrate to lowest, and lets you pick the exact resolution you want to save.",
+          "Both modern x.com URLs and legacy twitter.com links—as well as shortened t.co links—are supported. If a public tweet contains up to four images instead of a video, VIDNEX extracts each photo in original resolution (?name=orig)."
+        ],
+        "formatsTitle": "Supported X (Twitter) media formats",
+        "formatsList": [
+          "Tweet Videos: progressive MP4 files sorted by bitrate (1080p, 720p, 480p, 360p).",
+          "Animated GIFs: extracted as smooth, lightweight MP4 video loops.",
+          "Multi-Image Tweets: up to 4 original-resolution JPG/PNG images per post.",
+          "Accepted URLs: x.com/{user}/status/{id}, twitter.com/i/status/{id}, and t.co shortlinks."
+        ],
+        "limitsTitle": "Public tweets only",
+        "limitsText": "Tweets from protected accounts, deleted posts, and age-restricted/NSFW media that require a signed-in X session cannot be downloaded."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copy the X (Twitter) post link",
+          "description": "Click the Share icon below the public tweet and select Copy link.",
+          "codeHint": "x.com/user/status/{ID}"
+        },
+        {
+          "number": "02",
+          "title": "Paste the link into VIDNEX",
+          "description": "Paste your x.com, twitter.com, or t.co URL into the box above and click Download.",
+          "codeHint": "MP4 VARIANT LOOKUP"
+        },
+        {
+          "number": "03",
+          "title": "Select your preferred MP4 quality",
+          "description": "Click the primary button for the highest resolution MP4 or pick a smaller resolution below it.",
+          "codeHint": "SAVE MP4 FILE"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does this tool work with both x.com and twitter.com links?",
+          "answer": "Yes. Links from x.com, twitter.com, mobile.twitter.com, and shortened t.co URLs are all handled seamlessly."
+        },
+        {
+          "question": "Why are X (Twitter) GIFs downloaded as MP4 files?",
+          "answer": "X stores and serves all animated GIFs as looped MP4 videos for better image quality and smaller file size. VIDNEX gives you that direct MP4 file."
+        },
+        {
+          "question": "Can I choose a lower resolution to save mobile data?",
+          "answer": "Yes. Whenever X provides multiple bitrates for a video, all available resolutions (such as 1080p, 720p, and 360p) are displayed as separate download buttons."
+        },
+        {
+          "question": "Why does an age-restricted tweet return an error?",
+          "answer": "X blocks anonymous syndication access to age-restricted or sensitive tweets, requiring a logged-in account. VIDNEX only extracts publicly accessible tweets."
+        }
+      ]
+    },
+    "facebook": {
+      "slug": "facebook-video-downloader",
+      "metaTitle": "Facebook Video & Reels Downloader (HD & SD MP4) | VIDNEX",
+      "metaDescription": "Download public Facebook Watch videos, Reels, and fb.watch share links in HD or SD MP4 for free on mobile and desktop without logging into Facebook.",
+      "h1": "Facebook Video & Reels Downloader (HD / SD MP4)",
+      "subtitle": "Save public Facebook Watch videos, Reels, and fb.watch shortlinks in HD or SD MP4 without a Facebook account.",
+      "shortLabel": "Facebook Video",
+      "breadcrumbLabel": "Facebook Downloader",
+      "placeholder": "https://www.facebook.com/facebook/videos/10153231379946729/",
+      "specs": ["WATCH & REELS", "HD & SD MP4", "FB.WATCH LINKS", "NO LOGIN REQUIRED"],
+      "editorial": {
+        "heading": "Download public Facebook videos and Reels in HD or SD",
+        "subheading": "Two-level public extraction for facebook.com/watch, /reel/, /share/v/, and fb.watch URLs without an account.",
+        "paragraphs": [
+          "Facebook hosts millions of public videos across Facebook Watch, creator pages, and vertical Facebook Reels. To let you save public videos for offline viewing, the VIDNEX Facebook downloader inspects the public video page metadata to extract the native High Definition (HD) and Standard Definition (SD) MP4 streams.",
+          "All common Facebook video link formats are supported: page video URLs (facebook.com/page/videos/id), Watch links (facebook.com/watch/?v=id), Reels (facebook.com/reel/id), shortened fb.watch links, and mobile share links (/share/v/ and /share/r/).",
+          "When you paste a shortened fb.watch or /share/ URL, VIDNEX safely follows the redirect chain while verifying at every hop that the destination remains on an official Facebook host. Once the video streams are resolved, you can download either the primary HD MP4 stream or the lighter SD MP4 version."
+        ],
+        "formatsTitle": "Supported Facebook URL formats and qualities",
+        "formatsList": [
+          "Facebook Watch Videos (/watch/?v={id} and /video.php?v={id}) in HD and SD MP4.",
+          "Public Facebook Reels (/reel/{id}) with original audio.",
+          "Creator & Page Videos (/{page}/videos/{id}) with title, author, and thumbnail.",
+          "Shortened & Mobile Share Links (fb.watch/{code}, /share/v/{code}, and /share/r/{code})."
+        ],
+        "limitsTitle": "Public Facebook videos only",
+        "limitsText": "Only Facebook videos and Reels published with a 'Public' audience setting can be downloaded. Private group videos, friends-only posts, stories, live streams, and videos that redirect to a Facebook login wall will return a clear access error."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copy the Facebook video or Reel link",
+          "description": "Tap the Share button on any public Facebook video or Reel and select Copy Link.",
+          "codeHint": "facebook.com/reel/{ID} or fb.watch"
+        },
+        {
+          "number": "02",
+          "title": "Paste the link into VIDNEX",
+          "description": "Paste the Facebook URL into the input box above. Redirects from fb.watch or /share/ links are resolved automatically.",
+          "codeHint": "HD & SD STREAM PARSE"
+        },
+        {
+          "number": "03",
+          "title": "Save HD or SD MP4",
+          "description": "Click the primary button to download the HD MP4 file or the secondary button for the SD version.",
+          "codeHint": "facebook_{id}.mp4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Why do some Facebook links say the video is not public or requires a login?",
+          "answer": "If the video was posted inside a private Facebook group, shared with friends only, or restricted by age, Facebook redirects anonymous requests to a login page. VIDNEX only downloads public videos."
+        },
+        {
+          "question": "What is the difference between the HD and SD download buttons?",
+          "answer": "HD delivers the highest-resolution MP4 stream (typically 720p or 1080p) encoded by Facebook, while SD provides a smaller standard-definition file that downloads faster on slower connections."
+        },
+        {
+          "question": "Do fb.watch and /share/v/ links work?",
+          "answer": "Yes. VIDNEX follows up to 4 redirect hops on fb.watch, /share/v/, and /share/r/ links and validates the final Facebook video URL automatically."
+        },
+        {
+          "question": "Are Facebook photos, stories, or Live streams supported?",
+          "answer": "No. Currently, the Facebook extractor supports public uploaded videos and public Reels only."
+        }
+      ]
+    }
+  },
+  "legal": {
+    "about": {
+      "metaTitle": "About VIDNEX — Stateless Public Media Resolver",
+      "metaDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using stateless Cloudflare Pages Functions with zero file storage.",
+      "h1": "About VIDNEX",
+      "breadcrumbLabel": "About Us",
+      "updatedAt": "November 10, 2026",
+      "intro": "VIDNEX is an independent web utility built to make saving public social media videos from TikTok, Instagram, X (Twitter), and Facebook straightforward and transparent.",
+      "sections": [
+        {
+          "heading": "How VIDNEX works",
+          "paragraphs": [
+            "Saving a public clip for offline reference or archiving your own social videos without mobile watermarks shouldn't require installing untrusted desktop software. VIDNEX provides a clean browser interface that works across phones, tablets, and computers without registration.",
+            "Under the hood, VIDNEX acts as an on-demand metadata resolver running on Cloudflare Pages Functions. When you submit a public URL, our serverless worker inspects the public metadata of the post and proxies the direct media stream from the origin CDN to your browser."
+          ]
+        },
+        {
+          "heading": "Zero file hosting and strict privacy boundaries",
+          "paragraphs": [
+            "VIDNEX does not operate a media archive: we never host, store, or index video, audio, or image files on our servers. Every stream is relayed in volatile memory.",
+            "We strictly limit extraction to public posts accessible without authentication. VIDNEX never bypasses login walls, private accounts, or digital rights management controls."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "metaTitle": "Privacy Policy & Cookie Disclosures | VIDNEX",
+      "metaDescription": "Read the VIDNEX Privacy Policy: ephemeral URL processing, zero video storage on disk, hashed anti-abuse counters, and Google AdSense cookie disclosures.",
+      "h1": "Privacy Policy",
+      "breadcrumbLabel": "Privacy Policy",
+      "updatedAt": "November 10, 2026",
+      "intro": "This Privacy Policy explains clearly and honestly what technical data VIDNEX processes when you use our website.",
+      "sections": [
+        {
+          "heading": "1. Ephemeral URL processing and zero video storage",
+          "paragraphs": [
+            "When you paste a public URL into VIDNEX, the link is processed in memory by our `/api/extract` endpoint solely to resolve the direct media stream. Downloaded videos, audio tracks, and images are streamed through memory and are never written to disk.",
+            "To monitor engine health and enforce per-minute rate limits against automated abuse, our Cloudflare D1 database records only aggregated technical telemetry: target platform name, status (success or error code), response duration in milliseconds, and a one-way salted SHA-256 hash of the client IP address. Raw IP addresses and submitted URLs are not stored in request logs."
+          ]
+        },
+        {
+          "heading": "2. Browser localStorage preferences",
+          "paragraphs": [
+            "VIDNEX uses browser localStorage exclusively to remember your interface preferences, such as Light/Dark theme selection and your preferred display language."
+          ]
+        },
+        {
+          "heading": "3. Advertising cookies and Google AdSense",
+          "paragraphs": [
+            "To keep VIDNEX free for users, we may display advertisements served by Google AdSense when advertising is enabled.",
+            "Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Users may opt out of personalized advertising at any time by visiting Google Ads Settings (adssettings.google.com)."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "metaTitle": "Terms of Service & Acceptable Use | VIDNEX",
+      "metaDescription": "Review the VIDNEX Terms of Service covering personal use, copyright responsibility, public-only media limits, and anti-abuse rate limiting.",
+      "h1": "Terms of Service",
+      "breadcrumbLabel": "Terms of Service",
+      "updatedAt": "November 10, 2026",
+      "intro": "By accessing and using VIDNEX, you agree to comply with the following Terms of Service.",
+      "sections": [
+        {
+          "heading": "1. Service scope and user responsibility",
+          "paragraphs": [
+            "VIDNEX operates solely as a user-initiated technical resolver for publicly accessible URLs. VIDNEX claims no ownership over any media content resolved from TikTok, Instagram, X, or Facebook; all copyrights and trademarks remain the property of their respective creators and platforms.",
+            "You are solely responsible for ensuring that you have the legal right or creator permission to download and use any media file obtained through this tool."
+          ]
+        },
+        {
+          "heading": "2. Public content only and anti-abuse rules",
+          "paragraphs": [
+            "VIDNEX may only be used with public social media posts. Attempting to use automated bots, scrapers, or excessive request bursts against VIDNEX endpoints is prohibited and automatically throttled by our rate limiter."
+          ]
+        }
+      ]
+    },
+    "contact": {
+      "metaTitle": "Contact VIDNEX — Support & Compliance Inquiries",
+      "metaDescription": "Contact the VIDNEX team via email for technical questions, bug reports, or copyright compliance inquiries.",
+      "h1": "Contact Us",
+      "breadcrumbLabel": "Contact",
+      "updatedAt": "November 10, 2026",
+      "intro": "For technical support, bug reports, or legal and compliance inquiries regarding VIDNEX, please reach out to us by email.",
+      "sections": [
+        {
+          "heading": "Official Email Contact",
+          "paragraphs": [
+            "Official compliance and support email: compliance@vidnex.space",
+            "When reporting a technical issue, please include the platform name (TikTok, Instagram, X, or Facebook), your browser/device type, and the public URL you tested."
+          ]
+        }
+      ]
+    },
+    "dmca": {
+      "metaTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
+      "metaDescription": "Learn how copyright holders can request URL or domain blocking on VIDNEX through our DMCA compliance procedure.",
+      "h1": "Copyright & DMCA Policy",
+      "breadcrumbLabel": "Copyright / DMCA",
+      "updatedAt": "November 10, 2026",
+      "intro": "VIDNEX respects the intellectual property rights of creators and responds promptly to valid copyright notices.",
+      "sections": [
+        {
+          "heading": "1. No media files hosted on VIDNEX servers",
+          "paragraphs": [
+            "VIDNEX does not store or host any video, audio, or image files on its infrastructure. All media streams are served directly by the origin social platforms (TikTok, Instagram, X, Facebook). To remove content from the internet permanently, it must be removed or set to private on the source platform."
+          ]
+        },
+        {
+          "heading": "2. How to request URL or creator blocklisting",
+          "paragraphs": [
+            "Rights holders who wish to prevent specific public URLs or domains from being resolved through VIDNEX can request immediate inclusion in our administrative blocklist.",
+            "Please send a notice to compliance@vidnex.space containing: (1) identification of the copyrighted work, (2) the exact public URL(s) to block, and (3) your contact details along with a good-faith statement that you are the copyright owner or authorized agent."
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -5,42 +5,32 @@ import {
   PlatformId,
   SAMPLE_LINKS,
   SampleLink,
-} from '../utils/urlDetector';
+} from '../utils/urlDetector.ts';
 import {
-  getToolsByPlatform,
-  SeoToolConfig,
-  ToolSlug,
-} from '../data/seoToolsConfig';
-import {
-  getLocalizedToolConfig,
-  LanguageCode,
-  UI_TRANSLATIONS,
-} from '../i18n/translations';
-import { PlatformIcon } from './icons/PlatformIcons';
-import { AdSlot } from './AdSlot';
-
-const COMING_SOON_MESSAGE_BY_LANG: Record<LanguageCode, string> = {
-  en: 'This platform is coming soon! Currently, Instagram, TikTok, X (Twitter), and Facebook are active.',
-  fr: 'Cette plateforme arrive bientôt ! Actuellement, Instagram, TikTok, X (Twitter) et Facebook sont disponibles.',
-  es: '¡Esta plataforma estará disponible pronto! Actualmente admitimos Instagram, TikTok, X (Twitter) y Facebook.',
-  pt: 'Esta plataforma estará disponível em breve! Atualmente suportamos Instagram, TikTok, X (Twitter) e Facebook.',
-  ar: 'هذه المنصة ستتوفر قريباً! حالياً ندعم إنستغرام وتيك توك وإكس (تويتر) وفيسبوك بالكامل.',
-};
+  getLocalizedPagePath,
+  isPlatformPageKey,
+  PLATFORM_PAGE_KEYS,
+  type PlatformPageKey,
+  type SupportedLocale,
+} from '../i18n/config.ts';
+import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { PlatformIcon } from './icons/PlatformIcons.tsx';
+import { AdSlot } from './AdSlot.tsx';
 
 interface HeroOmniboxProps {
-  activeTool: SeoToolConfig;
-  onSelectTool: (slug: ToolSlug) => void;
-  onSelectPlatform: (platform: PlatformId) => void;
+  pageKey: 'home' | PlatformPageKey;
+  activePlatform: PlatformId;
+  onNavigatePage: (pageKey: 'home' | PlatformPageKey) => void;
   onSubmitUrl: (url: string, detected: DetectedUrlInfo) => void;
   onEscapeClear?: () => void;
   isExtracting?: boolean;
-  language: LanguageCode;
+  language: SupportedLocale;
 }
 
 export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
-  activeTool,
-  onSelectTool,
-  onSelectPlatform,
+  pageKey,
+  activePlatform,
+  onNavigatePage,
   onSubmitUrl,
   onEscapeClear,
   isExtracting = false,
@@ -55,20 +45,21 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   );
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const t = UI_TRANSLATIONS[language].omnibox;
-  const detected = detectMediaUrl(urlInput, activeTool.platform);
-  const siblingSubTools = getToolsByPlatform(activeTool.platform).map((tool) =>
-    getLocalizedToolConfig(tool, language)
-  );
+  const bundle = getLocaleBundleSync(language);
+  const t = bundle.ui.omnibox;
+  const pageContent =
+    pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
+  const currentBadgeLabel =
+    pageKey === 'home' ? 'VIDNEX' : bundle.platforms[pageKey].shortLabel;
 
-  // Auto-focus on desktop mount
+  const detected = detectMediaUrl(urlInput, activePlatform);
+
   useEffect(() => {
     if (window.innerWidth >= 768) {
       inputRef.current?.focus();
     }
   }, []);
 
-  // Global Keyboard Shortcuts: Ctrl+V / Cmd+V focuses input; Esc clears
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -93,76 +84,11 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [onEscapeClear]);
 
-  // Automatically sync sub-tool or platform when user pastes a recognized link or @handle
   useEffect(() => {
-    if (detected.isValid && detected.platform) {
-      if (detected.platform === 'instagram') {
-        if (
-          detected.mediaType === 'profile' &&
-          activeTool.slug !== 'instagram-dp'
-        ) {
-          onSelectTool('instagram-dp');
-        } else if (
-          detected.mediaType === 'post' &&
-          activeTool.slug !== 'instagram-carousel'
-        ) {
-          onSelectTool('instagram-carousel');
-        } else if (
-          detected.mediaType === 'story' &&
-          activeTool.slug !== 'instagram-stories'
-        ) {
-          onSelectTool('instagram-stories');
-        } else if (
-          detected.mediaType === 'reel' &&
-          activeTool.slug !== 'instagram-reels'
-        ) {
-          onSelectTool('instagram-reels');
-        }
-      } else if (detected.platform === 'tiktok') {
-        if (
-          detected.mediaType === 'slideshow' &&
-          activeTool.slug !== 'tiktok-slideshow'
-        ) {
-          onSelectTool('tiktok-slideshow');
-        } else if (
-          detected.mediaType === 'profile' &&
-          activeTool.slug !== 'tiktok-dp'
-        ) {
-          onSelectTool('tiktok-dp');
-        } else if (
-          detected.mediaType === 'video' &&
-          activeTool.platform !== 'tiktok'
-        ) {
-          onSelectTool('tiktok-no-watermark');
-        }
-      } else if (
-        (detected.platform === 'x' || detected.platform === 'twitter') &&
-        activeTool.slug !== 'x-video'
-      ) {
-        onSelectTool('x-video');
-      } else if (
-        detected.platform === 'facebook' &&
-        activeTool.slug !== 'facebook-reels'
-      ) {
-        onSelectTool('facebook-reels');
-      } else if (detected.platform !== activeTool.platform) {
-        onSelectPlatform(detected.platform);
-      }
-    }
-
     if (urlInput.trim() === '') {
       setValidationMessage(null);
     }
-  }, [
-    urlInput,
-    detected.isValid,
-    detected.platform,
-    detected.mediaType,
-    activeTool.slug,
-    activeTool.platform,
-    onSelectTool,
-    onSelectPlatform,
-  ]);
+  }, [urlInput]);
 
   const handlePasteClipboard = async () => {
     setValidationMessage(null);
@@ -178,12 +104,9 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
         setTimeout(() => setClipboardFeedback(null), 1500);
         inputRef.current?.focus();
 
-        const pastedDetected = detectMediaUrl(trimmed, activeTool.platform);
+        const pastedDetected = detectMediaUrl(trimmed, activePlatform);
         if (pastedDetected.isComingSoon) {
-          setValidationMessage(
-            COMING_SOON_MESSAGE_BY_LANG[language] ||
-              COMING_SOON_MESSAGE_BY_LANG.en
-          );
+          setValidationMessage(t.comingSoonNotice);
         } else if (pastedDetected.isValid) {
           onSubmitUrl(pastedDetected.normalizedUrl, pastedDetected);
         }
@@ -218,9 +141,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     }
 
     if (detected.isComingSoon) {
-      setValidationMessage(
-        COMING_SOON_MESSAGE_BY_LANG[language] || COMING_SOON_MESSAGE_BY_LANG.en
-      );
+      setValidationMessage(t.comingSoonNotice);
       return;
     }
 
@@ -233,8 +154,10 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     onSubmitUrl(detected.normalizedUrl, detected);
   };
 
+  const homeHref = getLocalizedPagePath(language, 'home');
+
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-10 sm:pt-14 pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-8 sm:pt-12 pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
       <div className="max-w-[1380px] mx-auto px-4 sm:px-6 relative z-10 flex items-start justify-center gap-6">
         {/* Left Vertical Column Ad (160×600 Skyscraper) */}
         <div className="hidden xl:block pt-2">
@@ -246,195 +169,222 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
         </div>
 
         <div className="w-full max-w-3xl text-center">
+          {/* Visible Breadcrumb on Platform Pages (ÉTAPE 4) */}
+          {isPlatformPageKey(pageKey) && (
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-4 flex items-center justify-center gap-2 text-xs font-mono text-[#6c4e40] dark:text-orange-200/75"
+            >
+              <a
+                href={homeHref}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigatePage('home');
+                }}
+                className="hover:text-orange-600 dark:hover:text-amber-400 font-semibold transition-colors"
+              >
+                {bundle.ui.sections.breadcrumbHome}
+              </a>
+              <span aria-hidden="true" className="opacity-60">
+                /
+              </span>
+              <span
+                aria-current="page"
+                className="text-orange-700 dark:text-amber-400 font-bold"
+              >
+                {bundle.platforms[pageKey].breadcrumbLabel}
+              </span>
+            </nav>
+          )}
+
           {/* Eyebrow Technical Specs Line */}
           <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[11px] font-semibold tracking-widest uppercase mb-4">
-            <span>{activeTool.specs.join(' · ')}</span>
+            <span>{pageContent.specs.join(' · ')}</span>
           </div>
 
-        {/* Main Headline */}
-        <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
-          {activeTool.h1}
-        </h1>
+          {/* Main Headline */}
+          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
+            {pageContent.h1}
+          </h1>
 
-        {/* Subtitle */}
-        <p className="mt-3.5 text-base sm:text-lg text-[#6c4e40] dark:text-orange-200/75 max-w-2xl mx-auto leading-relaxed">
-          {activeTool.subtitle}
-        </p>
+          {/* Subtitle */}
+          <p className="mt-3.5 text-base sm:text-lg text-[#6c4e40] dark:text-orange-200/75 max-w-2xl mx-auto leading-relaxed">
+            {pageContent.subtitle}
+          </p>
 
-        {/* Master URL Input Omnibox */}
-        <form onSubmit={handleFormSubmit} noValidate className="mt-8 w-full">
-          <div
-            className={`bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl shadow-orange-glow border-2 transition-all flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
-              detected.isValid
-                ? 'border-orange-500 dark:border-amber-500'
-                : validationMessage
-                ? 'border-red-500/80'
-                : 'border-orange-300/80 dark:border-orange-800/70 hover:border-orange-500 focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/20'
-            }`}
-          >
-            {/* Protocol / Platform Status Box */}
-            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 rounded-xl shrink-0 shadow-inner">
-              <span className="text-orange-600 dark:text-amber-400">
-                <PlatformIcon
-                  platform={
-                    detected.platform ? detected.platform : activeTool.platform
-                  }
-                  className="w-4 h-4"
-                />
-              </span>
-              <span className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap">
-                {detected.badgeLabel
-                  ? detected.badgeLabel
-                  : activeTool.shortLabel}
-              </span>
-            </div>
-
-            {/* URL Input */}
+          {/* Master URL Input Omnibox */}
+          <form onSubmit={handleFormSubmit} noValidate className="mt-8 w-full">
             <div
-              className="relative flex-1 flex items-center min-h-[48px] min-w-0 px-2"
-              dir="ltr"
+              className={`bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl shadow-orange-glow border-2 transition-all flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
+                detected.isValid
+                  ? 'border-orange-500 dark:border-amber-500'
+                  : validationMessage
+                  ? 'border-red-500/80'
+                  : 'border-orange-300/80 dark:border-orange-800/70 hover:border-orange-500 focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/20'
+              }`}
             >
-              <span className="sm:hidden pr-2 text-orange-500 dark:text-amber-400 shrink-0">
-                <PlatformIcon
-                  platform={
-                    detected.platform ? detected.platform : activeTool.platform
-                  }
-                  className="w-4 h-4"
-                />
-              </span>
+              {/* Protocol / Platform Status Box */}
+              <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 rounded-xl shrink-0 shadow-inner">
+                <span className="text-orange-600 dark:text-amber-400">
+                  <PlatformIcon
+                    platform={
+                      detected.platform ? detected.platform : activePlatform
+                    }
+                    className="w-4 h-4"
+                  />
+                </span>
+                <span className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap">
+                  {detected.badgeLabel
+                    ? detected.badgeLabel
+                    : currentBadgeLabel}
+                </span>
+              </div>
 
-              <input
-                ref={inputRef}
-                type="text"
+              {/* URL Input (always LTR for URLs) */}
+              <div
+                className="relative flex-1 flex items-center min-h-[48px] min-w-0 px-2"
                 dir="ltr"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder={activeTool.placeholder}
-                aria-label={t.sourceUrlLabel}
-                spellCheck={false}
-                autoComplete="off"
-                autoCapitalize="off"
-                className="w-full h-12 pr-2 bg-transparent font-mono text-sm text-left text-[#1f130b] dark:text-[#fffaf5] placeholder:text-orange-900/40 dark:placeholder:text-orange-200/40 focus:outline-none font-medium"
-              />
-            </div>
+              >
+                <span className="sm:hidden pr-2 text-orange-500 dark:text-amber-400 shrink-0">
+                  <PlatformIcon
+                    platform={
+                      detected.platform ? detected.platform : activePlatform
+                    }
+                    className="w-4 h-4"
+                  />
+                </span>
 
-            {/* Right Controls: Paste (when empty) OR Clear × (when filled) + Download */}
-            <div className="flex items-center gap-2 shrink-0">
-              {urlInput.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={handlePasteClipboard}
-                  className="min-h-[48px] px-4 rounded-xl flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-300 transition-all font-mono text-xs font-semibold active:scale-95 shadow-sm whitespace-nowrap"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    className="w-3.5 h-3.5 text-orange-600 dark:text-amber-400"
+                <input
+                  ref={inputRef}
+                  type="text"
+                  dir="ltr"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder={pageContent.placeholder}
+                  aria-label={t.inputAriaLabel}
+                  spellCheck={false}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  className="w-full h-12 pr-2 bg-transparent font-mono text-sm text-left text-[#1f130b] dark:text-[#fffaf5] placeholder:text-orange-900/40 dark:placeholder:text-orange-200/40 focus:outline-none font-medium"
+                />
+              </div>
+
+              {/* Action Controls: Paste OR Clear + Download */}
+              <div className="flex items-center gap-2 shrink-0">
+                {urlInput.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={handlePasteClipboard}
+                    className="min-h-[48px] px-4 rounded-xl flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-300 transition-all font-mono text-xs font-semibold active:scale-95 shadow-sm whitespace-nowrap"
                   >
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  <span>{clipboardFeedback || t.pasteBtn}</span>
-                </button>
-              ) : (
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      className="w-3.5 h-3.5 text-orange-600 dark:text-amber-400"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>{clipboardFeedback || t.pasteButton}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleClearInput}
+                    aria-label={t.clearInputAria}
+                    title={t.clearInputAria}
+                    className="min-h-[48px] w-11 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950 hover:text-orange-950 transition-colors"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="w-4 h-4"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+
                 <button
-                  type="button"
-                  onClick={handleClearInput}
-                  aria-label={t.clearInputAria}
-                  title={t.clearInputAria}
-                  className="min-h-[48px] w-11 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950 hover:text-orange-950 transition-colors"
+                  type="submit"
+                  disabled={isExtracting}
+                  className="flex-1 sm:flex-initial min-h-[48px] px-7 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 text-white hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 transition-all active:scale-[0.98] shadow-[0_4px_16px_rgba(234,88,12,0.4)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.55)] font-mono text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap"
                 >
+                  <span>
+                    {isExtracting ? t.extractingButton : t.downloadButton}
+                  </span>
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-4 h-4"
+                    className="w-4 h-4 rtl:rotate-180"
                   >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
                   </svg>
                 </button>
-              )}
-
-              <button
-                type="submit"
-                disabled={isExtracting}
-                className="flex-1 sm:flex-initial min-h-[48px] px-7 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 text-white hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 transition-all active:scale-[0.98] shadow-[0_4px_16px_rgba(234,88,12,0.4)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.55)] font-mono text-xs sm:text-sm font-bold tracking-wide whitespace-nowrap"
-              >
-                <span>{isExtracting ? t.extractingBtn : t.downloadBtn}</span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-4 h-4"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
+              </div>
             </div>
-          </div>
 
-          {/* Gentle Inline Validation Message */}
-          {validationMessage && (
-            <p
-              role="alert"
-              className="mt-2.5 font-mono text-xs font-medium text-red-600 dark:text-red-400"
-            >
-              {validationMessage}
-            </p>
-          )}
-        </form>
+            {validationMessage && (
+              <p
+                role="alert"
+                className="mt-2.5 font-mono text-xs font-medium text-red-600 dark:text-red-400"
+              >
+                {validationMessage}
+              </p>
+            )}
+          </form>
 
-        {/* Sub-Tool Selector Row */}
-        {siblingSubTools.length > 1 && (
-          <div
-            role="tablist"
-            aria-label={`${activeTool.platform} tools`}
-            className="mt-5 flex flex-wrap items-center justify-center gap-2"
-          >
-            {siblingSubTools.map((subTool) => {
-              const isSelected = subTool.slug === activeTool.slug;
+          {/* Direct Platform Links Pill Row (real <a href> links) */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            {PLATFORM_PAGE_KEYS.map((pKey) => {
+              const pInfo = bundle.platforms[pKey];
+              const isSelected = pageKey === pKey;
+              const href = getLocalizedPagePath(language, pKey);
               return (
-                <button
-                  key={subTool.slug}
-                  type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  onClick={() => onSelectTool(subTool.slug)}
-                  className={`px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap ${
+                <a
+                  key={pKey}
+                  href={href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigatePage(pKey);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 ${
                     isSelected
                       ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
                       : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/80 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
                   }`}
                 >
-                  {subTool.shortLabel}
-                </button>
+                  <PlatformIcon platform={pKey} className="w-3.5 h-3.5" />
+                  <span>{pInfo.shortLabel}</span>
+                </a>
               );
             })}
           </div>
-        )}
 
-        {/* Quick Sample Test Links */}
-        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
-          <span className="text-xs text-orange-900/60 dark:text-orange-200/60 font-medium">
-            {t.trySampleLabel}
-          </span>
-          {SAMPLE_LINKS.map((sample) => (
-            <button
-              key={sample.id}
-              type="button"
-              onClick={() => handleSampleClick(sample)}
-              className="font-mono text-[11px] px-2.5 py-1 rounded-md bg-orange-100/70 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 text-orange-900 dark:text-orange-200 font-semibold transition-all shadow-sm whitespace-nowrap"
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
+          {/* Quick Sample Test Links */}
+          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs text-orange-900/60 dark:text-orange-200/60 font-medium">
+              {t.trySampleLabel}
+            </span>
+            {SAMPLE_LINKS.map((sample) => (
+              <button
+                key={sample.id}
+                type="button"
+                onClick={() => handleSampleClick(sample)}
+                className="font-mono text-[11px] px-2.5 py-1 rounded-md bg-orange-100/70 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 text-orange-900 dark:text-orange-200 font-semibold transition-all shadow-sm whitespace-nowrap"
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Right Vertical Column Ad (160×600 Skyscraper) */}

@@ -1,102 +1,180 @@
+import {
+  DEFAULT_LOCALE,
+  getLocalizedPagePath,
+  isSupportedLocale,
+  type PageKey,
+  type PlatformPageKey,
+  resolveRouteFromPathname,
+  type ResolvedRoute,
+  type SupportedLocale,
+} from '../i18n/config.ts';
 import type { ToolSlug } from '../data/seoToolsConfig.ts';
 import { SEO_TOOLS_CONFIG } from '../data/seoToolsConfig.ts';
-import type { LanguageCode } from '../i18n/translations.ts';
-import { SUPPORTED_LANGUAGES } from '../i18n/translations.ts';
 
-export const DEFAULT_LANGUAGE: LanguageCode = 'en';
+export const DEFAULT_LANGUAGE: SupportedLocale = DEFAULT_LOCALE;
 
 export interface ParsedPath {
-  lang: LanguageCode;
+  lang: SupportedLocale;
+  pageKey: PageKey | 'admin' | 'not_found';
   toolSlug: ToolSlug | null;
   isAdmin: boolean;
+  isNotFound: boolean;
 }
 
-/**
- * Checks whether a given string matches any of the registered languages.
- */
-export function isSupportedLanguage(code: string): code is LanguageCode {
-  return SUPPORTED_LANGUAGES.some((l) => l.code === code);
+const PLATFORM_TO_PRIMARY_TOOL_SLUG: Record<PlatformPageKey, ToolSlug> = {
+  tiktok: 'tiktok-no-watermark',
+  instagram: 'instagram-reels',
+  x: 'x-video',
+  facebook: 'facebook-reels',
+};
+
+const TOOL_SLUG_TO_PLATFORM_PAGE: Record<ToolSlug, PlatformPageKey> = {
+  'tiktok-no-watermark': 'tiktok',
+  'tiktok-slideshow': 'tiktok',
+  'tiktok-mp3': 'tiktok',
+  'tiktok-dp': 'tiktok',
+  'instagram-reels': 'instagram',
+  'instagram-dp': 'instagram',
+  'instagram-carousel': 'instagram',
+  'instagram-stories': 'instagram',
+  'x-video': 'x',
+  'facebook-reels': 'facebook',
+  'youtube-shorts': 'tiktok',
+  'snapchat-spotlight': 'tiktok',
+};
+
+export function isSupportedLanguage(code: string): code is SupportedLocale {
+  return isSupportedLocale(code);
 }
 
-/**
- * Checks whether a given slug matches any of the registered SEO tool configurations.
- */
 export function isValidToolSlug(slug: string): slug is ToolSlug {
-  return Boolean(slug && Object.prototype.hasOwnProperty.call(SEO_TOOLS_CONFIG, slug));
+  return Boolean(
+    slug && Object.prototype.hasOwnProperty.call(SEO_TOOLS_CONFIG, slug)
+  );
+}
+
+export function pageKeyToPrimaryToolSlug(pageKey: PageKey): ToolSlug | null {
+  if (
+    pageKey === 'tiktok' ||
+    pageKey === 'instagram' ||
+    pageKey === 'x' ||
+    pageKey === 'facebook'
+  ) {
+    return PLATFORM_TO_PRIMARY_TOOL_SLUG[pageKey];
+  }
+  return null;
+}
+
+export function toolSlugToPageKey(slug?: string | null): PageKey {
+  if (!slug) return 'home';
+  const clean = slug.replace(/^\/+|\/+$/g, '');
+  if (
+    clean === 'home' ||
+    clean === 'tiktok' ||
+    clean === 'instagram' ||
+    clean === 'x' ||
+    clean === 'facebook' ||
+    clean === 'about' ||
+    clean === 'privacy' ||
+    clean === 'terms' ||
+    clean === 'contact' ||
+    clean === 'dmca'
+  ) {
+    return clean;
+  }
+  if (isValidToolSlug(clean)) {
+    return TOOL_SLUG_TO_PLATFORM_PAGE[clean];
+  }
+  return 'home';
 }
 
 /**
- * Parses a pathname into its localized components: language, tool slug, and admin flag.
- *
- * Examples:
- * - "/" => { lang: "en", toolSlug: null, isAdmin: false }
- * - "/fr" => { lang: "fr", toolSlug: null, isAdmin: false }
- * - "/instagram-reels" => { lang: "en", toolSlug: "instagram-reels", isAdmin: false }
- * - "/fr/instagram-reels" => { lang: "fr", toolSlug: "instagram-reels", isAdmin: false }
- * - "/admin" or "/admin/stats" => { lang: "en", toolSlug: null, isAdmin: true }
+ * Parses a URL pathname into our 10-language route descriptor:
+ * - "/" => { lang: "fr", pageKey: "home", ... }
+ * - "/telecharger-video-tiktok" => { lang: "fr", pageKey: "tiktok", toolSlug: "tiktok-no-watermark", ... }
+ * - "/en" => { lang: "en", pageKey: "home", ... }
+ * - "/en/tiktok-video-downloader" => { lang: "en", pageKey: "tiktok", toolSlug: "tiktok-no-watermark", ... }
+ * - "/ar/facebook-video-downloader" => { lang: "ar", pageKey: "facebook", toolSlug: "facebook-reels", ... }
+ * - "/admin" => { lang: "fr", pageKey: "admin", isAdmin: true, ... }
  */
 export function parsePathname(pathname: string): ParsedPath {
-  const trimmed = (pathname || '').replace(/^\/+|\/+$/g, '');
+  const resolved: ResolvedRoute = resolveRouteFromPathname(pathname);
 
-  if (!trimmed) {
-    return { lang: DEFAULT_LANGUAGE, toolSlug: null, isAdmin: false };
+  if (resolved.pageKey === 'admin') {
+    return {
+      lang: DEFAULT_LOCALE,
+      pageKey: 'admin',
+      toolSlug: null,
+      isAdmin: true,
+      isNotFound: false,
+    };
   }
 
-  const segments = trimmed.split('/');
-  const first = segments[0];
-
-  // Admin routes remain top-level and unlocalized
-  if (first === 'admin') {
-    return { lang: DEFAULT_LANGUAGE, toolSlug: null, isAdmin: true };
-  }
-
-  // Check if first segment is a supported language
-  if (isSupportedLanguage(first)) {
-    const lang = first;
-    const second = segments[1];
-
-    if (second && isValidToolSlug(second)) {
-      return { lang, toolSlug: second, isAdmin: false };
+  if (resolved.pageKey === 'not_found') {
+    // Legacy compatibility: check if someone visited an old toolSlug like /instagram-reels or /fr/instagram-reels
+    const trimmed = (pathname || '').replace(/^\/+|\/+$/g, '');
+    const parts = trimmed.split('/');
+    if (parts.length === 1 && isValidToolSlug(parts[0])) {
+      const pKey = TOOL_SLUG_TO_PLATFORM_PAGE[parts[0]];
+      return {
+        lang: DEFAULT_LOCALE,
+        pageKey: pKey,
+        toolSlug: parts[0],
+        isAdmin: false,
+        isNotFound: false,
+      };
+    }
+    if (
+      parts.length === 2 &&
+      isSupportedLocale(parts[0]) &&
+      isValidToolSlug(parts[1])
+    ) {
+      const pKey = TOOL_SLUG_TO_PLATFORM_PAGE[parts[1]];
+      return {
+        lang: parts[0],
+        pageKey: pKey,
+        toolSlug: parts[1],
+        isAdmin: false,
+        isNotFound: false,
+      };
     }
 
-    return { lang, toolSlug: null, isAdmin: false };
+    return {
+      lang: resolved.locale,
+      pageKey: 'not_found',
+      toolSlug: null,
+      isAdmin: false,
+      isNotFound: true,
+    };
   }
 
-  // No language prefix -> default English
-  if (isValidToolSlug(first)) {
-    return { lang: DEFAULT_LANGUAGE, toolSlug: first, isAdmin: false };
-  }
-
-  return { lang: DEFAULT_LANGUAGE, toolSlug: null, isAdmin: false };
+  return {
+    lang: resolved.locale,
+    pageKey: resolved.pageKey,
+    toolSlug: pageKeyToPrimaryToolSlug(resolved.pageKey),
+    isAdmin: false,
+    isNotFound: false,
+  };
 }
 
 /**
- * Builds a localized path with subfolder architecture for non-default languages
- * and root paths for default English.
- *
- * Examples:
- * - buildLocalizedPath('en') => '/'
- * - buildLocalizedPath('fr') => '/fr'
- * - buildLocalizedPath('en', 'instagram-reels') => '/instagram-reels'
- * - buildLocalizedPath('fr', 'instagram-reels') => '/fr/instagram-reels'
+ * Builds the canonical localized path for any (locale, pageKey or toolSlug).
+ * French ('fr') is at root without prefix; the 9 other languages are under /{code}/.
  */
-export function buildLocalizedPath(lang: string, slug?: string | null): string {
-  const cleanSlug = (slug || '').replace(/^\/+|\/+$/g, '');
-  const isEn = lang === DEFAULT_LANGUAGE;
-
-  if (!cleanSlug) {
-    return isEn ? '/' : `/${lang}`;
+export function buildLocalizedPath(
+  lang: string,
+  pageOrSlug?: PageKey | ToolSlug | string | null
+): string {
+  const validLang: SupportedLocale = isSupportedLocale(lang)
+    ? lang
+    : DEFAULT_LOCALE;
+  if (!pageOrSlug) {
+    return getLocalizedPagePath(validLang, 'home');
   }
-
-  return isEn ? `/${cleanSlug}` : `/${lang}/${cleanSlug}`;
+  const pageKey = toolSlugToPageKey(pageOrSlug);
+  return getLocalizedPagePath(validLang, pageKey);
 }
 
-/**
- * Backward-compatibility helper:
- * Detects legacy query parameters (e.g. ?lang=fr or ?tool=instagram-reels&lang=fr)
- * and seamlessly redirects via window.history.replaceState to the new subfolder URL
- * (/fr/instagram-reels).
- */
 export function handleLegacyQueryRedirect(): {
   redirected: boolean;
   path: string;
@@ -117,31 +195,31 @@ export function handleLegacyQueryRedirect(): {
   let shouldRedirect = false;
   const parsed = parsePathname(window.location.pathname);
 
-  // Determine target language
-  let targetLang: LanguageCode = parsed.lang;
-  if (langParam && isSupportedLanguage(langParam)) {
+  let targetLang: SupportedLocale = parsed.lang;
+  if (langParam && isSupportedLocale(langParam)) {
     targetLang = langParam;
     params.delete('lang');
     shouldRedirect = true;
   }
 
-  // Determine target tool slug
-  let targetSlug: ToolSlug | null = parsed.toolSlug;
+  let targetPage: PageKey =
+    parsed.pageKey === 'not_found' || parsed.pageKey === 'admin'
+      ? 'home'
+      : parsed.pageKey;
   if (toolParam && isValidToolSlug(toolParam)) {
-    targetSlug = toolParam;
+    targetPage = TOOL_SLUG_TO_PLATFORM_PAGE[toolParam];
     params.delete('tool');
     shouldRedirect = true;
   }
 
-  // If path was /?lang=fr, targetSlug might be null, so we redirect to /fr
   if (shouldRedirect) {
-    const newPath = buildLocalizedPath(targetLang, targetSlug);
+    const newPath = getLocalizedPagePath(targetLang, targetPage);
     const remaining = params.toString();
     const finalUrl = `${newPath}${remaining ? `?${remaining}` : ''}${window.location.hash}`;
 
     if (window.location.pathname + window.location.search !== finalUrl) {
       window.history.replaceState(
-        { slug: targetSlug || 'instagram-reels', language: targetLang },
+        { pageKey: targetPage, language: targetLang },
         '',
         finalUrl
       );

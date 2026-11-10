@@ -524,7 +524,13 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(view.getUint16(zipBytes.byteLength - 14, true), 2);
   });
 
-  it('Localizes extraction error messages across all 5 supported languages (en, fr, es, pt, ar) including MAINTENANCE, PLATFORM_DISABLED, BLOCKED, and Facebook PRIVATE_OR_LOGIN_REQUIRED', () => {
+  it('Localizes extraction error messages across all 10 supported languages including MAINTENANCE, PLATFORM_DISABLED, BLOCKED, and Facebook PRIVATE_OR_LOGIN_REQUIRED', async () => {
+    const { SUPPORTED_LOCALES } = await import('../i18n/config.ts');
+    const { loadLocaleBundle } = await import('../i18n/localeLoader.ts');
+    for (const loc of SUPPORTED_LOCALES) {
+      await loadLocaleBundle(loc);
+    }
+
     const enMsg = getLocalizedErrorMessage('NOT_FOUND', 'en');
     const frMsg = getLocalizedErrorMessage('NOT_FOUND', 'fr');
     const esMsg = getLocalizedErrorMessage('NOT_FOUND', 'es');
@@ -533,9 +539,9 @@ describe('VIDNEX URL Detection & Security Suite', () => {
 
     assert.ok(enMsg.includes('Media not found'));
     assert.ok(frMsg.includes('Contenu introuvable'));
-    assert.ok(esMsg.includes('Contenido no encontrado'));
-    assert.ok(ptMsg.includes('Conteúdo não encontrado'));
-    assert.ok(arMsg.includes('لم يتم العثور'));
+    assert.ok(esMsg.includes('no se encuentra'));
+    assert.ok(ptMsg.includes('não foi encontrada'));
+    assert.ok(arMsg.includes('غير موجود'));
 
     assert.equal(
       getLocalizedErrorMessage('PRIVATE_OR_LOGIN_REQUIRED', 'fr'),
@@ -1050,7 +1056,9 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(mirrorJson.error.code, 'UNSUPPORTED_URL');
 
     // (10) Health.tsx : statut 'En ligne' / 'Hors ligne' et URL de test spécifique X
-    const { DEFAULT_X_TEST_URL, getEngineStatusLabel } = await import('../pages/admin/Health.tsx');
+    const { DEFAULT_X_TEST_URL, getEngineStatusLabel } = await import(
+      '../pages/admin/healthConfig.ts'
+    );
     assert.equal(DEFAULT_X_TEST_URL, 'https://x.com/reactiive_/status/2040511285998313827');
     assert.equal(getEngineStatusLabel(1), 'En ligne');
     assert.equal(getEngineStatusLabel(null), 'En ligne');
@@ -1255,7 +1263,97 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://www.facebook.com/facebook/videos/10153231379946729/'
     );
   });
+
+  it('ÉTAPE 1 à 8 (SEO INTERNATIONAL 10 LANGUES) — Routage 10 langues, slugs localisés, hreflang réciproques + x-default, X-Robots-Tag sur .pages.dev/.workers.dev, et statut HTTP 404', async () => {
+    const {
+      SUPPORTED_LOCALES,
+      getLocalizedPagePath,
+      resolveRouteFromPathname,
+      getAllPublicRoutes,
+    } = await import('../i18n/config.ts');
+    const { buildHreflangCluster, getPageCanonicalUrl } = await import(
+      '../i18n/hreflang.ts'
+    );
+
+    // 1. 10 langues configurées, français par défaut à la racine SANS préfixe
+    assert.equal(SUPPORTED_LOCALES.length, 10);
+    assert.equal(getLocalizedPagePath('fr', 'home'), '/');
+    assert.equal(
+      getLocalizedPagePath('fr', 'tiktok'),
+      '/telecharger-video-tiktok'
+    );
+    assert.equal(getLocalizedPagePath('en', 'home'), '/en');
+    assert.equal(
+      getLocalizedPagePath('en', 'tiktok'),
+      '/en/tiktok-video-downloader'
+    );
+    assert.equal(
+      getLocalizedPagePath('ar', 'tiktok'),
+      '/ar/tiktok-video-downloader'
+    );
+    assert.equal(
+      getLocalizedPagePath('ru', 'x'),
+      '/ru/x-twitter-video-downloader'
+    );
+    assert.equal(
+      getLocalizedPagePath('es', 'facebook'),
+      '/es/descargar-video-facebook'
+    );
+
+    // 2. Pages légales : fr, en, ar ont leurs propres URLs ; les 7 autres langues pointent vers /en/...
+    assert.equal(getLocalizedPagePath('fr', 'about'), '/a-propos');
+    assert.equal(getLocalizedPagePath('en', 'about'), '/en/about');
+    assert.equal(getLocalizedPagePath('ar', 'about'), '/ar/about');
+    assert.equal(getLocalizedPagePath('de', 'about'), '/en/about');
+    assert.equal(getLocalizedPagePath('ru', 'privacy'), '/en/privacy');
+
+    // 3. Résolution d'URL + détection 404
+    const resolvedFr = resolveRouteFromPathname('/telecharger-reel-instagram');
+    assert.equal(resolvedFr.locale, 'fr');
+    assert.equal(resolvedFr.pageKey, 'instagram');
+    assert.equal(resolvedFr.isNotFound, false);
+
+    const resolvedAr = resolveRouteFromPathname('/ar/facebook-video-downloader');
+    assert.equal(resolvedAr.locale, 'ar');
+    assert.equal(resolvedAr.pageKey, 'facebook');
+    assert.equal(resolvedAr.isNotFound, false);
+
+    const resolved404 = resolveRouteFromPathname('/ar/unknown-broken-route');
+    assert.equal(resolved404.locale, 'ar');
+    assert.equal(resolved404.pageKey, 'not_found');
+    assert.equal(resolved404.isNotFound, true);
+
+    // 4. Hreflang : 10 langues + x-default sur les pages principales, aucun hreflang sur les pages légales
+    const tiktokHreflangs = buildHreflangCluster('tiktok');
+    assert.equal(tiktokHreflangs.length, 11);
+    const xDefault = tiktokHreflangs.find((h) => h.hreflang === 'x-default');
+    assert.equal(
+      xDefault?.href,
+      'https://vidnex.space/en/tiktok-video-downloader'
+    );
+    assert.equal(buildHreflangCluster('privacy').length, 0);
+    assert.equal(
+      getPageCanonicalUrl('fr', 'home'),
+      'https://vidnex.space/'
+    );
+
+    // 5. 65 routes publiques au total (50 principales + 15 légales)
+    assert.equal(getAllPublicRoutes().length, 65);
+
+    // 6. Messages d'erreur localisés dans les 10 langues
+    for (const loc of SUPPORTED_LOCALES) {
+      const msg = getLocalizedErrorMessage('UNSUPPORTED_URL', loc);
+      assert.ok(typeof msg === 'string' && msg.length > 10);
+    }
+
+    // 7. Anti-duplication : X-Robots-Tag: noindex, nofollow sur *.pages.dev et *.workers.dev
+    const previewRes = await worker.fetch(
+      new Request('https://vidnex.redacher64.workers.dev/api/health'),
+      {}
+    );
+    assert.equal(
+      previewRes.headers.get('X-Robots-Tag'),
+      'noindex, nofollow'
+    );
+  });
 });
-
-
-

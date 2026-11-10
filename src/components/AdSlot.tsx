@@ -23,17 +23,19 @@ interface AdSlotProps {
   className?: string;
 }
 
-const AD_LABELS_BY_LANG: Record<
-  LanguageCode,
-  {
-    sponsored: string;
-    demoBadge: string;
-    leaderboardTitle: string;
-    rectangleTitle: string;
-    skyscraperTitle: string;
-    columnTitle: string;
-    setupHint: string;
-  }
+const AD_LABELS_BY_LANG: Partial<
+  Record<
+    LanguageCode,
+    {
+      sponsored: string;
+      demoBadge: string;
+      leaderboardTitle: string;
+      rectangleTitle: string;
+      skyscraperTitle: string;
+      columnTitle: string;
+      setupHint: string;
+    }
+  >
 > = {
   en: {
     sponsored: 'Sponsored · AdSense',
@@ -117,7 +119,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     return null;
   }
 
-  const labels = AD_LABELS_BY_LANG[language] || AD_LABELS_BY_LANG.fr;
+  const labels = AD_LABELS_BY_LANG[language] || AD_LABELS_BY_LANG.fr!;
 
   const isLeaderboard = format === 'leaderboard';
   const isSkyscraper = format === 'skyscraper';

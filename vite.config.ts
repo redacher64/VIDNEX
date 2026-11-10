@@ -26,6 +26,21 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
         }
 
         if (!req.url.startsWith('/api/')) {
+          const cleanPath = req.url.split('?')[0];
+          const isStaticAsset =
+            cleanPath.startsWith('/src/') ||
+            cleanPath.startsWith('/@') ||
+            cleanPath.startsWith('/node_modules/') ||
+            cleanPath.startsWith('/assets/') ||
+            cleanPath.includes('.');
+          if (!isStaticAsset) {
+            const { parsePathname } = await import('./src/utils/i18nRouting.ts');
+            const parsed = parsePathname(cleanPath);
+            if (parsed.isNotFound && !parsed.isAdmin) {
+              res.statusCode = 404;
+              res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+            }
+          }
           return next();
         }
 
@@ -117,6 +132,80 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
           );
         }
       });
+    },
+    async transformIndexHtml(html, ctx) {
+      if (!ctx.server) {
+        return html;
+      }
+      try {
+        const rawUrl = ctx.originalUrl || ctx.path || '/';
+        const cleanPath = rawUrl.split('?')[0].split('#')[0] || '/';
+        const { parsePathname } = await import('./src/utils/i18nRouting.ts');
+        const { buildHeadMetadataForRoute } = await import(
+          './src/i18n/hreflang.ts'
+        );
+        const { getLocaleBundleSync } = await import(
+          './src/i18n/localeLoader.ts'
+        );
+
+        const parsed = parsePathname(cleanPath);
+        const bundle = getLocaleBundleSync(parsed.lang);
+        const meta = buildHeadMetadataForRoute(
+          parsed.lang,
+          parsed.isAdmin ? 'admin' : parsed.pageKey
+        );
+
+        const esc = (s: string) =>
+          String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+
+        let out = html
+          .replace(
+            /<html[^>]*>/i,
+            `<html lang="${meta.lang}" dir="${meta.dir}" class="light">`
+          )
+          .replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(meta.title)}</title>`)
+          .replace(
+            /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
+            `<link rel="canonical" href="${esc(meta.canonicalUrl)}" />`
+          )
+          .replace(
+            /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="robots" content="${esc(meta.robots)}" />`
+          )
+          .replace(
+            /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+            `<meta name="description" content="${esc(meta.description)}" />`
+          );
+
+        const extra: string[] = [];
+        for (const hl of meta.hreflangs) {
+          extra.push(
+            `    <link rel="alternate" hreflang="${esc(hl.hreflang)}" href="${esc(
+              hl.href
+            )}" data-vidnex-hreflang="true" />`
+          );
+        }
+        extra.push(
+          `    <script id="vidnex-jsonld-schema" type="application/ld+json">${JSON.stringify(
+            meta.jsonLdGraph
+          )}</script>`
+        );
+        if (!parsed.isAdmin) {
+          const safeBundleJson = JSON.stringify(bundle).replace(/</g, '\\u003c');
+          extra.push(
+            `    <script>window.__VIDNEX_LOCALE_BUNDLE__=${safeBundleJson};</script>`
+          );
+        }
+
+        out = out.replace('</head>', `${extra.join('\n')}\n  </head>`);
+        return out;
+      } catch {
+        return html;
+      }
     },
   };
 }

@@ -1,5 +1,6 @@
 import type { DetectedUrlInfo, PlatformId } from '../utils/urlDetector.ts';
 import type { LanguageCode } from '../i18n/translations.ts';
+import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 
 /**
  * Configuration API Cloudflare Pages Functions (`/functions/api`)
@@ -96,134 +97,14 @@ export type MediaResult =
   | ProfileDpMediaResult
   | CarouselMediaResult;
 
-const ERROR_MESSAGES_I18N: Record<LanguageCode, Record<string, string>> = {
-  en: {
-    UNSUPPORTED_URL:
-      'Unsupported link. Currently, Instagram, TikTok, X (Twitter), and Facebook links are supported.',
-    NOT_FOUND:
-      'Media not found. The video, Reel, tweet, or post may have been deleted.',
-    NO_MEDIA:
-      'This post does not contain any downloadable video or image.',
-    PRIVATE_OR_LOGIN_REQUIRED:
-      'This video is not public or requires a login. Only public videos can be downloaded.',
-    RATE_LIMITED:
-      'Rate limit reached on upstream gateway. Please retry in a few seconds.',
-    BLOCKED_BY_PLATFORM:
-      'The platform temporarily restricted public extraction requests. Please try again shortly.',
-    TIMEOUT:
-      'Upstream media extraction timed out. Please try again.',
-    MAINTENANCE:
-      'VIDNEX is temporarily undergoing scheduled maintenance. Please try again shortly.',
-    PLATFORM_DISABLED:
-      'This platform extractor is temporarily disabled by the administrator.',
-    BLOCKED:
-      'This request or resource has been restricted by the administrator.',
-    NETWORK_ERROR:
-      'Unable to reach the VIDNEX extraction API (/api/extract).',
-  },
-  fr: {
-    UNSUPPORTED_URL:
-      'Ce lien n\'est pas supporté. Seuls les liens TikTok, Instagram, X (Twitter) et Facebook sont pris en charge.',
-    NOT_FOUND:
-      'Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.',
-    NO_MEDIA:
-      'Cette publication ne contient aucune vidéo téléchargeable.',
-    PRIVATE_OR_LOGIN_REQUIRED:
-      'Cette vidéo n\'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.',
-    RATE_LIMITED:
-      'Limite de requêtes atteinte. Veuillez patienter quelques secondes avant de relancer une extraction.',
-    BLOCKED_BY_PLATFORM:
-      'La plateforme a temporairement restreint les requêtes publiques. Veuillez réessayer dans quelques instants.',
-    TIMEOUT:
-      'Le délai d\'attente a expiré lors de la récupération du média. Veuillez réessayer.',
-    MAINTENANCE:
-      'VIDNEX est temporairement en maintenance programmée. Veuillez réessayer dans quelques instants.',
-    PLATFORM_DISABLED:
-      'L\'extraction pour cette plateforme est temporairement désactivée par l\'administrateur.',
-    BLOCKED:
-      'Cette requête ou ressource a été bloquée par l\'administrateur.',
-    NETWORK_ERROR:
-      'Impossible de joindre le service d\'extraction VIDNEX (/api/extract).',
-  },
-  es: {
-    UNSUPPORTED_URL:
-      'Enlace no compatible. Solo se admiten enlaces de TikTok, Instagram, X (Twitter) y Facebook.',
-    NOT_FOUND:
-      'Contenido no encontrado. Es posible que el vídeo, Reel o publicación haya sido eliminado.',
-    NO_MEDIA:
-      'Esta publicación no contiene ningún vídeo ni imagen.',
-    PRIVATE_OR_LOGIN_REQUIRED:
-      'Este vídeo no es público o requiere iniciar sesión. Solo se pueden descargar vídeos públicos.',
-    RATE_LIMITED:
-      'Límite de solicitudes alcanzado temporalmente. Inténtalo de nuevo en unos segundos.',
-    BLOCKED_BY_PLATFORM:
-      'La plataforma restringió temporalmente las solicitudes públicas. Inténtalo de nuevo en unos momentos.',
-    TIMEOUT:
-      'Se agotó el tiempo de espera al recuperar el archivo multimedia. Inténtalo de nuevo.',
-    MAINTENANCE:
-      'VIDNEX está temporalmente en mantenimiento. Inténtalo de nuevo en unos momentos.',
-    PLATFORM_DISABLED:
-      'La extracción para esta plataforma está desactivada temporalmente por el administrador.',
-    BLOCKED:
-      'Esta solicitud o recurso ha sido bloqueado por el administrador.',
-    NETWORK_ERROR:
-      'No se pudo conectar con el servicio de extracción VIDNEX (/api/extract).',
-  },
-  pt: {
-    UNSUPPORTED_URL:
-      'Link não suportado. Apenas links do TikTok, Instagram, X (Twitter) e Facebook são suportados.',
-    NOT_FOUND:
-      'Conteúdo não encontrado. O vídeo, Reel ou publicação pode ter sido removido.',
-    NO_MEDIA:
-      'Esta publicação não contém nenhum vídeo ou imagem.',
-    PRIVATE_OR_LOGIN_REQUIRED:
-      'Este vídeo não é público ou requer login. Apenas vídeos públicos podem ser baixados.',
-    RATE_LIMITED:
-      'Limite de requisições atingido temporariamente. Tente novamente em alguns segundos.',
-    BLOCKED_BY_PLATFORM:
-      'A plataforma restringiu temporariamente as requisições públicas. Tente novamente em instantes.',
-    TIMEOUT:
-      'O tempo limite expirou ao buscar a mídia. Tente novamente.',
-    MAINTENANCE:
-      'O VIDNEX está temporariamente em manutenção. Tente novamente em instantes.',
-    PLATFORM_DISABLED:
-      'A extração para esta plataforma está temporariamente desativada pelo administrador.',
-    BLOCKED:
-      'Esta solicitação ou recurso foi bloqueado pelo administrador.',
-    NETWORK_ERROR:
-      'Não foi possível conectar ao serviço de extração VIDNEX (/api/extract).',
-  },
-  ar: {
-    UNSUPPORTED_URL:
-      'هذا الرابط غير مدعوم. يتم حالياً دعم تيك توك وإنستغرام وإكس (تويتر) وفيسبوك.',
-    NOT_FOUND:
-      'لم يتم العثور على المحتوى. ربما تم حذف الفيديو أو المنشور.',
-    NO_MEDIA:
-      'هذا المنشور لا يحتوي على أي فيديو أو صورة.',
-    PRIVATE_OR_LOGIN_REQUIRED:
-      'هذا الفيديو غير عام أو يتطلب تسجيل الدخول. يمكن تنزيل الفيديوهات العامة فقط.',
-    RATE_LIMITED:
-      'تم تجاوز حد الطلبات المؤقت. يرجى المحاولة مرة أخرى بعد ثوانٍ.',
-    BLOCKED_BY_PLATFORM:
-      'قامت المنصة بتقييد الطلبات العامة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.',
-    TIMEOUT:
-      'انتهت مهلة الاتصال أثناء جلب الوسائط. يرجى المحاولة مرة أخرى.',
-    MAINTENANCE:
-      'الخدمة في وضع الصيانة المؤقتة. يرجى المحاولة مرة أخرى قريباً.',
-    PLATFORM_DISABLED:
-      'تم تعطيل الاستخراج لهذه المنصة مؤقتاً من قبل المسؤول.',
-    BLOCKED:
-      'تم حظر هذا الطلب أو الرابط من قبل المسؤول.',
-    NETWORK_ERROR:
-      'تعذر الاتصال بخدمة الاستخراج VIDNEX (/api/extract).',
-  },
-};
-
 export function getLocalizedErrorMessage(
   code: string,
-  language: LanguageCode = 'en'
+  language: LanguageCode = 'fr'
 ): string {
-  const dict = ERROR_MESSAGES_I18N[language] || ERROR_MESSAGES_I18N.en;
+  const dict = getLocaleBundleSync(language).ui.errors as unknown as Record<
+    string,
+    string
+  >;
   return dict[code] || dict.BLOCKED_BY_PLATFORM;
 }
 

@@ -1,0 +1,478 @@
+{
+  "locale": "tr",
+  "ui": {
+    "nav": {
+      "home": "Ana Sayfa",
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "x": "X (Twitter)",
+      "facebook": "Facebook",
+      "morePlatforms": "Daha fazla",
+      "soonBadge": "Yakında",
+      "languageLabel": "Dil",
+      "switchToDark": "Koyu temayı etkinleştir",
+      "switchToLight": "Açık temayı etkinleştir"
+    },
+    "omnibox": {
+      "inputAriaLabel": "Herkese açık bir TikTok, Instagram, X veya Facebook bağlantısı yapıştırın...",
+      "pasteButton": "Yapıştır",
+      "pastedFeedback": "Yapıştırıldı!",
+      "clearInputAria": "Bağlantıyı temizle",
+      "downloadButton": "İndir",
+      "extractingButton": "Analiz ediliyor...",
+      "trySampleLabel": "Örnek dene:",
+      "errEmptyInput": "Lütfen analizi başlatmadan önce geçerli bir bağlantı yapıştırın.",
+      "errInvalidUrl": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
+      "errClipboardBlocked": "Pano erişimi engellendi. Yapıştırmak için Ctrl+V kullanın.",
+      "comingSoonNotice": "Bu platform yakında desteklenecek. Şu anda: TikTok, Instagram, X ve Facebook."
+    },
+    "drawer": {
+      "bypassingWatermark": "KAYNAK AKIŞ ÇÖZÜMLENİYOR",
+      "resolvingStream": "Doğrudan medya dosyası çıkarılıyor…",
+      "extractionInterrupted": "İŞLEM KESİLDİ",
+      "retryExtraction": "Tekrar dene",
+      "dismiss": "Kapat",
+      "clearResult": "Sonucu kapat",
+      "noWatermarkBadge": "FİLİGRANSIZ",
+      "originalJpgBadge": "ORİJİNAL GÖRSEL",
+      "startingStream": "İndirme başlatılıyor…",
+      "saving": "Kaydediliyor…",
+      "downloadHdMp4": "HD İndir (MP4)",
+      "downloadSdMp4": "SD İndir (MP4)",
+      "extractAudioMp3": "Sesi çıkar (MP3)",
+      "downloadAllZip": "Tümünü indir (.ZIP)",
+      "buildingZip": "ZIP arşivi oluşturuluyor…",
+      "viewFullSizeDp": "Tam boyutta görüntüle",
+      "downloadHdJpg": "HD Fotoğraf İndir (JPG)"
+    },
+    "sections": {
+      "bentoCards": [
+        {
+          "id": "nw",
+          "metric": "DOĞRUDAN AKIŞ",
+          "title": "Ek filigran olmadan TikTok videoları"
+        },
+        {
+          "id": "br",
+          "metric": "ORİJİNAL KALİTE",
+          "title": "MP4 HD/SD çözünürlük ve orijinal ses"
+        },
+        {
+          "id": "pr",
+          "metric": "DEPOLAMA YOK",
+          "title": "Dosya arşivlemeden anlık işleme"
+        },
+        {
+          "id": "sp",
+          "metric": "TÜM CİHAZLAR",
+          "title": "Android, iOS, PC ve Mac ile uyumlu"
+        }
+      ],
+      "workflowProtocol": "NASIL KULLANILIR",
+      "howToHeading": "3 adımda video nasıl indirilir",
+      "stepOf": "ADIM",
+      "readyStatus": "HAZIR",
+      "platformsHeading": "Desteklenen platformlar",
+      "platformsSubheading": "Herkese açık gönderilerdeki mevcut formatları görüntülemek için ilgili sosyal ağ aracını seçin.",
+      "openToolCta": "Aracı aç",
+      "knowledgeBase": "SIKÇA SORULAN SORULAR",
+      "faqHeading": "Sıkça Sorulan Sorular",
+      "breadcrumbHome": "Ana Sayfa"
+    },
+    "footer": {
+      "platformsTitle": "Video İndiriciler",
+      "legalTitle": "Yasal Bilgiler",
+      "languagesTitle": "Mevcut Diller",
+      "about": "Hakkımızda",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Koşulları",
+      "contact": "İletişim",
+      "dmca": "Telif Hakkı / DMCA",
+      "copyrightNotice": "© 2026 VIDNEX — Tüm hakları saklıdır. VIDNEX; TikTok, Meta veya X Corp. ile bağlantılı değildir."
+    },
+    "banner": {
+      "suggestText": "Bu site kendi dilinizde de kullanılabilir:",
+      "switchCta": "Türkçe diline geç",
+      "dismissAria": "Kapat"
+    },
+    "notFound": {
+      "title": "Sayfa bulunamadı (404) | VIDNEX",
+      "heading": "404 — Sayfa bulunamadı",
+      "description": "Aradığınız adres mevcut değil veya taşınmış. Ana sayfaya dönebilir veya aşağıdaki araçlarımızdan birini seçebilirsiniz.",
+      "backHomeCta": "Ana sayfaya dön",
+      "tryPlatformsLabel": "Kullanılabilir araçlar"
+    },
+    "errors": {
+      "UNSUPPORTED_URL": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
+      "NOT_FOUND": "İstenen gönderi bulunamadı veya kaynak platformdan silinmiş.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "Bu içerik gizli, yaş kısıtlamalı veya oturum açmayı gerektiriyor. VIDNEX yalnızca herkese açık gönderileri işler.",
+      "BLOCKED_BY_PLATFORM": "Kaynak platform bu gönderiye erişimi geçici olarak reddetti. Lütfen biraz sonra tekrar deneyin.",
+      "TIMEOUT": "Kaynak sunucu zamanında yanıt vermedi. Bağlantıyı kontrol edip tekrar deneyin.",
+      "NO_MEDIA": "Bu gönderide indirilebilir bir video veya görsel bulunamadı (yalnızca metin içeren bir gönderi olabilir).",
+      "MAINTENANCE": "Hizmet şu anda kısa süreli teknik bakımdadır. Lütfen birkaç dakika sonra tekrar deneyin.",
+      "PLATFORM_DISABLED": "Bu platformun indirme motoru bakım nedeniyle geçici olarak devre dışı bırakıldı.",
+      "BLOCKED": "Güvenlik nedeniyle erişiminiz geçici olarak kısıtlandı.",
+      "RATE_LIMITED": "Dakika başına istek sınırına ulaştınız. Tekrar denemeden önce lütfen biraz bekleyin.",
+      "NETWORK_ERROR": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
+    }
+  },
+  "home": {
+    "metaTitle": "VIDNEX — TikTok, Instagram, X ve Facebook Video İndirici",
+    "metaDescription": "TikTok filigransız videoları, Instagram Reels, X (Twitter) ve Facebook herkese açık videolarını MP4 veya MP3 olarak tarayıcıdan ücretsiz indirin.",
+    "h1": "TikTok, Instagram, X ve Facebook için Herkese Açık Video İndirici",
+    "subtitle": "Mevcut video akışlarını analiz etmek ve MP4 dosyasını veya sesi cihazınıza kaydetmek için herkese açık bir gönderi bağlantısı yapıştırın.",
+    "placeholder": "https://www.tiktok.com/@kullanici/video/1234567890...",
+    "specs": [
+      "MP4 HD & SD",
+      "FİLİGRANSIZ TIKTOK",
+      "KAYITSIZ",
+      "AÇIK İÇERİK"
+    ],
+    "editorial": {
+      "heading": "Herkese açık sosyal medya videolarını kaydetmek için tek web arayüzü",
+      "subheading": "TikTok, Instagram, X (Twitter) ve Facebook üzerindeki herkese açık videoları doğrudan tarayıcınızdan kaydetmek için web uygulaması.",
+      "paragraphs": [
+        "VIDNEX; TikTok, Instagram, X (eski adıyla Twitter) ve Facebook üzerinde herkese açık olarak paylaşılan videoların analizini ve indirilmesini tek bir web arayüzünde birleştirir. Her sosyal ağ için ayrı mobil uygulamalar veya tarayıcı eklentileri kurmak yerine, paylaşılan bağlantıyı üstteki kutuya yapıştırmanız yeterlidir; sistem kaynağı otomatik olarak tanır.",
+        "İşlem, gönderinin herkese açık meta verilerinin gerçek zamanlı olarak okunmasına dayanır. Bir video oturum açmadan görüntülenebildiğinde, sunucumuz orijinal dağıtım akışlarını (MP4 formatında 1080p HD, 720p veya standart çözünürlük) ve mevcut olduğunda ayrı ses parçasını tespit eder. Dosya, tarayıcınızın doğrudan İndirilenler klasörüne kaydetmesi için standart başlıklarla aktarılır.",
+        "Android telefonlar, iPhone/iPad (iOS) ve masaüstü bilgisayarlarda (Windows, macOS, Linux) sorunsuz çalışacak şekilde tasarlanan VIDNEX, üyelik gerektirmez ve indirilen videoların kopyalarını sunucularında saklamaz."
+      ],
+      "formatsTitle": "Platforma göre uyumluluk ve formatlar",
+      "formatsList": [
+        "TikTok: Herkese açık videoları filigransız MP4 olarak kaydetme ve orijinal sesi MP3/M4A formatında çıkarma.",
+        "Instagram: Herkese açık Instagram Reels, akış videoları ve çoklu fotoğraf/video (kaydırmalı) gönderi desteği.",
+        "X (Twitter): Herkese açık tweetlerden çözünürlük seçimiyle (360p - 1080p) MP4 video ve GIF indirme.",
+        "Facebook: Herkese açık sayfa videoları, Facebook Reels ve fb.watch kısa bağlantılarını SD veya HD kalitede kaydetme."
+      ],
+      "limitsTitle": "Kullanım koşulları ve teknik sınırlar",
+      "limitsText": "VIDNEX yalnızca herkese açık içeriklerle çalışır. Gizli hesaplardan, kapalı gruplardan, oturum açma gerektiren Hikayelerden (Stories) veya yaş kısıtlamalı gönderilerden video çıkarılamaz. İçerik üreticilerinin telif haklarına her zaman saygı gösterin."
+    },
+    "howToSteps": [
+      {
+        "number": "01",
+        "title": "Gönderi bağlantısını kopyalayın",
+        "description": "TikTok, Instagram, X veya Facebook uygulamasında herkese açık videonun Paylaş düğmesine dokunun ve Bağlantıyı kopyala seçeneğini seçin.",
+        "codeHint": "URL"
+      },
+      {
+        "number": "02",
+        "title": "URL'yi VIDNEX'e yapıştırın",
+        "description": "Kopyaladığınız bağlantıyı yukarıdaki arama alanına yapıştırın ve analizi başlatmak için İndir düğmesine basın.",
+        "codeHint": "VIDNEX"
+      },
+      {
+        "number": "03",
+        "title": "Kaliteyi seçin ve kaydedin",
+        "description": "Cihazınıza doğrudan kaydetmek için istediğiniz çözünürlükteki MP4 sürümünü veya ses dosyasını seçin.",
+        "codeHint": "MP4 / MP3"
+      }
+    ],
+    "faqs": [
+      {
+        "question": "VIDNEX kullanımı ücretsiz mi?",
+        "answer": "Evet, tüm indirme araçları abonelik veya hesap kaydı olmadan doğrudan web tarayıcınız üzerinden ücretsiz olarak kullanılabilir."
+      },
+      {
+        "question": "Gizli hesaplardaki videoları indirebilir miyim?",
+        "answer": "Hayır. Sistem gizlilik ayarlarını aşmaz ve yalnızca oturum açmadan erişilebilen herkese açık gönderileri analiz eder."
+      },
+      {
+        "question": "Hangi cihazlar ve tarayıcılar destekleniyor?",
+        "answer": "Android, iOS (Safari), Windows ve macOS üzerindeki Chrome, Safari, Firefox ve Edge gibi tüm modern tarayıcılarda çalışır."
+      },
+      {
+        "question": "İndirilen videoların kalitesi düşer mi?",
+        "answer": "Hayır, videolar yeniden sıkıştırılmaz; kaynak platformun sunucusunda barındırılan orijinal MP4 akışı sunulur."
+      },
+      {
+        "question": "İndirdiğim videolar sitede kayıtlı kalıyor mu?",
+        "answer": "Hayır. Bağlantılar anlık olarak işlenir ve sunucularımızda hiçbir medya dosyası arşivlenmez."
+      }
+    ]
+  },
+  "platforms": {
+    "tiktok": {
+      "slug": "tiktok-video-indir",
+      "metaTitle": "TikTok Filigransız Video İndir — MP4 HD ve MP3 | VIDNEX",
+      "metaDescription": "Herkese açık TikTok videolarını filigransız (logosuz) MP4 HD kalitesinde indirin veya sesini MP3 olarak tarayıcıdan ücretsiz kaydedin.",
+      "h1": "TikTok Filigransız Video İndirici",
+      "subtitle": "Orijinal videoyu MP4 olarak veya sesini MP3 olarak kaydetmek için herkese açık bir TikTok bağlantısı (tiktok.com veya vm.tiktok.com) yapıştırın.",
+      "shortLabel": "TikTok",
+      "breadcrumbLabel": "TikTok Filigransız Video İndirici",
+      "placeholder": "https://www.tiktok.com/@kullanici/video/1234567890...",
+      "specs": [
+        "MP4 HD & SD",
+        "FİLİGRANSIZ TIKTOK",
+        "KAYITSIZ",
+        "AÇIK İÇERİK"
+      ],
+      "editorial": {
+        "heading": "Herkese açık TikTok videolarını logosuz ve orijinal kalitede kaydedin",
+        "subheading": "tiktok.com/@kullanici/video/... ve vm.tiktok.com / vt.tiktok.com kısa bağlantılarını destekler.",
+        "paragraphs": [
+          "TikTok uygulaması içinden standart kaydetme seçeneği kullanıldığında, videonun üzerine kullanıcı adını ve logoyu içeren hareketli bir filigran eklenir. VIDNEX TikTok indirici, gönderi herkese açık olduğu sürece bu görsel katman olmadan temiz MP4 video akışına ulaşmanızı sağlar.",
+          "Analiz motorumuz hem masaüstü tarayıcı bağlantılarını hem de mobil uygulamanın oluşturduğu kısaltılmış bağlantıları (vm.tiktok.com ve vt.tiktok.com) otomatik olarak çözer. Yönlendirme güvenli bir şekilde takip edilerek video kimliği bulunur ve yüksek çözünürlüklü MP4 dosyası ile ayrı ses parçası listelenir.",
+          "Kendi yayınladığınız videoların temiz yedeğini almak veya herkese açık eğitici içerikleri çevrimdışı izlemek için telefon ve bilgisayarda doğrudan kullanabilirsiniz."
+        ],
+        "formatsTitle": "TikTok için teknik özellikler",
+        "formatsList": [
+          "Orijinal çözünürlükte (1080p HD'ye kadar) filigransız MP4 video.",
+          "MP3 / M4A formatında orijinal ses parçası çıkarma.",
+          "vm.tiktok.com ve vt.tiktok.com mobil kısa bağlantılarının otomatik çözümü."
+        ],
+        "limitsTitle": "Platform kısıtlamaları",
+        "limitsText": "Yalnızca herkese açık TikTok videoları desteklenir. Gizli hesaplar, yalnızca arkadaşlara açık videolar veya silinmiş gönderiler indirilemez."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "TikTok bağlantısını kopyalayın",
+          "description": "TikTok uygulamasında veya web sitesinde herkese açık videonun Paylaş düğmesine dokunun ve Bağlantıyı kopyala'yı seçin.",
+          "codeHint": "TIKTOK"
+        },
+        {
+          "number": "02",
+          "title": "Bağlantıyı yukarıya yapıştırın",
+          "description": "Kopyalanan adresi bu sayfadaki giriş kutusuna yapıştırın ve İndir düğmesine tıklayın.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "MP4 veya MP3 olarak kaydedin",
+          "description": "Filigransız MP4 indirme seçeneğini veya yalnızca ses dosyasını seçerek cihazınıza kaydedin.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "TikTok videosu filigransız (logosuz) nasıl indirilir?",
+          "answer": "Herkese açık bağlantıyı VIDNEX'e yapıştırdığınızda sistem, üzerine filigran eklenmemiş kaynak MP4 dosyasını doğrudan sunar."
+        },
+        {
+          "question": "vm.tiktok.com kısa bağlantıları çalışıyor mu?",
+          "answer": "Evet, Android veya iOS uygulamasından kopyalanan kısa bağlantılar otomatik olarak algılanır ve çözümlenir."
+        },
+        {
+          "question": "Sadece TikTok videosunun sesini indirebilir miyim?",
+          "answer": "Evet, gönderide ayrı bir ses akışı mevcutsa Sesi çıkar düğmesi görüntülenir."
+        },
+        {
+          "question": "iPhone'da videoyu galeriye nasıl kaydederim?",
+          "answer": "Safari'de (iOS 13+) MP4 İndir'e dokunun. Dosyalar uygulamasına inen videoyu açıp Paylaş > Videoyu Kaydet seçeneğini kullanabilirsiniz."
+        }
+      ]
+    },
+    "instagram": {
+      "slug": "instagram-reels-indir",
+      "metaTitle": "Instagram Reels ve Video İndir — MP4 Ücretsiz | VIDNEX",
+      "metaDescription": "Herkese açık Instagram Reels videolarını, gönderileri ve çoklu paylaşımları oturum açmadan MP4 ve JPG olarak ücretsiz indirin.",
+      "h1": "Instagram Reels ve Herkese Açık Video İndirici",
+      "subtitle": "MP4 videoyu veya çoklu gönderi öğelerini kaydetmek için herkese açık bir Instagram Reels veya gönderi bağlantısı yapıştırın.",
+      "shortLabel": "Instagram",
+      "breadcrumbLabel": "Instagram Reels ve Herkese Açık Video İndirici",
+      "placeholder": "https://www.instagram.com/reel/C1234567890/...",
+      "specs": [
+        "MP4 HD & SD",
+        "FİLİGRANSIZ TIKTOK",
+        "KAYITSIZ",
+        "AÇIK İÇERİK"
+      ],
+      "editorial": {
+        "heading": "Instagram Reels ve çoklu medya gönderilerini tarayıcıdan kaydedin",
+        "subheading": "instagram.com/reel/..., instagram.com/p/... ve instagram.com/tv/... bağlantılarını destekler.",
+        "paragraphs": [
+          "Instagram uygulaması, herkese açık Reels kliplerini veya akış videolarını çevrimdışı izlemek üzere cihaz hafızasına kaydetmek için her zaman doğrudan bir seçenek sunmaz. VIDNEX Instagram aracı, herkese açık gönderi bağlantılarını analiz ederek orijinal sesli MP4 dosyasını çıkarır.",
+          "Sistemimiz üç temel bağlantı yapısını destekler: kısa Reels videoları (/reel/), klasik akış gönderileri (/p/) ve uzun videolar (/tv/). Ayrıca bağlantı tek bir gönderide birden fazla fotoğraf veya video barındıran kaydırmalı (carousel) bir albümse, her bir öğe ayrı ayrı önizleme ve indirme düğmesiyle listelenir.",
+          "Tüm işlem Instagram hesabınıza giriş yapmanıza gerek kalmadan doğrudan tarayıcınız üzerinden gerçekleşir."
+        ],
+        "formatsTitle": "Desteklenen Instagram medya türleri",
+        "formatsList": [
+          "Orijinal çözünürlükte ve sesli MP4 formatında herkese açık Instagram Reels.",
+          "Tekli akış videoları ve uzun video gönderileri (/tv/).",
+          "Çoklu gönderilerdeki (Carousel) her bir video ve fotoğraf için ayrı indirme imkanı."
+        ],
+        "limitsTitle": "Gizlilik sınırları",
+        "limitsText": "Yalnızca herkese açık gönderiler işlenebilir. Gizli profiller, giriş gerektiren Hikayeler (Stories) ve yaş kısıtlamalı içerikler desteklenmez."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Reels veya gönderi bağlantısını kopyalayın",
+          "description": "Instagram'da herkese açık gönderinin paylaşım simgesine veya üç nokta menüsüne dokunup Bağlantıyı kopyala'yı seçin.",
+          "codeHint": "INSTAGRAM"
+        },
+        {
+          "number": "02",
+          "title": "URL'yi analiz aracına yapıştırın",
+          "description": "Kopyaladığınız bağlantıyı yukarıdaki alana girin ve İndir düğmesine basın.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "MP4 videoyu veya albüm öğesini indirin",
+          "description": "MP4 İndir düğmesine tıklayın (veya çoklu gönderiyse istediğiniz slaytı seçin).",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Instagram çoklu (kaydırmalı) gönderilerindeki tüm videoları indirebilir miyim?",
+          "answer": "Evet, herkese açık bir çoklu gönderi bağlantısı yapıştırdığınızda tüm fotoğraf ve videolar ayrı ayrı indirilmek üzere listelenir."
+        },
+        {
+          "question": "Bazı Reels videoları neden giriş yapılması gerektiğini söylüyor?",
+          "answer": "Bazı hesaplar gizlidir veya Meta tarafından yaş/bölge kısıtlamasına tabi tutulmuştur. Aracımız yalnızca herkese açık sayfalara erişebilir."
+        },
+        {
+          "question": "İndirilen Instagram videolarına filigran eklenir mi?",
+          "answer": "Hayır, MP4 dosyası kaynak sunucuda bulunduğu haliyle, ek logo olmadan teslim edilir."
+        },
+        {
+          "question": "Instagram şifremi girmem gerekiyor mu?",
+          "answer": "Asla. VIDNEX sizden hiçbir zaman kullanıcı adı veya şifre talep etmez."
+        }
+      ]
+    },
+    "x": {
+      "slug": "x-twitter-video-indir",
+      "metaTitle": "X (Twitter) Video İndir — MP4 HD Kalite Seçenekli | VIDNEX",
+      "metaDescription": "X (Twitter) üzerindeki herkese açık tweetlerden videoları ve GIF'leri çözünürlük seçerek (1080p, 720p) MP4 formatında ücretsiz indirin.",
+      "h1": "X (Twitter) MP4 Video İndirici",
+      "subtitle": "Videoyu çıkarmak ve indirme kalitesini seçmek için herkese açık bir tweet bağlantısı (x.com veya twitter.com) yapıştırın.",
+      "shortLabel": "X (Twitter)",
+      "breadcrumbLabel": "X (Twitter) MP4 Video İndirici",
+      "placeholder": "https://x.com/kullanici/status/1234567890123456789",
+      "specs": [
+        "MP4 HD & SD",
+        "FİLİGRANSIZ TIKTOK",
+        "KAYITSIZ",
+        "AÇIK İÇERİK"
+      ],
+      "editorial": {
+        "heading": "Herkese açık X gönderilerindeki videoları ve GIF'leri kaydetme",
+        "subheading": "x.com/.../status/..., twitter.com/.../status/... ve t.co kısa bağlantılarını destekler.",
+        "paragraphs": [
+          "X (eski adıyla Twitter) üzerindeki videolar parçalı akış protokolleriyle sunulduğu için tarayıcıda sağ tıklayarak doğrudan video kaydetmek mümkün değildir. VIDNEX X indirici, tweetin herkese açık yerleştirme verilerini sorgulayarak doğrudan MP4 dosyalarını bulur.",
+          "Herkese açık bir tweet video içerdiğinde, platform genellikle farklı çözünürlük ve bit hızlarında (örneğin 360p, 720p ve 1080p) birden fazla sürüm barındırır. Arayüzümüz mevcut tüm kaliteleri en yüksekten en düşüğe doğru sıralar; böylece en net görüntüyü veya daha düşük dosya boyutunu seçebilirsiniz.",
+          "Ayrıca aynı tweette birden fazla video bulunan gönderiler ve MP4 formatına dönüştürülmüş GIF animasyonları da desteklenir."
+        ],
+        "formatsTitle": "X / Twitter indirici özellikleri",
+        "formatsList": [
+          "MP4 çözünürlük seçimi (orijinal tweette mevcut olduğunda SD, 720p, 1080p HD).",
+          "x.com, twitter.com alan adları ve t.co kısa bağlantılarıyla tam uyum.",
+          "Çoklu video içeren tweetler ve MP4 olarak GIF indirme desteği."
+        ],
+        "limitsTitle": "Desteklenmeyen içerikler",
+        "limitsText": "Korumalı hesaplar (kilitli tweetler), yaş doğrulaması için oturum açma gerektiren hassas içerikler ve sesli odalar (Spaces) desteklenmez."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Tweet bağlantısını kopyalayın",
+          "description": "X'te herkese açık tweetin altındaki Paylaş simgesine dokunun ve Bağlantıyı kopyala'yı seçin.",
+          "codeHint": "X (TWITTER)"
+        },
+        {
+          "number": "02",
+          "title": "Bağlantıyı VIDNEX'e yapıştırın",
+          "description": "x.com veya twitter.com bağlantısını üstteki kutuya girin ve İndir düğmesine basın.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "MP4 çözünürlüğünü seçin",
+          "description": "Sonuç listesinden istediğiniz kaliteyi seçerek MP4 dosyasını cihazınıza kaydedin.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Hem x.com hem de twitter.com bağlantıları çalışır mı?",
+          "answer": "Evet, her iki resmi alan adı ve t.co kısaltılmış bağlantıları otomatik olarak tanınır."
+        },
+        {
+          "question": "En yüksek Twitter video kalitesini nasıl seçerim?",
+          "answer": "Analiz sonrasında MP4 seçenekleri en yüksek çözünürlükten en düşüğe doğru sıralanır; ilk seçenek her zaman en yüksek kalitedir."
+        },
+        {
+          "question": "Twitter GIF'leri neden MP4 olarak indiriliyor?",
+          "answer": "X platformu, dosya boyutunu küçültmek ve oynatma performansını artırmak için yüklenen tüm GIF'leri döngüsel MP4 videolarına dönüştürür."
+        },
+        {
+          "question": "Bir tweette birden fazla video varsa ne olur?",
+          "answer": "Herkese açık bir tweette 4 adede kadar video varsa, her biri ayrı ayrı indirilebilecek şekilde listelenir."
+        }
+      ]
+    },
+    "facebook": {
+      "slug": "facebook-video-indir",
+      "metaTitle": "Facebook Video ve Reels İndir — MP4 HD / SD | VIDNEX",
+      "metaDescription": "Herkese açık Facebook videolarını, Facebook Reels kliplerini ve fb.watch bağlantılarını HD veya SD MP4 olarak tarayıcıdan ücretsiz indirin.",
+      "h1": "Herkese Açık Facebook Video ve Reels İndirici",
+      "subtitle": "MP4 dosyasını HD veya SD kalitede indirmek için herkese açık bir Facebook video veya fb.watch bağlantısı yapıştırın.",
+      "shortLabel": "Facebook",
+      "breadcrumbLabel": "Herkese Açık Facebook Video ve Reels İndirici",
+      "placeholder": "https://www.facebook.com/watch/?v=1234567890...",
+      "specs": [
+        "MP4 HD & SD",
+        "FİLİGRANSIZ TIKTOK",
+        "KAYITSIZ",
+        "AÇIK İÇERİK"
+      ],
+      "editorial": {
+        "heading": "Facebook sayfaları, Watch ve Reels videolarını çıkarma",
+        "subheading": "facebook.com/reel/..., facebook.com/watch/?v=..., fb.watch/... ve /share/v/... bağlantılarını destekler.",
+        "paragraphs": [
+          "Facebook'ta videolar birçok farklı bağlantı yapısıyla paylaşılır: herkese açık sayfa gönderileri, Facebook Watch bağlantıları, kısa Facebook Reels klipleri ve fb.watch veya /share/v/ gibi paylaşım bağlantıları. VIDNEX Facebook indirici bu adresleri standartlaştırır ve yönlendirmeleri çözerek herkese açık videoyu bulur.",
+          "Gönderi analiz edildiğinde motorumuz, kaynak sunucuda mevcut olduğu sürece hem standart çözünürlük (SD) hem de yüksek çözünürlük (HD) sesli MP4 akışlarını tespit eder. Böylece görüntü kalitesi veya veri tasarrufu arasında seçim yapabilirsiniz.",
+          "İşlem, Facebook hesabınıza giriş yapmadan doğrudan telefon veya bilgisayar tarayıcınız üzerinden gerçekleştirilir."
+        ],
+        "formatsTitle": "Desteklenen Facebook formatları",
+        "formatsList": [
+          "Herkese açık sayfa videoları ve Facebook Watch gönderileri (/watch/?v=).",
+          "Herkese açık Facebook Reels klipleri (/reel/{id}).",
+          "HD veya SD kalite seçimiyle fb.watch/{kod}, /share/v/ ve /share/r/ kısa bağlantıları."
+        ],
+        "limitsTitle": "Erişim kısıtlamaları",
+        "limitsText": "Kapalı Facebook gruplarındaki videolar, yalnızca arkadaşlara açık paylaşımlar, devam eden canlı yayınlar veya giriş gerektiren gönderiler indirilemez."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Facebook video bağlantısını kopyalayın",
+          "description": "Herkese açık Facebook videosunda veya Reels klibinde Paylaş düğmesine dokunun ve Bağlantıyı kopyala'yı seçin.",
+          "codeHint": "FACEBOOK"
+        },
+        {
+          "number": "02",
+          "title": "Bağlantıyı bu sayfaya yapıştırın",
+          "description": "Kopyalanan URL'yi VIDNEX arama kutusuna girin ve İndir'e tıklayın.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "HD veya SD kalitede indirin",
+          "description": "MP4 dosyasını kaydetmek için mevcut seçenekler arasından HD veya SD çözünürlüğü seçin.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Bazı Facebook videolarında neden yalnızca SD seçeneği görünüyor?",
+          "answer": "Bu durum videonun yüklendiği orijinal çözünürlüğe bağlıdır; sunucuda ayrı bir birleşik HD akışı yoksa SD sürüm sunulur."
+        },
+        {
+          "question": "fb.watch ve /share/v/ kısa bağlantıları destekleniyor mu?",
+          "answer": "Evet, sunucumuz kısa paylaşım bağlantısının yönlendirmesini takip ederek herkese açık hedef videoya ulaşır."
+        },
+        {
+          "question": "Kapalı bir Facebook grubundaki videoyu indirebilir miyim?",
+          "answer": "Hayır. Özel gruplardaki veya kısıtlı profillerdeki videolar oturum açmayı gerektirir ve desteklenmez."
+        },
+        {
+          "question": "İndirilen MP4 dosyasında ses var mı?",
+          "answer": "Evet, motorumuz görüntü ve sesi tek bir dosyada birleştiren MP4 akışlarına öncelik verir."
+        }
+      ]
+    }
+  }
+}

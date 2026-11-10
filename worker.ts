@@ -30,7 +30,6 @@ import {
 } from './functions/api/admin/blocklist.ts';
 import { onRequestGet as adminActivityGet } from './functions/api/admin/activity.ts';
 import { onRequest as adminMiddleware } from './functions/_middleware.ts';
-import { applySeoHtmlRewriter } from './functions/_lib/seoRewriter.ts';
 import type { ExecutionContextLike } from './functions/_lib/db.ts';
 
 export interface WorkerEnv extends ExtractEnv {
@@ -141,24 +140,43 @@ async function routeInner(
     );
   }
 
-  // Static assets fallback via Cloudflare Workers Static Assets binding
+  // Static assets via Cloudflare Workers Static Assets binding
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
-    let response = await env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    if (response.status !== 404 || request.method !== 'GET') {
+      return response;
+    }
 
-    // Ensure SPA fallback serves index.html with HTTP 200 on all localized routes (/fr, /fr/:toolSlug, etc.)
-    if (response.status === 404 && request.method === 'GET') {
+    const { parsePathname } = await import('./src/utils/i18nRouting.ts');
+    const parsed = parsePathname(pathname);
+
+    // Known SPA/Admin routes fall back to index.html with 200
+    if (!parsed.isNotFound || parsed.isAdmin) {
       const fallbackUrl = new URL('/index.html', url.origin);
       const fallbackReq = new Request(fallbackUrl.toString(), request);
       const fallbackRes = await env.ASSETS.fetch(fallbackReq);
       if (fallbackRes.ok) {
-        response = new Response(fallbackRes.body, {
+        return new Response(fallbackRes.body, {
           status: 200,
           headers: fallbackRes.headers,
         });
       }
     }
 
-    return applySeoHtmlRewriter(request, response);
+    // Unknown route -> serve /404.html with true HTTP 404 status (no soft 404)
+    const notFoundUrl = new URL('/404.html', url.origin);
+    const notFoundReq = new Request(notFoundUrl.toString(), request);
+    const notFoundRes = await env.ASSETS.fetch(notFoundReq);
+    if (notFoundRes.ok) {
+      const headers = new Headers(notFoundRes.headers);
+      headers.set('X-Robots-Tag', 'noindex, nofollow');
+      return new Response(notFoundRes.body, {
+        status: 404,
+        headers,
+      });
+    }
+
+    return response;
   }
 
   return new Response('Not Found', { status: 404 });

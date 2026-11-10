@@ -1,0 +1,478 @@
+{
+  "locale": "de",
+  "ui": {
+    "nav": {
+      "home": "Startseite",
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "x": "X (Twitter)",
+      "facebook": "Facebook",
+      "morePlatforms": "Mehr",
+      "soonBadge": "Bald",
+      "languageLabel": "Sprache",
+      "switchToDark": "Dunkelmodus aktivieren",
+      "switchToLight": "Hellmodus aktivieren"
+    },
+    "omnibox": {
+      "inputAriaLabel": "Öffentlichen Link von TikTok, Instagram, X oder Facebook einfügen...",
+      "pasteButton": "Einfügen",
+      "pastedFeedback": "Eingefügt!",
+      "clearInputAria": "Link löschen",
+      "downloadButton": "Herunterladen",
+      "extractingButton": "Wird analysiert...",
+      "trySampleLabel": "Beispiel testen:",
+      "errEmptyInput": "Bitte fügen Sie einen gültigen Link ein, bevor Sie die Analyse starten.",
+      "errInvalidUrl": "Dieser Link wird nicht unterstützt. Bitte geben Sie eine öffentliche URL von TikTok, Instagram, X (Twitter) oder Facebook ein.",
+      "errClipboardBlocked": "Zwischenablage blockiert. Nutzen Sie Strg+V zum Einfügen.",
+      "comingSoonNotice": "Diese Plattform wird bald unterstützt. Aktuell: TikTok, Instagram, X und Facebook."
+    },
+    "drawer": {
+      "bypassingWatermark": "QUELLSTREAM WIRD AUFGELÖST",
+      "resolvingStream": "Direkte Mediendatei wird extrahiert…",
+      "extractionInterrupted": "EXTRAKTION UNTERBROCHEN",
+      "retryExtraction": "Erneut versuchen",
+      "dismiss": "Schließen",
+      "clearResult": "Ergebnis schließen",
+      "noWatermarkBadge": "OHNE WASSERZEICHEN",
+      "originalJpgBadge": "ORIGINALBILD",
+      "startingStream": "Download startet…",
+      "saving": "Wird gespeichert…",
+      "downloadHdMp4": "In HD herunterladen (MP4)",
+      "downloadSdMp4": "In SD herunterladen (MP4)",
+      "extractAudioMp3": "Audiospur extrahieren (MP3)",
+      "downloadAllZip": "Alles herunterladen (.ZIP)",
+      "buildingZip": "ZIP-Archiv wird erstellt…",
+      "viewFullSizeDp": "Originalgröße anzeigen",
+      "downloadHdJpg": "HD-Foto herunterladen (JPG)"
+    },
+    "sections": {
+      "bentoCards": [
+        {
+          "id": "nw",
+          "metric": "DIREKTSTREAM",
+          "title": "TikTok-Videos ohne zusätzliches Wasserzeichen"
+        },
+        {
+          "id": "br",
+          "metric": "ORIGINALQUALITÄT",
+          "title": "MP4 HD/SD-Auflösung und Originalton"
+        },
+        {
+          "id": "pr",
+          "metric": "KEINE SPEICHERUNG",
+          "title": "Direkte Verarbeitung ohne Dateiarchivierung"
+        },
+        {
+          "id": "sp",
+          "metric": "ALLE GERÄTE",
+          "title": "Kompatibel mit Android, iOS, PC und Mac"
+        }
+      ],
+      "workflowProtocol": "ANLEITUNG",
+      "howToHeading": "Video in 3 Schritten herunterladen",
+      "stepOf": "SCHRITT",
+      "readyStatus": "BEREIT",
+      "platformsHeading": "Unterstützte Plattformen",
+      "platformsSubheading": "Wählen Sie das passende Tool für das jeweilige soziale Netzwerk, um verfügbare Formate öffentlicher Beiträge abzurufen.",
+      "openToolCta": "Tool öffnen",
+      "knowledgeBase": "HÄUFIGE FRAGEN",
+      "faqHeading": "Häufig gestellte Fragen (FAQ)",
+      "breadcrumbHome": "Startseite"
+    },
+    "footer": {
+      "platformsTitle": "Video-Downloader",
+      "legalTitle": "Rechtliches",
+      "languagesTitle": "Verfügbare Sprachen",
+      "about": "Über uns",
+      "privacy": "Datenschutz",
+      "terms": "Nutzungsbedingungen",
+      "contact": "Kontakt",
+      "dmca": "Urheberrecht / DMCA",
+      "copyrightNotice": "© 2026 VIDNEX — Alle Rechte vorbehalten. VIDNEX steht in keiner Verbindung zu TikTok, Meta oder X Corp."
+    },
+    "banner": {
+      "suggestText": "Diese Website ist auch in Ihrer Sprache verfügbar:",
+      "switchCta": "Zu Deutsch wechseln",
+      "dismissAria": "Schließen"
+    },
+    "notFound": {
+      "title": "Seite nicht gefunden (404) | VIDNEX",
+      "heading": "404 — Seite nicht gefunden",
+      "description": "Die angeforderte URL existiert nicht oder wurde verschoben. Kehren Sie zur Startseite zurück oder wählen Sie eines unserer Tools unten aus.",
+      "backHomeCta": "Zurück zur Startseite",
+      "tryPlatformsLabel": "Verfügbare Downloader"
+    },
+    "errors": {
+      "UNSUPPORTED_URL": "Dieser Link wird nicht unterstützt. Bitte geben Sie eine öffentliche URL von TikTok, Instagram, X (Twitter) oder Facebook ein.",
+      "NOT_FOUND": "Der angeforderte Beitrag wurde nicht gefunden oder auf der Quellplattform gelöscht.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "Dieser Inhalt ist privat, altersbeschränkt oder erfordert eine Anmeldung. VIDNEX unterstützt ausschließlich öffentliche Beiträge.",
+      "BLOCKED_BY_PLATFORM": "Die Quellplattform hat den Zugriff auf diesen Beitrag vorübergehend verweigert. Bitte versuchen Sie es in Kürze erneut.",
+      "TIMEOUT": "Der Quellserver hat nicht rechtzeitig geantwortet. Bitte überprüfen Sie den Link und versuchen Sie es erneut.",
+      "NO_MEDIA": "In diesem Beitrag wurde kein herunterladbares Video oder Bild gefunden (möglicherweise handelt es sich um einen reinen Textbeitrag).",
+      "MAINTENANCE": "Der Dienst befindet sich derzeit in einer kurzen technischen Wartung. Bitte versuchen Sie es in wenigen Minuten erneut.",
+      "PLATFORM_DISABLED": "Der Extractor für diese Plattform ist wegen Wartungsarbeiten vorübergehend deaktiviert.",
+      "BLOCKED": "Ihr Zugriff wurde aus Sicherheitsgründen vorübergehend eingeschränkt.",
+      "RATE_LIMITED": "Sie haben das Limit an Anfragen pro Minute erreicht. Bitte warten Sie einen Moment, bevor Sie es erneut versuchen.",
+      "NETWORK_ERROR": "Verbindung zum Server fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+    }
+  },
+  "home": {
+    "metaTitle": "VIDNEX — Videos von TikTok, Instagram, X & Facebook herunterladen",
+    "metaDescription": "Laden Sie öffentliche Videos von TikTok ohne Wasserzeichen, Instagram Reels, X (Twitter) und Facebook als MP4 oder MP3 kostenlos im Browser herunter.",
+    "h1": "Öffentliche Videos von TikTok, Instagram, X und Facebook herunterladen",
+    "subtitle": "Fügen Sie den Link eines öffentlichen Beitrags ein, um verfügbare Streams zu prüfen und das Video als MP4 oder Audiodatei zu speichern.",
+    "placeholder": "https://www.tiktok.com/@nutzer/video/1234567890...",
+    "specs": [
+      "MP4 HD & SD",
+      "OHNE WASSERZEICHEN",
+      "OHNE ANMELDUNG",
+      "ÖFFENTLICHE MEDIEN"
+    ],
+    "editorial": {
+      "heading": "Ein zentrales Web-Tool zum Speichern öffentlicher Social-Media-Videos",
+      "subheading": "Webanwendung zum Speichern öffentlicher Videos und Clips von TikTok, Instagram, X (Twitter) und Facebook direkt im Browser.",
+      "paragraphs": [
+        "VIDNEX bündelt die Analyse und das Herunterladen öffentlich geteilter Videos der vier großen Netzwerke TikTok, Instagram, X (ehemals Twitter) und Facebook in einer übersichtlichen Weboberfläche. Anstelle separater Apps oder Browser-Erweiterungen für jede Plattform genügt es, die kopierte Beitrags-URL in das Eingabefeld einzufügen. Das System erkennt die Quelle automatisch und ermittelt die verfügbaren Mediendateien.",
+        "Technisch liest der Dienst in Echtzeit die öffentlich zugänglichen Metadaten des jeweiligen Beitrags aus. Sofern das Video ohne Anmeldung abrufbar ist, stellt unser Server die direkten Verteilungs-Streams (in HD 1080p, 720p oder Standardauflösung im MP4-Container) sowie separate Audiospuren bereit. Die Übertragung erfolgt über einen Streaming-Proxy mit korrekten Download-Headern, sodass Ihr Browser die Datei direkt im Download-Ordner speichert.",
+        "Die Anwendung läuft im Browser auf Smartphones und Tablets (Android, iPhone/iPad) ebenso wie auf Desktop-Systemen (Windows, macOS, Linux). Es ist keine Registrierung erforderlich, und es werden keine Kopien der heruntergeladenen Videos auf unseren Servern archiviert."
+      ],
+      "formatsTitle": "Unterstützte Netzwerke und Ausgabeformate",
+      "formatsList": [
+        "TikTok: Öffentliche Videos als MP4 ohne eingeblendetes Wasserzeichen speichern sowie Originalton als MP3/M4A extrahieren.",
+        "Instagram: Unterstützung für öffentliche Instagram Reels, Feed-Videos und mehrteilige Karussell-Beiträge.",
+        "X (Twitter): Video-Extraktion aus öffentlichen Tweets mit Qualitätsauswahl (360p bis 1080p) und GIF-zu-MP4-Ausgabe.",
+        "Facebook: Öffentliche Videos, Facebook Reels und Kurzlinks (fb.watch) in SD- oder HD-Qualität herunterladen."
+      ],
+      "limitsTitle": "Nutzungshinweise und technische Grenzen",
+      "limitsText": "VIDNEX verarbeitet ausschließlich öffentlich zugängliche Inhalte. Videos aus privaten Konten, geschlossenen Gruppen, anmeldepflichtigen Stories oder altersbeschränkten Beiträgen können nicht abgerufen werden. Bitte beachten Sie stets die Urheberrechte der jeweiligen Ersteller."
+    },
+    "howToSteps": [
+      {
+        "number": "01",
+        "title": "Link des öffentlichen Beitrags kopieren",
+        "description": "Öffnen Sie TikTok, Instagram, X oder Facebook, tippen Sie beim gewünschten Video auf Teilen und wählen Sie Link kopieren.",
+        "codeHint": "URL"
+      },
+      {
+        "number": "02",
+        "title": "URL bei VIDNEX einfügen",
+        "description": "Fügen Sie den Link in das obige Eingabefeld ein und klicken Sie auf Herunterladen, um die Analyse zu starten.",
+        "codeHint": "VIDNEX"
+      },
+      {
+        "number": "03",
+        "title": "Qualität wählen und Datei speichern",
+        "description": "Wählen Sie die gewünschte MP4-Auflösung oder die Audiospur aus, um die Datei direkt auf Ihrem Gerät zu sichern.",
+        "codeHint": "MP4 / MP3"
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Ist die Nutzung von VIDNEX kostenlos?",
+        "answer": "Ja, alle Funktionen stehen kostenlos direkt im Webbrowser zur Verfügung – ohne Abonnement und ohne Benutzerkonto."
+      },
+      {
+        "question": "Kann ich Videos von privaten Profilen herunterladen?",
+        "answer": "Nein. VIDNEX umgeht keine Zugangsbeschränkungen und unterstützt ausschließlich öffentlich sichtbare Beiträge, die ohne Login aufrufbar sind."
+      },
+      {
+        "question": "Auf welchen Geräten funktioniert der Downloader?",
+        "answer": "Das Tool funktioniert in aktuellen Browsern (Chrome, Safari, Firefox, Edge) unter Android, iOS/iPadOS sowie unter Windows, macOS und Linux."
+      },
+      {
+        "question": "Bleibt die Originalqualität der Videos erhalten?",
+        "answer": "Ja, wir stellen den unveränderten MP4-Quellstream der jeweiligen Plattform ohne erneute Komprimierung bereit."
+      },
+      {
+        "question": "Werden meine heruntergeladenen Dateien gespeichert?",
+        "answer": "Nein. Die Verarbeitung erfolgt unmittelbar bei der Anfrage; wir legen kein Archiv der abgerufenen Mediendateien an."
+      }
+    ]
+  },
+  "platforms": {
+    "tiktok": {
+      "slug": "tiktok-video-herunterladen",
+      "metaTitle": "TikTok Video herunterladen ohne Wasserzeichen als MP4 | VIDNEX",
+      "metaDescription": "Öffentliche TikTok Videos ohne Wasserzeichen in MP4 HD herunterladen oder Audio als MP3 extrahieren – kostenlos im Browser auf Handy & PC.",
+      "h1": "TikTok Videos ohne Wasserzeichen herunterladen",
+      "subtitle": "Fügen Sie einen öffentlichen TikTok-Link (tiktok.com oder vm.tiktok.com) ein, um das Video als MP4 oder den Ton als MP3 zu speichern.",
+      "shortLabel": "TikTok",
+      "breadcrumbLabel": "TikTok Videos ohne Wasserzeichen herunterladen",
+      "placeholder": "https://www.tiktok.com/@nutzer/video/1234567890...",
+      "specs": [
+        "MP4 HD & SD",
+        "OHNE WASSERZEICHEN",
+        "OHNE ANMELDUNG",
+        "ÖFFENTLICHE MEDIEN"
+      ],
+      "editorial": {
+        "heading": "Öffentliche TikTok-Clips in Originalqualität ohne Wasserzeichen sichern",
+        "subheading": "Unterstützt tiktok.com/@nutzer/video/... sowie Kurzlinks vm.tiktok.com und vt.tiktok.com.",
+        "paragraphs": [
+          "Beim herkömmlichen Speichern innerhalb der TikTok-App wird dem Video ein bewegliches Wasserzeichen mit Logo und Nutzernamen hinzugefügt. Mit dem TikTok-Downloader von VIDNEX greifen Sie direkt auf den sauberen MP4-Videostream zu, sofern der Beitrag öffentlich freigegeben ist.",
+          "Unser System verarbeitet sowohl vollständige Browser-Links als auch verkürzte Mobil-Links (vm.tiktok.com und vt.tiktok.com). Die Weiterleitung wird serverseitig aufgelöst, um die Beitrags-ID zu bestimmen und das Video in seiner ursprünglichen Auflösung zusammen mit der separaten Audiospur bereitzustellen.",
+          "So können Sie eigene veröffentlichte Clips ohne Einblendung sichern oder öffentliche Lehrvideos und Präsentationen für die Offline-Wiedergabe auf Smartphone und Computer speichern."
+        ],
+        "formatsTitle": "Technische Funktionen für TikTok",
+        "formatsList": [
+          "MP4-Video ohne eingeblendetes Wasserzeichen in Originalauflösung (bis zu 1080p HD).",
+          "Separate Extraktion der Original-Audiospur im MP3- / M4A-Format.",
+          "Automatische Auflösung mobiler Kurzlinks von vm.tiktok.com und vt.tiktok.com."
+        ],
+        "limitsTitle": "Einschränkungen",
+        "limitsText": "Es werden ausschließlich öffentliche TikTok-Videos unterstützt. Private Konten, nur für Freunde sichtbare Clips oder gelöschte Beiträge können nicht geladen werden."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "TikTok-Link kopieren",
+          "description": "Tippen Sie in der TikTok-App oder im Browser beim öffentlichen Video auf Teilen und wählen Sie Link kopieren.",
+          "codeHint": "TIKTOK"
+        },
+        {
+          "number": "02",
+          "title": "Link oben einfügen",
+          "description": "Fügen Sie die kopierte URL in das Eingabefeld auf dieser Seite ein und klicken Sie auf Herunterladen.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "Als MP4 oder MP3 speichern",
+          "description": "Wählen Sie den MP4-Download ohne Wasserzeichen oder laden Sie nur die Audiodatei herunter.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Wie lade ich ein TikTok-Video ohne Wasserzeichen herunter?",
+          "answer": "Nach dem Einfügen eines öffentlichen Links stellt VIDNEX direkt die ursprüngliche MP4-Videodatei bereit, die kein überlagertes Wasserzeichen enthält."
+        },
+        {
+          "question": "Funktionieren auch kurze Links wie vm.tiktok.com?",
+          "answer": "Ja, die von der mobilen TikTok-App erzeugten Kurzlinks werden automatisch erkannt und aufgelöst."
+        },
+        {
+          "question": "Kann ich nur den Ton eines TikTok-Videos speichern?",
+          "answer": "Ja, sofern der Beitrag eine separate Audiospur bereitstellt, wird eine eigene Schaltfläche für den Audio-Download angezeigt."
+        },
+        {
+          "question": "Wie speichere ich das Video auf einem iPhone?",
+          "answer": "Tippen Sie in Safari (ab iOS 13) auf MP4 herunterladen. Die Datei landet in der Dateien-App und kann von dort über Teilen > Video sichern in den Fotos gespeichert werden."
+        }
+      ]
+    },
+    "instagram": {
+      "slug": "instagram-reels-herunterladen",
+      "metaTitle": "Instagram Reels & Videos herunterladen als MP4 | VIDNEX",
+      "metaDescription": "Laden Sie öffentliche Instagram Reels, Videos und Karussell-Beiträge als MP4 und JPG kostenlos im Browser herunter – ohne Instagram-Login.",
+      "h1": "Öffentliche Instagram Reels und Videos herunterladen",
+      "subtitle": "Fügen Sie den Link eines öffentlichen Instagram Reels oder Beitrags ein, um das MP4-Video oder einzelne Karussell-Medien zu speichern.",
+      "shortLabel": "Instagram",
+      "breadcrumbLabel": "Öffentliche Instagram Reels und Videos herunterladen",
+      "placeholder": "https://www.instagram.com/reel/C1234567890/...",
+      "specs": [
+        "MP4 HD & SD",
+        "OHNE WASSERZEICHEN",
+        "OHNE ANMELDUNG",
+        "ÖFFENTLICHE MEDIEN"
+      ],
+      "editorial": {
+        "heading": "Instagram Reels und Karussell-Medien direkt im Browser speichern",
+        "subheading": "Unterstützt instagram.com/reel/..., instagram.com/p/... und instagram.com/tv/...",
+        "paragraphs": [
+          "Instagram bietet nicht für jeden öffentlichen Beitrag eine direkte Möglichkeit, Videos oder Reels lokal für die Offline-Ansicht abzuspeichern. Das Instagram-Tool von VIDNEX analysiert öffentliche Beitrags-URLs und stellt den direkten MP4-Videostream inklusive Originalton bereit.",
+          "Unterstützt werden öffentliche Reels (/reel/), klassische Feed-Beiträge (/p/) sowie längere Videos (/tv/). Handelt es sich beim Link um einen Karussell-Beitrag mit mehreren Bildern und Videos in einem Post, listet die Oberfläche jedes enthaltene Medium einzeln mit Vorschau auf.",
+          "Der gesamte Vorgang läuft ohne Anmeldung bei Instagram direkt über Ihren mobilen oder stationären Webbrowser."
+        ],
+        "formatsTitle": "Unterstützte Instagram-Formate",
+        "formatsList": [
+          "Öffentliche Instagram Reels als MP4-Datei in Originalauflösung.",
+          "Einzelne Feed-Videos und längere Video-Beiträge (/tv/).",
+          "Öffentliche Karussell-Posts mit Einzel-Download für jedes enthaltene Video oder Bild."
+        ],
+        "limitsTitle": "Datenschutz und Grenzen",
+        "limitsText": "Es können nur öffentliche Beiträge verarbeitet werden. Private Profile, anmeldepflichtige Stories und altersbeschränkte Posts werden nicht unterstützt."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Link zum Reel oder Beitrag kopieren",
+          "description": "Tippen Sie in Instagram beim öffentlichen Beitrag auf das Teilen-Symbol oder das Drei-Punkte-Menü und wählen Sie Link kopieren.",
+          "codeHint": "INSTAGRAM"
+        },
+        {
+          "number": "02",
+          "title": "URL in das Feld einfügen",
+          "description": "Fügen Sie den kopierten Link oben ein und starten Sie die Analyse über die Schaltfläche Herunterladen.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "MP4-Video oder Karussell-Element laden",
+          "description": "Klicken Sie auf MP4 herunterladen (oder wählen Sie bei einem Karussell das gewünschte Element aus).",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Kann ich mehrere Videos aus einem Instagram-Karussell herunterladen?",
+          "answer": "Ja, bei öffentlichen Karussell-Beiträgen zeigt VIDNEX alle enthaltenen Fotos und Videos einzeln zum Herunterladen an."
+        },
+        {
+          "question": "Warum lassen sich manche Reels nicht abrufen?",
+          "answer": "Wenn ein Konto privat ist oder Meta eine Alters- bzw. Anmeldesperre für den Beitrag vorgibt, ist kein öffentlicher Zugriff möglich."
+        },
+        {
+          "question": "Wird den heruntergeladenen Reels ein Wasserzeichen hinzugefügt?",
+          "answer": "Nein, Sie erhalten die unveränderte MP4-Datei direkt vom Verteilungsserver."
+        },
+        {
+          "question": "Muss ich mich mit meinem Instagram-Konto anmelden?",
+          "answer": "Nein. Wir fragen niemals nach Ihren Instagram-Zugangsdaten."
+        }
+      ]
+    },
+    "x": {
+      "slug": "x-twitter-video-herunterladen",
+      "metaTitle": "X (Twitter) Videos herunterladen als MP4 in HD | VIDNEX",
+      "metaDescription": "Laden Sie Videos und GIFs aus öffentlichen Tweets von X (Twitter) als MP4 mit Qualitätsauswahl (1080p, 720p) kostenlos im Browser herunter.",
+      "h1": "Videos von X (Twitter) als MP4 herunterladen",
+      "subtitle": "Fügen Sie den Link eines öffentlichen Tweets (x.com oder twitter.com) ein, um das Video in der gewünschten Auflösung zu speichern.",
+      "shortLabel": "X (Twitter)",
+      "breadcrumbLabel": "Videos von X (Twitter) als MP4 herunterladen",
+      "placeholder": "https://x.com/nutzer/status/1234567890123456789",
+      "specs": [
+        "MP4 HD & SD",
+        "OHNE WASSERZEICHEN",
+        "OHNE ANMELDUNG",
+        "ÖFFENTLICHE MEDIEN"
+      ],
+      "editorial": {
+        "heading": "Videos und GIFs aus öffentlichen X-Beiträgen speichern",
+        "subheading": "Unterstützt x.com/.../status/..., twitter.com/.../status/... und Kurzlinks t.co.",
+        "paragraphs": [
+          "Videos auf X (früher Twitter) werden über segmentierte Streaming-Protokolle ausgeliefert, weshalb ein einfacher Rechtsklick zum Speichern im Browser nicht funktioniert. Der X-Downloader von VIDNEX fragt die öffentlichen Einbettungsdaten des Tweets ab und ermittelt die direkten MP4-Dateien.",
+          "Da X für ein hochgeladenes Video meist mehrere Qualitätsstufen (z. B. 360p, 720p und 1080p) bereithält, zeigt Ihnen unser Analyse-Tool alle verfügbaren Auflösungen übersichtlich sortiert an. Sie entscheiden selbst, ob Sie die höchste HD-Qualität oder eine kleinere Datei bevorzugen.",
+          "Darüber hinaus werden Tweets mit mehreren angehängten Videos sowie animierte GIFs (die auf X als MP4-Loops vorliegen) vollständig unterstützt."
+        ],
+        "formatsTitle": "Funktionen für X / Twitter",
+        "formatsList": [
+          "Auswahl der MP4-Auflösung (SD, 720p, 1080p HD je nach Ausgangstweet).",
+          "Volle Unterstützung für x.com, twitter.com und verkürzte t.co-Links.",
+          "Einzel-Download bei Tweets mit mehreren Videos sowie Speichern von GIFs als MP4."
+        ],
+        "limitsTitle": "Nicht unterstützte Inhalte",
+        "limitsText": "Geschützte Konten, als sensibel markierte Beiträge mit Login-Pflicht zur Altersprüfung sowie Audio-Spaces können nicht verarbeitet werden."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Tweet-Link kopieren",
+          "description": "Klicken Sie unter dem öffentlichen Beitrag auf X auf das Teilen-Symbol und wählen Sie Link kopieren.",
+          "codeHint": "X (TWITTER)"
+        },
+        {
+          "number": "02",
+          "title": "Link bei VIDNEX einfügen",
+          "description": "Geben Sie die x.com- oder twitter.com-URL in das Suchfeld oben ein und klicken Sie auf Herunterladen.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "MP4-Qualität auswählen",
+          "description": "Wählen Sie aus den angezeigten Auflösungen die gewünschte MP4-Variante zum Speichern aus.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Funktionieren sowohl x.com als auch twitter.com Links?",
+          "answer": "Ja, beide Domains sowie offizielle t.co-Kurzlinks werden automatisch erkannt."
+        },
+        {
+          "question": "Wie wähle ich die beste Videoqualität bei Twitter aus?",
+          "answer": "Die gefundenen MP4-Streams werden absteigend nach Auflösung sortiert; der erste Eintrag bietet die höchste verfügbare Qualität."
+        },
+        {
+          "question": "Warum werden Twitter-GIFs als MP4-Datei heruntergeladen?",
+          "answer": "Die Plattform X wandelt hochgeladene GIF-Animationen intern in kompakte MP4-Videos um."
+        },
+        {
+          "question": "Was passiert, wenn ein Tweet mehrere Videos enthält?",
+          "answer": "Enthält ein öffentlicher Tweet bis zu vier Videos, werden alle Clips einzeln mit eigenem Download-Button dargestellt."
+        }
+      ]
+    },
+    "facebook": {
+      "slug": "facebook-video-herunterladen",
+      "metaTitle": "Facebook Videos & Reels herunterladen als MP4 HD / SD | VIDNEX",
+      "metaDescription": "Laden Sie öffentliche Facebook-Videos, Facebook Reels und fb.watch-Links als MP4 in HD- oder SD-Qualität kostenlos im Browser herunter.",
+      "h1": "Öffentliche Facebook-Videos und Reels herunterladen",
+      "subtitle": "Fügen Sie einen öffentlichen Facebook-Videolink oder fb.watch-Link ein, um die MP4-Datei in HD oder SD zu speichern.",
+      "shortLabel": "Facebook",
+      "breadcrumbLabel": "Öffentliche Facebook-Videos und Reels herunterladen",
+      "placeholder": "https://www.facebook.com/watch/?v=1234567890...",
+      "specs": [
+        "MP4 HD & SD",
+        "OHNE WASSERZEICHEN",
+        "OHNE ANMELDUNG",
+        "ÖFFENTLICHE MEDIEN"
+      ],
+      "editorial": {
+        "heading": "Öffentliche Videos von Facebook-Seiten, Watch und Reels extrahieren",
+        "subheading": "Unterstützt facebook.com/reel/..., facebook.com/watch/?v=..., fb.watch/... und /share/v/...",
+        "paragraphs": [
+          "Auf Facebook existieren zahlreiche Link-Formate für Videos: Beiträge öffentlicher Seiten, Facebook-Watch-Links, kurze Facebook Reels sowie Kurz- und Teilen-Links wie fb.watch oder /share/v/. Der Facebook-Downloader von VIDNEX vereinheitlicht diese Adressen und löst Weiterleitungen sicher auf.",
+          "Bei der Analyse eines öffentlichen Videos sucht das System nach direkten MP4-Streams mit integriertem Ton sowohl in Standardauflösung (SD) als auch in hoher Auflösung (HD), sofern diese auf dem Quellserver vorliegen. So können Sie zwischen maximaler Bildschärfe und geringerem Datenverbrauch wählen.",
+          "Die Nutzung erfolgt direkt im Browser auf Smartphone oder PC, ohne dass ein Facebook-Konto verknüpft werden muss."
+        ],
+        "formatsTitle": "Unterstützte Facebook-Formate",
+        "formatsList": [
+          "Öffentliche Seiten-Videos und Beiträge aus Facebook Watch (/watch/?v=).",
+          "Öffentliche Facebook Reels (/reel/{id}).",
+          "Kurzlinks fb.watch/{code}, /share/v/ und /share/r/ mit Auswahl zwischen HD und SD."
+        ],
+        "limitsTitle": "Zugriffsbeschränkungen",
+        "limitsText": "Videos aus geschlossenen Facebook-Gruppen, nur für Freunde sichtbare Beiträge, laufende Livestreams oder anmeldepflichtige Seiten können nicht heruntergeladen werden."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Facebook-Videolink kopieren",
+          "description": "Tippen Sie beim öffentlichen Facebook-Video oder Reel auf Teilen und wählen Sie Link kopieren.",
+          "codeHint": "FACEBOOK"
+        },
+        {
+          "number": "02",
+          "title": "Link auf dieser Seite einfügen",
+          "description": "Fügen Sie die kopierte Adresse in das Eingabefeld von VIDNEX ein und klicken Sie auf Herunterladen.",
+          "codeHint": "VIDNEX"
+        },
+        {
+          "number": "03",
+          "title": "HD- oder SD-Qualität speichern",
+          "description": "Wählen Sie je nach Verfügbarkeit die HD- oder SD-Version aus, um die MP4-Datei herunterzuladen.",
+          "codeHint": "MP4"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Warum wird bei manchen Facebook-Videos nur SD angezeigt?",
+          "answer": "Das hängt von der Auflösung des hochgeladenen Originalvideos ab. Wenn kein öffentlicher progressiver HD-Stream vorliegt, wird die SD-Version bereitgestellt."
+        },
+        {
+          "question": "Werden fb.watch- und /share/v/-Links unterstützt?",
+          "answer": "Ja, unser Server folgt der Weiterleitung des Kurzlinks automatisch bis zum öffentlichen Zielvideo."
+        },
+        {
+          "question": "Kann ich Videos aus privaten Facebook-Gruppen herunterladen?",
+          "answer": "Nein. Inhalte in geschlossenen Gruppen erfordern eine Anmeldung und sind für öffentliche Web-Tools nicht zugänglich."
+        },
+        {
+          "question": "Enthält die heruntergeladene MP4-Datei Ton?",
+          "answer": "Ja, unser Extractor bevorzugt kombinierte MP4-Streams, die Bild und Ton in einer einzigen Datei enthalten."
+        }
+      ]
+    }
+  }
+}

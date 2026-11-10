@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlatformId, isPlatformSupported } from '../utils/urlDetector';
-import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons';
+import { PlatformId, isPlatformSupported } from '../utils/urlDetector.ts';
+import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 import {
-  LanguageCode,
-  SUPPORTED_LANGUAGES,
-  UI_TRANSLATIONS,
-} from '../i18n/translations';
-import { buildLocalizedPath } from '../utils/i18nRouting';
-import { ToolSlug } from '../data/seoToolsConfig';
+  getLocalizedPagePath,
+  LOCALES_CONFIG,
+  type PageKey,
+  type PlatformPageKey,
+  SUPPORTED_LOCALES,
+  type SupportedLocale,
+} from '../i18n/config.ts';
+import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 
 export interface ToolTab {
   id: PlatformId;
@@ -17,36 +19,28 @@ export interface ToolTab {
 }
 
 export const PLATFORM_TABS: ToolTab[] = [
-  { id: 'instagram', label: 'Instagram', isPrimary: true, supported: true },
   { id: 'tiktok', label: 'TikTok', isPrimary: true, supported: true },
+  { id: 'instagram', label: 'Instagram', isPrimary: true, supported: true },
   { id: 'x', label: 'X (Twitter)', isPrimary: true, supported: true },
   { id: 'facebook', label: 'Facebook', isPrimary: true, supported: true },
   { id: 'youtube', label: 'YouTube', isPrimary: false, supported: false },
   { id: 'snapchat', label: 'Snapchat', isPrimary: false, supported: false },
 ];
 
-const SOON_BADGE_BY_LANG: Record<LanguageCode, string> = {
-  en: 'Soon',
-  fr: 'Bientôt',
-  es: 'Pronto',
-  pt: 'Em breve',
-  ar: 'قريباً',
-};
-
 interface HeaderProps {
+  activePageKey: PageKey | 'not_found';
   activePlatform: PlatformId;
-  activeToolSlug?: ToolSlug;
-  onSelectPlatform: (platform: PlatformId) => void;
+  onNavigatePage: (pageKey: PageKey) => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
-  language: LanguageCode;
-  onSelectLanguage: (lang: LanguageCode) => void;
+  language: SupportedLocale;
+  onSelectLanguage: (lang: SupportedLocale) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  activePageKey,
   activePlatform,
-  activeToolSlug,
-  onSelectPlatform,
+  onNavigatePage,
   theme,
   onToggleTheme,
   language,
@@ -57,17 +51,15 @@ export const Header: React.FC<HeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
-  const t = UI_TRANSLATIONS[language].header;
-  const soonBadge = SOON_BADGE_BY_LANG[language] || 'Soon';
-  const currentLangOption =
-    SUPPORTED_LANGUAGES.find((l) => l.code === language) ||
-    SUPPORTED_LANGUAGES[0];
+  const bundle = getLocaleBundleSync(language);
+  const navStrings = bundle.ui.nav;
+  const currentLangMeta = LOCALES_CONFIG[language] || LOCALES_CONFIG.fr;
 
   const primaryTabs = PLATFORM_TABS.filter((tab) => tab.isPrimary);
   const secondaryTabs = PLATFORM_TABS.filter((tab) => !tab.isPrimary);
-  const activeSecondary = secondaryTabs.find(
-    (tab) => tab.id === activePlatform
-  );
+
+  const pageForLangSwitch: PageKey =
+    activePageKey === 'not_found' ? 'home' : activePageKey;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,16 +80,18 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const homeHref = getLocalizedPagePath(language, 'home');
+
   return (
     <header className="sticky top-0 z-40 w-full bg-[#fffaf5]/85 dark:bg-[#140e0a]/85 backdrop-blur-xl border-b border-orange-200/60 dark:border-orange-900/50 shadow-[0_4px_24px_rgba(234,88,12,0.06)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Left: VIDNEX Brand Wordmark */}
+        {/* Brand Wordmark linking to localized Home */}
         <a
-          href={buildLocalizedPath(language)}
+          href={homeHref}
           dir="ltr"
           onClick={(e) => {
             e.preventDefault();
-            onSelectPlatform('instagram');
+            onNavigatePage('home');
           }}
           className="flex items-center gap-2.5 shrink-0 group focus:outline-none"
         >
@@ -109,114 +103,96 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </a>
 
-        {/* Center: Warm Segmented Platform Bar */}
+        {/* Center: Segmented Platform Navigation with real <a href> links */}
         <nav
           aria-label="Platform Navigation"
           className="hidden sm:flex items-center gap-1 p-1 bg-orange-100/50 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner"
         >
           {primaryTabs.map((tab) => {
-            const isActive = activePlatform === tab.id;
+            const pKey = tab.id as PlatformPageKey;
+            const isActive =
+              activePageKey === pKey ||
+              (activePageKey === 'home' && activePlatform === tab.id);
             const supported = isPlatformSupported(tab.id);
+            const href = getLocalizedPagePath(language, pKey);
+
+            if (!supported) {
+              return (
+                <span
+                  key={tab.id}
+                  title={`${tab.label} — ${navStrings.soonBadge}`}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50"
+                >
+                  <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-orange-200/70 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
+                    {navStrings.soonBadge}
+                  </span>
+                </span>
+              );
+            }
+
             return (
-              <button
+              <a
                 key={tab.id}
-                type="button"
-                disabled={!supported}
-                onClick={() => {
-                  if (supported) onSelectPlatform(tab.id);
+                href={href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigatePage(pKey);
                 }}
-                title={!supported ? `${tab.label} — ${soonBadge}` : tab.label}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  !supported
-                    ? 'opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50'
-                    : isActive
+                  isActive
                     ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
                     : 'text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
                 }`}
               >
                 <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
-                {!supported && (
-                  <span className="ml-0.5 px-1.5 py-0.5 rounded bg-orange-200/70 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
-                    {soonBadge}
-                  </span>
-                )}
-              </button>
+              </a>
             );
           })}
 
-          {/* Subtle More ▾ Menu */}
+          {/* Subtle More Menu for upcoming platforms */}
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setMoreMenuOpen((prev) => !prev)}
               aria-expanded={moreMenuOpen}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                activeSecondary
-                  ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
-                  : 'text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
-              }`}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50"
             >
-              {activeSecondary ? (
-                <>
-                  <PlatformIcon
-                    platform={activeSecondary.id}
-                    className="w-3.5 h-3.5"
-                  />
-                  <span>{activeSecondary.label}</span>
-                </>
-              ) : (
-                <span>{t.morePlatforms}</span>
-              )}
+              <span>{navStrings.morePlatforms}</span>
               <span className="text-[10px] leading-none opacity-75">▾</span>
             </button>
 
             {moreMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
-                {secondaryTabs.map((tab) => {
-                  const supported = isPlatformSupported(tab.id);
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      disabled={!supported}
-                      onClick={() => {
-                        if (supported) {
-                          onSelectPlatform(tab.id);
-                          setMoreMenuOpen(false);
-                        }
-                      }}
-                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
-                        !supported
-                          ? 'opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50'
-                          : 'text-[#6c4e40] dark:text-orange-200/80 hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600 dark:hover:text-orange-400'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
-                        <span>{tab.label}</span>
-                      </span>
-                      {!supported && (
-                        <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
-                          {soonBadge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-48 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
+                {secondaryTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50"
+                  >
+                    <span className="flex items-center gap-2">
+                      <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
+                      {navStrings.soonBadge}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </nav>
 
-        {/* Right: Warm Language Selector + Theme Icon Button */}
+        {/* Right: 10-Language Selector with real <a href> links + Theme Toggle */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="relative" ref={langDropdownRef}>
             <button
               type="button"
               onClick={() => setLangMenuOpen((prev) => !prev)}
               aria-expanded={langMenuOpen}
-              aria-label={t.languageLabel}
+              aria-label={navStrings.languageLabel}
               className="h-9 px-3 rounded-xl flex items-center gap-1.5 bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors"
             >
               <svg
@@ -230,48 +206,63 @@ export const Header: React.FC<HeaderProps> = ({
                 <line x1="2" y1="12" x2="22" y2="12" />
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
               </svg>
-              <span>{currentLangOption.shortLabel}</span>
+              <span>{currentLangMeta.shortLabel}</span>
               <span className="text-orange-600/70 dark:text-amber-400/70 text-[10px]">
                 ▾
               </span>
             </button>
 
-            {langMenuOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
-                {SUPPORTED_LANGUAGES.map((langOpt) => {
-                  const isSelected = langOpt.code === language;
-                  const targetHref = buildLocalizedPath(langOpt.code, activeToolSlug);
-                  return (
-                    <a
-                      key={langOpt.code}
-                      href={targetHref}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onSelectLanguage(langOpt.code);
-                        setLangMenuOpen(false);
-                      }}
-                      className={`w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white font-semibold shadow-sm'
-                          : 'text-[#1f130b] dark:text-[#fffaf5] hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600'
-                      }`}
+            <div
+              className={
+                langMenuOpen
+                  ? 'absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-52 max-h-80 overflow-y-auto bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50'
+                  : 'sr-only'
+              }
+            >
+              {SUPPORTED_LOCALES.map((code) => {
+                const langOpt = LOCALES_CONFIG[code];
+                const isSelected = langOpt.code === language;
+                const targetHref = getLocalizedPagePath(
+                  langOpt.code,
+                  pageForLangSwitch
+                );
+                return (
+                  <a
+                    key={langOpt.code}
+                    href={targetHref}
+                    lang={langOpt.code}
+                    dir={langOpt.dir}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onSelectLanguage(langOpt.code);
+                      setLangMenuOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white font-semibold shadow-sm'
+                        : 'text-[#1f130b] dark:text-[#fffaf5] hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600'
+                    }`}
+                  >
+                    <span>{langOpt.nativeName}</span>
+                    <span
+                      dir="ltr"
+                      className="font-mono text-[10px] opacity-75"
                     >
-                      <span>{langOpt.nativeName}</span>
-                      <span className="font-mono text-[10px] opacity-75">
-                        {langOpt.shortLabel}
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-            )}
+                      {langOpt.shortLabel}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
           </div>
 
           <button
             type="button"
             onClick={onToggleTheme}
             aria-label={
-              theme === 'light' ? t.switchThemeDark : t.switchThemeLight
+              theme === 'light'
+                ? navStrings.switchToDark
+                : navStrings.switchToLight
             }
             className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 text-orange-600 dark:text-amber-400 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors"
           >
@@ -308,22 +299,25 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Compact Bar */}
+      {/* Mobile Compact Platform Links Bar */}
       <div className="flex sm:hidden overflow-x-auto px-4 pb-2.5 gap-1.5 no-scrollbar">
-        {PLATFORM_TABS.map((tab) => {
-          const isActive = activePlatform === tab.id;
+        {primaryTabs.map((tab) => {
+          const pKey = tab.id as PlatformPageKey;
+          const isActive = activePageKey === pKey;
           const supported = isPlatformSupported(tab.id);
+          const href = getLocalizedPagePath(language, pKey);
+
           return (
-            <button
+            <a
               key={tab.id}
-              type="button"
-              disabled={!supported}
-              onClick={() => {
-                if (supported) onSelectPlatform(tab.id);
+              href={href}
+              onClick={(e) => {
+                e.preventDefault();
+                if (supported) onNavigatePage(pKey);
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
                 !supported
-                  ? 'opacity-50 cursor-not-allowed bg-white/60 dark:bg-[#231710]/60 text-[#6c4e40] dark:text-orange-200/50 border border-orange-200/50 dark:border-orange-900/40'
+                  ? 'opacity-50 pointer-events-none bg-white/60 dark:bg-[#231710]/60 text-[#6c4e40] dark:text-orange-200/50 border border-orange-200/50 dark:border-orange-900/40'
                   : isActive
                   ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
                   : 'bg-white/90 dark:bg-[#231710] text-[#6c4e40] dark:text-orange-200/75 border border-orange-200/80 dark:border-orange-900/50'
@@ -331,12 +325,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <PlatformIcon platform={tab.id} className="w-3 h-3" />
               <span>{tab.label}</span>
-              {!supported && (
-                <span className="px-1 py-0.5 rounded bg-orange-100 dark:bg-orange-950 text-[9px] font-mono uppercase text-orange-800 dark:text-amber-400">
-                  {soonBadge}
-                </span>
-              )}
-            </button>
+            </a>
           );
         })}
       </div>

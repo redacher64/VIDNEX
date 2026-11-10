@@ -1,0 +1,101 @@
+@namespace "http://www.sitemaps.org/schemas/sitemap/0.9";
+@namespace xhtml "http://www.w3.org/1999/xhtml";
+
+:root {
+  background-color: #faf8f5;
+  color: #1c1917;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+}
+
+urlset {
+  display: block;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+  box-sizing: border-box;
+}
+
+urlset::before {
+  content: "VIDNEX — XML Sitemap • 65 Public URLs • 10 Languages + x-default (Google & Bing hreflang)";
+  display: block;
+  background: #140e0a;
+  color: #faf8f5;
+  padding: 18px 22px;
+  border-radius: 12px;
+  border-bottom: 3px solid #ea580c;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 18px;
+}
+
+url {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  background: #ffffff;
+  border: 1px solid #e7e2da;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+
+loc {
+  display: block;
+  flex: 1 1 380px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c2410c;
+  word-break: break-all;
+}
+
+lastmod,
+changefreq,
+priority {
+  display: inline-flex;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f5f2eb;
+  color: #44403c;
+  border: 1px solid #e7e2da;
+}
+
+lastmod::before {
+  content: "lastmod: ";
+  color: #78716c;
+  margin-right: 4px;
+}
+
+changefreq::before {
+  content: "freq: ";
+  color: #78716c;
+  margin-right: 4px;
+}
+
+priority::before {
+  content: "prio: ";
+  color: #78716c;
+  margin-right: 4px;
+}
+
+xhtml|link {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
+xhtml|link::before {
+  content: attr(hreflang);
+}

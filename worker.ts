@@ -144,6 +144,22 @@ async function routeInner(
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     const response = await env.ASSETS.fetch(request);
     if (response.status !== 404 || request.method !== 'GET') {
+      if (pathname === '/sitemap.xml') {
+        const headers = new Headers(response.headers);
+        headers.set('Content-Type', 'application/xml; charset=utf-8');
+        return new Response(response.body, {
+          status: response.status,
+          headers,
+        });
+      }
+      if (pathname === '/sitemap.css') {
+        const headers = new Headers(response.headers);
+        headers.set('Content-Type', 'text/css; charset=utf-8');
+        return new Response(response.body, {
+          status: response.status,
+          headers,
+        });
+      }
       return response;
     }
 

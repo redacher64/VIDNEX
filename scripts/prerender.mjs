@@ -316,6 +316,8 @@ function generateSitemapXml(SITE_URL, getAllPublicRoutes, buildHreflangCluster) 
         '  <url>',
         `    <loc>${escapeHtml(loc)}</loc>`,
         `    <lastmod>${lastmod}</lastmod>`,
+        `    <changefreq>${r.changefreq}</changefreq>`,
+        `    <priority>${r.priority}</priority>`,
         ...(xhtmlLinks ? [xhtmlLinks] : []),
         '  </url>',
       ].join('\n')
@@ -324,6 +326,7 @@ function generateSitemapXml(SITE_URL, getAllPublicRoutes, buildHreflangCluster) 
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
+    '<?xml-stylesheet type="text/css" href="/sitemap.css"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...urlBlocks,
     '</urlset>',
@@ -339,6 +342,7 @@ async function main() {
   }
 
   const vite = await createServer({
+    cacheDir: 'node_modules/.vite-prerender',
     server: { middlewareMode: true },
     appType: 'custom',
     logLevel: 'error',
@@ -419,7 +423,7 @@ async function main() {
     fs.mkdirSync(path.dirname(adminOutPath), { recursive: true });
     fs.writeFileSync(adminOutPath, adminHtml, 'utf8');
 
-    // 6. Generate sitemap.xml in public/ and dist/
+    // 6. Generate sitemap.xml in public/ and dist/ (and ensure sitemap.css is in dist/)
     const sitemapXml = generateSitemapXml(
       SITE_URL,
       getAllPublicRoutes,
@@ -427,6 +431,10 @@ async function main() {
     );
     fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemapXml, 'utf8');
     fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemapXml, 'utf8');
+    const cssPath = path.join(PUBLIC_DIR, 'sitemap.css');
+    if (fs.existsSync(cssPath)) {
+      fs.copyFileSync(cssPath, path.join(DIST_DIR, 'sitemap.css'));
+    }
 
     console.log(
       `✓ Pre-rendered ${routes.length} public pages + /admin shell + sitemap.xml.`

@@ -291,7 +291,7 @@ export function App({ initialPath }: AppProps = {}) {
         <SeoSchemaInjector pageKey="admin" language="fr" />
         <Suspense
           fallback={
-            <div className="min-h-screen flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
+            <div className="min-h-[100dvh] flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
               Chargement du panneau d’administration…
             </div>
           }
@@ -313,7 +313,7 @@ export function App({ initialPath }: AppProps = {}) {
   return (
     <div
       dir={currentLangMeta.dir}
-      className="relative min-h-screen flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden"
+      className="relative min-h-[100dvh] flex flex-col bg-[#fffaf5] dark:bg-[#140e0a] text-[#1f130b] dark:text-[#fffaf5] transition-colors duration-150 overflow-x-hidden safe-area-root"
     >
       {/* Ambient Orange Depth Glows */}
       <div className="ambient-orange-glow absolute -top-24 left-1/2 -translate-x-1/2 w-[1040px] h-[520px] bg-gradient-to-b from-orange-500/20 via-amber-400/15 to-transparent rounded-full blur-3xl pointer-events-none z-0" />

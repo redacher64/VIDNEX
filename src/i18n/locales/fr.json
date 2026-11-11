@@ -14,22 +14,29 @@
       "switchToLight": "Activer le mode clair"
     },
     "omnibox": {
-      "inputAriaLabel": "URL de la vidéo ou publication publique",
+      "inputAriaLabel": "Lien de la vidéo ou publication publique",
       "pasteButton": "Coller",
       "pastedFeedback": "Collé !",
       "clearInputAria": "Effacer le lien saisi",
       "downloadButton": "Télécharger",
-      "extractingButton": "Analyse en cours…",
+      "extractingButton": "Préparation…",
       "trySampleLabel": "Tester un exemple :",
       "errEmptyInput": "Veuillez coller un lien public TikTok, Instagram, X (Twitter) ou Facebook.",
-      "errInvalidUrl": "Lien non reconnu. Vérifiez qu'il s'agit d'une URL publique TikTok, Instagram, X ou Facebook.",
-      "errClipboardBlocked": "Accès au presse-papiers refusé par le navigateur. Utilisez Ctrl+V pour coller.",
-      "comingSoonNotice": "Cette plateforme sera prochainement prise en charge. Actuellement : TikTok, Instagram, X et Facebook."
+      "errInvalidUrl": "Lien non reconnu. Vérifiez qu'il s'agit d'un lien public TikTok, Instagram, X ou Facebook.",
+      "errClipboardBlocked": "Accès au presse-papiers refusé par le navigateur. Maintenez le champ appuyé et choisissez Coller.",
+      "comingSoonNotice": "Cette plateforme sera prochainement prise en charge. Actuellement : TikTok, Instagram, X et Facebook.",
+      "samples": {
+        "igReel": "Reel Instagram",
+        "tiktokVid": "Vidéo TikTok",
+        "xVid": "Vidéo X (Twitter)",
+        "fbVid": "Vidéo Facebook",
+        "igDp": "Photo de profil Instagram"
+      }
     },
     "drawer": {
-      "bypassingWatermark": "RÉSOLUTION DU FLUX SOURCE",
-      "resolvingStream": "Extraction du fichier média direct en cours…",
-      "extractionInterrupted": "EXTRACTION INTERROMPUE",
+      "bypassingWatermark": "PRÉPARATION DU FICHIER",
+      "resolvingStream": "Récupération de votre vidéo en qualité d'origine…",
+      "extractionInterrupted": "TÉLÉCHARGEMENT IMPOSSIBLE",
       "retryExtraction": "Réessayer",
       "dismiss": "Fermer",
       "clearResult": "Fermer le résultat",
@@ -39,41 +46,42 @@
       "saving": "Enregistrement…",
       "downloadHdMp4": "Télécharger en HD (MP4)",
       "downloadSdMp4": "Télécharger en SD (MP4)",
-      "extractAudioMp3": "Extraire la piste audio (MP3)",
+      "extractAudioMp3": "Télécharger l'audio (MP3)",
       "downloadAllZip": "Tout télécharger (.ZIP)",
       "buildingZip": "Création de l'archive ZIP…",
       "viewFullSizeDp": "Ouvrir en grand",
-      "downloadHdJpg": "Télécharger la photo de profil"
+      "downloadHdJpg": "Télécharger la photo de profil",
+      "iosFilesHint": "Sur iPhone et iPad, retrouvez le fichier téléchargé dans l'application Fichiers (dossier Téléchargements)."
     },
     "sections": {
       "bentoCards": [
         {
           "id": "nw",
-          "metric": "FLUX DIRECT",
-          "title": "Vidéos TikTok sans filigrane ajouté"
+          "metric": "SANS LOGO",
+          "title": "Vidéos TikTok nettes sans filigrane ajouté"
         },
         {
           "id": "br",
-          "metric": "QUALITÉ NATIVE",
-          "title": "Résolution MP4 HD/SD et audio d'origine"
+          "metric": "QUALITÉ D'ORIGINE",
+          "title": "Vidéo MP4 HD/SD et piste audio MP3"
         },
         {
           "id": "pr",
-          "metric": "SANS STOCKAGE",
-          "title": "Relais en mémoire vive sans archivage"
+          "metric": "CONFIDENTIEL",
+          "title": "Aucun fichier n'est conservé sur nos serveurs"
         },
         {
           "id": "sp",
-          "metric": "MULTI-APPAREILS",
-          "title": "Compatible mobile Android, iOS, PC et Mac"
+          "metric": "TOUS ÉCRANS",
+          "title": "Fonctionne sur Android, iPhone, PC et Mac"
         }
       ],
       "workflowProtocol": "MODE D'EMPLOI",
       "howToHeading": "Comment télécharger une vidéo en 3 étapes",
       "stepOf": "ÉTAPE",
       "readyStatus": "PRÊT",
-      "platformsHeading": "Outils dédiés par plateforme sociale",
-      "platformsSubheading": "Choisissez l'extracteur adapté à votre lien public TikTok, Instagram, X (Twitter) ou Facebook.",
+      "platformsHeading": "Outils dédiés par réseau social",
+      "platformsSubheading": "Choisissez l'outil adapté à votre lien public TikTok, Instagram, X (Twitter) ou Facebook.",
       "openToolCta": "Ouvrir l'outil",
       "knowledgeBase": "QUESTIONS FRÉQUENTES",
       "faqHeading": "Tout savoir sur le téléchargement de vidéos publiques",
@@ -88,7 +96,7 @@
       "terms": "Conditions d'utilisation",
       "contact": "Contact",
       "dmca": "Droits d'auteur / DMCA",
-      "copyrightNotice": "© 2026 VIDNEX — Outil technique de résolution de médias publics."
+      "copyrightNotice": "© 2026 VIDNEX — Téléchargeur gratuit de vidéos publiques."
     },
     "banner": {
       "suggestText": "Cette page est également disponible dans la langue de votre navigateur :",
@@ -103,17 +111,17 @@
       "tryPlatformsLabel": "Accéder aux téléchargeurs par plateforme :"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Ce lien n'est pas supporté. Seuls les liens publics TikTok, Instagram, X (Twitter) et Facebook sont pris en charge.",
+      "UNSUPPORTED_URL": "Ce lien n'est pas reconnu. Collez un lien public provenant de TikTok, Instagram, X (Twitter) ou Facebook.",
       "NOT_FOUND": "Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
-      "BLOCKED_BY_PLATFORM": "La plateforme source a temporairement restreint les requêtes publiques. Veuillez réessayer dans quelques instants.",
-      "TIMEOUT": "Le délai d'attente de 8 secondes a expiré lors de la récupération du média. Veuillez réessayer.",
+      "BLOCKED_BY_PLATFORM": "La plateforme bloque temporairement l'accès à ce contenu. Veuillez réessayer dans quelques instants.",
+      "TIMEOUT": "La récupération de la vidéo a pris trop de temps. Vérifiez votre connexion et réessayez.",
       "NO_MEDIA": "Cette publication ne contient aucune vidéo ni image téléchargeable.",
       "MAINTENANCE": "VIDNEX est temporairement en maintenance programmée. Veuillez réessayer dans quelques instants.",
       "PLATFORM_DISABLED": "L'extraction pour cette plateforme est temporairement désactivée par l'administrateur.",
       "BLOCKED": "Cette requête ou ressource a été bloquée par l'administrateur.",
-      "RATE_LIMITED": "Limite de requêtes par minute atteinte. Veuillez patienter quelques secondes avant de relancer.",
-      "NETWORK_ERROR": "Impossible de joindre le service d'extraction VIDNEX (/api/extract)."
+      "RATE_LIMITED": "Vous avez envoyé trop de demandes en peu de temps. Patientez quelques secondes avant de réessayer.",
+      "NETWORK_ERROR": "Impossible de contacter le serveur. Vérifiez votre connexion Internet et réessayez."
     },
     "share": {
       "buttonLabel": "Partager",
@@ -132,21 +140,21 @@
     "metaTitle": "Télécharger Vidéo TikTok, Instagram, X & Facebook | VIDNEX",
     "metaDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X (Twitter) et Facebook en MP4 HD sans créer de compte.",
     "h1": "Téléchargeur de vidéos publiques TikTok, Instagram, X et Facebook",
-    "subtitle": "Enregistrez vos vidéos publiques, Reels, carrousels et extraits audio en MP4 ou MP3 directement depuis votre navigateur, sans inscription.",
+    "subtitle": "Enregistrez vos vidéos publiques, Reels, carrousels et pistes audio en MP4 ou MP3 directement sur votre téléphone ou ordinateur.",
     "placeholder": "https://www.tiktok.com/@utilisateur/video/...",
     "specs": [
       "MP4 HD & SD",
       "TIKTOK SANS FILIGRANE",
       "SANS INSCRIPTION",
-      " CONTENUS PUBLICS"
+      "CONTENUS PUBLICS"
     ],
     "editorial": {
-      "heading": "Un outil unique pour sauvegarder vos médias sociaux publics",
-      "subheading": "Architecture web légère et rapide pour extraire les flux MP4 et MP3 d'origine sans réencodage.",
+      "heading": "Un outil simple pour enregistrer vos vidéos publiques",
+      "subheading": "Téléchargez vos vidéos et pistes audio dans leur qualité d'origine, gratuitement et sans inscription.",
       "paragraphs": [
-        "VIDNEX est une application web gratuite conçue pour résoudre et télécharger les vidéos publiques publiées sur TikTok, Instagram, X (anciennement Twitter) et Facebook. Plutôt que de réencoder l'image ou d'ajouter un logo supplémentaire, l'outil interroge directement les métadonnées publiques de la publication afin de vous restituer le fichier MP4, JPG ou MP3 tel qu'il est diffusé par les serveurs de la plateforme.",
-        "Son fonctionnement repose sur un traitement éphémère : lorsque vous collez une adresse URL dans le champ de recherche, notre passerelle analyse le lien, identifie les variantes de résolution disponibles (comme le 1080p, le 720p ou la définition standard) et vous permet d'enregistrer le fichier sur votre téléphone ou votre ordinateur. Aucune vidéo n'est conservée sur nos serveurs après la fin du téléchargement.",
-        "Chaque réseau social possède ses propres formats techniques. Sur TikTok, VIDNEX privilégie la piste vidéo source dépourvue du filigrane mobile ainsi que l'extraction des diaporamas photos et de la piste audio MP3. Sur Instagram, l'outil prend en charge les Reels, les publications carrousels multi-images et les photos de profil. Sur X et Facebook, il détecte les variantes MP4 intégrées aux tweets, aux vidéos Watch et aux Reels publics."
+        "VIDNEX est un outil gratuit qui vous permet d'enregistrer sur votre appareil les vidéos publiques partagées sur TikTok, Instagram, X (anciennement Twitter) et Facebook. L'image n'est jamais modifiée ni recompressée : vous récupérez directement le fichier MP4, JPG ou MP3 dans sa qualité d'origine.",
+        "Il vous suffit de coller le lien de la publication dans le champ ci-dessus. En quelques secondes, VIDNEX détecte les qualités disponibles (HD 1080p, 720p ou standard) et lance l'enregistrement sur votre téléphone ou votre ordinateur. Aucun fichier n'est conservé sur nos serveurs.",
+        "Sur TikTok, vous obtenez la vidéo sans le logo mobile ainsi que les diaporamas photos et l'audio MP3. Sur Instagram, vous pouvez enregistrer les Reels, les carrousels de plusieurs photos ou vidéos et les photos de profil. Sur X et Facebook, l'outil récupère les vidéos publiques et les Reels en HD ou SD."
       ],
       "formatsTitle": "Formats et qualités pris en charge",
       "formatsList": [

@@ -91,13 +91,9 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
   }, [isOpen]);
 
   const handlePrimaryClick = async () => {
-    // Use native Web Share sheet on mobile touch devices when supported
     if (
       typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function' &&
-      typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(pointer: coarse)').matches
+      typeof navigator.share === 'function'
     ) {
       try {
         await navigator.share({
@@ -172,7 +168,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
         aria-label={s.buttonAria}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        className="px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-300/90 dark:border-orange-800/80 text-orange-950 dark:text-orange-100 font-semibold shadow-sm hover:border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-950"
+        className="min-h-[44px] px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-300/90 dark:border-orange-800/80 text-orange-950 dark:text-orange-100 font-semibold shadow-sm hover:border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-950 cursor-pointer"
       >
         <svg
           viewBox="0 0 24 24"

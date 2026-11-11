@@ -12,8 +12,10 @@
   html,
   body {
     max-width: 100vw;
+    min-height: 100dvh;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
+    font-size: 16px;
   }
 
   body {
@@ -21,6 +23,8 @@
     background-color: #fffaf5;
     color: #1f130b;
     letter-spacing: -0.01em;
+    line-height: 1.6;
+    overflow-wrap: break-word;
   }
 
   [dir="rtl"] body,
@@ -49,51 +53,20 @@
 }
 
 @layer components {
+  /* Respect iPhone notch & home indicator safe areas */
+  .safe-area-root {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   /* Constrain desktop ambient glow on mobile viewports */
   .ambient-orange-glow {
     max-width: 100vw;
-  }
-
-  /* Mobile-first wrapping flexbox layout for the tool selection bar */
-  .tool-selection-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .tool-selection-item {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    min-height: 2.25rem;
-    padding: 0.375rem 0.625rem;
-    flex: 1 1 auto;
-    max-width: 100%;
-  }
-
-  /* Mobile-first auto-wrapping grid for secondary/upcoming platform tools (YouTube, Snapchat) */
-  .tool-selection-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-    gap: 0.375rem;
-    width: 100%;
-  }
-
-  @media (min-width: 768px) {
-    .tool-selection-bar {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .tool-selection-item {
-      flex: 0 1 auto;
-      padding: 0.375rem 0.875rem;
-    }
   }
 }
 

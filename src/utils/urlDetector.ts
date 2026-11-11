@@ -27,8 +27,16 @@ export interface DetectedUrlInfo {
   normalizedUrl: string;
 }
 
+export type SampleLabelKey =
+  | 'igReel'
+  | 'tiktokVid'
+  | 'xVid'
+  | 'fbVid'
+  | 'igDp';
+
 export interface SampleLink {
   id: string;
+  labelKey: SampleLabelKey;
   label: string;
   platform: PlatformId;
   subType: string;
@@ -90,35 +98,40 @@ export function isPlatformSupported(platform: PlatformId): boolean {
 export const SAMPLE_LINKS: SampleLink[] = [
   {
     id: 'ig-reel',
-    label: 'IG Reel 1080p',
+    labelKey: 'igReel',
+    label: 'Reel Instagram',
     platform: 'instagram',
     subType: 'Reel',
     url: 'https://www.instagram.com/reel/C8x9kLmN2pQ/',
   },
   {
     id: 'tiktok-vid',
-    label: 'TikTok No-WM',
+    labelKey: 'tiktokVid',
+    label: 'Vidéo TikTok',
     platform: 'tiktok',
     subType: 'Video',
     url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
   },
   {
     id: 'x-vid',
-    label: 'X (Twitter) MP4',
+    labelKey: 'xVid',
+    label: 'Vidéo X (Twitter)',
     platform: 'x',
     subType: 'Video',
     url: 'https://x.com/reactiive_/status/2040511285998313827',
   },
   {
     id: 'fb-vid',
-    label: 'Facebook HD',
+    labelKey: 'fbVid',
+    label: 'Vidéo Facebook',
     platform: 'facebook',
     subType: 'Video',
     url: 'https://www.facebook.com/facebook/videos/10153231379946729/',
   },
   {
     id: 'ig-dp',
-    label: 'IG Profile HD DP',
+    labelKey: 'igDp',
+    label: 'Photo de profil Instagram',
     platform: 'instagram',
     subType: 'Profile',
     url: 'https://www.instagram.com/natgeo/',

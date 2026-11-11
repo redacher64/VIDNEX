@@ -19,19 +19,26 @@
       "pastedFeedback": "Pasted!",
       "clearInputAria": "Clear input URL",
       "downloadButton": "Download",
-      "extractingButton": "Extracting…",
-      "trySampleLabel": "Try sample link:",
-      "errEmptyInput": "Please paste a public TikTok, Instagram, X (Twitter), or Facebook URL.",
-      "errInvalidUrl": "Unrecognized link. Please enter a valid public URL from TikTok, Instagram, X, or Facebook.",
-      "errClipboardBlocked": "Clipboard access was blocked by your browser. Please press Ctrl+V or Cmd+V to paste.",
-      "comingSoonNotice": "This platform is coming soon! Currently supported: TikTok, Instagram, X, and Facebook."
+      "extractingButton": "Preparing…",
+      "trySampleLabel": "Try an example:",
+      "errEmptyInput": "Please paste a public TikTok, Instagram, X (Twitter), or Facebook link.",
+      "errInvalidUrl": "Unrecognized link. Please enter a valid public link from TikTok, Instagram, X, or Facebook.",
+      "errClipboardBlocked": "Clipboard access was blocked by your browser. Tap and hold the input field to paste.",
+      "comingSoonNotice": "This platform is coming soon! Currently supported: TikTok, Instagram, X, and Facebook.",
+      "samples": {
+        "igReel": "Instagram Reel",
+        "tiktokVid": "TikTok Video",
+        "xVid": "X (Twitter) Video",
+        "fbVid": "Facebook Video",
+        "igDp": "Instagram Profile Photo"
+      }
     },
     "drawer": {
-      "bypassingWatermark": "RESOLVING SOURCE STREAM",
-      "resolvingStream": "Fetching direct media file from origin CDN…",
-      "extractionInterrupted": "EXTRACTION INTERRUPTED",
+      "bypassingWatermark": "PREPARING YOUR FILE",
+      "resolvingStream": "Fetching your video in original quality…",
+      "extractionInterrupted": "DOWNLOAD UNAVAILABLE",
       "retryExtraction": "Try Again",
-      "dismiss": "Dismiss",
+      "dismiss": "Close",
       "clearResult": "Close result card",
       "noWatermarkBadge": "NO WATERMARK",
       "originalJpgBadge": "ORIGINAL IMAGE",
@@ -39,41 +46,42 @@
       "saving": "Saving…",
       "downloadHdMp4": "Download HD (MP4)",
       "downloadSdMp4": "Download SD (MP4)",
-      "extractAudioMp3": "Extract Audio (MP3)",
+      "extractAudioMp3": "Download Audio (MP3)",
       "downloadAllZip": "Download All (.ZIP)",
-      "buildingZip": "Building ZIP archive…",
+      "buildingZip": "Creating ZIP archive…",
       "viewFullSizeDp": "Full-Size Preview",
-      "downloadHdJpg": "Download HD Photo (JPG)"
+      "downloadHdJpg": "Download Profile Photo",
+      "iosFilesHint": "On iPhone and iPad, find your downloaded file in the Files app (Downloads folder)."
     },
     "sections": {
       "bentoCards": [
         {
           "id": "nw",
-          "metric": "CLEAN STREAM",
-          "title": "TikTok videos without added watermarks"
+          "metric": "NO WATERMARK",
+          "title": "Clean TikTok videos without added logos"
         },
         {
           "id": "br",
-          "metric": "NATIVE QUALITY",
-          "title": "Original MP4 HD/SD & AAC/MP3 audio"
+          "metric": "ORIGINAL QUALITY",
+          "title": "MP4 HD/SD video and MP3 audio tracks"
         },
         {
           "id": "pr",
-          "metric": "ZERO STORAGE",
-          "title": "Stateless memory proxy with no file archiving"
+          "metric": "PRIVATE & SAFE",
+          "title": "No files are ever stored on our servers"
         },
         {
           "id": "sp",
-          "metric": "CROSS-DEVICE",
-          "title": "Works on iOS, Android, Windows & macOS"
+          "metric": "ALL DEVICES",
+          "title": "Works on iPhone, Android, Windows & Mac"
         }
       ],
       "workflowProtocol": "HOW IT WORKS",
       "howToHeading": "How to download public videos in 3 steps",
       "stepOf": "STEP",
       "readyStatus": "READY",
-      "platformsHeading": "Dedicated downloaders by social platform",
-      "platformsSubheading": "Select the specialized extractor for your public TikTok, Instagram, X (Twitter), or Facebook link.",
+      "platformsHeading": "Dedicated downloaders by social network",
+      "platformsSubheading": "Select the tool for your public TikTok, Instagram, X (Twitter), or Facebook link.",
       "openToolCta": "Open tool",
       "knowledgeBase": "FREQUENTLY ASKED QUESTIONS",
       "faqHeading": "Common questions about downloading public social videos",
@@ -88,7 +96,7 @@
       "terms": "Terms of Service",
       "contact": "Contact",
       "dmca": "Copyright / DMCA",
-      "copyrightNotice": "© 2026 VIDNEX — Stateless Public Media Resolver."
+      "copyrightNotice": "© 2026 VIDNEX — Free Public Video Downloader."
     },
     "banner": {
       "suggestText": "This page is also available in your browser language:",
@@ -103,17 +111,17 @@
       "tryPlatformsLabel": "Browse platform downloaders:"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Unsupported link. Currently, public TikTok, Instagram, X (Twitter), and Facebook links are supported.",
+      "UNSUPPORTED_URL": "Unsupported link. Please paste a public link from TikTok, Instagram, X (Twitter), or Facebook.",
       "NOT_FOUND": "Media not found. The video, Reel, tweet, or post may have been deleted.",
       "PRIVATE_OR_LOGIN_REQUIRED": "This video is not public or requires a login. Only public videos can be downloaded.",
-      "BLOCKED_BY_PLATFORM": "The source platform temporarily restricted public requests. Please try again in a moment.",
-      "TIMEOUT": "The 8-second request timeout expired while fetching the media. Please try again.",
+      "BLOCKED_BY_PLATFORM": "The platform temporarily restricted access to this post. Please try again in a moment.",
+      "TIMEOUT": "Fetching the video took too long. Please check your connection and try again.",
       "NO_MEDIA": "This post does not contain any downloadable video or image.",
       "MAINTENANCE": "VIDNEX is temporarily undergoing scheduled maintenance. Please try again shortly.",
       "PLATFORM_DISABLED": "This platform extractor is temporarily disabled by the administrator.",
       "BLOCKED": "This request or resource has been restricted by the administrator.",
-      "RATE_LIMITED": "Per-minute request limit reached. Please wait a few seconds before trying again.",
-      "NETWORK_ERROR": "Unable to reach the VIDNEX extraction service (/api/extract)."
+      "RATE_LIMITED": "Too many requests in a short time. Please wait a few seconds before trying again.",
+      "NETWORK_ERROR": "Unable to reach the server. Please check your internet connection and try again."
     },
     "share": {
       "buttonLabel": "Share",
@@ -132,7 +140,7 @@
     "metaTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
     "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) clips, and Facebook videos in HD MP4 for free in your browser.",
     "h1": "Public Video Downloader for TikTok, Instagram, X & Facebook",
-    "subtitle": "Save public social videos, Reels, photo carousels, and MP3 audio tracks directly in your browser without registration.",
+    "subtitle": "Save public social videos, Reels, photo carousels, and MP3 audio tracks directly to your phone or computer.",
     "placeholder": "https://www.tiktok.com/@username/video/...",
     "specs": [
       "HD & SD MP4",
@@ -141,12 +149,12 @@
       "PUBLIC MEDIA ONLY"
     ],
     "editorial": {
-      "heading": "One unified web tool for saving public social media videos",
-      "subheading": "Lightweight web architecture to resolve original MP4 video streams and MP3 audio without re-encoding.",
+      "heading": "One simple tool to save public social media videos",
+      "subheading": "Download your videos and audio tracks in their original quality, for free and without creating an account.",
       "paragraphs": [
-        "VIDNEX is a free web utility designed to resolve and download publicly shared videos from TikTok, Instagram, X (formerly Twitter), and Facebook. Instead of re-compressing video frames or stamping third-party logos onto your file, VIDNEX queries public post metadata to deliver the original MP4, JPG, or MP3 stream hosted on the platform's content delivery network.",
-        "Every extraction runs ephemerally: when you paste a public link into the input bar, our serverless gateway validates the URL format, detects the available quality variants (such as 1080p, 720p, or standard definition), and streams the file straight to your device. No media files are archived or stored on our servers.",
-        "Each supported network has dedicated format handling. On TikTok, VIDNEX locates the clean video stream without the bouncing username overlay, extracts Photo Mode slideshows, and isolates MP3 audio tracks. On Instagram, it supports public Reels, multi-slide carousels with batch ZIP archiving, and full-size profile pictures. On X and Facebook, it extracts direct MP4 variants from public tweets, Watch videos, and Reels."
+        "VIDNEX is a free web tool that lets you save publicly shared videos from TikTok, Instagram, X (formerly Twitter), and Facebook straight to your device. Your video is never re-encoded or stamped with extra logos: you get the original MP4, JPG, or MP3 file directly.",
+        "Simply paste a public link into the box above. Within seconds, VIDNEX finds the available quality options (such as 1080p HD, 720p, or standard definition) so you can save the file to your phone or computer. No files are ever stored on our servers.",
+        "On TikTok, you can save videos without the moving watermark, download photo slideshows, or extract MP3 audio. On Instagram, VIDNEX supports public Reels, multi-photo carousels (with one-click ZIP download), and full-size profile pictures. On X and Facebook, it saves public videos and Reels in HD or SD."
       ],
       "formatsTitle": "Supported platforms and file formats",
       "formatsList": [

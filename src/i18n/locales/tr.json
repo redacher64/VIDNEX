@@ -19,17 +19,24 @@
       "pastedFeedback": "Yapıştırıldı!",
       "clearInputAria": "Bağlantıyı temizle",
       "downloadButton": "İndir",
-      "extractingButton": "Analiz ediliyor...",
+      "extractingButton": "Hazırlanıyor...",
       "trySampleLabel": "Örnek dene:",
-      "errEmptyInput": "Lütfen analizi başlatmadan önce geçerli bir bağlantı yapıştırın.",
+      "errEmptyInput": "Lütfen herkese açık bir TikTok, Instagram, X veya Facebook bağlantısı yapıştırın.",
       "errInvalidUrl": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
-      "errClipboardBlocked": "Pano erişimi engellendi. Yapıştırmak için Ctrl+V kullanın.",
-      "comingSoonNotice": "Bu platform yakında desteklenecek. Şu anda: TikTok, Instagram, X ve Facebook."
+      "errClipboardBlocked": "Pano erişimi engellendi. Yapıştırmak için alana basılı tutun.",
+      "comingSoonNotice": "Bu platform yakında desteklenecek. Şu anda: TikTok, Instagram, X ve Facebook.",
+      "samples": {
+        "igReel": "Instagram Reel",
+        "tiktokVid": "TikTok Videosu",
+        "xVid": "X (Twitter) Videosu",
+        "fbVid": "Facebook Videosu",
+        "igDp": "Instagram Profil Fotoğrafı"
+      }
     },
     "drawer": {
-      "bypassingWatermark": "KAYNAK AKIŞ ÇÖZÜMLENİYOR",
-      "resolvingStream": "Doğrudan medya dosyası çıkarılıyor…",
-      "extractionInterrupted": "İŞLEM KESİLDİ",
+      "bypassingWatermark": "DOSYA HAZIRLANIYOR",
+      "resolvingStream": "Videonuz orijinal kalitede alınıyor…",
+      "extractionInterrupted": "İNDİRME BAŞARISIZ",
       "retryExtraction": "Tekrar dene",
       "dismiss": "Kapat",
       "clearResult": "Sonucu kapat",
@@ -39,33 +46,34 @@
       "saving": "Kaydediliyor…",
       "downloadHdMp4": "HD İndir (MP4)",
       "downloadSdMp4": "SD İndir (MP4)",
-      "extractAudioMp3": "Sesi çıkar (MP3)",
+      "extractAudioMp3": "Sesi İndir (MP3)",
       "downloadAllZip": "Tümünü indir (.ZIP)",
       "buildingZip": "ZIP arşivi oluşturuluyor…",
       "viewFullSizeDp": "Tam boyutta görüntüle",
-      "downloadHdJpg": "HD Fotoğraf İndir (JPG)"
+      "downloadHdJpg": "Profil Fotoğrafını İndir",
+      "iosFilesHint": "iPhone ve iPad'de indirilen dosyayı Dosyalar uygulamasında (İndirilenler klasörü) bulabilirsiniz."
     },
     "sections": {
       "bentoCards": [
         {
           "id": "nw",
-          "metric": "DOĞRUDAN AKIŞ",
-          "title": "Ek filigran olmadan TikTok videoları"
+          "metric": "FİLİGRANSIZ",
+          "title": "Ek logo olmadan net TikTok videoları"
         },
         {
           "id": "br",
           "metric": "ORİJİNAL KALİTE",
-          "title": "MP4 HD/SD çözünürlük ve orijinal ses"
+          "title": "MP4 HD/SD video ve MP3 ses dosyaları"
         },
         {
           "id": "pr",
-          "metric": "DEPOLAMA YOK",
-          "title": "Dosya arşivlemeden anlık işleme"
+          "metric": "GİZLİLİK",
+          "title": "Sunucularımızda hiçbir dosya saklanmaz"
         },
         {
           "id": "sp",
           "metric": "TÜM CİHAZLAR",
-          "title": "Android, iOS, PC ve Mac ile uyumlu"
+          "title": "Android, iPhone, PC ve Mac ile uyumlu"
         }
       ],
       "workflowProtocol": "NASIL KULLANILIR",
@@ -73,7 +81,7 @@
       "stepOf": "ADIM",
       "readyStatus": "HAZIR",
       "platformsHeading": "Desteklenen platformlar",
-      "platformsSubheading": "Herkese açık gönderilerdeki mevcut formatları görüntülemek için ilgili sosyal ağ aracını seçin.",
+      "platformsSubheading": "Herkese açık videoları indirmek için ilgili sosyal ağ aracını seçin.",
       "openToolCta": "Aracı aç",
       "knowledgeBase": "SIKÇA SORULAN SORULAR",
       "faqHeading": "Sıkça Sorulan Sorular",
@@ -88,7 +96,7 @@
       "terms": "Kullanım Koşulları",
       "contact": "İletişim",
       "dmca": "Telif Hakkı / DMCA",
-      "copyrightNotice": "© 2026 VIDNEX — Tüm hakları saklıdır. VIDNEX; TikTok, Meta veya X Corp. ile bağlantılı değildir."
+      "copyrightNotice": "© 2026 VIDNEX — Ücretsiz Herkese Açık Video İndirici."
     },
     "banner": {
       "suggestText": "Bu site kendi dilinizde de kullanılabilir:",
@@ -105,14 +113,14 @@
     "errors": {
       "UNSUPPORTED_URL": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
       "NOT_FOUND": "İstenen gönderi bulunamadı veya kaynak platformdan silinmiş.",
-      "PRIVATE_OR_LOGIN_REQUIRED": "Bu içerik gizli, yaş kısıtlamalı veya oturum açmayı gerektiriyor. VIDNEX yalnızca herkese açık gönderileri işler.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "Bu içerik gizli veya oturum açmayı gerektiriyor. VIDNEX yalnızca herkese açık gönderileri indirir.",
       "BLOCKED_BY_PLATFORM": "Kaynak platform bu gönderiye erişimi geçici olarak reddetti. Lütfen biraz sonra tekrar deneyin.",
-      "TIMEOUT": "Kaynak sunucu zamanında yanıt vermedi. Bağlantıyı kontrol edip tekrar deneyin.",
-      "NO_MEDIA": "Bu gönderide indirilebilir bir video veya görsel bulunamadı (yalnızca metin içeren bir gönderi olabilir).",
-      "MAINTENANCE": "Hizmet şu anda kısa süreli teknik bakımdadır. Lütfen birkaç dakika sonra tekrar deneyin.",
-      "PLATFORM_DISABLED": "Bu platformun indirme motoru bakım nedeniyle geçici olarak devre dışı bırakıldı.",
+      "TIMEOUT": "Videonun alınması çok uzun sürdü. Bağlantıyı kontrol edip tekrar deneyin.",
+      "NO_MEDIA": "Bu gönderide indirilebilir bir video veya görsel bulunamadı.",
+      "MAINTENANCE": "Hizmet şu anda kısa süreli bakımdadır. Lütfen birkaç dakika sonra tekrar deneyin.",
+      "PLATFORM_DISABLED": "Bu platformun indirme aracı geçici olarak devre dışı bırakıldı.",
       "BLOCKED": "Güvenlik nedeniyle erişiminiz geçici olarak kısıtlandı.",
-      "RATE_LIMITED": "Dakika başına istek sınırına ulaştınız. Tekrar denemeden önce lütfen biraz bekleyin.",
+      "RATE_LIMITED": "Dakika başına istek sınırına ulaştınız. Tekrar denemeden önce birkaç saniye bekleyin.",
       "NETWORK_ERROR": "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
     },
     "share": {
@@ -132,7 +140,7 @@
     "metaTitle": "VIDNEX — TikTok, Instagram, X ve Facebook Video İndirici",
     "metaDescription": "TikTok filigransız videoları, Instagram Reels, X (Twitter) ve Facebook herkese açık videolarını MP4 veya MP3 olarak tarayıcıdan ücretsiz indirin.",
     "h1": "TikTok, Instagram, X ve Facebook için Herkese Açık Video İndirici",
-    "subtitle": "Mevcut video akışlarını analiz etmek ve MP4 dosyasını veya sesi cihazınıza kaydetmek için herkese açık bir gönderi bağlantısı yapıştırın.",
+    "subtitle": "Herkese açık videoları, Reels kliplerini, fotoğraf galerilerini ve MP3 seslerini doğrudan telefonunuza veya bilgisayarınıza kaydedin.",
     "placeholder": "https://www.tiktok.com/@kullanici/video/1234567890...",
     "specs": [
       "MP4 HD & SD",
@@ -141,12 +149,12 @@
       "AÇIK İÇERİK"
     ],
     "editorial": {
-      "heading": "Herkese açık sosyal medya videolarını kaydetmek için tek web arayüzü",
-      "subheading": "TikTok, Instagram, X (Twitter) ve Facebook üzerindeki herkese açık videoları doğrudan tarayıcınızdan kaydetmek için web uygulaması.",
+      "heading": "Herkese açık sosyal medya videolarını kaydetmek için kolay araç",
+      "subheading": "Videolarınızı ve ses parçalarını orijinal kalitesinde, ücretsiz ve hesap açmadan indirin.",
       "paragraphs": [
-        "VIDNEX; TikTok, Instagram, X (eski adıyla Twitter) ve Facebook üzerinde herkese açık olarak paylaşılan videoların analizini ve indirilmesini tek bir web arayüzünde birleştirir. Her sosyal ağ için ayrı mobil uygulamalar veya tarayıcı eklentileri kurmak yerine, paylaşılan bağlantıyı üstteki kutuya yapıştırmanız yeterlidir; sistem kaynağı otomatik olarak tanır.",
-        "İşlem, gönderinin herkese açık meta verilerinin gerçek zamanlı olarak okunmasına dayanır. Bir video oturum açmadan görüntülenebildiğinde, sunucumuz orijinal dağıtım akışlarını (MP4 formatında 1080p HD, 720p veya standart çözünürlük) ve mevcut olduğunda ayrı ses parçasını tespit eder. Dosya, tarayıcınızın doğrudan İndirilenler klasörüne kaydetmesi için standart başlıklarla aktarılır.",
-        "Android telefonlar, iPhone/iPad (iOS) ve masaüstü bilgisayarlarda (Windows, macOS, Linux) sorunsuz çalışacak şekilde tasarlanan VIDNEX, üyelik gerektirmez ve indirilen videoların kopyalarını sunucularında saklamaz."
+        "VIDNEX; TikTok, Instagram, X (eski adıyla Twitter) ve Facebook üzerinde herkese açık paylaşılan videoları doğrudan tarayıcınızdan indirmenizi sağlar. Ek uygulama kurmak yerine bağlantıyı üstteki kutuya yapıştırmanız yeterlidir.",
+        "Bir bağlantıyı yapıştırdığınızda VIDNEX mevcut kalite seçeneklerini (1080p HD, 720p veya standart) saniyeler içinde bulur ve dosyayı telefonunuza veya bilgisayarınıza kaydeder. Sunucularımızda hiçbir dosya saklanmaz.",
+        "Android telefonlar, iPhone/iPad ve bilgisayarlarda (Windows, macOS, Linux) üyelik gerektirmeden hızlı ve güvenli şekilde çalışır."
       ],
       "formatsTitle": "Platforma göre uyumluluk ve formatlar",
       "formatsList": [

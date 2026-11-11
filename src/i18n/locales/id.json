@@ -19,17 +19,24 @@
       "pastedFeedback": "Ditempel!",
       "clearInputAria": "Hapus tautan",
       "downloadButton": "Unduh",
-      "extractingButton": "Menganalisis...",
+      "extractingButton": "Menyiapkan...",
       "trySampleLabel": "Coba contoh:",
-      "errEmptyInput": "Silakan tempel tautan yang valid sebelum memulai analisis.",
+      "errEmptyInput": "Silakan tempel tautan publik dari TikTok, Instagram, X, atau Facebook.",
       "errInvalidUrl": "Tautan ini tidak didukung. Masukkan URL publik dari TikTok, Instagram, X (Twitter), atau Facebook.",
-      "errClipboardBlocked": "Akses papan klip ditolak browser. Gunakan Ctrl+V untuk menempel.",
-      "comingSoonNotice": "Platform ini akan segera didukung. Saat ini: TikTok, Instagram, X, dan Facebook."
+      "errClipboardBlocked": "Akses papan klip ditolak browser. Tekan dan tahan kolom untuk menempel.",
+      "comingSoonNotice": "Platform ini akan segera didukung. Saat ini: TikTok, Instagram, X, dan Facebook.",
+      "samples": {
+        "igReel": "Reel Instagram",
+        "tiktokVid": "Video TikTok",
+        "xVid": "Video X (Twitter)",
+        "fbVid": "Video Facebook",
+        "igDp": "Foto Profil Instagram"
+      }
     },
     "drawer": {
-      "bypassingWatermark": "MEMPROSES ALIRAN SUMBER",
-      "resolvingStream": "Mengekstrak file media langsung…",
-      "extractionInterrupted": "EKSTRAKSI TERHENTI",
+      "bypassingWatermark": "MENYIAPKAN FILE",
+      "resolvingStream": "Mengambil video Anda dalam kualitas asli…",
+      "extractionInterrupted": "UNDUHAN TIDAK TERSEDIA",
       "retryExtraction": "Coba lagi",
       "dismiss": "Tutup",
       "clearResult": "Tutup hasil",
@@ -39,33 +46,34 @@
       "saving": "Menyimpan…",
       "downloadHdMp4": "Unduh HD (MP4)",
       "downloadSdMp4": "Unduh SD (MP4)",
-      "extractAudioMp3": "Ekstrak Audio (MP3)",
+      "extractAudioMp3": "Unduh Audio (MP3)",
       "downloadAllZip": "Unduh semua (.ZIP)",
       "buildingZip": "Membuat arsip ZIP…",
       "viewFullSizeDp": "Lihat ukuran penuh",
-      "downloadHdJpg": "Unduh Foto HD (JPG)"
+      "downloadHdJpg": "Unduh Foto Profil",
+      "iosFilesHint": "Di iPhone dan iPad, temukan file yang diunduh di aplikasi File (folder Unduhan)."
     },
     "sections": {
       "bentoCards": [
         {
           "id": "nw",
-          "metric": "ALIRAN LANGSUNG",
-          "title": "Video TikTok tanpa tambahan watermark"
+          "metric": "TANPA LOGO",
+          "title": "Video TikTok bersih tanpa tambahan watermark"
         },
         {
           "id": "br",
           "metric": "KUALITAS ASLI",
-          "title": "Resolusi MP4 HD/SD dan audio asli"
+          "title": "Video MP4 HD/SD dan audio MP3 asli"
         },
         {
           "id": "pr",
-          "metric": "TANPA PENYIMPANAN",
-          "title": "Pemrosesan instan tanpa mengarsipkan file"
+          "metric": "PRIVASI AMAN",
+          "title": "Tidak ada file yang disimpan di server kami"
         },
         {
           "id": "sp",
-          "metric": "MULTI-PERANGKAT",
-          "title": "Kompatibel dengan Android, iOS, PC, dan Mac"
+          "metric": "SEMUA PERANGKAT",
+          "title": "Kompatibel dengan Android, iPhone, PC, dan Mac"
         }
       ],
       "workflowProtocol": "CARA PENGGUNAAN",
@@ -73,7 +81,7 @@
       "stepOf": "LANGKAH",
       "readyStatus": "SIAP",
       "platformsHeading": "Platform yang didukung",
-      "platformsSubheading": "Pilih alat khusus untuk setiap jejaring sosial guna melihat format yang tersedia dari postingan publik.",
+      "platformsSubheading": "Pilih alat khusus untuk mengunduh video publik dari jejaring sosial pilihan Anda.",
       "openToolCta": "Buka alat",
       "knowledgeBase": "PERTANYAAN UMUM",
       "faqHeading": "Pertanyaan yang Sering Diajukan (FAQ)",
@@ -88,7 +96,7 @@
       "terms": "Ketentuan Penggunaan",
       "contact": "Kontak",
       "dmca": "Hak Cipta / DMCA",
-      "copyrightNotice": "© 2026 VIDNEX — Hak cipta dilindungi. VIDNEX tidak berafiliasi dengan TikTok, Meta, atau X Corp."
+      "copyrightNotice": "© 2026 VIDNEX — Pengunduh Video Publik Gratis."
     },
     "banner": {
       "suggestText": "Situs ini juga tersedia dalam bahasa Anda:",
@@ -105,14 +113,14 @@
     "errors": {
       "UNSUPPORTED_URL": "Tautan ini tidak didukung. Masukkan URL publik dari TikTok, Instagram, X (Twitter), atau Facebook.",
       "NOT_FOUND": "Postingan yang diminta tidak ditemukan atau telah dihapus dari platform asal.",
-      "PRIVATE_OR_LOGIN_REQUIRED": "Konten ini bersifat pribadi, dibatasi usia, atau memerlukan login. VIDNEX hanya memproses postingan publik.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "Konten ini bersifat pribadi atau memerlukan login. VIDNEX hanya memproses postingan publik.",
       "BLOCKED_BY_PLATFORM": "Platform sumber menolak akses sementara ke postingan ini. Silakan coba lagi beberapa saat lagi.",
-      "TIMEOUT": "Server sumber membutuhkan waktu terlalu lama untuk merespons. Periksa tautan dan coba lagi.",
-      "NO_MEDIA": "Tidak ditemukan file video atau gambar yang dapat diunduh pada postingan ini (mungkin hanya postingan teks).",
-      "MAINTENANCE": "Layanan sedang dalam pemeliharaan teknis singkat. Silakan coba lagi dalam beberapa menit.",
-      "PLATFORM_DISABLED": "Ekstraktor untuk platform ini dinonaktifkan sementara untuk pemeliharaan.",
+      "TIMEOUT": "Pengambilan video membutuhkan waktu terlalu lama. Periksa tautan dan coba lagi.",
+      "NO_MEDIA": "Tidak ditemukan file video atau gambar yang dapat diunduh pada postingan ini.",
+      "MAINTENANCE": "Layanan sedang dalam pemeliharaan singkat. Silakan coba lagi dalam beberapa menit.",
+      "PLATFORM_DISABLED": "Pengunduh untuk platform ini dinonaktifkan sementara.",
       "BLOCKED": "Akses Anda dibatasi sementara karena alasan keamanan.",
-      "RATE_LIMITED": "Anda telah mencapai batas permintaan per menit. Harap tunggu sebentar sebelum mencoba lagi.",
+      "RATE_LIMITED": "Anda telah mencapai batas permintaan per menit. Harap tunggu beberapa detik sebelum mencoba lagi.",
       "NETWORK_ERROR": "Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi."
     },
     "share": {
@@ -132,7 +140,7 @@
     "metaTitle": "VIDNEX — Download Video TikTok, Instagram, X & Facebook MP4",
     "metaDescription": "Unduh video publik TikTok tanpa watermark, Reels Instagram, X (Twitter), dan Facebook dalam format MP4 atau MP3 gratis lewat browser.",
     "h1": "Pengunduh Video Publik TikTok, Instagram, X, dan Facebook",
-    "subtitle": "Tempel tautan postingan publik untuk menganalisis resolusi yang tersedia dan menyimpan video MP4 atau audio ke perangkat Anda.",
+    "subtitle": "Simpan video publik, Reels, karusel foto, dan audio MP3 langsung ke ponsel atau komputer Anda secara gratis.",
     "placeholder": "https://www.tiktok.com/@pengguna/video/1234567890...",
     "specs": [
       "MP4 HD & SD",
@@ -141,12 +149,12 @@
       "KONTEN PUBLIK"
     ],
     "editorial": {
-      "heading": "Satu antarmuka web untuk menyimpan video publik media sosial",
-      "subheading": "Aplikasi web untuk menyimpan video dan klip publik dari TikTok, Instagram, X (Twitter), dan Facebook langsung melalui browser Anda.",
+      "heading": "Satu alat mudah untuk menyimpan video publik media sosial",
+      "subheading": "Unduh video dan trek audio Anda dalam kualitas aslinya, gratis dan tanpa membuat akun.",
       "paragraphs": [
-        "VIDNEX menggabungkan analisis dan pengunduhan video publik dari empat jejaring sosial utama—TikTok, Instagram, X (sebelumnya Twitter), dan Facebook—ke dalam satu halaman web yang ringan. Daripada menginstal aplikasi terpisah atau ekstensi browser untuk setiap platform, cukup tempel tautan postingan di kolom pencarian agar sistem mengenali sumbernya secara otomatis.",
-        "Proses ekstraksi bekerja dengan membaca metadata publik dari tautan yang Anda berikan secara real-time. Selama video tersebut dapat diakses publik tanpa login, server kami mengambil tautan distribusi asli (dalam resolusi HD 1080p, 720p, atau standar berformat MP4) beserta trek audio jika tersedia terpisah. File dikirim melalui streaming langsung sehingga browser menyimpannya ke folder Unduhan Anda.",
-        "Dirancang agar responsif di ponsel pintar (Android dan iPhone/iPad) maupun komputer desktop (Windows, macOS, Linux), VIDNEX tidak mewajibkan pendaftaran akun dan tidak menyimpan salinan video yang Anda unduh."
+        "VIDNEX memudahkan Anda menyimpan video publik dari TikTok, Instagram, X (sebelumnya Twitter), dan Facebook langsung dari browser. Cukup tempel tautan postingan di kolom pencarian di atas untuk mendapatkan file MP4, JPG, atau MP3 asli.",
+        "Selama video tersebut bersifat publik, VIDNEX mendeteksi pilihan resolusi yang tersedia (HD 1080p, 720p, atau standar) agar dapat langsung disimpan ke perangkat Anda. Tidak ada file yang disimpan di server kami.",
+        "Dirancang agar nyaman digunakan di ponsel pintar (Android dan iPhone/iPad) maupun komputer (Windows, macOS, Linux) tanpa perlu menginstal aplikasi tambahan."
       ],
       "formatsTitle": "Kompatibilitas dan format per platform",
       "formatsList": [

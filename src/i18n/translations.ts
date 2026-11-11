@@ -100,6 +100,7 @@ export interface UiDictionary {
     deselectAll: string;
     packagingZip: string;
     downloadSelectedZip: string;
+    iosFilesHint: string;
   };
   sections: {
     workflowProtocol: string;
@@ -194,6 +195,7 @@ export function getUiDictionary(lang: LanguageCode): UiDictionary {
       deselectAll: 'Deselect all',
       packagingZip: b.drawer.buildingZip,
       downloadSelectedZip: b.drawer.downloadAllZip,
+      iosFilesHint: b.drawer.iosFilesHint,
     },
     sections: {
       workflowProtocol: b.sections.workflowProtocol,

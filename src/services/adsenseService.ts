@@ -34,8 +34,20 @@ export function getPublicConfigSnapshot(): PublicConfig {
   return currentPublicConfig;
 }
 
+export function isAdSenseDemoMode(): boolean {
+  return Boolean(
+    typeof window !== 'undefined' &&
+      import.meta.env?.DEV &&
+      import.meta.env?.VITE_ADSENSE_DEMO === 'true'
+  );
+}
+
 export function isAdSenseEnabled(): boolean {
-  return Boolean(currentPublicConfig.ads_enabled && ENABLE_ADS);
+  return Boolean(
+    currentPublicConfig.ads_enabled &&
+      ENABLE_ADS &&
+      (IS_ADSENSE_CONFIGURED || isAdSenseDemoMode())
+  );
 }
 
 export function subscribePublicConfig(

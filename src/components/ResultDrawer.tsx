@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MediaResult,
   VideoMediaResult,
@@ -11,6 +11,7 @@ import {
   UI_TRANSLATIONS,
   UiDictionary,
 } from '../i18n/translations';
+import { buildUncompressedZipArchive } from '../utils/zipArchive';
 
 interface ResultDrawerProps {
   isLoading: boolean;
@@ -73,8 +74,6 @@ function triggerBlobDownload(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
 }
 
-import { buildUncompressedZipArchive } from '../utils/zipArchive';
-
 export const ResultDrawer: React.FC<ResultDrawerProps> = ({
   isLoading,
   error,
@@ -84,13 +83,28 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
   language,
 }) => {
   const t = UI_TRANSLATIONS[language].drawer;
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // ÉTAPE 5: Smooth automatic scroll to result drawer when extraction starts or completes
+  useEffect(() => {
+    if ((isLoading || error || result) && sectionRef.current) {
+      sectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [isLoading, Boolean(error), result?.id]);
 
   if (!isLoading && !error && !result) {
     return null;
   }
 
   return (
-    <section aria-live="polite" className="w-full py-8">
+    <section
+      ref={sectionRef}
+      aria-live="polite"
+      className="w-full py-5 sm:py-8 scroll-mt-16"
+    >
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         {/* 1. WARM ORANGE WAVEFORM PROCESSING LOADER */}
         {isLoading && (
@@ -134,9 +148,9 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
         {!isLoading && error && (
           <div
             role="alert"
-            className="rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-red-300 dark:border-red-900/70 p-6 shadow-orange-glow flex flex-col sm:flex-row items-center justify-between gap-5"
+            className="rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-red-300 dark:border-red-900/70 p-5 sm:p-6 shadow-orange-glow flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-5"
           >
-            <div className="flex items-start gap-4 text-center sm:text-left">
+            <div className="flex items-start gap-4 text-start">
               <div className="hidden sm:flex w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 items-center justify-center shrink-0 text-red-600 dark:text-red-400">
                 <svg
                   viewBox="0 0 24 24"
@@ -149,22 +163,22 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
-              <div>
-                <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+              <div className="min-w-0">
+                <div className="font-mono text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
                   {t.extractionInterrupted}
                 </div>
-                <p className="mt-1 text-sm font-medium text-[#1f130b] dark:text-[#fffaf5]">
+                <p className="mt-1 text-base font-medium text-[#1f130b] dark:text-[#fffaf5] leading-relaxed break-words">
                   {error}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
               {onRetry && (
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-mono text-xs font-bold shadow-sm transition-all"
+                  className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-mono text-xs font-bold shadow-sm transition-all cursor-pointer"
                 >
                   {t.retryExtraction}
                 </button>
@@ -172,7 +186,7 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors"
+                className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer"
               >
                 {t.dismiss}
               </button>
@@ -182,13 +196,13 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
 
         {/* 3. ACTIVE RESULT CARD */}
         {!isLoading && !error && result && (
-          <div className="relative rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-orange-200/80 dark:border-orange-900/60 p-6 shadow-orange-glow overflow-hidden">
+          <div className="relative rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-orange-200/80 dark:border-orange-900/60 p-4 sm:p-6 shadow-orange-glow overflow-hidden">
             <div className="absolute -right-16 -top-16 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
             <button
               type="button"
               onClick={onClose}
               aria-label={t.clearResult}
-              className="absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-800/70 text-orange-900 dark:text-orange-200 hover:bg-orange-500 hover:text-white transition-colors z-10 font-mono text-sm font-bold"
+              className="absolute top-3 right-3 rtl:right-auto rtl:left-3 w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-800/70 text-orange-900 dark:text-orange-200 hover:bg-orange-500 hover:text-white transition-colors z-10 font-mono text-base font-bold cursor-pointer"
             >
               ×
             </button>
@@ -217,10 +231,12 @@ const VideoResultView: React.FC<{
   t: UiDictionary['drawer'];
 }> = ({ data, t }) => {
   const [activeDownloadId, setActiveDownloadId] = useState<string | null>(null);
+  const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
   useEffect(() => {
     setIsPlayingPreview(false);
+    setHasTriggeredDownload(false);
   }, [data.id]);
 
   const primaryFormat =
@@ -247,6 +263,7 @@ const VideoResultView: React.FC<{
     downloadUrl?: string
   ) => {
     setActiveDownloadId(formatId);
+    setHasTriggeredDownload(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
     const ext = container.toLowerCase();
     const filename = `VIDNEX_${data.platform}_${cleanHandle}_${quality}.${ext}`;
@@ -262,9 +279,9 @@ const VideoResultView: React.FC<{
     primaryFormat?.container === 'JPG' || primaryFormat?.container === 'PNG';
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-stretch relative z-10">
-      {/* Left: Warm Framed Media Preview Card with Click-to-Play Inline Video */}
-      <div className="relative w-full sm:w-52 aspect-[4/5] rounded-2xl overflow-hidden bg-[#1f130b] shrink-0 shadow-md border-2 border-orange-300 dark:border-orange-800/80 group">
+    <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-stretch relative z-10">
+      {/* Left: Mobile-adapted Media Preview Card with Click-to-Play Inline Video */}
+      <div className="relative w-full max-w-[260px] sm:max-w-none sm:w-52 aspect-[4/5] rounded-2xl overflow-hidden bg-[#1f130b] shrink-0 shadow-md border-2 border-orange-300 dark:border-orange-800/80 group">
         {isPlayingPreview && !isSingleImage ? (
           <video
             src={previewVideoSrc}
@@ -313,9 +330,9 @@ const VideoResultView: React.FC<{
         </span>
       </div>
 
-      {/* Right: Metadata & Format Transports */}
+      {/* Right: Metadata & Full-Width Format Download Buttons */}
       <div className="flex-1 flex flex-col justify-between w-full gap-4 min-w-0">
-        <div className="pr-8">
+        <div className="pr-10 rtl:pr-0 rtl:pl-10">
           <div className="flex flex-wrap items-center gap-2 text-xs text-orange-900/75 dark:text-orange-200/75 font-mono">
             <span className="font-bold text-orange-700 dark:text-amber-400">
               {data.badgeLabel}
@@ -335,7 +352,7 @@ const VideoResultView: React.FC<{
             )}
           </div>
 
-          <h3 className="mt-1.5 font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] line-clamp-2 leading-snug">
+          <h3 className="mt-1.5 font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] line-clamp-2 leading-snug break-words">
             {data.title}
           </h3>
 
@@ -346,8 +363,8 @@ const VideoResultView: React.FC<{
           )}
         </div>
 
-        <div className="space-y-2.5">
-          {/* Primary Button: Best Quality MP4 or Original Image */}
+        <div className="space-y-2.5 w-full">
+          {/* Primary Button: Full-width MP4 HD or Original Image */}
           {primaryFormat && (
             <button
               type="button"
@@ -359,7 +376,7 @@ const VideoResultView: React.FC<{
                   primaryFormat.downloadUrl
                 )
               }
-              className="w-full min-h-[48px] px-5 rounded-xl flex items-center justify-between bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.5)] text-sm font-bold transition-all active:scale-[0.99]"
+              className="w-full min-h-[48px] px-5 rounded-xl flex items-center justify-between bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] hover:shadow-[0_6px_22px_rgba(234,88,12,0.5)] text-sm font-bold transition-all active:scale-[0.99] cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <svg
@@ -367,7 +384,8 @@ const VideoResultView: React.FC<{
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  className="w-4 h-4"
+                  aria-hidden="true"
+                  className="w-4 h-4 shrink-0"
                 >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -385,7 +403,7 @@ const VideoResultView: React.FC<{
                     : `${t.downloadHd1080.split('1080p')[0].trim()} ${primaryFormat.quality} (MP4)`}
                 </span>
               </span>
-              <span dir="ltr" className="font-mono text-xs opacity-90">
+              <span dir="ltr" className="font-mono text-xs opacity-90 shrink-0">
                 {primaryFormat.fileSize
                   ? primaryFormat.fileSize
                   : `${primaryFormat.container} · ${primaryFormat.quality}`}
@@ -393,9 +411,9 @@ const VideoResultView: React.FC<{
             </button>
           )}
 
-          {/* Secondary Quality / Format Buttons (e.g., 720p, 540p, 480p, 360p, 320p, MP3) */}
+          {/* Secondary Quality / Format Buttons (Full-width on mobile, >= 48px height) */}
           {secondaryFormats.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
               {secondaryFormats.map((fmt) => (
                 <button
                   key={fmt.id}
@@ -408,7 +426,7 @@ const VideoResultView: React.FC<{
                       fmt.downloadUrl
                     )
                   }
-                  className="min-h-[44px] px-4 rounded-xl flex items-center justify-between bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-400 text-xs font-bold text-orange-950 dark:text-orange-100 transition-all shadow-sm"
+                  className="w-full min-h-[48px] px-4 rounded-xl flex items-center justify-between bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950 hover:border-orange-400 text-xs sm:text-sm font-bold text-orange-950 dark:text-orange-100 transition-all shadow-sm cursor-pointer"
                 >
                   <span>
                     {activeDownloadId === fmt.id
@@ -423,13 +441,23 @@ const VideoResultView: React.FC<{
                   </span>
                   <span
                     dir="ltr"
-                    className="font-mono text-[11px] text-orange-700 dark:text-amber-400"
+                    className="font-mono text-xs text-orange-700 dark:text-amber-400 shrink-0"
                   >
                     {fmt.fileSize || fmt.quality}
                   </span>
                 </button>
               ))}
             </div>
+          )}
+
+          {/* ÉTAPE 5: Post-download reminder for iOS / mobile ("Retrouvez le fichier dans l'app Fichiers") */}
+          {hasTriggeredDownload && t.iosFilesHint && (
+            <p
+              data-testid="ios-files-hint"
+              className="mt-2 px-3.5 py-2.5 rounded-xl bg-orange-50/90 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50 text-xs text-[#6c4e40] dark:text-orange-200/85 leading-relaxed"
+            >
+              {t.iosFilesHint}
+            </p>
           )}
         </div>
       </div>
@@ -446,6 +474,7 @@ const ProfileDpResultView: React.FC<{
 }> = ({ data, t }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
 
   const qualityBadge = data.quality === 'Standard' ? 'Standard' : 'HD';
   const cleanUsername = data.creatorHandle
@@ -455,6 +484,7 @@ const ProfileDpResultView: React.FC<{
 
   const handleDownloadDp = () => {
     setDownloading(true);
+    setHasTriggeredDownload(true);
     const filename =
       data.platform === 'instagram'
         ? `instagram_${cleanUsername || 'user'}_profile.jpg`
@@ -465,7 +495,7 @@ const ProfileDpResultView: React.FC<{
 
   return (
     <div className="flex flex-col items-center text-center space-y-4 pt-1 relative z-10">
-      <div className="space-y-1">
+      <div className="space-y-1 px-8">
         <div className="flex items-center justify-center gap-2 flex-wrap">
           <h3
             dir="ltr"
@@ -514,7 +544,7 @@ const ProfileDpResultView: React.FC<{
         className={`relative rounded-2xl overflow-hidden bg-[#1f130b] border-2 border-orange-300 dark:border-orange-800/80 shadow-md transition-all duration-200 ${
           isZoomed
             ? 'w-full max-w-lg aspect-square cursor-zoom-out'
-            : 'w-64 h-64 sm:w-72 sm:h-72 cursor-zoom-in'
+            : 'w-60 h-60 sm:w-72 sm:h-72 cursor-zoom-in'
         }`}
       >
         <img
@@ -538,12 +568,12 @@ const ProfileDpResultView: React.FC<{
         </span>
       </div>
 
-      {/* Action Buttons: Télécharger la photo de profil & Ouvrir en grand */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+      {/* Action Buttons: Full-width on mobile, >= 48px */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full sm:w-auto">
         <button
           type="button"
           onClick={handleDownloadDp}
-          className="w-full sm:w-auto min-w-[250px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
+          className="w-full sm:w-auto min-w-[240px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
         >
           {downloading ? t.fetchingOriginalJpg : t.downloadFullSizePhoto}
         </button>
@@ -557,6 +587,15 @@ const ProfileDpResultView: React.FC<{
           {t.hdZoomBtn}
         </button>
       </div>
+
+      {hasTriggeredDownload && t.iosFilesHint && (
+        <p
+          data-testid="ios-files-hint"
+          className="w-full max-w-md px-3.5 py-2.5 rounded-xl bg-orange-50/90 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50 text-xs text-[#6c4e40] dark:text-orange-200/85 leading-relaxed"
+        >
+          {t.iosFilesHint}
+        </p>
+      )}
     </div>
   );
 };
@@ -573,9 +612,11 @@ const CarouselResultView: React.FC<{
   );
   const [zipDownloading, setZipDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
+  const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
 
   useEffect(() => {
     setSelectedIds(data.items.map((item) => item.id));
+    setHasTriggeredDownload(false);
   }, [data.id, data.items]);
 
   const allSelected = selectedIds.length === data.items.length;
@@ -593,11 +634,11 @@ const CarouselResultView: React.FC<{
   const handleDownloadSelected = async () => {
     if (selectedIds.length === 0 || zipDownloading) return;
     setZipDownloading(true);
+    setHasTriggeredDownload(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
     const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
 
     try {
-      // Si une seule slide est sélectionnée, téléchargement direct
       if (selectedSlides.length === 1) {
         const slide = selectedSlides[0];
         const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
@@ -616,7 +657,6 @@ const CarouselResultView: React.FC<{
         return;
       }
 
-      // Si plusieurs slides sont sélectionnées, récupération parallèle par lots et création d'une vraie archive .ZIP
       const zipEntries: Array<{ name: string; data: Uint8Array }> = [];
       for (let i = 0; i < selectedSlides.length; i++) {
         const slide = selectedSlides[i];
@@ -642,7 +682,6 @@ const CarouselResultView: React.FC<{
           `VIDNEX_${cleanHandle}_carousel_${zipEntries.length}_slides.zip`
         );
       } else {
-        // Fallback de secours si fetch CORS échoue
         selectedSlides.forEach((slide, idx) => {
           const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
           setTimeout(() => {
@@ -671,7 +710,7 @@ const CarouselResultView: React.FC<{
 
   return (
     <div className="space-y-4 relative z-10">
-      <div className="flex flex-wrap items-center justify-between gap-3 pr-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-12 rtl:pr-0 rtl:pl-12">
         <div>
           <span
             dir="ltr"
@@ -685,11 +724,11 @@ const CarouselResultView: React.FC<{
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={handleToggleSelectAll}
-            className="px-3.5 py-2 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors"
+            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer"
           >
             {allSelected ? t.deselectAll : t.selectAll}
           </button>
@@ -698,7 +737,7 @@ const CarouselResultView: React.FC<{
             type="button"
             disabled={selectedIds.length === 0 || zipDownloading}
             onClick={handleDownloadSelected}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:opacity-40 text-white font-mono text-xs font-bold shadow-sm transition-all"
+            className="min-h-[48px] px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:opacity-40 text-white font-mono text-xs font-bold shadow-sm transition-all cursor-pointer"
           >
             {zipDownloading
               ? `${t.packagingZip}${downloadProgress ? ` (${downloadProgress})` : ''}`
@@ -748,7 +787,7 @@ const CarouselResultView: React.FC<{
                   className="w-full h-full object-cover"
                 />
                 <span
-                  className={`absolute top-2 left-2 w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-colors ${
+                  className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-colors ${
                     isSelected
                       ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
                       : 'bg-black/50 text-transparent border border-white/50'
@@ -769,16 +808,17 @@ const CarouselResultView: React.FC<{
                 aria-label={`Download Slide ${slide.index}`}
                 onClick={(e) => {
                   e.stopPropagation();
+                  setHasTriggeredDownload(true);
                   triggerNativeBackendDownload(slideFilename, slide.downloadUrl);
                 }}
-                className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center shadow-md transition-transform active:scale-95"
+                className="absolute bottom-2 right-2 w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer"
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.2"
-                  className="w-3.5 h-3.5"
+                  className="w-4 h-4"
                 >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -795,6 +835,7 @@ const CarouselResultView: React.FC<{
           <button
             type="button"
             onClick={() => {
+              setHasTriggeredDownload(true);
               const cleanHandle = data.creatorHandle.replace(
                 /[^a-zA-Z0-9_-]/g,
                 ''
@@ -804,12 +845,21 @@ const CarouselResultView: React.FC<{
                 data.audioTrack?.downloadUrl
               );
             }}
-            className="px-4 py-2 rounded-xl bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 text-xs font-mono font-bold text-orange-950 dark:text-orange-100 transition-colors"
+            className="w-full sm:w-auto min-h-[48px] px-4 py-2 rounded-xl bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 text-xs font-mono font-bold text-orange-950 dark:text-orange-100 transition-colors cursor-pointer"
           >
             {t.extractAudioMp3}
             {data.audioTrack.fileSize ? ` (${data.audioTrack.fileSize})` : ''}
           </button>
         </div>
+      )}
+
+      {hasTriggeredDownload && t.iosFilesHint && (
+        <p
+          data-testid="ios-files-hint"
+          className="px-3.5 py-2.5 rounded-xl bg-orange-50/90 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50 text-xs text-[#6c4e40] dark:text-orange-200/85 leading-relaxed"
+        >
+          {t.iosFilesHint}
+        </p>
       )}
     </div>
   );

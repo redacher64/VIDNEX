@@ -131,6 +131,13 @@ export interface LocaleBundle {
       errInvalidUrl: string;
       errClipboardBlocked: string;
       comingSoonNotice: string;
+      samples: {
+        igReel: string;
+        tiktokVid: string;
+        xVid: string;
+        fbVid: string;
+        igDp: string;
+      };
     };
     drawer: {
       bypassingWatermark: string;
@@ -150,6 +157,7 @@ export interface LocaleBundle {
       buildingZip: string;
       viewFullSizeDp: string;
       downloadHdJpg: string;
+      iosFilesHint: string;
     };
     sections: {
       bentoCards: [

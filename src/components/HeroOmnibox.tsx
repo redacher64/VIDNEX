@@ -158,7 +158,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   const homeHref = getLocalizedPagePath(language, 'home');
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-8 sm:pt-12 pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-6 sm:pt-12 pb-8 sm:pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
       <div className="max-w-[1380px] mx-auto px-4 sm:px-6 relative z-10 flex items-start justify-center gap-6">
         {/* Left Vertical Column Ad (160×600 Skyscraper) */}
         <div className="hidden xl:block pt-2">
@@ -174,7 +174,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
           {isPlatformPageKey(pageKey) && (
             <nav
               aria-label="Breadcrumb"
-              className="mb-4 flex items-center justify-center gap-2 text-xs font-mono text-[#6c4e40] dark:text-orange-200/75"
+              className="mb-3 sm:mb-4 flex items-center justify-center gap-2 text-xs font-mono text-[#6c4e40] dark:text-orange-200/75"
             >
               <a
                 href={homeHref}
@@ -199,22 +199,22 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
           )}
 
           {/* Eyebrow Technical Specs Line */}
-          <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[11px] font-semibold tracking-widest uppercase mb-4">
+          <div className="inline-flex items-center gap-2 text-orange-800 dark:text-amber-400 font-mono text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase mb-3 sm:mb-4">
             <span>{pageContent.specs.join(' · ')}</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
+          <h1 className="font-display text-2xl sm:text-5xl font-bold tracking-tight text-[#1f130b] dark:text-[#fffaf5] max-w-2xl mx-auto leading-tight">
             {pageContent.h1}
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-3.5 text-base sm:text-lg text-[#6c4e40] dark:text-orange-200/75 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-2.5 sm:mt-3.5 text-sm sm:text-lg text-[#6c4e40] dark:text-orange-200/75 max-w-2xl mx-auto leading-relaxed">
             {pageContent.subtitle}
           </p>
 
           {/* Master URL Input Omnibox */}
-          <form onSubmit={handleFormSubmit} noValidate className="mt-8 w-full">
+          <form onSubmit={handleFormSubmit} noValidate className="mt-6 sm:mt-8 w-full">
             <div
               className={`bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl shadow-orange-glow border-2 transition-all flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
                 detected.isValid
@@ -343,8 +343,8 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             )}
           </form>
 
-          {/* Direct Platform Links Pill Row (real <a href> links) + ShareButton */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {/* Direct Platform Links Pill Row (real <a href> links on md+, hidden on mobile where sticky Header bar is visible) + ShareButton */}
+          <div className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-2">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pInfo = bundle.platforms[pKey];
               const isSelected = pageKey === pKey;
@@ -357,7 +357,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                     e.preventDefault();
                     onNavigatePage(pKey);
                   }}
-                  className={`px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`hidden md:flex px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap items-center gap-1.5 ${
                     isSelected
                       ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
                       : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/80 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
@@ -372,7 +372,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
           </div>
 
           {/* Quick Sample Test Links */}
-          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
             <span className="text-xs text-orange-900/60 dark:text-orange-200/60 font-medium">
               {t.trySampleLabel}
             </span>

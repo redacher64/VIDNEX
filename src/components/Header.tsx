@@ -49,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
   const bundle = getLocaleBundleSync(language);
@@ -62,35 +63,45 @@ export const Header: React.FC<HeaderProps> = ({
     activePageKey === 'not_found' ? 'home' : activePageKey;
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      const inDesktopMore =
+        dropdownRef.current && dropdownRef.current.contains(target);
+      const inMobileMore =
+        mobileDropdownRef.current && mobileDropdownRef.current.contains(target);
+      if (!inDesktopMore && !inMobileMore) {
         setMoreMenuOpen(false);
       }
       if (
         langDropdownRef.current &&
-        !langDropdownRef.current.contains(event.target as Node)
+        !langDropdownRef.current.contains(target)
       ) {
         setLangMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, {
+      passive: true,
+    });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const homeHref = getLocalizedPagePath(language, 'home');
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#fffaf5]/85 dark:bg-[#140e0a]/85 backdrop-blur-xl border-b border-orange-200/60 dark:border-orange-900/50 shadow-[0_4px_24px_rgba(234,88,12,0.06)]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 w-full bg-[#fffaf5]/90 dark:bg-[#140e0a]/90 backdrop-blur-xl border-b border-orange-200/60 dark:border-orange-900/50 shadow-[0_4px_24px_rgba(234,88,12,0.06)]">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
         {/* Brand Wordmark linking to localized Home */}
         <a
           href={homeHref}
           dir="ltr"
           onClick={(e) => {
             e.preventDefault();
+            setMoreMenuOpen(false);
+            setLangMenuOpen(false);
             onNavigatePage('home');
           }}
           className="flex items-center gap-2.5 shrink-0 group focus:outline-none"
@@ -103,10 +114,10 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </a>
 
-        {/* Center: Segmented Platform Navigation with real <a href> links */}
+        {/* Center (Desktop): Segmented Platform Navigation with real <a href> links */}
         <nav
           aria-label="Platform Navigation"
-          className="hidden sm:flex items-center gap-1 p-1 bg-orange-100/50 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner"
+          className="hidden md:flex items-center gap-1 p-1 bg-orange-100/50 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner"
         >
           {primaryTabs.map((tab) => {
             const pKey = tab.id as PlatformPageKey;
@@ -138,6 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
                 href={href}
                 onClick={(e) => {
                   e.preventDefault();
+                  setMoreMenuOpen(false);
                   onNavigatePage(pKey);
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
@@ -152,24 +164,34 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
 
-          {/* Subtle More Menu for upcoming platforms */}
+          {/* Subtle More Menu for upcoming platforms (YouTube, Snapchat) */}
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setMoreMenuOpen((prev) => !prev)}
               aria-expanded={moreMenuOpen}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50"
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                moreMenuOpen
+                  ? 'bg-white dark:bg-[#2f2016] text-orange-600 dark:text-amber-400 shadow-sm'
+                  : 'text-[#6c4e40] dark:text-orange-200/75 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
+              }`}
             >
               <span>{navStrings.morePlatforms}</span>
-              <span className="text-[10px] leading-none opacity-75">▾</span>
+              <span
+                className={`text-[10px] leading-none opacity-75 transition-transform duration-150 ${
+                  moreMenuOpen ? 'rotate-180' : ''
+                }`}
+              >
+                ▾
+              </span>
             </button>
 
             {moreMenuOpen && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-48 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-52 bg-white/95 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/80 dark:border-orange-900/60 shadow-orange-glow p-1.5 z-50">
                 {secondaryTabs.map((tab) => (
                   <div
                     key={tab.id}
-                    className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold opacity-55 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/50"
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold opacity-65 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/60"
                   >
                     <span className="flex items-center gap-2">
                       <PlatformIcon platform={tab.id} className="w-3.5 h-3.5" />
@@ -190,10 +212,13 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="relative" ref={langDropdownRef}>
             <button
               type="button"
-              onClick={() => setLangMenuOpen((prev) => !prev)}
+              onClick={() => {
+                setLangMenuOpen((prev) => !prev);
+                setMoreMenuOpen(false);
+              }}
               aria-expanded={langMenuOpen}
               aria-label={navStrings.languageLabel}
-              className="h-9 px-3 rounded-xl flex items-center gap-1.5 bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors"
+              className="h-9 px-3 rounded-xl flex items-center gap-1.5 bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -264,7 +289,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ? navStrings.switchToDark
                 : navStrings.switchToLight
             }
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 text-orange-600 dark:text-amber-400 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 text-orange-600 dark:text-amber-400 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors cursor-pointer"
           >
             {theme === 'light' ? (
               <svg
@@ -299,35 +324,100 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Compact Platform Links Bar */}
-      <div className="flex sm:hidden overflow-x-auto px-4 pb-2.5 gap-1.5 no-scrollbar">
-        {primaryTabs.map((tab) => {
-          const pKey = tab.id as PlatformPageKey;
-          const isActive = activePageKey === pKey;
-          const supported = isPlatformSupported(tab.id);
-          const href = getLocalizedPagePath(language, pKey);
+      {/* Mobile & Tablet-Portrait Segmented Platform Navigation + "Plus" (YouTube, Snapchat) Menu */}
+      <div
+        className="relative md:hidden px-3 pb-2.5"
+        ref={mobileDropdownRef}
+      >
+        <nav
+          aria-label="Mobile Platform Navigation"
+          className="flex items-center gap-1 p-1 bg-orange-100/60 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner overflow-x-auto no-scrollbar"
+        >
+          {primaryTabs.map((tab) => {
+            const pKey = tab.id as PlatformPageKey;
+            const isActive =
+              activePageKey === pKey ||
+              (activePageKey === 'home' && activePlatform === tab.id);
+            const supported = isPlatformSupported(tab.id);
+            const href = getLocalizedPagePath(language, pKey);
+            const mobileShortLabel = tab.id === 'x' ? 'X' : tab.label;
 
-          return (
-            <a
-              key={tab.id}
-              href={href}
-              onClick={(e) => {
-                e.preventDefault();
-                if (supported) onNavigatePage(pKey);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-                !supported
-                  ? 'opacity-50 pointer-events-none bg-white/60 dark:bg-[#231710]/60 text-[#6c4e40] dark:text-orange-200/50 border border-orange-200/50 dark:border-orange-900/40'
-                  : isActive
-                  ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
-                  : 'bg-white/90 dark:bg-[#231710] text-[#6c4e40] dark:text-orange-200/75 border border-orange-200/80 dark:border-orange-900/50'
+            return (
+              <a
+                key={tab.id}
+                href={href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMoreMenuOpen(false);
+                  if (supported) onNavigatePage(pKey);
+                }}
+                className={`flex-1 min-w-fit flex items-center justify-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
+                  !supported
+                    ? 'opacity-50 pointer-events-none text-[#6c4e40] dark:text-orange-200/50'
+                    : isActive
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
+                    : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 active:bg-orange-200/50 dark:active:bg-orange-950/60'
+                }`}
+              >
+                <PlatformIcon
+                  platform={tab.id}
+                  className="w-3.5 h-3.5 shrink-0"
+                />
+                <span className="sm:hidden">{mobileShortLabel}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+              </a>
+            );
+          })}
+
+          {/* Mobile "Plus" Button for upcoming platforms (YouTube, Snapchat) */}
+          <button
+            type="button"
+            onClick={() => {
+              setMoreMenuOpen((prev) => !prev);
+              setLangMenuOpen(false);
+            }}
+            aria-expanded={moreMenuOpen}
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              moreMenuOpen
+                ? 'bg-white dark:bg-[#2f2016] text-orange-600 dark:text-amber-400 shadow-sm border border-orange-300/70 dark:border-orange-800/70'
+                : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 active:bg-orange-200/50 dark:active:bg-orange-950/60'
+            }`}
+          >
+            <span>{navStrings.morePlatforms}</span>
+            <span
+              className={`text-[10px] leading-none opacity-80 transition-transform duration-150 ${
+                moreMenuOpen ? 'rotate-180' : ''
               }`}
             >
-              <PlatformIcon platform={tab.id} className="w-3 h-3" />
-              <span>{tab.label}</span>
-            </a>
-          );
-        })}
+              ▾
+            </span>
+          </button>
+        </nav>
+
+        {/* Mobile Dropdown Panel (rendered outside overflow-x-auto so it is never clipped) */}
+        {moreMenuOpen && (
+          <div className="absolute left-3 right-3 sm:left-auto sm:right-3 sm:w-64 top-full mt-1 bg-[#fffaf5] dark:bg-[#1c140e] rounded-2xl border border-orange-200 dark:border-orange-900/80 shadow-[0_12px_32px_rgba(234,88,12,0.2)] p-2 z-50">
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-1.5">
+              {secondaryTabs.map((tab) => (
+                <div
+                  key={tab.id}
+                  className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-orange-50/80 dark:bg-[#241811] border border-orange-200/70 dark:border-orange-900/50 text-xs font-semibold opacity-80 cursor-not-allowed text-[#6c4e40] dark:text-orange-200/80"
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <PlatformIcon
+                      platform={tab.id}
+                      className="w-3.5 h-3.5 shrink-0 text-orange-600 dark:text-amber-400"
+                    />
+                    <span className="truncate">{tab.label}</span>
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-orange-200/70 dark:bg-orange-950/90 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400 shrink-0">
+                    {navStrings.soonBadge}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

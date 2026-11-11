@@ -101,8 +101,8 @@ export const LanguageSuggestionBanner: React.FC<
       dir={targetMeta.dir}
       className="relative z-40 w-full bg-orange-100/90 dark:bg-[#231710] border-b border-orange-200/80 dark:border-orange-900/60 px-4 py-2 text-xs text-[#1f130b] dark:text-[#fffaf5]"
     >
-      <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-medium text-[#6c4e40] dark:text-orange-200/85">
             {bannerText.suggestText}
           </span>
@@ -113,7 +113,7 @@ export const LanguageSuggestionBanner: React.FC<
               onSelectLocale(suggestedLocale);
               setSuggestedLocale(null);
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-colors shadow-sm"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-colors shadow-sm whitespace-nowrap"
           >
             <span>{bannerText.switchCta}</span>
             <span className="font-mono text-[10px] opacity-85">
@@ -126,7 +126,7 @@ export const LanguageSuggestionBanner: React.FC<
           type="button"
           onClick={handleDismiss}
           aria-label={bannerText.dismissAria}
-          className="px-2 py-1 rounded-lg text-[#6c4e40] dark:text-orange-200/75 hover:bg-orange-200/60 dark:hover:bg-orange-950/60 font-mono text-xs font-bold transition-colors"
+          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-[#6c4e40] dark:text-orange-200/75 hover:bg-orange-200/60 dark:hover:bg-orange-950/60 font-mono text-sm font-bold transition-colors cursor-pointer"
         >
           ×
         </button>

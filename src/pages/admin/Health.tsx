@@ -9,8 +9,15 @@ import {
   Info,
 } from './AdminIcons';
 
+type HealthPlatformId =
+  | 'tiktok'
+  | 'instagram'
+  | 'instagram_profile'
+  | 'x'
+  | 'facebook';
+
 interface EngineRow {
-  platform: 'tiktok' | 'instagram' | 'x' | 'facebook';
+  platform: HealthPlatformId;
   last_success_ts: number | null;
   last_test_ts: number | null;
   last_test_ok: number | null;
@@ -27,12 +34,7 @@ import {
 export { DEFAULT_ENGINE_TEST_URLS, DEFAULT_X_TEST_URL, getEngineStatusLabel };
 
 export const Health: React.FC = () => {
-  const [engines, setEngines] = useState<{
-    tiktok: EngineRow;
-    instagram: EngineRow;
-    x: EngineRow;
-    facebook: EngineRow;
-  }>({
+  const [engines, setEngines] = useState<Record<HealthPlatformId, EngineRow>>({
     tiktok: {
       platform: 'tiktok',
       last_success_ts: null,
@@ -48,6 +50,14 @@ export const Health: React.FC = () => {
       last_test_ok: 1,
       last_error_code: null,
       test_url: DEFAULT_ENGINE_TEST_URLS.instagram,
+    },
+    instagram_profile: {
+      platform: 'instagram_profile',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: '',
     },
     x: {
       platform: 'x',
@@ -69,11 +79,10 @@ export const Health: React.FC = () => {
   const [igCookieConfigured, setIgCookieConfigured] = useState(false);
   const [tiktokUrl, setTiktokUrl] = useState(DEFAULT_ENGINE_TEST_URLS.tiktok);
   const [instagramUrl, setInstagramUrl] = useState(DEFAULT_ENGINE_TEST_URLS.instagram);
+  const [instagramProfileUrl, setInstagramProfileUrl] = useState('');
   const [xUrl, setXUrl] = useState(DEFAULT_X_TEST_URL);
   const [facebookUrl, setFacebookUrl] = useState('');
-  const [testingPlatform, setTestingPlatform] = useState<
-    'tiktok' | 'instagram' | 'x' | 'facebook' | null
-  >(null);
+  const [testingPlatform, setTestingPlatform] = useState<HealthPlatformId | null>(null);
   const [testFeedback, setTestFeedback] = useState<
     Record<string, { ok: boolean; message: string }>
   >({});
@@ -103,6 +112,12 @@ export const Health: React.FC = () => {
                 test_url: data.engines.instagram.test_url || DEFAULT_ENGINE_TEST_URLS.instagram,
               }
             : prev.instagram,
+          instagram_profile: data.engines?.instagram_profile
+            ? {
+                ...data.engines.instagram_profile,
+                test_url: data.engines.instagram_profile.test_url || '',
+              }
+            : prev.instagram_profile,
           x: data.engines?.x
             ? {
                 ...data.engines.x,
@@ -123,6 +138,12 @@ export const Health: React.FC = () => {
         if (data.engines?.instagram?.test_url) {
           setInstagramUrl(data.engines.instagram.test_url);
         }
+        if (
+          typeof data.engines?.instagram_profile?.test_url === 'string' &&
+          data.engines.instagram_profile.test_url
+        ) {
+          setInstagramProfileUrl(data.engines.instagram_profile.test_url);
+        }
         if (data.engines?.x?.test_url) {
           setXUrl(data.engines.x.test_url);
         }
@@ -139,12 +160,14 @@ export const Health: React.FC = () => {
     loadHealth();
   }, []);
 
-  const handleTestEngine = async (platform: 'tiktok' | 'instagram' | 'x' | 'facebook') => {
+  const handleTestEngine = async (platform: HealthPlatformId) => {
     const rawUrl = (
       platform === 'tiktok'
         ? tiktokUrl
         : platform === 'instagram'
         ? instagramUrl
+        : platform === 'instagram_profile'
+        ? instagramProfileUrl
         : platform === 'x'
         ? xUrl
         : facebookUrl
@@ -246,12 +269,20 @@ export const Health: React.FC = () => {
           Santé des moteurs d’extraction
         </h2>
         <p className="text-xs text-orange-200/65 font-mono">
-          Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, X (Twitter) et Facebook)
+          Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, Profil Instagram, X et Facebook)
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {(['tiktok', 'instagram', 'x', 'facebook'] as const).map((platform) => {
+        {(
+          [
+            'tiktok',
+            'instagram',
+            'instagram_profile',
+            'x',
+            'facebook',
+          ] as const
+        ).map((platform) => {
           const info = engines[platform];
           const isHealthy = info?.last_test_ok !== 0;
           const statusLabel = getEngineStatusLabel(info?.last_test_ok);
@@ -260,6 +291,8 @@ export const Health: React.FC = () => {
               ? tiktokUrl
               : platform === 'instagram'
               ? instagramUrl
+              : platform === 'instagram_profile'
+              ? instagramProfileUrl
               : platform === 'x'
               ? xUrl
               : facebookUrl;
@@ -268,6 +301,8 @@ export const Health: React.FC = () => {
               ? setTiktokUrl
               : platform === 'instagram'
               ? setInstagramUrl
+              : platform === 'instagram_profile'
+              ? setInstagramProfileUrl
               : platform === 'x'
               ? setXUrl
               : setFacebookUrl;
@@ -277,6 +312,8 @@ export const Health: React.FC = () => {
               ? 'TikTok'
               : platform === 'instagram'
               ? 'Instagram'
+              : platform === 'instagram_profile'
+              ? 'Profil Instagram'
               : platform === 'x'
               ? 'X (Twitter)'
               : 'Facebook';
@@ -285,6 +322,8 @@ export const Health: React.FC = () => {
               ? 'TikWM / HTML'
               : platform === 'instagram'
               ? 'Embed / GraphQL'
+              : platform === 'instagram_profile'
+              ? 'web_profile_info / OG / Polaris'
               : platform === 'x'
               ? 'Syndication twimg.com'
               : 'HTML / Mobile Multi-Niveaux';

@@ -77,11 +77,11 @@ const bootstrappedDbs = new WeakSet<object>();
 
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
-  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('rate_limit_per_min', '30'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_x', ''), ('test_url_facebook', '')`,
+  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('rate_limit_per_min', '30'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', '')`,
   `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
   `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT)`,
-  `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES ('tiktok', NULL, NULL, NULL, NULL), ('instagram', NULL, NULL, NULL, NULL), ('x', NULL, NULL, NULL, NULL), ('facebook', NULL, NULL, NULL, NULL)`,
+  `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES ('tiktok', NULL, NULL, NULL, NULL), ('instagram', NULL, NULL, NULL, NULL), ('instagram_profile', NULL, NULL, NULL, NULL), ('x', NULL, NULL, NULL, NULL), ('facebook', NULL, NULL, NULL, NULL)`,
   `CREATE TABLE IF NOT EXISTS blocklist (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, value TEXT NOT NULL, created_ts INTEGER NOT NULL, UNIQUE(type, value))`,
   `CREATE TABLE IF NOT EXISTS rate_limits (ip_hash TEXT NOT NULL, window INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (ip_hash, window))`,
   `CREATE TABLE IF NOT EXISTS login_attempts (ip_hash TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, window_start_ts INTEGER NOT NULL, blocked_until_ts INTEGER)`,
@@ -188,6 +188,7 @@ export function createMemoryD1Database(): D1Database {
     ['ads_enabled', 'true'],
     ['test_url_tiktok', ''],
     ['test_url_instagram', ''],
+    ['test_url_instagram_profile', ''],
     ['test_url_x', ''],
     ['test_url_facebook', ''],
   ]);
@@ -242,6 +243,16 @@ export function createMemoryD1Database(): D1Database {
       'instagram',
       {
         platform: 'instagram',
+        last_success_ts: null,
+        last_test_ts: null,
+        last_test_ok: null,
+        last_error_code: null,
+      },
+    ],
+    [
+      'instagram_profile',
+      {
+        platform: 'instagram_profile',
         last_success_ts: null,
         last_test_ts: null,
         last_test_ok: null,

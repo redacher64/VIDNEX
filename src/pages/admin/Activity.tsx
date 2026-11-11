@@ -102,6 +102,8 @@ export const Activity: React.FC = () => {
                         ? 'X (Twitter)'
                         : row.platform === 'facebook'
                         ? 'Facebook'
+                        : row.platform === 'instagram_profile'
+                        ? 'Profil Instagram'
                         : row.platform}
                     </td>
                     <td className="py-3 px-4">

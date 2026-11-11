@@ -74,6 +74,7 @@ export interface ProfileDpMediaResult extends BaseMediaResult {
   followersCount?: string;
   standardPreviewUrl: string;
   hdOriginalUrl: string;
+  quality: 'HD' | 'Standard';
   dimensions?: string;
   fileSize?: string;
   format: 'JPG';
@@ -97,10 +98,140 @@ export type MediaResult =
   | ProfileDpMediaResult
   | CarouselMediaResult;
 
+const PROFILE_ERROR_MESSAGES: Record<
+  LanguageCode,
+  {
+    NOT_FOUND: string;
+    BLOCKED_BY_PLATFORM: string;
+    PRIVATE_OR_LOGIN_REQUIRED: string;
+    TIMEOUT: string;
+  }
+> = {
+  fr: {
+    NOT_FOUND:
+      "Compte introuvable. Ce profil Instagram n'existe pas ou a été supprimé.",
+    BLOCKED_BY_PLATFORM:
+      'Instagram bloque temporairement la demande, réessayez plus tard.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Impossible de récupérer la photo de profil publique pour ce compte.',
+    TIMEOUT:
+      "Délai d'attente dépassé lors de la récupération de la photo de profil. Réessayez plus tard.",
+  },
+  en: {
+    NOT_FOUND:
+      'Account not found. This Instagram profile does not exist or has been removed.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram is temporarily blocking the request, please try again later.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Unable to retrieve the public profile photo for this account.',
+    TIMEOUT:
+      'Request timed out while fetching the profile photo. Please try again.',
+  },
+  ar: {
+    NOT_FOUND: 'الحساب غير موجود. ملف إنستغرام هذا غير موجود أو تم حذفه.',
+    BLOCKED_BY_PLATFORM:
+      'يحظر إنستغرام الطلب مؤقتاً، يرجى المحاولة مرة أخرى لاحقاً.',
+    PRIVATE_OR_LOGIN_REQUIRED: 'تعذر جلب صورة الملف الشخصي العامة لهذا الحساب.',
+    TIMEOUT: 'انتهت مهلة الاتصال أثناء جلب صورة الملف الشخصي. حاول مرة أخرى.',
+  },
+  es: {
+    NOT_FOUND:
+      'Cuenta no encontrada. Este perfil de Instagram no existe o fue eliminado.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram está bloqueando temporalmente la solicitud, inténtalo más tarde.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'No fue posible obtener la foto de perfil pública de esta cuenta.',
+    TIMEOUT:
+      'Tiempo de espera agotado al obtener la foto de perfil. Inténtalo de nuevo.',
+  },
+  pt: {
+    NOT_FOUND:
+      'Conta não encontrada. Este perfil do Instagram não existe ou foi removido.',
+    BLOCKED_BY_PLATFORM:
+      'O Instagram está bloqueando temporariamente a solicitação, tente novamente mais tarde.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Não foi possível obter a foto de perfil pública desta conta.',
+    TIMEOUT:
+      'Tempo limite esgotado ao buscar a foto de perfil. Tente novamente.',
+  },
+  de: {
+    NOT_FOUND:
+      'Konto nicht gefunden. Dieses Instagram-Profil existiert nicht oder wurde gelöscht.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram blockiert die Anfrage vorübergehend, bitte später erneut versuchen.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Das öffentliche Profilbild für dieses Konto konnte nicht abgerufen werden.',
+    TIMEOUT:
+      'Zeitüberschreitung beim Abrufen des Profilbilds. Bitte erneut versuchen.',
+  },
+  tr: {
+    NOT_FOUND:
+      'Hesap bulunamadı. Bu Instagram profili mevcut değil veya silinmiş.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram isteği geçici olarak engelliyor, lütfen daha sonra tekrar deneyin.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Bu hesabın herkese açık profil fotoğrafı alınamadı.',
+    TIMEOUT:
+      'Profil fotoğrafı alınırken zaman aşımı oluştu. Lütfen tekrar deneyin.',
+  },
+  id: {
+    NOT_FOUND:
+      'Akun tidak ditemukan. Profil Instagram ini tidak ada atau telah dihapus.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram memblokir permintaan sementara, silakan coba lagi nanti.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Tidak dapat mengambil foto profil publik untuk akun ini.',
+    TIMEOUT:
+      'Waktu tunggu habis saat mengambil foto profil. Silakan coba lagi.',
+  },
+  it: {
+    NOT_FOUND:
+      'Account non trovato. Questo profilo Instagram non esiste o è stato rimosso.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram sta temporaneamente bloccando la richiesta, riprova più tardi.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Impossibile recuperare la foto del profilo pubblica per questo account.',
+    TIMEOUT:
+      'Tempo scaduto durante il recupero della foto del profilo. Riprova.',
+  },
+  ru: {
+    NOT_FOUND:
+      'Аккаунт не найден. Этот профиль Instagram не существует или был удалён.',
+    BLOCKED_BY_PLATFORM:
+      'Instagram временно блокирует запрос, попробуйте позже.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Не удалось получить публичное фото профиля для этого аккаунта.',
+    TIMEOUT: 'Превышено время ожидания при загрузке фото профиля. Повторите попытку.',
+  },
+};
+
 export function getLocalizedErrorMessage(
   code: string,
-  language: LanguageCode = 'fr'
+  language: LanguageCode = 'fr',
+  options?: { isProfile?: boolean }
 ): string {
+  const profileDict =
+    PROFILE_ERROR_MESSAGES[language] || PROFILE_ERROR_MESSAGES.fr;
+
+  if (code === 'PROFILE_NOT_FOUND' || (options?.isProfile && code === 'NOT_FOUND')) {
+    return profileDict.NOT_FOUND;
+  }
+  if (
+    code === 'PROFILE_BLOCKED_BY_PLATFORM' ||
+    (options?.isProfile && code === 'BLOCKED_BY_PLATFORM')
+  ) {
+    return profileDict.BLOCKED_BY_PLATFORM;
+  }
+  if (
+    code === 'PROFILE_PRIVATE_OR_LOGIN_REQUIRED' ||
+    (options?.isProfile && code === 'PRIVATE_OR_LOGIN_REQUIRED')
+  ) {
+    return profileDict.PRIVATE_OR_LOGIN_REQUIRED;
+  }
+  if (code === 'PROFILE_TIMEOUT' || (options?.isProfile && code === 'TIMEOUT')) {
+    return profileDict.TIMEOUT;
+  }
+
   const dict = getLocaleBundleSync(language).ui.errors as unknown as Record<
     string,
     string
@@ -160,7 +291,9 @@ export async function extractMediaFromUrl(
 
   if (!data || !data.ok || data.error) {
     const errCode = data?.error?.code || 'BLOCKED_BY_PLATFORM';
-    const localized = getLocalizedErrorMessage(errCode, language);
+    const localized = getLocalizedErrorMessage(errCode, language, {
+      isProfile: detected.mediaType === 'profile',
+    });
     throw new Error(localized);
   }
 
@@ -168,9 +301,13 @@ export async function extractMediaFromUrl(
     (data.platform as PlatformId) ||
     (detected.platform as PlatformId) ||
     'tiktok';
-  const authorName =
-    data.author?.nickname || `@${data.author?.username || 'user'}`;
   const creatorHandle = `@${(data.author?.username || 'user').replace(/^@/, '')}`;
+  const fullAuthorName =
+    data.author?.full_name ||
+    (data.author?.nickname && data.author.nickname !== creatorHandle
+      ? data.author.nickname
+      : '');
+  const authorName = fullAuthorName || creatorHandle;
   const nowTime = new Date().toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -186,7 +323,15 @@ export async function extractMediaFromUrl(
       : 'Instagram Reel');
 
   // 1. Format Photo de Profil (DP)
-  if (data.type === 'profile' || detected.mediaType === 'profile') {
+  const isProfilePayload =
+    data.type === 'profile' ||
+    detected.mediaType === 'profile' ||
+    (platform === 'instagram' &&
+      data.type === 'image' &&
+      typeof data.title === 'string' &&
+      /^@[a-z0-9._]{1,30}$/i.test(data.title.trim()));
+
+  if (isProfilePayload) {
     const dpItem = data.items?.[0];
     const previewUrl = resolveApiUrl(
       data.thumbnail || data.author?.avatar || dpItem?.url || ''
@@ -196,6 +341,10 @@ export async function extractMediaFromUrl(
       dpItem?.width && dpItem?.height
         ? `${dpItem.width} × ${dpItem.height}`
         : dpItem?.dimensions || undefined;
+    const itemQuality: 'HD' | 'Standard' =
+      String(dpItem?.quality || 'HD').toLowerCase() === 'standard'
+        ? 'Standard'
+        : 'HD';
 
     return {
       id: `dp-${Date.now()}`,
@@ -207,13 +356,14 @@ export async function extractMediaFromUrl(
           : `Instagram Profile (${creatorHandle})`,
       sourceUrl: url,
       creatorHandle,
-      creatorName: authorName,
+      creatorName: fullAuthorName,
       verified: Boolean(data.author?.verified),
       extractedAt: nowTime,
       biography: data.author?.biography || data.title || '',
       followersCount: data.author?.followers || undefined,
       standardPreviewUrl: previewUrl,
       hdOriginalUrl: downloadUrl,
+      quality: itemQuality,
       dimensions: realDimensions,
       fileSize: dpItem?.size || undefined,
       format: 'JPG',

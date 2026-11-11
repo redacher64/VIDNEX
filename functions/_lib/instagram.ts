@@ -15,7 +15,7 @@
  *   `api.vxinstagram.com` / `d.ddinstagram.com` si l'IP Cloudflare est filtrée.
  */
 
-import { fetchWithContext, BROWSER_USER_AGENT } from './http.ts';
+import { fetchWithContext, BROWSER_USER_AGENT, isTimeoutError } from './http.ts';
 import type { ExtractResponse, ExtractMediaItem } from './normalize.ts';
 
 const IG_WEB_APP_ID = '936619743392459';
@@ -951,128 +951,646 @@ async function extractViaPublicFreeFallbacks(
   return null;
 }
 
-/**
- * Extraction d'une Photo de Profil Instagram HD DP (`@username`)
- */
-async function extractInstagramProfile(
-  rawUsername: string,
-  auth: ParsedInstagramAuth
-): Promise<ExtractResponse> {
-  const username = rawUsername.replace(/^@/, '').trim();
+interface ProfileSuccessBuildOptions {
+  username: string;
+  fullName?: string;
+  photoUrl: string;
+  quality: 'HD' | 'Standard';
+  followers?: string;
+  biography?: string;
+  verified?: boolean;
+  width?: number;
+  height?: number;
+}
 
-  // 1. API officielle Web Profile Info
+function buildInstagramProfileResponse(
+  opts: ProfileSuccessBuildOptions
+): ExtractResponse {
+  const cleanUser = opts.username.replace(/^@/, '').trim().toLowerCase();
+  const cleanPhoto = cleanEscapedUrl(opts.photoUrl);
+  const cleanFullName = opts.fullName ? cleanEscapedUrl(String(opts.fullName)).trim() : '';
+
+  return {
+    ok: true,
+    platform: 'instagram',
+    type: 'image',
+    title: `@${cleanUser}`,
+    author: {
+      username: cleanUser,
+      nickname: cleanFullName || `@${cleanUser}`,
+      full_name: cleanFullName || undefined,
+      avatar: cleanPhoto,
+      followers: opts.followers,
+      biography: opts.biography ? cleanEscapedUrl(String(opts.biography)).trim() : undefined,
+      verified: Boolean(opts.verified),
+    },
+    thumbnail: cleanPhoto,
+    items: [
+      {
+        kind: 'image',
+        url: cleanPhoto,
+        quality: opts.quality,
+        ext: 'jpg',
+        width: opts.width,
+        height: opts.height,
+      },
+    ],
+  };
+}
+
+async function fetchProfileManual(
+  url: string,
+  init: RequestInit,
+  timeoutMs = 8000,
+  customFetch: typeof fetch = globalThis.fetch
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const headers: Record<string, string> = {
-      'User-Agent': BROWSER_USER_AGENT,
-      'X-IG-App-ID': IG_WEB_APP_ID,
-      'X-ASBD-ID': IG_ASBD_ID,
-      'X-CSRFToken': auth.csrfToken || 'missing',
-      'X-Requested-With': 'XMLHttpRequest',
-      Referer: `https://www.instagram.com/${username}/`,
-      Accept: 'application/json',
+    return await customFetch(url, {
+      ...init,
+      redirect: 'manual',
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function isLoginOrChallengeRedirect(status: number, locationHeader: string | null): boolean {
+  if (status < 300 || status >= 400) return false;
+  const loc = (locationHeader || '').toLowerCase();
+  return (
+    loc.includes('/accounts/login') ||
+    loc.includes('/challenge') ||
+    loc.includes('is_from_rle') ||
+    loc.includes('/login')
+  );
+}
+
+function decodeHtmlEntities(raw: string): string {
+  return raw
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (_m, dec) => {
+      const code = Number(dec);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _m;
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => {
+      const code = parseInt(hex, 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _m;
+    });
+}
+
+function extractFullNameFromOgTitle(ogTitle: string | undefined, username: string): string {
+  if (!ogTitle) return '';
+  const decoded = decodeHtmlEntities(cleanEscapedUrl(ogTitle)).trim();
+  const markerIdx = decoded.toLowerCase().indexOf(`(@${username.toLowerCase()})`);
+  if (markerIdx > 0) {
+    return decoded.slice(0, markerIdx).trim();
+  }
+  return '';
+}
+
+/**
+ * Extraction d'une Photo de Profil Instagram (`@username`) en 3 niveaux :
+ * - Niveau 1 (sans compte) : `GET /api/v1/users/web_profile_info/?username={username}`
+ *   avec `X-IG-App-ID: 936619743392459`, `User-Agent` navigateur récent, `redirect: 'manual'`, timeout 8s.
+ * - Niveau 2 (optionnel, si `env.IG_SESSION_ID` / `env.IG_COOKIES` est défini) :
+ *   Retente `web_profile_info` avec le cookie `sessionid` (sans jamais le logger ni l'exposer au front).
+ * - Niveau 3 (repli sans compte) :
+ *   3a. Analyse la page publique `/{username}/` (`redirect: 'manual'`, JSON embarqué ou `og:image` en qualité `"Standard"`).
+ *   3b. Analyse `/{username}/embed/` + GraphQL `PolarisProfilePageContentQuery` (`doc_id: 40158838120366999`)
+ *       pour récupérer `hd_profile_pic_url_info.url` en qualité `"HD"` sans cookie même si `web_profile_info` renvoie 429.
+ *
+ * Classification stricte des erreurs :
+ * - `NOT_FOUND` : uniquement si le compte n'existe vraiment pas (HTTP 404 confirmé ou `data.user === null`).
+ * - `BLOCKED_BY_PLATFORM` : HTTP 401/403/429, redirection `/accounts/login`, mur de connexion ou réponse vide.
+ * - `TIMEOUT` : dépassement du délai de 8 secondes.
+ * - `PRIVATE_OR_LOGIN_REQUIRED` : seulement si aucune photo publique n'est accessible.
+ * Un blocage ne devient JAMAIS `NOT_FOUND`.
+ */
+export async function extractInstagramProfile(
+  rawUsername: string,
+  auth?: ParsedInstagramAuth,
+  customFetch: typeof fetch = globalThis.fetch
+): Promise<ExtractResponse> {
+  const username = rawUsername.replace(/^@/, '').trim().toLowerCase();
+  if (!username || !/^[a-z0-9._]{1,30}$/.test(username)) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      error: {
+        code: 'UNSUPPORTED_URL',
+        message: "Nom d'utilisateur Instagram invalide.",
+      },
     };
-    if (auth.hasSession && auth.cookieHeader) {
-      headers['Cookie'] = auth.cookieHeader;
-    }
-
-    const apiRes = await fetchWithContext(
-      `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`,
-      { headers, timeoutMs: 8000 }
-    );
-
-    if (apiRes.response.ok) {
-      const json: any = await apiRes.response.json().catch(() => null);
-      const user = json?.data?.user;
-      const hdAvatar =
-        user?.hd_profile_pic_url_info?.url ||
-        user?.profile_pic_url_hd ||
-        user?.profile_pic_url;
-
-      if (hdAvatar) {
-        const cleanAvatar = cleanEscapedUrl(hdAvatar);
-        return {
-          ok: true,
-          platform: 'instagram',
-          type: 'profile',
-          title: user?.biography ? String(user.biography) : `@${username}`,
-          author: {
-            username: String(user?.username || username),
-            nickname: String(user?.full_name || `@${username}`),
-            avatar: cleanAvatar,
-            followers: formatCount(user?.edge_followed_by?.count),
-            biography: user?.biography ? String(user.biography) : undefined,
-            verified: Boolean(user?.is_verified),
-          },
-          thumbnail: cleanAvatar,
-          items: [
-            {
-              kind: 'image',
-              url: cleanAvatar,
-              quality: '1080p',
-              ext: 'jpg',
-            },
-          ],
-        };
-      }
-    }
-  } catch {
-    // Fallback vers og:image
   }
 
-  // 2. Fallback OpenGraph og:image sur la page publique du profil
-  try {
-    const pageRes = await fetchWithContext(
-      `https://www.instagram.com/${encodeURIComponent(username)}/`,
-      {
-        headers: {
-          'User-Agent':
-            'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-          Referer: 'https://www.instagram.com/',
-        },
-        timeoutMs: 7500,
-      }
-    );
-    const html = await pageRes.response.text();
-    const ogImg =
-      html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)?.[1] ||
-      html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i)?.[1];
-    const ogDesc =
-      html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i)?.[1];
+  let blockedByPlatform = false;
+  let notFoundConfirmed = false;
+  let privateWithoutPhoto = false;
+  let timedOut = false;
 
-    if (ogImg) {
-      const cleanAvatar = cleanEscapedUrl(ogImg);
+  const inspectWebProfileResponse = async (
+    res: Response
+  ): Promise<ExtractResponse | null> => {
+    if (res.status === 404) {
+      notFoundConfirmed = true;
       return {
-        ok: true,
+        ok: false,
         platform: 'instagram',
-        type: 'profile',
-        title: ogDesc ? cleanEscapedUrl(ogDesc) : `@${username}`,
-        author: {
-          username,
-          nickname: `@${username}`,
-          avatar: cleanAvatar,
-          biography: ogDesc ? cleanEscapedUrl(ogDesc) : undefined,
+        error: {
+          code: 'NOT_FOUND',
+          message: `Ce compte Instagram (@${username}) est introuvable ou n'existe pas.`,
         },
-        thumbnail: cleanAvatar,
-        items: [
-          {
-            kind: 'image',
-            url: cleanAvatar,
-            quality: '1080p',
-            ext: 'jpg',
-          },
-        ],
       };
     }
-  } catch {
-    // Ignorer
+
+    if (isLoginOrChallengeRedirect(res.status, res.headers.get('location'))) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    if (res.status === 401 || res.status === 403 || res.status === 429) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    const rawText = await res.text().catch(() => '');
+    if (!rawText || !rawText.trim()) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    let json: any = null;
+    try {
+      json = JSON.parse(rawText);
+    } catch {
+      if (
+        rawText.includes('/accounts/login') ||
+        rawText.includes('Login • Instagram') ||
+        rawText.includes('login_required')
+      ) {
+        blockedByPlatform = true;
+      }
+      return null;
+    }
+
+    if (
+      res.status === 200 &&
+      json &&
+      typeof json === 'object' &&
+      'data' in json &&
+      json.data &&
+      json.data.user === null
+    ) {
+      notFoundConfirmed = true;
+      return {
+        ok: false,
+        platform: 'instagram',
+        error: {
+          code: 'NOT_FOUND',
+          message: `Ce compte Instagram (@${username}) est introuvable ou n'existe pas.`,
+        },
+      };
+    }
+
+    if (
+      json?.message === 'checkpoint_required' ||
+      json?.message === 'login_required' ||
+      json?.require_login === true ||
+      json?.error_type === 'rate_limit_error'
+    ) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    const user = json?.data?.user;
+    if (user && typeof user === 'object') {
+      const hdUrl =
+        user.hd_profile_pic_url_info?.url || user.profile_pic_url_hd || '';
+      const stdUrl = user.profile_pic_url || '';
+      const bestUrl = hdUrl || stdUrl;
+
+      if (bestUrl) {
+        return buildInstagramProfileResponse({
+          username: String(user.username || username),
+          fullName: user.full_name ? String(user.full_name) : undefined,
+          photoUrl: String(bestUrl),
+          quality: hdUrl ? 'HD' : 'Standard',
+          followers: formatCount(user.edge_followed_by?.count ?? user.follower_count),
+          biography: user.biography ? String(user.biography) : undefined,
+          verified: Boolean(user.is_verified),
+          width:
+            typeof user.hd_profile_pic_url_info?.width === 'number'
+              ? user.hd_profile_pic_url_info.width
+              : undefined,
+          height:
+            typeof user.hd_profile_pic_url_info?.height === 'number'
+              ? user.hd_profile_pic_url_info.height
+              : undefined,
+        });
+      }
+
+      if (user.is_private) {
+        privateWithoutPhoto = true;
+      }
+    }
+
+    return null;
+  };
+
+  const webProfileEndpoint = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`;
+
+  // ===========================================================================
+  // NIVEAU 1 : Sans compte (`web_profile_info` public)
+  // ===========================================================================
+  try {
+    const level1Res = await fetchProfileManual(
+      webProfileEndpoint,
+      {
+        method: 'GET',
+        headers: {
+          'User-Agent': BROWSER_USER_AGENT,
+          'X-IG-App-ID': IG_WEB_APP_ID,
+          'X-ASBD-ID': IG_ASBD_ID,
+          'X-Requested-With': 'XMLHttpRequest',
+          Referer: `https://www.instagram.com/${username}/`,
+          Accept: 'application/json',
+        },
+      },
+      8000,
+      customFetch
+    );
+
+    const parsedLevel1 = await inspectWebProfileResponse(level1Res);
+    if (parsedLevel1) {
+      return parsedLevel1;
+    }
+  } catch (err) {
+    if (isTimeoutError(err)) {
+      timedOut = true;
+    }
+  }
+
+  // ===========================================================================
+  // NIVEAU 2 : Optionnel (si `env.IG_SESSION_ID` ou `env.IG_COOKIES` est défini)
+  // Ne logge jamais le cookie et ne le renvoie jamais au front.
+  // ===========================================================================
+  if (auth?.hasSession && auth?.cookieHeader) {
+    try {
+      const level2Res = await fetchProfileManual(
+        webProfileEndpoint,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent': BROWSER_USER_AGENT,
+            'X-IG-App-ID': IG_WEB_APP_ID,
+            'X-ASBD-ID': IG_ASBD_ID,
+            'X-CSRFToken': auth.csrfToken || 'missing',
+            'X-Requested-With': 'XMLHttpRequest',
+            Referer: `https://www.instagram.com/${username}/`,
+            Accept: 'application/json',
+            Cookie: auth.cookieHeader,
+          },
+        },
+        8000,
+        customFetch
+      );
+
+      const parsedLevel2 = await inspectWebProfileResponse(level2Res);
+      if (parsedLevel2) {
+        return parsedLevel2;
+      }
+    } catch (err) {
+      if (isTimeoutError(err)) {
+        timedOut = true;
+      }
+    }
+  }
+
+  // ===========================================================================
+  // NIVEAU 3 : Repli sans compte (Page publique + Embed / Polaris GraphQL)
+  // ===========================================================================
+  // 3a. Page publique du profil (`https://www.instagram.com/{username}/`)
+  const profilePageUrl = `https://www.instagram.com/${encodeURIComponent(username)}/`;
+  const pageUserAgents = [
+    'Mozilla/5.0 (compatible; Pinterestbot/1.0; +http://www.pinterest.com/bot.html)',
+    'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+  ];
+
+  for (const ua of pageUserAgents) {
+    try {
+      const pageRes = await fetchProfileManual(
+        profilePageUrl,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent': ua,
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            Referer: 'https://www.instagram.com/',
+          },
+        },
+        8000,
+        customFetch
+      );
+
+      if (pageRes.status === 404) {
+        notFoundConfirmed = true;
+        break;
+      }
+
+      if (isLoginOrChallengeRedirect(pageRes.status, pageRes.headers.get('location'))) {
+        blockedByPlatform = true;
+        continue;
+      }
+
+      if (pageRes.status === 401 || pageRes.status === 403 || pageRes.status === 429) {
+        blockedByPlatform = true;
+        continue;
+      }
+
+      if (pageRes.status >= 200 && pageRes.status < 300) {
+        const html = await pageRes.text().catch(() => '');
+        if (!html || !html.trim()) {
+          blockedByPlatform = true;
+          continue;
+        }
+
+        const ogTitle =
+          html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)?.[1] ||
+          html.match(/<meta\s+content="([^"]+)"\s+property="og:title"/i)?.[1];
+        const ogDesc =
+          html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/i)?.[1] ||
+          html.match(/<meta\s+content="([^"]+)"\s+property="og:description"/i)?.[1];
+        const fullNameFromOg = extractFullNameFromOgTitle(ogTitle, username);
+
+        // Recherche d'une URL HD embarquée dans le JSON de la page
+        const embeddedHd =
+          html.match(/"hd_profile_pic_url_info"\s*:\s*\{\s*"url"\s*:\s*"([^"]+)"/)?.[1] ||
+          html.match(/"profile_pic_url_hd"\s*:\s*"([^"]+)"/)?.[1];
+
+        if (embeddedHd && !embeddedHd.includes('rsrc.php')) {
+          return buildInstagramProfileResponse({
+            username,
+            fullName: fullNameFromOg || undefined,
+            photoUrl: embeddedHd,
+            quality: 'HD',
+            biography: ogDesc ? decodeHtmlEntities(cleanEscapedUrl(ogDesc)) : undefined,
+          });
+        }
+
+        // Recherche de og:image (qualité Standard)
+        const ogImg =
+          html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)?.[1] ||
+          html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i)?.[1];
+
+        if (
+          ogImg &&
+          !ogImg.includes('rsrc.php') &&
+          (ogImg.includes('cdninstagram.com') ||
+            ogImg.includes('fbcdn.net') ||
+            ogImg.includes('fbsbx.com'))
+        ) {
+          return buildInstagramProfileResponse({
+            username,
+            fullName: fullNameFromOg || undefined,
+            photoUrl: decodeHtmlEntities(ogImg),
+            quality: 'Standard',
+            biography: ogDesc ? decodeHtmlEntities(cleanEscapedUrl(ogDesc)) : undefined,
+          });
+        }
+
+        if (
+          html.includes('/accounts/login') ||
+          html.includes('LoginAndSignupPage') ||
+          html.includes('Login • Instagram')
+        ) {
+          blockedByPlatform = true;
+        }
+      }
+    } catch (err) {
+      if (isTimeoutError(err)) {
+        timedOut = true;
+      }
+    }
+  }
+
+  // 3b. Repli First-Party `/embed/` + `PolarisProfilePageContentQuery` (sans compte ni API tierce)
+  if (!notFoundConfirmed) {
+    try {
+      const embedRes = await fetchProfileManual(
+        `https://www.instagram.com/${encodeURIComponent(username)}/embed/`,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            Referer: 'https://www.instagram.com/',
+          },
+        },
+        8000,
+        customFetch
+      );
+
+      if (embedRes.status === 200) {
+        const embedHtml = await embedRes.text().catch(() => '');
+        const ctxMatch = embedHtml.match(/"contextJSON"\s*:\s*"((?:\\.|[^"\\])*)"/);
+        if (ctxMatch) {
+          try {
+            const unescapedJson = JSON.parse(`"${ctxMatch[1]}"`);
+            const ctxPayload = JSON.parse(unescapedJson);
+            const ctx = ctxPayload?.context;
+            if (ctx && typeof ctx === 'object') {
+              const ownerId = ctx.owner_id ? String(ctx.owner_id) : '';
+              const embedFullName = ctx.full_name ? String(ctx.full_name) : undefined;
+              const embedStdPic = ctx.profile_pic_url ? String(ctx.profile_pic_url) : '';
+              const embedFollowers = formatCount(ctx.followers_count);
+              const embedVerified = Boolean(ctx.is_verified);
+
+              if (ownerId && /^\d+$/.test(ownerId)) {
+                try {
+                  const gqlVariables = JSON.stringify({
+                    enable_integrity_filters: true,
+                    id: ownerId,
+                    render_surface: 'PROFILE',
+                    __relay_internal__pv__PolarisCannesGuardianExperienceEnabledrelayprovider:
+                      true,
+                    __relay_internal__pv__PolarisCASB976ProfileEnabledrelayprovider:
+                      false,
+                    __relay_internal__pv__PolarisProfileInformTreatmentBannerEnabledrelayprovider:
+                      false,
+                    __relay_internal__pv__PolarisWebSchoolsEnabledrelayprovider:
+                      false,
+                    __relay_internal__pv__PolarisProfileRingsGradientEnabledrelayprovider:
+                      false,
+                    __relay_internal__pv__PolarisRepostsConsumptionEnabledrelayprovider:
+                      false,
+                    __relay_internal__pv__PolarisShortDramaEnabledrelayprovider:
+                      false,
+                  });
+
+                  const gqlBody = new URLSearchParams({
+                    av: '0',
+                    __d: 'www',
+                    __user: '0',
+                    __a: '1',
+                    __req: '1',
+                    lsd: IG_LSD_TOKEN,
+                    fb_api_caller_class: 'RelayModern',
+                    fb_api_req_friendly_name: 'PolarisProfilePageContentQuery',
+                    variables: gqlVariables,
+                    server_timestamps: 'true',
+                    doc_id: '40158838120366999',
+                  });
+
+                  const gqlRes = await fetchProfileManual(
+                    'https://www.instagram.com/api/graphql',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'User-Agent': BROWSER_USER_AGENT,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-IG-App-ID': IG_WEB_APP_ID,
+                        'X-FB-LSD': IG_LSD_TOKEN,
+                        'X-ASBD-ID': IG_ASBD_ID,
+                        Referer: `https://www.instagram.com/${username}/`,
+                        Accept: '*/*',
+                      },
+                      body: gqlBody.toString(),
+                    },
+                    8000,
+                    customFetch
+                  );
+
+                  if (gqlRes.status === 200) {
+                    const gqlJson: any = await gqlRes.json().catch(() => null);
+                    const gUser = gqlJson?.data?.user;
+                    if (gUser && typeof gUser === 'object') {
+                      const gHd =
+                        gUser.hd_profile_pic_url_info?.url ||
+                        gUser.profile_pic_url_hd ||
+                        '';
+                      const gStd = gUser.profile_pic_url || embedStdPic;
+                      const bestPic = gHd || gStd;
+                      if (bestPic) {
+                        return buildInstagramProfileResponse({
+                          username: String(gUser.username || ctx.username || username),
+                          fullName: gUser.full_name
+                            ? String(gUser.full_name)
+                            : embedFullName,
+                          photoUrl: String(bestPic),
+                          quality: gHd ? 'HD' : 'Standard',
+                          followers:
+                            formatCount(
+                              gUser.follower_count ?? gUser.edge_followed_by?.count
+                            ) || embedFollowers,
+                          biography: gUser.biography
+                            ? String(gUser.biography)
+                            : undefined,
+                          verified: Boolean(gUser.is_verified ?? embedVerified),
+                          width:
+                            typeof gUser.hd_profile_pic_url_info?.width === 'number'
+                              ? gUser.hd_profile_pic_url_info.width
+                              : undefined,
+                          height:
+                            typeof gUser.hd_profile_pic_url_info?.height === 'number'
+                              ? gUser.hd_profile_pic_url_info.height
+                              : undefined,
+                        });
+                      }
+                    }
+                  }
+                } catch {
+                  // Repli sur la photo Standard issue de contextJSON
+                }
+              }
+
+              if (embedStdPic && !embedStdPic.includes('rsrc.php')) {
+                return buildInstagramProfileResponse({
+                  username: String(ctx.username || username),
+                  fullName: embedFullName,
+                  photoUrl: embedStdPic,
+                  quality: 'Standard',
+                  followers: embedFollowers,
+                  verified: embedVerified,
+                });
+              }
+            }
+          } catch {
+            // Ignorer si contextJSON non parsable
+          }
+        }
+      }
+    } catch (err) {
+      if (isTimeoutError(err)) {
+        timedOut = true;
+      }
+    }
+  }
+
+  // ===========================================================================
+  // CLASSIFICATION STRICTE DES ERREURS (un blocage ne devient JAMAIS NOT_FOUND)
+  // ===========================================================================
+  if (notFoundConfirmed && !blockedByPlatform) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      error: {
+        code: 'NOT_FOUND',
+        message: `Ce compte Instagram (@${username}) est introuvable ou n'existe pas.`,
+      },
+    };
+  }
+
+  if (blockedByPlatform) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      error: {
+        code: 'BLOCKED_BY_PLATFORM',
+        message:
+          'Instagram bloque temporairement la demande, réessayez plus tard.',
+      },
+    };
+  }
+
+  if (timedOut) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      error: {
+        code: 'TIMEOUT',
+        message:
+          "Le délai d'attente de 8 secondes a expiré lors de la récupération de la photo de profil Instagram.",
+      },
+    };
+  }
+
+  if (privateWithoutPhoto) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      error: {
+        code: 'PRIVATE_OR_LOGIN_REQUIRED',
+        message: `Impossible de récupérer la photo de profil publique pour @${username}.`,
+      },
+    };
   }
 
   return {
     ok: false,
     platform: 'instagram',
     error: {
-      code: 'NOT_FOUND',
-      message: `Impossible de récupérer la photo de profil publique pour @${username}.`,
+      code: 'BLOCKED_BY_PLATFORM',
+      message:
+        'Instagram bloque temporairement la demande, réessayez plus tard.',
     },
   };
 }
@@ -1080,12 +1598,13 @@ async function extractInstagramProfile(
 export async function extractInstagram(
   identifier: string,
   env?: InstagramEnv,
-  kind: 'post' | 'profile' | 'story' = 'post'
+  kind: 'post' | 'profile' | 'story' = 'post',
+  customFetch?: typeof fetch
 ): Promise<ExtractResponse> {
   const auth = parseInstagramCookies(env);
 
   if (kind === 'profile') {
-    return extractInstagramProfile(identifier, auth);
+    return extractInstagramProfile(identifier, auth, customFetch);
   }
 
   const shortcode = identifier.trim();

@@ -42,8 +42,8 @@
       "extractAudioMp3": "Extraire la piste audio (MP3)",
       "downloadAllZip": "Tout télécharger (.ZIP)",
       "buildingZip": "Création de l'archive ZIP…",
-      "viewFullSizeDp": "Aperçu taille réelle",
-      "downloadHdJpg": "Télécharger la photo HD (JPG)"
+      "viewFullSizeDp": "Ouvrir en grand",
+      "downloadHdJpg": "Télécharger la photo de profil"
     },
     "sections": {
       "bentoCards": [

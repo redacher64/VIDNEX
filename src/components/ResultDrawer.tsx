@@ -447,45 +447,81 @@ const ProfileDpResultView: React.FC<{
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
+  const qualityBadge = data.quality === 'Standard' ? 'Standard' : 'HD';
+  const cleanUsername = data.creatorHandle
+    .replace(/^@/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '');
+
   const handleDownloadDp = () => {
     setDownloading(true);
-    const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
-    triggerNativeBackendDownload(
-      `VIDNEX_${cleanHandle}_HD_DP.jpg`,
-      data.hdOriginalUrl
-    );
+    const filename =
+      data.platform === 'instagram'
+        ? `instagram_${cleanUsername || 'user'}_profile.jpg`
+        : `VIDNEX_${cleanUsername || 'user'}_HD_DP.jpg`;
+    triggerNativeBackendDownload(filename, data.hdOriginalUrl);
     setTimeout(() => setDownloading(false), 1000);
   };
 
   return (
     <div className="flex flex-col items-center text-center space-y-4 pt-1 relative z-10">
-      <div>
-        <h3
-          dir="ltr"
-          className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
-        >
-          {data.creatorHandle}
-        </h3>
-        <p className="text-xs text-[#6c4e40] dark:text-orange-200/75 mt-0.5">
-          {data.creatorName}
-          {data.followersCount ? ` · ${data.followersCount} ${t.followers}` : ''}
-        </p>
+      <div className="space-y-1">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <h3
+            dir="ltr"
+            className="font-display text-lg sm:text-xl font-bold text-[#1f130b] dark:text-[#fffaf5]"
+          >
+            {data.creatorHandle}
+          </h3>
+          <span
+            data-testid="profile-quality-badge"
+            className={`px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold uppercase tracking-wide ${
+              qualityBadge === 'HD'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                : 'bg-orange-100 dark:bg-[#2a1b12] text-orange-900 dark:text-orange-200 border border-orange-300 dark:border-orange-800'
+            }`}
+          >
+            {qualityBadge}
+          </span>
+        </div>
+
+        {data.creatorName && data.creatorName !== data.creatorHandle && (
+          <p
+            data-testid="profile-full-name"
+            className="text-sm font-medium text-[#4a3429] dark:text-orange-100/90"
+          >
+            {data.creatorName}
+          </p>
+        )}
+
+        {(data.followersCount || data.dimensions) && (
+          <p className="text-xs font-mono text-[#6c4e40] dark:text-orange-200/75">
+            {[
+              data.followersCount
+                ? `${data.followersCount}${t.followers ? ` ${t.followers}` : ''}`
+                : null,
+              data.dimensions || null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        )}
       </div>
 
-      {/* Centered Clean Square Preview with Click-to-Zoom */}
+      {/* Enlarged Square Preview with Click-to-Zoom */}
       <div
         onClick={() => setIsZoomed((prev) => !prev)}
         className={`relative rounded-2xl overflow-hidden bg-[#1f130b] border-2 border-orange-300 dark:border-orange-800/80 shadow-md transition-all duration-200 ${
           isZoomed
-            ? 'w-full max-w-md cursor-zoom-out'
-            : 'w-56 h-56 cursor-zoom-in'
+            ? 'w-full max-w-lg aspect-square cursor-zoom-out'
+            : 'w-64 h-64 sm:w-72 sm:h-72 cursor-zoom-in'
         }`}
       >
         <img
           src={resolveApiUrl(data.standardPreviewUrl || data.hdOriginalUrl)}
           alt={`${data.creatorName || data.creatorHandle} (${data.creatorHandle})`}
-          width={320}
-          height={320}
+          width={640}
+          height={640}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
@@ -497,19 +533,30 @@ const ProfileDpResultView: React.FC<{
           }}
           className="w-full h-full object-cover"
         />
-        <span className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-stone-900/85 text-white font-mono text-[11px] font-semibold">
-          {isZoomed ? t.standard1to1 : t.zoom100Hd}
+        <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-stone-900/85 text-white font-mono text-[11px] font-bold">
+          {qualityBadge} · JPG
         </span>
       </div>
 
-      {/* Single Primary Download Button */}
-      <button
-        type="button"
-        onClick={handleDownloadDp}
-        className="w-full sm:w-auto min-w-[260px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all"
-      >
-        {downloading ? t.fetchingOriginalJpg : t.downloadFullSizePhoto}
-      </button>
+      {/* Action Buttons: Télécharger la photo de profil & Ouvrir en grand */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+        <button
+          type="button"
+          onClick={handleDownloadDp}
+          className="w-full sm:w-auto min-w-[250px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
+        >
+          {downloading ? t.fetchingOriginalJpg : t.downloadFullSizePhoto}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsZoomed((prev) => !prev)}
+          aria-pressed={isZoomed}
+          className="w-full sm:w-auto min-h-[48px] px-5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950/80 text-orange-950 dark:text-orange-100 font-display text-sm font-semibold transition-all cursor-pointer"
+        >
+          {t.hdZoomBtn}
+        </button>
+      </div>
     </div>
   );
 };

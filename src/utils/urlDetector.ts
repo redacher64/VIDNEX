@@ -126,17 +126,33 @@ export const SAMPLE_LINKS: SampleLink[] = [
 ];
 
 const RESERVED_IG_PATHS = new Set([
-  'explore',
-  'direct',
-  'accounts',
-  'reels',
-  'stories',
   'p',
   'reel',
+  'reels',
   'tv',
+  'stories',
+  'explore',
+  'accounts',
+  'direct',
   'about',
-  'legal',
   'developer',
+  'developers',
+  'legal',
+  'challenge',
+  'graphql',
+  'api',
+  'login',
+  'session',
+  'privacy',
+  'terms',
+  'help',
+  'press',
+  'web',
+  'tags',
+  'locations',
+  'directory',
+  'share',
+  'clips',
 ]);
 
 const RESERVED_X_USERS = new Set([
@@ -166,8 +182,8 @@ const REJECTED_MIRROR_DOMAINS = [
 /**
  * Real-time deterministic parser for social media URLs and @handles.
  * Synchronized with `functions/_lib/detect.ts`.
- * Active backend extractors: Instagram, TikTok, X (Twitter).
- * Coming Soon: YouTube, Facebook, Snapchat.
+ * Active backend extractors: Instagram, TikTok, X (Twitter), Facebook.
+ * Coming Soon: YouTube, Snapchat.
  */
 export function detectMediaUrl(
   rawInput: string,
@@ -188,9 +204,25 @@ export function detectMediaUrl(
   // 0. DIRECT @USERNAME HANDLE DETECTION (Instagram & TikTok)
   const directHandleMatch = trimmed.match(/^@([A-Za-z0-9._]{1,30})$/);
   if (directHandleMatch) {
-    const cleanHandle = directHandleMatch[1];
     const targetPlatform: PlatformId =
       preferredPlatform === 'tiktok' ? 'tiktok' : 'instagram';
+    const cleanHandle =
+      targetPlatform === 'instagram'
+        ? directHandleMatch[1].toLowerCase()
+        : directHandleMatch[1];
+
+    if (
+      targetPlatform === 'instagram' &&
+      RESERVED_IG_PATHS.has(cleanHandle)
+    ) {
+      return {
+        isValid: false,
+        platform: null,
+        mediaType: null,
+        badgeLabel: '',
+        normalizedUrl: trimmed,
+      };
+    }
 
     return {
       isValid: true,
@@ -241,7 +273,7 @@ export function detectMediaUrl(
 
   // 1. INSTAGRAM DETECTION (instagram.com & instagr.am)
   const igReelMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com|instagr\.am)\/(?:reel|reels|tv)\/([A-Za-z0-9_-]+)/i
+    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:reel|reels|tv)\/([A-Za-z0-9_-]+)/i
   );
   if (igReelMatch) {
     return {
@@ -255,7 +287,7 @@ export function detectMediaUrl(
   }
 
   const igStoryMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.)?instagram\.com\/stories\/([A-Za-z0-9._]+)(?:\/([0-9]+))?/i
+    /(?:https?:\/\/)?(?:(?:www|m)\.)?instagram\.com\/stories\/([A-Za-z0-9._]+)(?:\/([0-9]+))?/i
   );
   if (igStoryMatch) {
     return {
@@ -269,7 +301,7 @@ export function detectMediaUrl(
   }
 
   const igPostMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com|instagr\.am)\/p\/([A-Za-z0-9_-]+)/i
+    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:[A-Za-z0-9._]{1,30}\/)?p\/([A-Za-z0-9_-]+)/i
   );
   if (igPostMatch) {
     return {
@@ -283,16 +315,17 @@ export function detectMediaUrl(
   }
 
   const igProfileMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i
+    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i
   );
   if (igProfileMatch && !RESERVED_IG_PATHS.has(igProfileMatch[1].toLowerCase())) {
+    const cleanUser = igProfileMatch[1].toLowerCase();
     return {
       isValid: true,
       platform: 'instagram',
       mediaType: 'profile',
-      badgeLabel: `Instagram Profile (@${igProfileMatch[1]})`,
-      identifier: `@${igProfileMatch[1]}`,
-      normalizedUrl: `https://www.instagram.com/${igProfileMatch[1]}/`,
+      badgeLabel: `Instagram Profile (@${cleanUser})`,
+      identifier: `@${cleanUser}`,
+      normalizedUrl: `https://www.instagram.com/${cleanUser}/`,
     };
   }
 

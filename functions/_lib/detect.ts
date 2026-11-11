@@ -38,20 +38,33 @@ export function isAllowedFacebookHost(hostname: string): boolean {
 }
 
 const RESERVED_IG_SEGMENTS = new Set([
-  'explore',
-  'direct',
-  'accounts',
-  'reels',
-  'stories',
   'p',
   'reel',
+  'reels',
   'tv',
+  'stories',
+  'explore',
+  'accounts',
+  'direct',
   'about',
-  'legal',
   'developer',
+  'developers',
+  'legal',
   'challenge',
   'graphql',
   'api',
+  'login',
+  'session',
+  'privacy',
+  'terms',
+  'help',
+  'press',
+  'web',
+  'tags',
+  'locations',
+  'directory',
+  'share',
+  'clips',
 ]);
 
 const RESERVED_X_USERS = new Set([
@@ -129,9 +142,24 @@ export function detectUrl(
   // 0. Support direct @username pour les outils Photo de Profil (DP) Instagram & TikTok
   const handleMatch = trimmed.match(/^@([A-Za-z0-9._]{1,30})$/);
   if (handleMatch) {
-    const username = handleMatch[1];
     const targetPlatform: SupportedPlatform =
       preferredPlatform === 'tiktok' ? 'tiktok' : 'instagram';
+    const username =
+      targetPlatform === 'instagram'
+        ? handleMatch[1].toLowerCase()
+        : handleMatch[1];
+    if (
+      targetPlatform === 'instagram' &&
+      RESERVED_IG_SEGMENTS.has(username)
+    ) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
     return {
       isValid: true,
       platform: targetPlatform,
@@ -244,13 +272,13 @@ export function detectUrl(
       };
     }
 
-    // Profil : /{username}/
+    // Profil : /{username}/ avec ou sans paramètres, avec ou sans / final (normalisé en minuscules)
     const profileMatch = pathname.match(/^\/([A-Za-z0-9._]{1,30})\/?$/);
     if (
       profileMatch &&
       !RESERVED_IG_SEGMENTS.has(profileMatch[1].toLowerCase())
     ) {
-      const username = profileMatch[1];
+      const username = profileMatch[1].toLowerCase();
       return {
         isValid: true,
         platform: 'instagram',

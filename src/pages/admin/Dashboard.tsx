@@ -23,7 +23,7 @@ interface PlatformStats {
 }
 
 interface EngineHealthSummary {
-  platform: 'tiktok' | 'instagram' | 'x' | 'facebook';
+  platform: 'tiktok' | 'instagram' | 'instagram_profile' | 'x' | 'facebook';
   last_success_ts: number | null;
   last_test_ts: number | null;
   last_test_ok: number | null;
@@ -41,6 +41,7 @@ interface StatsResponse {
   platforms: {
     tiktok: PlatformStats;
     instagram: PlatformStats;
+    instagram_profile?: PlatformStats;
     x: PlatformStats;
     facebook: PlatformStats;
   };
@@ -57,6 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   const [engines, setEngines] = useState<{
     tiktok: EngineHealthSummary;
     instagram: EngineHealthSummary;
+    instagram_profile: EngineHealthSummary;
     x: EngineHealthSummary;
     facebook: EngineHealthSummary;
   }>({
@@ -69,6 +71,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
     },
     instagram: {
       platform: 'instagram',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
+    instagram_profile: {
+      platform: 'instagram_profile',
       last_success_ts: null,
       last_test_ts: null,
       last_test_ok: 1,
@@ -112,6 +121,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           setEngines((prev) => ({
             tiktok: healthJson.engines.tiktok || prev.tiktok,
             instagram: healthJson.engines.instagram || prev.instagram,
+            instagram_profile:
+              healthJson.engines.instagram_profile || prev.instagram_profile,
             x: healthJson.engines.x || prev.x,
             facebook: healthJson.engines.facebook || prev.facebook,
           }));
@@ -131,6 +142,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   const counts = data?.counts || { today: 0, last7d: 0, last30d: 0 };
   const tiktok = data?.platforms.tiktok || { total: 0, success: 0, error: 0, successRate: 0 };
   const instagram = data?.platforms.instagram || { total: 0, success: 0, error: 0, successRate: 0 };
+  const instagramProfileStats = data?.platforms.instagram_profile || {
+    total: 0,
+    success: 0,
+    error: 0,
+    successRate: 0,
+  };
   const xStats = data?.platforms.x || { total: 0, success: 0, error: 0, successRate: 0 };
   const facebookStats = data?.platforms.facebook || { total: 0, success: 0, error: 0, successRate: 0 };
   const daily = data?.daily || [];
@@ -207,7 +224,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
         </div>
       </div>
 
-      {/* Résumé Santé des moteurs (TikTok, Instagram, X (Twitter)) */}
+      {/* Résumé Santé des moteurs */}
       <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -227,11 +244,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {(
             [
               { key: 'tiktok', label: 'TikTok', sub: 'TikWM / HTML' },
               { key: 'instagram', label: 'Instagram', sub: 'Embed / GraphQL' },
+              { key: 'instagram_profile', label: 'Profil Instagram', sub: 'Photo de profil' },
               { key: 'x', label: 'X (Twitter)', sub: 'Syndication twimg' },
               { key: 'facebook', label: 'Facebook', sub: 'HTML / Mobile' },
             ] as const
@@ -276,10 +294,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       </div>
 
       {/* Taux de succès et d'échec par plateforme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { key: 'tiktok', label: 'TikTok (TikWM / HTML)', stats: tiktok },
-          { key: 'instagram', label: 'Instagram (Embed / GraphQL)', stats: instagram },
+          { key: 'instagram', label: 'Instagram (Reels / Posts)', stats: instagram },
+          { key: 'instagram_profile', label: 'Profil Instagram (DP)', stats: instagramProfileStats },
           { key: 'x', label: 'X (Twitter) (Syndication)', stats: xStats },
           { key: 'facebook', label: 'Facebook (HTML / Mobile)', stats: facebookStats },
         ].map(({ key, label, stats }) => {

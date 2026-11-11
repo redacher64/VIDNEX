@@ -38,6 +38,7 @@ export interface ExtractResponse {
   author?: {
     username: string;
     nickname?: string;
+    full_name?: string;
     avatar?: string;
     followers?: string;
     biography?: string;

@@ -1426,4 +1426,456 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       )
     );
   });
+
+  it('ÉTAPE 6 (PROFIL INSTAGRAM) — Vérification complète des 8 scénarios : profil public (HD/Standard), caractères spéciaux, compte privé, compte inexistant (NOT_FOUND), blocage simulé (BLOCKED_BY_PLATFORM jamais NOT_FOUND), lien avec paramètres/sans slash, non-régression Reel/post/TikTok/X/Facebook, et téléchargement instagram_{username}_profile.jpg', async () => {
+    resetRateLimitBuckets();
+    resetD1RateLimitFallback();
+    const db = createMemoryD1Database();
+    const adminEnv = {
+      DB: db,
+      ADMIN_PASSWORD: 'super-secret-admin-pwd',
+      SESSION_SECRET: 'hmac-session-secret-key-2026',
+      IP_HASH_SALT: 'ip-salt-2026',
+    };
+
+    const { extractInstagramProfile } = await import(
+      '../../functions/_lib/instagram.ts'
+    );
+
+    // -------------------------------------------------------------------
+    // (6) Lien de profil avec paramètres (?igsh=...) et sans slash final + chemins réservés exclus
+    // -------------------------------------------------------------------
+    const detQueryNoSlash = detectMediaUrl(
+      'https://www.instagram.com/N4ADDA?igsh=MzRlODBiNWFlZA==&utm_source=ig_web_copy_link'
+    );
+    assert.equal(detQueryNoSlash.isValid, true);
+    assert.equal(detQueryNoSlash.platform, 'instagram');
+    assert.equal(detQueryNoSlash.mediaType, 'profile');
+    assert.equal(detQueryNoSlash.identifier, '@n4adda');
+
+    const backendDetQueryNoSlash = detectUrl(
+      'https://www.instagram.com/N4ADDA?igsh=MzRlODBiNWFlZA=='
+    );
+    assert.equal(backendDetQueryNoSlash.isValid, true);
+    assert.equal(backendDetQueryNoSlash.platform, 'instagram');
+    assert.equal(backendDetQueryNoSlash.kind, 'profile');
+    assert.equal(backendDetQueryNoSlash.identifier, 'n4adda');
+
+    const reservedPaths = [
+      'p',
+      'reel',
+      'reels',
+      'tv',
+      'stories',
+      'explore',
+      'accounts',
+      'direct',
+      'about',
+      'developer',
+      'developers',
+      'legal',
+      'challenge',
+      'graphql',
+      'api',
+      'login',
+      'session',
+      'privacy',
+      'terms',
+      'help',
+      'press',
+      'web',
+      'tags',
+      'locations',
+      'directory',
+      'share',
+      'clips',
+    ];
+    for (const seg of reservedPaths) {
+      const dFront = detectMediaUrl(`https://www.instagram.com/${seg}/`);
+      assert.notEqual(
+        dFront.mediaType,
+        'profile',
+        `Reserved segment /${seg}/ must not be detected as profile on frontend`
+      );
+      const dBack = detectUrl(`https://www.instagram.com/${seg}/`);
+      assert.equal(
+        dBack.isValid,
+        false,
+        `Reserved segment /${seg}/ must not be detected as profile on backend`
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // (1) Profil public (Niveau 1 web_profile_info HD + Niveau 2 IG_SESSION_ID sans fuite + Niveau 3 repli Standard/HD)
+    // -------------------------------------------------------------------
+    // Test Niveau 1 sans compte : web_profile_info renvoie hd_profile_pic_url_info.url
+    const level1Res = await extractInstagramProfile(
+      'N4ADDA',
+      undefined,
+      async (input, init) => {
+        const u = typeof input === 'string' ? input : input.toString();
+        assert.ok(
+          u.includes('/api/v1/users/web_profile_info/?username=n4adda')
+        );
+        const headers = new Headers(init?.headers);
+        assert.equal(headers.get('X-IG-App-ID'), '936619743392459');
+        assert.equal(init?.redirect, 'manual');
+        return new Response(
+          JSON.stringify({
+            data: {
+              user: {
+                username: 'n4adda',
+                full_name: 'Nadda Official',
+                is_private: false,
+                profile_pic_url:
+                  'https://scontent.cdninstagram.com/v/t51.2885-19/150x150_n4adda.jpg',
+                hd_profile_pic_url_info: {
+                  url: 'https://scontent.cdninstagram.com/v/t51.2885-19/1080x1080_n4adda_hd.jpg',
+                },
+              },
+            },
+            status: 'ok',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    );
+    assert.equal(level1Res.ok, true);
+    if (level1Res.ok) {
+      assert.equal(level1Res.type, 'image');
+      assert.equal(level1Res.platform, 'instagram');
+      assert.equal(level1Res.title, '@n4adda');
+      assert.equal(level1Res.author?.username, 'n4adda');
+      assert.equal(level1Res.author?.full_name, 'Nadda Official');
+      assert.equal(level1Res.items.length, 1);
+      assert.equal(level1Res.items[0].kind, 'image');
+      assert.equal(level1Res.items[0].quality, 'HD');
+      assert.equal(level1Res.items[0].ext, 'jpg');
+      assert.equal(
+        level1Res.items[0].url,
+        'https://scontent.cdninstagram.com/v/t51.2885-19/1080x1080_n4adda_hd.jpg'
+      );
+    }
+
+    // Test Niveau 2 : quand Niveau 1 est bloqué (429) et que IG_SESSION_ID est configuré,
+    // réessaie avec le cookie sessionid sans jamais l'exposer dans la réponse
+    let level2CalledWithCookie = false;
+    const secretSessionId = 'SECRET_IG_SESSION_9988776655';
+    const level2Res = await extractInstagramProfile(
+      'n4adda',
+      parseInstagramCookies({ IG_SESSION_ID: secretSessionId }),
+      async (_input, init) => {
+        const headers = new Headers(init?.headers);
+        const cookie = headers.get('Cookie') || '';
+        if (cookie.includes(`sessionid=${secretSessionId}`)) {
+          level2CalledWithCookie = true;
+          return new Response(
+            JSON.stringify({
+              data: {
+                user: {
+                  username: 'n4adda',
+                  full_name: 'Nadda',
+                  profile_pic_url_hd:
+                    'https://scontent.cdninstagram.com/v/t51.2885-19/hd_via_session.jpg',
+                },
+              },
+              status: 'ok',
+            }),
+            { status: 200 }
+          );
+        }
+        return new Response('', { status: 429 });
+      }
+    );
+    assert.equal(level2CalledWithCookie, true);
+    assert.equal(level2Res.ok, true);
+    assert.ok(!JSON.stringify(level2Res).includes(secretSessionId));
+
+    // -------------------------------------------------------------------
+    // (2) Profil avec nom complet et caractères spéciaux (accents, emojis, entités HTML) + Niveau 3 og:image Standard
+    // -------------------------------------------------------------------
+    const specialCharsRes = await extractInstagramProfile(
+      ' cafe.de.l_art ',
+      undefined,
+      async (input) => {
+        const u = typeof input === 'string' ? input : input.toString();
+        if (u.includes('web_profile_info')) {
+          return new Response('', { status: 429 });
+        }
+        if (u.endsWith('/embed/')) {
+          return new Response('blocked', { status: 429 });
+        }
+        return new Response(
+          `<!doctype html><html><head>
+            <meta property="og:title" content="Café de l&#x27;Art &amp; Co ✨ (@cafe.de.l_art) • Instagram photos and videos" />
+            <meta property="og:image" content="https://scontent-cdg4-1.cdninstagram.com/v/t51.82787-19/profile_standard.jpg?stp=dst-jpg_s320x320&amp;_nc_cat=104" />
+          </head><body></body></html>`,
+          { status: 200, headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+    );
+    assert.equal(specialCharsRes.ok, true);
+    if (specialCharsRes.ok) {
+      assert.equal(specialCharsRes.title, '@cafe.de.l_art');
+      assert.equal(
+        specialCharsRes.author?.full_name,
+        "Café de l'Art & Co ✨"
+      );
+      assert.equal(specialCharsRes.items[0].quality, 'Standard');
+      assert.equal(
+        specialCharsRes.items[0].url,
+        'https://scontent-cdg4-1.cdninstagram.com/v/t51.82787-19/profile_standard.jpg?stp=dst-jpg_s320x320&_nc_cat=104'
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // (3) Compte privé : photo de profil publique extraite si présente, sinon PRIVATE_OR_LOGIN_REQUIRED
+    // -------------------------------------------------------------------
+    const privateWithPublicPhotoRes = await extractInstagramProfile(
+      'private_user_with_dp',
+      undefined,
+      async () =>
+        new Response(
+          JSON.stringify({
+            data: {
+              user: {
+                username: 'private_user_with_dp',
+                full_name: 'Compte Privé',
+                is_private: true,
+                hd_profile_pic_url_info: {
+                  url: 'https://scontent.cdninstagram.com/v/t51.2885-19/private_user_hd.jpg',
+                },
+              },
+            },
+            status: 'ok',
+          }),
+          { status: 200 }
+        )
+    );
+    assert.equal(privateWithPublicPhotoRes.ok, true);
+    if (privateWithPublicPhotoRes.ok) {
+      assert.equal(privateWithPublicPhotoRes.items[0].quality, 'HD');
+    }
+
+    const privateWithoutPhotoRes = await extractInstagramProfile(
+      'private_no_dp',
+      undefined,
+      async () =>
+        new Response(
+          JSON.stringify({
+            data: {
+              user: {
+                username: 'private_no_dp',
+                full_name: 'Privé Sans Photo',
+                is_private: true,
+                profile_pic_url: '',
+              },
+            },
+            status: 'ok',
+          }),
+          { status: 200 }
+        )
+    );
+    assert.equal(privateWithoutPhotoRes.ok, false);
+    if (!privateWithoutPhotoRes.ok) {
+      assert.equal(
+        privateWithoutPhotoRes.error.code,
+        'PRIVATE_OR_LOGIN_REQUIRED'
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // (4) Compte inexistant => NOT_FOUND (HTTP 404)
+    // -------------------------------------------------------------------
+    const notFoundNullUserRes = await extractInstagramProfile(
+      'user_does_not_exist_999999',
+      undefined,
+      async () =>
+        new Response(
+          JSON.stringify({
+            data: { user: null },
+            status: 'ok',
+          }),
+          { status: 200 }
+        )
+    );
+    assert.equal(notFoundNullUserRes.ok, false);
+    if (!notFoundNullUserRes.ok) {
+      assert.equal(notFoundNullUserRes.error.code, 'NOT_FOUND');
+      assert.equal(mapErrorCodeToHttpStatus(notFoundNullUserRes.error.code), 404);
+    }
+
+    const notFound404Res = await extractInstagramProfile(
+      'user_404_not_found',
+      undefined,
+      async () => new Response('Not Found', { status: 404 })
+    );
+    assert.equal(notFound404Res.ok, false);
+    if (!notFound404Res.ok) {
+      assert.equal(notFound404Res.error.code, 'NOT_FOUND');
+      assert.equal(mapErrorCodeToHttpStatus(notFound404Res.error.code), 404);
+    }
+
+    // -------------------------------------------------------------------
+    // (5) Blocage simulé (429 vide, 403, redirection 302 vers /accounts/login/) => BLOCKED_BY_PLATFORM (JAMAIS NOT_FOUND)
+    // -------------------------------------------------------------------
+    const blockedSimRes = await extractInstagramProfile(
+      'n4adda',
+      undefined,
+      async (input) => {
+        const u = typeof input === 'string' ? input : input.toString();
+        if (u.includes('web_profile_info')) {
+          return new Response('', { status: 429 });
+        }
+        return new Response(null, {
+          status: 302,
+          headers: {
+            Location:
+              'https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fn4adda%2F&is_from_rle',
+          },
+        });
+      }
+    );
+    assert.equal(blockedSimRes.ok, false);
+    if (!blockedSimRes.ok) {
+      assert.equal(blockedSimRes.error.code, 'BLOCKED_BY_PLATFORM');
+      assert.notEqual(blockedSimRes.error.code, 'NOT_FOUND');
+      assert.equal(mapErrorCodeToHttpStatus(blockedSimRes.error.code), 502);
+    }
+
+    // Vérifie aussi que le message front est distinct en français pour un profil
+    const frNotFoundMsg = getLocalizedErrorMessage('NOT_FOUND', 'fr', {
+      platform: 'instagram',
+      isProfile: true,
+    });
+    const frBlockedMsg = getLocalizedErrorMessage('BLOCKED_BY_PLATFORM', 'fr', {
+      platform: 'instagram',
+      isProfile: true,
+    });
+    assert.ok(frNotFoundMsg.toLowerCase().includes('introuvable'));
+    assert.ok(
+      frBlockedMsg
+        .toLowerCase()
+        .includes('instagram bloque temporairement la demande')
+    );
+    assert.notEqual(frNotFoundMsg, frBlockedMsg);
+
+    // -------------------------------------------------------------------
+    // (1b & 8) Extraction complète via /api/extract sur un profil public réel (ex: natgeo ou n4adda) + téléchargement /api/download
+    // -------------------------------------------------------------------
+    const liveProfileExtractRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://www.instagram.com/natgeo?igsh=MTIz'
+      ),
+      adminEnv
+    );
+    assert.equal(liveProfileExtractRes.status, 200);
+    const liveProfileJson: any = await liveProfileExtractRes.json();
+    assert.equal(liveProfileJson.ok, true);
+    assert.equal(liveProfileJson.platform, 'instagram');
+    assert.equal(liveProfileJson.type, 'image');
+    assert.equal(liveProfileJson.title, '@natgeo');
+    assert.equal(liveProfileJson.author.username, 'natgeo');
+    assert.ok(liveProfileJson.items.length === 1);
+    assert.equal(liveProfileJson.items[0].kind, 'image');
+    assert.equal(liveProfileJson.items[0].ext, 'jpg');
+    assert.ok(
+      liveProfileJson.items[0].quality === 'HD' ||
+        liveProfileJson.items[0].quality === 'Standard'
+    );
+    assert.ok(
+      liveProfileJson.items[0].url.includes(
+        'filename=instagram_natgeo_profile.jpg'
+      )
+    );
+
+    // (8) Vérification du téléchargement via /api/download : streaming JPG, Referer: https://www.instagram.com/, filename="instagram_{username}_profile.jpg"
+    const origFetch = globalThis.fetch;
+    try {
+      let capturedUpstreamReferer = '';
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        if (u.includes('scontent-cdg4-1.cdninstagram.com/v/t51.2885-19/n4adda_profile.jpg')) {
+          const h = new Headers(init?.headers);
+          capturedUpstreamReferer = h.get('Referer') || '';
+          return new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]), {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Length': '6',
+            },
+          });
+        }
+        return origFetch(input, init);
+      };
+
+      const dlRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/download?url=' +
+            encodeURIComponent(
+              'https://scontent-cdg4-1.cdninstagram.com/v/t51.2885-19/n4adda_profile.jpg'
+            ) +
+            '&filename=instagram_n4adda_profile.jpg'
+        ),
+        adminEnv
+      );
+      assert.equal(dlRes.status, 200);
+      assert.equal(capturedUpstreamReferer, 'https://www.instagram.com/');
+      assert.equal(dlRes.headers.get('Content-Type'), 'image/jpeg');
+      assert.equal(
+        dlRes.headers.get('Content-Disposition'),
+        'attachment; filename="instagram_n4adda_profile.jpg"'
+      );
+      const bytes = new Uint8Array(await dlRes.arrayBuffer());
+      assert.equal(bytes[0], 0xff);
+      assert.equal(bytes[1], 0xd8);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // -------------------------------------------------------------------
+    // (7) Vérification Admin Santé des moteurs (instagram_profile sans URL en dur par défaut) + comptage dans stats
+    // -------------------------------------------------------------------
+    const loginRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://vidnex.space',
+          'CF-Connecting-IP': '198.51.100.210',
+        },
+        body: JSON.stringify({ password: 'super-secret-admin-pwd' }),
+      }),
+      adminEnv
+    );
+    const sessionCookie = (loginRes.headers.get('Set-Cookie') || '').split(';')[0];
+
+    const healthGetRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/health', {
+        headers: { Cookie: sessionCookie },
+      }),
+      adminEnv
+    );
+    assert.equal(healthGetRes.status, 200);
+    const healthGetJson: any = await healthGetRes.json();
+    assert.ok(healthGetJson.engines.instagram_profile);
+    assert.equal(healthGetJson.engines.instagram_profile.test_url, '');
+
+    const statsGetRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/stats', {
+        headers: { Cookie: sessionCookie },
+      }),
+      adminEnv
+    );
+    assert.equal(statsGetRes.status, 200);
+    const statsGetJson: any = await statsGetRes.json();
+    assert.ok(statsGetJson.platforms.instagram_profile);
+    assert.ok(statsGetJson.platforms.instagram_profile.total >= 1);
+  });
 });
+

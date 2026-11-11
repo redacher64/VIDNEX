@@ -386,13 +386,16 @@ async function handleExtract(
   }
 
   const durationMs = Date.now() - startedAt;
+  const isIgProfile =
+    detection.platform === 'instagram' && detection.kind === 'profile';
+  const loggedPlatform = isIgProfile ? 'instagram_profile' : detection.platform;
 
   if (!result.ok || result.error) {
     const errCode = result.error?.code || 'BLOCKED_BY_PLATFORM';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
-        platform: detection.platform,
+        platform: loggedPlatform,
         status: 'error',
         errorCode: errCode,
         durationMs,
@@ -410,7 +413,7 @@ async function handleExtract(
   scheduleAsyncLog(
     ctx,
     logExtractionEvent(env, {
-      platform: detection.platform,
+      platform: loggedPlatform,
       status: 'success',
       errorCode: null,
       durationMs,
@@ -419,8 +422,15 @@ async function handleExtract(
   );
 
   // 3. Transformation des URLs d'items vers le proxy sécurisé /api/download
-  const username = (result.author?.username || 'media').replace(/[^a-zA-Z0-9_-]/g, '');
-  const sharedCookie = result.cookie;
+  const username = (result.author?.username || 'media').replace(/[^a-zA-Z0-9._-]/g, '');
+  const profileUsername = (
+    result.author?.username ||
+    detection.identifier ||
+    'user'
+  )
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '');
+  const sharedCookie = isIgProfile ? undefined : result.cookie;
   const tweetOrMediaId = (detection.identifier || 'post').replace(/[^a-zA-Z0-9_-]/g, '');
 
   const transformedItems = (result.items || []).map((item, idx) => {
@@ -428,22 +438,25 @@ async function handleExtract(
       item.ext ||
       (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'mp3' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
-    const safeFilename =
-      result.platform === 'facebook'
-        ? `facebook_${tweetOrMediaId}.${ext}`
-        : result.platform === 'x'
-        ? (result.items || []).length > 1
-          ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
-          : `x_${username}_${tweetOrMediaId}.${ext}`
-        : `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
-    const itemCookie = item.cookie || sharedCookie;
+    const safeFilename = isIgProfile
+      ? `instagram_${profileUsername}_profile.jpg`
+      : result.platform === 'facebook'
+      ? `facebook_${tweetOrMediaId}.${ext}`
+      : result.platform === 'x'
+      ? (result.items || []).length > 1
+        ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
+        : `x_${username}_${tweetOrMediaId}.${ext}`
+      : `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
+    const itemCookie = isIgProfile ? undefined : item.cookie || sharedCookie;
 
     return {
       ...item,
       thumbnail: item.thumbnail
         ? wrapDownloadUrl(
             item.thumbnail,
-            result.platform === 'facebook'
+            isIgProfile
+              ? `instagram_${profileUsername}_profile.jpg`
+              : result.platform === 'facebook'
               ? `facebook_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : result.platform === 'x'
               ? `x_${username}_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
@@ -468,7 +481,9 @@ async function handleExtract(
   ) {
     proxyThumbnail = wrapDownloadUrl(
       proxyThumbnail,
-      `VIDNEX_${result.platform}_${username}_thumb.jpg`,
+      isIgProfile
+        ? `instagram_${profileUsername}_profile.jpg`
+        : `VIDNEX_${result.platform}_${username}_thumb.jpg`,
       true,
       { cookie: sharedCookie }
     );
@@ -484,7 +499,9 @@ async function handleExtract(
             result.author.avatar.startsWith('https://'))
             ? wrapDownloadUrl(
                 result.author.avatar,
-                `VIDNEX_${result.platform}_${username}_avatar.jpg`,
+                isIgProfile
+                  ? `instagram_${profileUsername}_profile.jpg`
+                  : `VIDNEX_${result.platform}_${username}_avatar.jpg`,
                 true,
                 { cookie: sharedCookie }
               )

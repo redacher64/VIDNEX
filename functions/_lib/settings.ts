@@ -15,6 +15,7 @@ export interface SystemSettings {
   ads_enabled: boolean;
   test_url_tiktok: string;
   test_url_instagram: string;
+  test_url_instagram_profile: string;
   test_url_x: string;
   test_url_facebook: string;
 }
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   ads_enabled: true,
   test_url_tiktok: '',
   test_url_instagram: '',
+  test_url_instagram_profile: '',
   test_url_x: '',
   test_url_facebook: '',
 };
@@ -88,6 +90,7 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
         : true,
       test_url_tiktok: map.get('test_url_tiktok') ?? '',
       test_url_instagram: map.get('test_url_instagram') ?? '',
+      test_url_instagram_profile: map.get('test_url_instagram_profile') ?? '',
       test_url_x: map.get('test_url_x') ?? '',
       test_url_facebook: map.get('test_url_facebook') ?? '',
     };
@@ -136,6 +139,9 @@ export async function updateSystemSettings(
   }
   if (typeof partial.test_url_instagram === 'string') {
     entries.push(['test_url_instagram', partial.test_url_instagram.trim()]);
+  }
+  if (typeof partial.test_url_instagram_profile === 'string') {
+    entries.push(['test_url_instagram_profile', partial.test_url_instagram_profile.trim()]);
   }
   if (typeof partial.test_url_x === 'string') {
     entries.push(['test_url_x', partial.test_url_x.trim()]);

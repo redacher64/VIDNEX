@@ -343,8 +343,8 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             )}
           </form>
 
-          {/* Direct Platform Links Pill Row (real <a href> links on md+, hidden on mobile where sticky Header bar is visible) + ShareButton */}
-          <div className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-2">
+          {/* Mobile-First Wrapping Tool Selection Bar (TikTok, Instagram, X, Facebook, YouTube, Snapchat + ShareButton) */}
+          <div className="mt-4 sm:mt-5 tool-selection-bar">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pInfo = bundle.platforms[pKey];
               const isSelected = pageKey === pKey;
@@ -357,7 +357,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                     e.preventDefault();
                     onNavigatePage(pKey);
                   }}
-                  className={`hidden md:flex px-3.5 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 ${
                     isSelected
                       ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
                       : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/80 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
@@ -366,6 +366,24 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                   <PlatformIcon platform={pKey} className="w-3.5 h-3.5" />
                   <span>{pInfo.shortLabel}</span>
                 </a>
+              );
+            })}
+            {(['youtube', 'snapchat'] as const).map((upcomingId) => {
+              const label = upcomingId === 'youtube' ? 'YouTube' : 'Snapchat';
+              return (
+                <button
+                  key={upcomingId}
+                  type="button"
+                  onClick={() => setValidationMessage(t.comingSoonNotice)}
+                  title={`${label} — ${bundle.ui.nav.soonBadge}`}
+                  className="px-3 py-1.5 rounded-lg font-mono text-xs transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 bg-white/75 dark:bg-[#1c140e]/75 border border-orange-200/70 dark:border-orange-900/50 text-[#6c4e40] dark:text-orange-200/65 font-medium hover:border-orange-300 cursor-pointer"
+                >
+                  <PlatformIcon platform={upcomingId} className="w-3.5 h-3.5" />
+                  <span>{label}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/80 text-[9px] font-mono uppercase tracking-wider text-orange-800 dark:text-amber-400">
+                    {bundle.ui.nav.soonBadge}
+                  </span>
+                </button>
               );
             })}
             <ShareButton pageKey={pageKey} language={language} />

@@ -324,14 +324,14 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile & Tablet-Portrait Segmented Platform Navigation + "Plus" (YouTube, Snapchat) Menu */}
+      {/* Mobile & Tablet-Portrait Single-Line Segmented Platform Navigation + "Plus" (YouTube, Snapchat) Menu */}
       <div
         className="relative md:hidden px-3 pb-2.5"
         ref={mobileDropdownRef}
       >
         <nav
           aria-label="Mobile Platform Navigation"
-          className="tool-selection-bar p-1 bg-orange-100/60 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner"
+          className="flex items-center flex-nowrap gap-1 p-1 bg-orange-100/60 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner overflow-x-auto no-scrollbar"
         >
           {primaryTabs.map((tab) => {
             const pKey = tab.id as PlatformPageKey;
@@ -351,7 +351,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setMoreMenuOpen(false);
                   if (supported) onNavigatePage(pKey);
                 }}
-                className={`tool-selection-item rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`flex-1 min-w-fit flex items-center justify-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
                   !supported
                     ? 'opacity-50 pointer-events-none text-[#6c4e40] dark:text-orange-200/50'
                     : isActive
@@ -369,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
 
-          {/* Mobile "Plus" Button for upcoming platforms (YouTube, Snapchat) */}
+          {/* Mobile "Plus" Button for upcoming platforms (YouTube, Snapchat) on the same single line */}
           <button
             type="button"
             onClick={() => {
@@ -377,7 +377,7 @@ export const Header: React.FC<HeaderProps> = ({
               setLangMenuOpen(false);
             }}
             aria-expanded={moreMenuOpen}
-            className={`tool-selection-item rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               moreMenuOpen
                 ? 'bg-white dark:bg-[#2f2016] text-orange-600 dark:text-amber-400 shadow-sm border border-orange-300/70 dark:border-orange-800/70'
                 : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 active:bg-orange-200/50 dark:active:bg-orange-950/60'
@@ -394,10 +394,10 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Mobile Dropdown Panel using mobile-first .tool-selection-grid */}
+        {/* Mobile Dropdown Panel (rendered outside overflow-x-auto so it is never clipped) */}
         {moreMenuOpen && (
           <div className="absolute left-3 right-3 sm:left-auto sm:right-3 sm:w-64 top-full mt-1 bg-[#fffaf5] dark:bg-[#1c140e] rounded-2xl border border-orange-200 dark:border-orange-900/80 shadow-[0_12px_32px_rgba(234,88,12,0.2)] p-2 z-50">
-            <div className="tool-selection-grid">
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-1.5">
               {secondaryTabs.map((tab) => (
                 <div
                   key={tab.id}

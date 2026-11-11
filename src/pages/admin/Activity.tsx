@@ -7,6 +7,8 @@ interface ActivityRow {
   platform: string;
   status: string;
   error_code: string | null;
+  engine_stage?: string | null;
+  http_status?: number | null;
   duration_ms: number;
   ip_hash_short: string;
   ip_hash: string;
@@ -56,7 +58,7 @@ export const Activity: React.FC = () => {
             Journal d’activité en temps réel
           </h2>
           <p className="text-xs text-orange-200/65 font-mono">
-            Aucune URL de vidéo ni adresse IP en clair n’est stockée (SHA-256 + IP_HASH_SALT)
+            Aucune URL de vidéo, aucun cookie ni adresse IP en clair n’est stocké (SHA-256 + IP_HASH_SALT)
           </p>
         </div>
 
@@ -79,6 +81,8 @@ export const Activity: React.FC = () => {
                 <th className="py-3 px-4">Date</th>
                 <th className="py-3 px-4">Plateforme</th>
                 <th className="py-3 px-4">Statut</th>
+                <th className="py-3 px-4">Niveau (engine_stage)</th>
+                <th className="py-3 px-4">HTTP</th>
                 <th className="py-3 px-4">Code Erreur</th>
                 <th className="py-3 px-4">Durée</th>
                 <th className="py-3 px-4">IP Hachée (tronquée)</th>
@@ -87,7 +91,7 @@ export const Activity: React.FC = () => {
             <tbody className="divide-y divide-orange-950/60 text-xs font-mono">
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-orange-200/50">
+                  <td colSpan={8} className="py-8 text-center text-orange-200/50">
                     Aucune requête enregistrée pour le moment.
                   </td>
                 </tr>
@@ -116,6 +120,26 @@ export const Activity: React.FC = () => {
                       >
                         {row.status === 'success' ? 'SUCCÈS' : 'ÉCHEC'}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-orange-200/90 whitespace-nowrap">
+                      {row.engine_stage || '—'}
+                    </td>
+                    <td className="py-3 px-4 tabular-nums">
+                      {row.http_status != null ? (
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            row.http_status >= 200 && row.http_status < 300
+                              ? 'bg-emerald-950/60 text-emerald-300'
+                              : row.http_status === 404
+                              ? 'bg-zinc-800 text-zinc-300'
+                              : 'bg-amber-950/70 text-amber-300'
+                          }`}
+                        >
+                          {row.http_status}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="py-3 px-4 text-amber-300/90">
                       {row.error_code || '—'}

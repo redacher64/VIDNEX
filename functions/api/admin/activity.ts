@@ -40,27 +40,62 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     const total = Number(countRow?.total || 0);
     const totalPages = Math.max(1, Math.ceil(total / limit));
 
-    const res = await db
-      .prepare(
-        'SELECT id, ts, platform, status, error_code, duration_ms, ip_hash FROM request_log ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?'
-      )
-      .bind(limit, offset)
-      .all<{
-        id: number;
-        ts: number;
-        platform: string;
-        status: string;
-        error_code: string | null;
-        duration_ms: number;
-        ip_hash: string;
-      }>();
+    let rows: Array<{
+      id: number;
+      ts: number;
+      platform: string;
+      status: string;
+      error_code: string | null;
+      duration_ms: number;
+      ip_hash: string;
+      engine_stage?: string | null;
+      http_status?: number | null;
+    }> = [];
 
-    const items = (res.results || []).map((row) => ({
+    try {
+      const res = await db
+        .prepare(
+          'SELECT id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status FROM request_log ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?'
+        )
+        .bind(limit, offset)
+        .all<{
+          id: number;
+          ts: number;
+          platform: string;
+          status: string;
+          error_code: string | null;
+          duration_ms: number;
+          ip_hash: string;
+          engine_stage?: string | null;
+          http_status?: number | null;
+        }>();
+      rows = res.results || [];
+    } catch {
+      const fallbackRes = await db
+        .prepare(
+          'SELECT id, ts, platform, status, error_code, duration_ms, ip_hash FROM request_log ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?'
+        )
+        .bind(limit, offset)
+        .all<{
+          id: number;
+          ts: number;
+          platform: string;
+          status: string;
+          error_code: string | null;
+          duration_ms: number;
+          ip_hash: string;
+        }>();
+      rows = fallbackRes.results || [];
+    }
+
+    const items = rows.map((row) => ({
       id: row.id,
       ts: row.ts,
       platform: row.platform,
       status: row.status,
       error_code: row.error_code,
+      engine_stage: row.engine_stage ?? null,
+      http_status: row.http_status ?? null,
       duration_ms: row.duration_ms,
       // Truncated SHA-256 IP hash for display, plus full hash so admin can copy it to blocklist if needed
       ip_hash_short: row.ip_hash ? `${row.ip_hash.slice(0, 12)}…` : 'anonyme',

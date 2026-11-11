@@ -18,6 +18,8 @@ export interface ExtractionLogEvent {
   errorCode?: string | null;
   durationMs: number;
   ipHash: string;
+  engineStage?: string | null;
+  httpStatus?: number | null;
   ts?: number;
 }
 
@@ -62,15 +64,42 @@ export async function logExtractionEvent(
   const durationMs = Math.max(0, Math.round(event.durationMs));
   const errorCode =
     event.status === 'success' ? null : event.errorCode || 'UNKNOWN_ERROR';
+  const engineStage = event.engineStage
+    ? String(event.engineStage).slice(0, 64)
+    : null;
+  const httpStatus =
+    typeof event.httpStatus === 'number' && Number.isFinite(event.httpStatus)
+      ? Math.round(event.httpStatus)
+      : null;
 
   try {
-    await db
-      .prepare(
-        `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      )
-      .bind(ts, event.platform, event.status, errorCode, durationMs, event.ipHash)
-      .run();
+    try {
+      await db
+        .prepare(
+          `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          ts,
+          event.platform,
+          event.status,
+          errorCode,
+          durationMs,
+          event.ipHash,
+          engineStage,
+          httpStatus
+        )
+        .run();
+    } catch {
+      // Repli rétrocompatible si la migration 0002 n'a pas encore pu être appliquée
+      await db
+        .prepare(
+          `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        )
+        .bind(ts, event.platform, event.status, errorCode, durationMs, event.ipHash)
+        .run();
+    }
 
     if (
       event.platform === 'tiktok' ||

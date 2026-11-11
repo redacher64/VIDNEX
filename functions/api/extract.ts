@@ -181,6 +181,8 @@ async function handleExtract(
         errorCode: 'BLOCKED',
         durationMs: Date.now() - startedAt,
         ipHash,
+        engineStage: 'blocklist',
+        httpStatus: 403,
       })
     );
     return createErrorResponse(
@@ -201,6 +203,8 @@ async function handleExtract(
         errorCode: 'RATE_LIMITED',
         durationMs: Date.now() - startedAt,
         ipHash,
+        engineStage: 'rate_limit',
+        httpStatus: 429,
       })
     );
     return createErrorResponse(
@@ -231,6 +235,8 @@ async function handleExtract(
         errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
         durationMs: Date.now() - startedAt,
         ipHash,
+        engineStage: 'detect_login_redirect',
+        httpStatus: 403,
       })
     );
     return createErrorResponse(
@@ -274,6 +280,7 @@ async function handleExtract(
     const resolvedFb = await resolveFacebookRedirect(detection.cleanUrl);
     if (!resolvedFb.ok || !resolvedFb.finalUrl) {
       const errCode = resolvedFb.errorCode || 'UNSUPPORTED_URL';
+      const status = mapErrorCodeToHttpStatus(errCode);
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
@@ -282,13 +289,15 @@ async function handleExtract(
           errorCode: errCode,
           durationMs: Date.now() - startedAt,
           ipHash,
+          engineStage: 'fb_redirect',
+          httpStatus: status,
         })
       );
       return createErrorResponse(
         errCode,
         resolvedFb.errorMessage ||
           'Impossible de résoudre ce lien de partage Facebook vers une vidéo publique valide.',
-        mapErrorCodeToHttpStatus(errCode)
+        status
       );
     }
 
@@ -302,6 +311,8 @@ async function handleExtract(
           errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
           durationMs: Date.now() - startedAt,
           ipHash,
+          engineStage: 'fb_redirect_login',
+          httpStatus: 403,
         })
       );
       return createErrorResponse(
@@ -344,6 +355,8 @@ async function handleExtract(
         errorCode: 'PLATFORM_DISABLED',
         durationMs: Date.now() - startedAt,
         ipHash,
+        engineStage: 'platform_disabled',
+        httpStatus: 403,
       })
     );
     return createErrorResponse(
@@ -389,9 +402,13 @@ async function handleExtract(
   const isIgProfile =
     detection.platform === 'instagram' && detection.kind === 'profile';
   const loggedPlatform = isIgProfile ? 'instagram_profile' : detection.platform;
+  const defaultStage = isIgProfile
+    ? 'ig_profile'
+    : `${detection.platform}_${detection.kind || 'media'}`;
 
   if (!result.ok || result.error) {
     const errCode = result.error?.code || 'BLOCKED_BY_PLATFORM';
+    const mappedStatus = mapErrorCodeToHttpStatus(errCode);
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -400,12 +417,14 @@ async function handleExtract(
         errorCode: errCode,
         durationMs,
         ipHash,
+        engineStage: result.engineStage || defaultStage,
+        httpStatus: result.httpStatus ?? mappedStatus,
       })
     );
     return createErrorResponse(
       errCode,
       result.error?.message || "Erreur lors de l'extraction du contenu.",
-      mapErrorCodeToHttpStatus(errCode)
+      mappedStatus
     );
   }
 
@@ -418,6 +437,8 @@ async function handleExtract(
       errorCode: null,
       durationMs,
       ipHash,
+      engineStage: result.engineStage || defaultStage,
+      httpStatus: result.httpStatus ?? 200,
     })
   );
 

@@ -1685,40 +1685,74 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     }
 
     // -------------------------------------------------------------------
-    // (4) Compte inexistant => NOT_FOUND (HTTP 404)
+    // (4) Compte inexistant => NOT_FOUND uniquement si DEUX sources indépendantes le confirment
     // -------------------------------------------------------------------
-    const notFoundNullUserRes = await extractInstagramProfile(
+    const notFoundTwoSourcesRes = await extractInstagramProfile(
       'user_does_not_exist_999999',
       undefined,
-      async () =>
-        new Response(
-          JSON.stringify({
-            data: { user: null },
-            status: 'ok',
-          }),
-          { status: 200 }
-        )
+      async (input) => {
+        const u = typeof input === 'string' ? input : input.toString();
+        if (u.includes('web_profile_info')) {
+          return new Response(
+            JSON.stringify({
+              data: { user: null },
+              status: 'ok',
+            }),
+            { status: 200 }
+          );
+        }
+        return new Response('Page Not Found', { status: 404 });
+      }
     );
-    assert.equal(notFoundNullUserRes.ok, false);
-    if (!notFoundNullUserRes.ok) {
-      assert.equal(notFoundNullUserRes.error.code, 'NOT_FOUND');
-      assert.equal(mapErrorCodeToHttpStatus(notFoundNullUserRes.error.code), 404);
+    assert.equal(notFoundTwoSourcesRes.ok, false);
+    if (!notFoundTwoSourcesRes.ok) {
+      assert.equal(notFoundTwoSourcesRes.error.code, 'NOT_FOUND');
+      assert.equal(mapErrorCodeToHttpStatus(notFoundTwoSourcesRes.error.code), 404);
+      assert.ok(notFoundTwoSourcesRes.engineStage?.includes('+'));
+      assert.equal(notFoundTwoSourcesRes.httpStatus, 404);
     }
 
-    const notFound404Res = await extractInstagramProfile(
-      'user_404_not_found',
+    // Un 404 isolé de l'endpoint interne (suivi d'un blocage 403/302 sur la page publique) => BLOCKED_BY_PLATFORM (JAMAIS NOT_FOUND)
+    const isolated404Res = await extractInstagramProfile(
+      'isolated_404_user',
       undefined,
-      async () => new Response('Not Found', { status: 404 })
+      async (input) => {
+        const u = typeof input === 'string' ? input : input.toString();
+        if (u.includes('web_profile_info')) {
+          return new Response('Not Found', { status: 404 });
+        }
+        return new Response('Forbidden', { status: 403 });
+      }
     );
-    assert.equal(notFound404Res.ok, false);
-    if (!notFound404Res.ok) {
-      assert.equal(notFound404Res.error.code, 'NOT_FOUND');
-      assert.equal(mapErrorCodeToHttpStatus(notFound404Res.error.code), 404);
+    assert.equal(isolated404Res.ok, false);
+    if (!isolated404Res.ok) {
+      assert.equal(isolated404Res.error.code, 'BLOCKED_BY_PLATFORM');
+      assert.notEqual(isolated404Res.error.code, 'NOT_FOUND');
+      assert.equal(
+        isolated404Res.error.message,
+        'Instagram bloque temporairement la demande. Réessayez dans quelques minutes.'
+      );
     }
 
     // -------------------------------------------------------------------
-    // (5) Blocage simulé (429 vide, 403, redirection 302 vers /accounts/login/) => BLOCKED_BY_PLATFORM (JAMAIS NOT_FOUND)
+    // (5) Blocage simulé (403, 429 vide, redirection 302 vers /accounts/login/) => BLOCKED_BY_PLATFORM (JAMAIS NOT_FOUND)
     // -------------------------------------------------------------------
+    const blocked403Res = await extractInstagramProfile(
+      'blocked_403_user',
+      undefined,
+      async () => new Response('Forbidden', { status: 403 })
+    );
+    assert.equal(blocked403Res.ok, false);
+    if (!blocked403Res.ok) {
+      assert.equal(blocked403Res.error.code, 'BLOCKED_BY_PLATFORM');
+      assert.notEqual(blocked403Res.error.code, 'NOT_FOUND');
+      assert.equal(
+        blocked403Res.error.message,
+        'Instagram bloque temporairement la demande. Réessayez dans quelques minutes.'
+      );
+      assert.equal(blocked403Res.httpStatus, 403);
+    }
+
     const blockedSimRes = await extractInstagramProfile(
       'n4adda',
       undefined,
@@ -1740,54 +1774,84 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     if (!blockedSimRes.ok) {
       assert.equal(blockedSimRes.error.code, 'BLOCKED_BY_PLATFORM');
       assert.notEqual(blockedSimRes.error.code, 'NOT_FOUND');
+      assert.equal(
+        blockedSimRes.error.message,
+        'Instagram bloque temporairement la demande. Réessayez dans quelques minutes.'
+      );
       assert.equal(mapErrorCodeToHttpStatus(blockedSimRes.error.code), 502);
     }
 
     // Vérifie aussi que le message front est distinct en français pour un profil
     const frNotFoundMsg = getLocalizedErrorMessage('NOT_FOUND', 'fr', {
-      platform: 'instagram',
       isProfile: true,
     });
     const frBlockedMsg = getLocalizedErrorMessage('BLOCKED_BY_PLATFORM', 'fr', {
-      platform: 'instagram',
       isProfile: true,
     });
     assert.ok(frNotFoundMsg.toLowerCase().includes('introuvable'));
-    assert.ok(
-      frBlockedMsg
-        .toLowerCase()
-        .includes('instagram bloque temporairement la demande')
+    assert.equal(
+      frBlockedMsg,
+      'Instagram bloque temporairement la demande. Réessayez dans quelques minutes.'
     );
     assert.notEqual(frNotFoundMsg, frBlockedMsg);
 
     // -------------------------------------------------------------------
-    // (1b & 8) Extraction complète via /api/extract sur un profil public réel (ex: natgeo ou n4adda) + téléchargement /api/download
+    // (1b) Extraction réelle via /api/extract sur @instagram, @chadi.sammou et compte inexistant @vidnex_nonexistent_987654321
     // -------------------------------------------------------------------
-    const liveProfileExtractRes = await worker.fetch(
+    const liveIgRes = await worker.fetch(
       new Request(
-        'https://vidnex.space/api/extract?url=https://www.instagram.com/natgeo?igsh=MTIz'
+        'https://vidnex.space/api/extract?url=https://www.instagram.com/instagram/'
       ),
       adminEnv
     );
-    assert.equal(liveProfileExtractRes.status, 200);
-    const liveProfileJson: any = await liveProfileExtractRes.json();
-    assert.equal(liveProfileJson.ok, true);
-    assert.equal(liveProfileJson.platform, 'instagram');
-    assert.equal(liveProfileJson.type, 'image');
-    assert.equal(liveProfileJson.title, '@natgeo');
-    assert.equal(liveProfileJson.author.username, 'natgeo');
-    assert.ok(liveProfileJson.items.length === 1);
-    assert.equal(liveProfileJson.items[0].kind, 'image');
-    assert.equal(liveProfileJson.items[0].ext, 'jpg');
+    assert.equal(liveIgRes.status, 200);
+    const liveIgJson: any = await liveIgRes.json();
+    assert.equal(liveIgJson.ok, true);
+    assert.equal(liveIgJson.platform, 'instagram');
+    assert.equal(liveIgJson.type, 'image');
+    assert.equal(liveIgJson.title, '@instagram');
+    assert.equal(liveIgJson.author.username, 'instagram');
+    assert.equal(liveIgJson.items.length, 1);
+    assert.equal(liveIgJson.items[0].kind, 'image');
+    assert.equal(liveIgJson.items[0].ext, 'jpg');
     assert.ok(
-      liveProfileJson.items[0].quality === 'HD' ||
-        liveProfileJson.items[0].quality === 'Standard'
+      liveIgJson.items[0].url.includes('filename=instagram_instagram_profile.jpg')
     );
+    // Le front public ne reçoit jamais engineStage ni httpStatus
+    assert.equal(liveIgJson.engineStage, undefined);
+    assert.equal(liveIgJson.httpStatus, undefined);
+
+    const liveChadiRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://www.instagram.com/chadi.sammou/'
+      ),
+      adminEnv
+    );
+    assert.equal(liveChadiRes.status, 200);
+    const liveChadiJson: any = await liveChadiRes.json();
+    assert.equal(liveChadiJson.ok, true);
+    assert.equal(liveChadiJson.platform, 'instagram');
+    assert.equal(liveChadiJson.type, 'image');
+    assert.equal(liveChadiJson.title, '@chadi.sammou');
+    assert.equal(liveChadiJson.author.username, 'chadi.sammou');
+    assert.equal(liveChadiJson.author.full_name, 'Chadi Sammou');
+    assert.equal(liveChadiJson.items[0].quality, 'Standard');
     assert.ok(
-      liveProfileJson.items[0].url.includes(
-        'filename=instagram_natgeo_profile.jpg'
+      liveChadiJson.items[0].url.includes(
+        'filename=instagram_chadi.sammou_profile.jpg'
       )
     );
+
+    const liveNonExistentRes = await worker.fetch(
+      new Request(
+        'https://vidnex.space/api/extract?url=https://www.instagram.com/vidnex_nonexistent_987654321/'
+      ),
+      adminEnv
+    );
+    assert.equal(liveNonExistentRes.status, 404);
+    const liveNonExistentJson: any = await liveNonExistentRes.json();
+    assert.equal(liveNonExistentJson.ok, false);
+    assert.equal(liveNonExistentJson.error.code, 'NOT_FOUND');
 
     // (8) Vérification du téléchargement via /api/download : streaming JPG, Referer: https://www.instagram.com/, filename="instagram_{username}_profile.jpg"
     const origFetch = globalThis.fetch;
@@ -1839,7 +1903,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     }
 
     // -------------------------------------------------------------------
-    // (7) Vérification Admin Santé des moteurs (instagram_profile sans URL en dur par défaut) + comptage dans stats
+    // (7) Vérification Admin Santé des moteurs + Activité (engine_stage & http_status) + stats
     // -------------------------------------------------------------------
     const loginRes = await worker.fetch(
       new Request('https://vidnex.space/api/admin/login', {
@@ -1866,6 +1930,29 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(healthGetJson.engines.instagram_profile);
     assert.equal(healthGetJson.engines.instagram_profile.test_url, '');
 
+    const activityGetRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/activity?page=1&limit=20', {
+        headers: { Cookie: sessionCookie },
+      }),
+      adminEnv
+    );
+    assert.equal(activityGetRes.status, 200);
+    const activityGetJson: any = await activityGetRes.json();
+    assert.equal(activityGetJson.ok, true);
+    assert.ok(activityGetJson.items.length >= 3);
+    const igProfileLog = activityGetJson.items.find(
+      (it: any) => it.platform === 'instagram_profile' && it.status === 'success'
+    );
+    assert.ok(igProfileLog);
+    assert.equal(igProfileLog.engine_stage, 'level3_public_page');
+    assert.equal(igProfileLog.http_status, 200);
+    const notFoundLog = activityGetJson.items.find(
+      (it: any) => it.platform === 'instagram_profile' && it.error_code === 'NOT_FOUND'
+    );
+    assert.ok(notFoundLog);
+    assert.ok(notFoundLog.engine_stage.includes('+'));
+    assert.equal(notFoundLog.http_status, 404);
+
     const statsGetRes = await worker.fetch(
       new Request('https://vidnex.space/api/admin/stats', {
         headers: { Cookie: sessionCookie },
@@ -1875,7 +1962,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(statsGetRes.status, 200);
     const statsGetJson: any = await statsGetRes.json();
     assert.ok(statsGetJson.platforms.instagram_profile);
-    assert.ok(statsGetJson.platforms.instagram_profile.total >= 1);
+    assert.ok(statsGetJson.platforms.instagram_profile.total >= 3);
   });
 });
 

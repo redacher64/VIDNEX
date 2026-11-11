@@ -111,7 +111,7 @@ const PROFILE_ERROR_MESSAGES: Record<
     NOT_FOUND:
       "Compte introuvable. Ce profil Instagram n'existe pas ou a été supprimé.",
     BLOCKED_BY_PLATFORM:
-      'Instagram bloque temporairement la demande, réessayez plus tard.',
+      'Instagram bloque temporairement la demande. Réessayez dans quelques minutes.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Impossible de récupérer la photo de profil publique pour ce compte.',
     TIMEOUT:

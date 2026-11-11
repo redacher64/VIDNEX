@@ -46,6 +46,8 @@ export interface ExtractResponse {
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];
+  engineStage?: string;
+  httpStatus?: number;
   error?: {
     code: ErrorCode;
     message: string;

@@ -74,11 +74,12 @@ export async function hashIpAddress(
 }
 
 const bootstrappedDbs = new WeakSet<object>();
+const migratedColumnsDbs = new WeakSet<object>();
 
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
   `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('rate_limit_per_min', '30'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', '')`,
-  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
   `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT)`,
   `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES ('tiktok', NULL, NULL, NULL, NULL), ('instagram', NULL, NULL, NULL, NULL), ('instagram_profile', NULL, NULL, NULL, NULL), ('x', NULL, NULL, NULL, NULL), ('facebook', NULL, NULL, NULL, NULL)`,
@@ -88,8 +89,19 @@ const D1_BOOTSTRAP_STATEMENTS = [
 ];
 
 async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boolean> {
-  const msg = err instanceof Error ? err.message : String(err || '');
-  if (!msg.toLowerCase().includes('no such table')) {
+  const msg = (err instanceof Error ? err.message : String(err || '')).toLowerCase();
+  if (msg.includes('no such column: engine_stage') || msg.includes('no such column: http_status')) {
+    if (migratedColumnsDbs.has(rawDb)) return false;
+    try {
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_stage TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
+      migratedColumnsDbs.add(rawDb);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  if (!msg.includes('no such table')) {
     return false;
   }
   if (bootstrappedDbs.has(rawDb)) {
@@ -201,6 +213,8 @@ export function createMemoryD1Database(): D1Database {
     error_code: string | null;
     duration_ms: number;
     ip_hash: string;
+    engine_stage: string | null;
+    http_status: number | null;
   }
 
   interface EngineStatusRow {
@@ -421,6 +435,14 @@ export function createMemoryD1Database(): D1Database {
         const error_code = boundValues[3] ? String(boundValues[3]) : null;
         const duration_ms = Number(boundValues[4] || 0);
         const ip_hash = String(boundValues[5] || '');
+        const engine_stage =
+          boundValues[6] !== undefined && boundValues[6] !== null
+            ? String(boundValues[6])
+            : null;
+        const http_status =
+          boundValues[7] !== undefined && boundValues[7] !== null
+            ? Number(boundValues[7])
+            : null;
         requestLogs.push({
           id: logSeq++,
           ts,
@@ -429,6 +451,8 @@ export function createMemoryD1Database(): D1Database {
           error_code,
           duration_ms,
           ip_hash,
+          engine_stage,
+          http_status,
         });
         return [];
       }
@@ -444,7 +468,10 @@ export function createMemoryD1Database(): D1Database {
         }
         return [{ total: requestLogs.length }];
       }
-      if (lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash from request_log')) {
+      if (
+        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash from request_log') ||
+        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status from request_log')
+      ) {
         const limit = Number(boundValues[0] || 25);
         const offset = Number(boundValues[1] || 0);
         const sorted = [...requestLogs].sort((a, b) => b.ts - a.ts || b.id - a.id);

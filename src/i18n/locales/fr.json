@@ -142,7 +142,7 @@
     ],
     "editorial": {
       "heading": "Un outil unique pour sauvegarder vos médias sociaux publics",
-      "subheading": "Architecture légère sur Cloudflare Pages pour extraire les flux MP4 et MP3 d'origine sans réencodage.",
+      "subheading": "Architecture web légère et rapide pour extraire les flux MP4 et MP3 d'origine sans réencodage.",
       "paragraphs": [
         "VIDNEX est une application web gratuite conçue pour résoudre et télécharger les vidéos publiques publiées sur TikTok, Instagram, X (anciennement Twitter) et Facebook. Plutôt que de réencoder l'image ou d'ajouter un logo supplémentaire, l'outil interroge directement les métadonnées publiques de la publication afin de vous restituer le fichier MP4, JPG ou MP3 tel qu'il est diffusé par les serveurs de la plateforme.",
         "Son fonctionnement repose sur un traitement éphémère : lorsque vous collez une adresse URL dans le champ de recherche, notre passerelle analyse le lien, identifie les variantes de résolution disponibles (comme le 1080p, le 720p ou la définition standard) et vous permet d'enregistrer le fichier sur votre téléphone ou votre ordinateur. Aucune vidéo n'est conservée sur nos serveurs après la fin du téléchargement.",
@@ -509,7 +509,7 @@
   "legal": {
     "about": {
       "metaTitle": "À propos de VIDNEX — Outil d'extraction vidéo public",
-      "metaDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture sans stockage sur Cloudflare Pages et nos engagements de transparence.",
+      "metaDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture web sans stockage de fichiers et nos engagements de transparence.",
       "h1": "À propos de VIDNEX",
       "breadcrumbLabel": "À propos",
       "updatedAt": "10 novembre 2026",
@@ -519,7 +519,7 @@
           "heading": "Notre mission et fonctionnement technique",
           "paragraphs": [
             "Sur de nombreuses plateformes sociales, consulter un contenu public hors connexion ou récupérer sa propre création sans filigrane mobile nécessite souvent des logiciels complexes. VIDNEX propose une interface web claire, rapide et accessible sur ordinateur comme sur smartphone, sans inscription ni installation.",
-            "Techniquement, VIDNEX agit comme un résolveur de métadonnées publiques à la demande. Lorsqu'un utilisateur soumet une adresse URL, nos fonctions serverless hébergées sur Cloudflare Pages analysent les balises publiques de la page cible et relaient le flux multimédia directement depuis le réseau de diffusion (CDN) d'origine vers le navigateur de l'utilisateur."
+            "Techniquement, VIDNEX agit comme un résolveur de métadonnées publiques à la demande. Lorsqu'un utilisateur soumet une adresse URL, nos serveurs analysent à la volée les balises publiques de la page cible et relaient le flux multimédia directement depuis le réseau de diffusion (CDN) d'origine vers le navigateur de l'utilisateur."
           ]
         },
         {
@@ -531,7 +531,7 @@
         }
       ],
       "ogTitle": "À propos de VIDNEX — Outil d'extraction vidéo public",
-      "ogDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture sans stockage sur Cloudflare Pages et nos engagements de transparence.",
+      "ogDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture web sans stockage de fichiers et nos engagements de transparence.",
       "ogImageAlt": "À propos de VIDNEX — Architecture technique et téléchargement de médias publics"
     },
     "privacy": {
@@ -546,7 +546,7 @@
           "heading": "1. Traitement des URLs et absence de stockage des vidéos",
           "paragraphs": [
             "Lorsque vous collez un lien public dans VIDNEX, cette URL est transmise à notre API (/api/extract) uniquement le temps de résoudre l'adresse du fichier média auprès de la plateforme source. Les vidéos, pistes audio et images téléchargées transitent en flux direct (streaming proxy) et ne sont jamais enregistrées sur disque.",
-            "Pour assurer la supervision technique du service et limiter les abus (rate-limiting), nous enregistrons uniquement des statistiques techniques anonymisées dans notre base Cloudflare D1 : la plateforme sollicitée, le code de statut (succès ou type d'erreur), la durée de traitement en millisecondes et une empreinte hachée irréversible (SHA-256 avec sel secret) de l'adresse IP. L'adresse IP brute et les URLs soumises par les visiteurs ne sont pas stockées dans les journaux."
+            "Pour assurer la supervision technique du service et limiter les abus (rate-limiting), nous enregistrons uniquement des statistiques techniques anonymisées dans notre base de données sécurisée : la plateforme sollicitée, le code de statut (succès ou type d'erreur), la durée de traitement en millisecondes et une empreinte hachée irréversible (SHA-256 avec sel secret) de l'adresse IP. L'adresse IP brute et les URLs soumises par les visiteurs ne sont pas stockées dans les journaux."
           ]
         },
         {

@@ -142,7 +142,7 @@
     ],
     "editorial": {
       "heading": "One unified web tool for saving public social media videos",
-      "subheading": "Built on Cloudflare Pages to resolve original MP4 video streams and MP3 audio without re-encoding.",
+      "subheading": "Lightweight web architecture to resolve original MP4 video streams and MP3 audio without re-encoding.",
       "paragraphs": [
         "VIDNEX is a free web utility designed to resolve and download publicly shared videos from TikTok, Instagram, X (formerly Twitter), and Facebook. Instead of re-compressing video frames or stamping third-party logos onto your file, VIDNEX queries public post metadata to deliver the original MP4, JPG, or MP3 stream hosted on the platform's content delivery network.",
         "Every extraction runs ephemerally: when you paste a public link into the input bar, our serverless gateway validates the URL format, detects the available quality variants (such as 1080p, 720p, or standard definition), and streams the file straight to your device. No media files are archived or stored on our servers.",
@@ -509,7 +509,7 @@
   "legal": {
     "about": {
       "metaTitle": "About VIDNEX — Stateless Public Media Resolver",
-      "metaDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using stateless Cloudflare Pages Functions with zero file storage.",
+      "metaDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using a stateless web architecture with zero file storage.",
       "h1": "About VIDNEX",
       "breadcrumbLabel": "About Us",
       "updatedAt": "November 10, 2026",
@@ -519,7 +519,7 @@
           "heading": "How VIDNEX works",
           "paragraphs": [
             "Saving a public clip for offline reference or archiving your own social videos without mobile watermarks shouldn't require installing untrusted desktop software. VIDNEX provides a clean browser interface that works across phones, tablets, and computers without registration.",
-            "Under the hood, VIDNEX acts as an on-demand metadata resolver running on Cloudflare Pages Functions. When you submit a public URL, our serverless worker inspects the public metadata of the post and proxies the direct media stream from the origin CDN to your browser."
+            "Under the hood, VIDNEX acts as an on-demand public metadata resolver. When you submit a public URL, our system inspects the public metadata of the post and proxies the direct media stream from the origin CDN to your browser."
           ]
         },
         {
@@ -531,7 +531,7 @@
         }
       ],
       "ogTitle": "About VIDNEX — Stateless Public Media Resolver",
-      "ogDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using stateless Cloudflare Pages Functions with zero file storage.",
+      "ogDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using a stateless web architecture with zero file storage.",
       "ogImageAlt": "About VIDNEX — Public social media video resolver and architecture"
     },
     "privacy": {
@@ -546,7 +546,7 @@
           "heading": "1. Ephemeral URL processing and zero video storage",
           "paragraphs": [
             "When you paste a public URL into VIDNEX, the link is processed in memory by our `/api/extract` endpoint solely to resolve the direct media stream. Downloaded videos, audio tracks, and images are streamed through memory and are never written to disk.",
-            "To monitor engine health and enforce per-minute rate limits against automated abuse, our Cloudflare D1 database records only aggregated technical telemetry: target platform name, status (success or error code), response duration in milliseconds, and a one-way salted SHA-256 hash of the client IP address. Raw IP addresses and submitted URLs are not stored in request logs."
+            "To monitor engine health and enforce per-minute rate limits against automated abuse, our internal database records only aggregated technical telemetry: target platform name, status (success or error code), response duration in milliseconds, and a one-way salted SHA-256 hash of the client IP address. Raw IP addresses and submitted URLs are not stored in request logs."
           ]
         },
         {

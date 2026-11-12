@@ -8,6 +8,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
+import { stop as stopEsbuild } from 'esbuild';
 import { createServer } from 'vite';
 
 const ROOT_DIR = process.cwd();
@@ -409,8 +410,17 @@ async function main() {
   }
 
   const vite = await createServer({
+    configFile: false,
     cacheDir: 'node_modules/.vite-prerender',
-    server: { middlewareMode: true },
+    server: {
+      middlewareMode: true,
+      watch: null,
+      hmr: false,
+      ws: false,
+    },
+    optimizeDeps: {
+      noDiscovery: true,
+    },
     appType: 'custom',
     logLevel: 'error',
   });
@@ -522,6 +532,7 @@ async function main() {
     );
   } finally {
     await vite.close();
+    await stopEsbuild();
   }
 }
 

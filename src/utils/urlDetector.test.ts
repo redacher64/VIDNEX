@@ -2172,6 +2172,160 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const frBundle = await loadLocaleBundle('fr');
     assert.equal(frBundle.ui.drawer.extractAudioMp3, 'Télécharger le son');
   });
+
+  it('Phase 2 (ISSUE 03, 04, 05): inline video preview isolation, www 301 redirect, and redacher64.vidnex.space noindex', async () => {
+    const { isPreviewHostRequiringNoindex } = await import(
+      '../../functions/_middleware.ts'
+    );
+
+    // ISSUE 04: www.vidnex.space -> https://vidnex.space 301 redirect preserving pathname and search
+    const wwwRedirectRes = await worker.fetch(
+      new Request(
+        'https://www.vidnex.space/telecharger-video-tiktok?utm_source=audit&lang=fr'
+      ),
+      {}
+    );
+    assert.equal(wwwRedirectRes.status, 301);
+    assert.equal(
+      wwwRedirectRes.headers.get('Location'),
+      'https://vidnex.space/telecharger-video-tiktok?utm_source=audit&lang=fr'
+    );
+
+    // Verify no redirect loop on canonical domain vidnex.space
+    const canonicalHealthRes = await worker.fetch(
+      new Request('https://vidnex.space/api/health'),
+      {}
+    );
+    assert.equal(canonicalHealthRes.status, 200);
+
+    // ISSUE 05: redacher64.vidnex.space has anti-indexing policy (X-Robots-Tag: noindex, nofollow)
+    assert.equal(
+      isPreviewHostRequiringNoindex('redacher64.vidnex.space', 'https://vidnex.space'),
+      true
+    );
+    assert.equal(
+      isPreviewHostRequiringNoindex('vidnex.space', 'https://vidnex.space'),
+      false
+    );
+    assert.equal(
+      isPreviewHostRequiringNoindex('www.vidnex.space', 'https://vidnex.space'),
+      false
+    );
+
+    const redacherRes = await worker.fetch(
+      new Request('https://redacher64.vidnex.space/'),
+      {
+        ASSETS: {
+          fetch: async () =>
+            new Response('<!doctype html><html><body>OK</body></html>', {
+              status: 200,
+              headers: { 'Content-Type': 'text/html; charset=utf-8' },
+            }),
+        },
+      }
+    );
+    assert.equal(redacherRes.status, 200);
+    assert.equal(redacherRes.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+
+    // ISSUE 03: Video inline preview (inline=1) vs real download (attachment)
+    resetRateLimitBuckets();
+    resetD1RateLimitFallback();
+    const metricEvents: Array<{ platform: string; event: string }> = [];
+    const mockDb = {
+      prepare(sql: string) {
+        return {
+          bind(...args: unknown[]) {
+            return {
+              async run() {
+                if (sql.includes('INSERT INTO daily_metrics')) {
+                  metricEvents.push({
+                    platform: String(args[1]),
+                    event: String(args[2]),
+                  });
+                }
+                return { success: true };
+              },
+              async first() {
+                if (sql.includes('SELECT count FROM rate_limits')) {
+                  return { count: 1 };
+                }
+                return null;
+              },
+              async all() {
+                return { results: [] };
+              },
+            };
+          },
+        };
+      },
+    };
+
+    const origFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async () =>
+        new Response(new Uint8Array([0, 1, 2, 3, 4, 5]), {
+          status: 200,
+          headers: {
+            'Content-Type': 'video/mp4',
+            'Content-Length': '6',
+          },
+        });
+
+      const targetVideoUrl = 'https://v16-webapp-prime.tiktok.com/video/tos/test.mp4';
+      const pendingTasks: Promise<unknown>[] = [];
+      const ctx = {
+        waitUntil(p: Promise<unknown>) {
+          pendingTasks.push(p);
+        },
+      };
+
+      // 1. Video preview request with inline=1
+      const inlineRes = await worker.fetch(
+        new Request(
+          `https://vidnex.space/api/download?url=${encodeURIComponent(
+            targetVideoUrl
+          )}&filename=VIDNEX_tiktok_test_1080p.mp4&inline=1`
+        ),
+        { DB: mockDb as any },
+        ctx
+      );
+      await Promise.all(pendingTasks);
+      assert.equal(inlineRes.status, 200);
+      assert.equal(
+        inlineRes.headers.get('Content-Disposition'),
+        'inline; filename="VIDNEX_tiktok_test_1080p.mp4"'
+      );
+      assert.equal(inlineRes.headers.get('Accept-Ranges'), 'bytes');
+      // Video preview MUST NOT trigger download_started or download_success
+      assert.equal(metricEvents.length, 0);
+
+      // 2. Subsequent real download request (without inline=1) for the exact same file within the same minute
+      const attachmentRes = await worker.fetch(
+        new Request(
+          `https://vidnex.space/api/download?url=${encodeURIComponent(
+            targetVideoUrl
+          )}&filename=VIDNEX_tiktok_test_1080p.mp4`
+        ),
+        { DB: mockDb as any },
+        ctx
+      );
+      await attachmentRes.arrayBuffer();
+      await Promise.all(pendingTasks);
+      assert.equal(attachmentRes.status, 200);
+      assert.equal(
+        attachmentRes.headers.get('Content-Disposition'),
+        'attachment; filename="VIDNEX_tiktok_test_1080p.mp4"'
+      );
+      // Real download MUST trigger download_started and download_success
+      assert.deepEqual(
+        metricEvents.map((m) => m.event),
+        ['download_started', 'download_success']
+      );
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });
+
 
 

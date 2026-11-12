@@ -9,7 +9,8 @@ export interface MiddlewareContext {
 }
 
 /**
- * Checks if the request hostname is a preview domain (.pages.dev or .workers.dev)
+ * Checks if the request hostname is a preview or secondary subdomain
+ * (.pages.dev, .workers.dev, redacher64.vidnex.space, or any non-www subdomain of SITE_URL)
  * while SITE_URL is a custom production domain, to prevent duplicate indexing (ÉTAPE 5).
  */
 export function isPreviewHostRequiringNoindex(
@@ -19,16 +20,27 @@ export function isPreviewHostRequiringNoindex(
   const cleanHost = (requestHost || '').split(':')[0].toLowerCase();
   if (!cleanHost) return false;
 
-  const isPreviewDomain =
-    cleanHost.endsWith('.pages.dev') || cleanHost.endsWith('.workers.dev');
-  if (!isPreviewDomain) return false;
-
+  let canonicalHost = 'vidnex.space';
   try {
-    const canonicalHost = new URL(siteUrl).hostname.toLowerCase();
-    return cleanHost !== canonicalHost;
+    canonicalHost = new URL(siteUrl).hostname.toLowerCase();
   } catch {
+    // Keep default canonical host
+  }
+
+  if (cleanHost === canonicalHost || cleanHost === `www.${canonicalHost}`) {
+    return false;
+  }
+
+  if (
+    cleanHost === 'redacher64.vidnex.space' ||
+    cleanHost.endsWith(`.${canonicalHost}`) ||
+    cleanHost.endsWith('.pages.dev') ||
+    cleanHost.endsWith('.workers.dev')
+  ) {
     return true;
   }
+
+  return false;
 }
 
 /**

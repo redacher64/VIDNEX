@@ -312,7 +312,8 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const rawIp = getRawClientIp(context.request);
   const ipHash = await hashIpAddress(rawIp, context.env?.IP_HASH_SALT);
   const settings = await getSystemSettings(context.env);
-  const fileKey = rawTargetUrl || safeFilename || reqUrl.pathname;
+  const baseFileKey = rawTargetUrl || safeFilename || reqUrl.pathname;
+  const fileKey = isInline ? `inline:${baseFileKey}` : baseFileKey;
   const rate = await checkD1DownloadRateLimit(
     context.env,
     ipHash,
@@ -603,7 +604,11 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const acceptRanges = upstreamRes.headers.get('Accept-Ranges');
   if (acceptRanges) {
     responseHeaders.set('Accept-Ranges', acceptRanges);
-  } else if (!isInline) {
+  } else if (
+    !isInline ||
+    contentType.startsWith('video/') ||
+    contentType.startsWith('audio/')
+  ) {
     responseHeaders.set('Accept-Ranges', 'bytes');
   }
 

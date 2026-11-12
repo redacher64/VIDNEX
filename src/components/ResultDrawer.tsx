@@ -38,6 +38,26 @@ function buildDownloadEndpointUrl(filename: string, rawDownloadUrl?: string): st
   );
 }
 
+export function buildInlineVideoPreviewUrl(rawDownloadUrl?: string): string {
+  if (!rawDownloadUrl) return '';
+  const resolved = resolveApiUrl(rawDownloadUrl);
+  if (!resolved.includes('/api/download')) {
+    return resolved;
+  }
+  try {
+    const isAbsolute =
+      resolved.startsWith('http://') || resolved.startsWith('https://');
+    const parsed = new URL(resolved, 'https://vidnex.space');
+    parsed.searchParams.set('inline', '1');
+    return isAbsolute
+      ? parsed.toString()
+      : `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    const separator = resolved.includes('?') ? '&' : '?';
+    return `${resolved}${separator}inline=1`;
+  }
+}
+
 function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
   const targetUrl = buildDownloadEndpointUrl(filename, rawDownloadUrl);
   if (!targetUrl) return;
@@ -245,9 +265,9 @@ const VideoResultView: React.FC<{
     (f) => f.id !== primaryFormat?.id
   );
 
-  const previewVideoSrc = primaryFormat?.downloadUrl
-    ? resolveApiUrl(primaryFormat.downloadUrl)
-    : '';
+  const previewVideoSrc = buildInlineVideoPreviewUrl(
+    primaryFormat?.downloadUrl
+  );
 
   const overlayBadgeParts = [data.duration, data.resolution].filter(Boolean);
   const technicalSpecsParts = [

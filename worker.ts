@@ -243,6 +243,18 @@ export default {
     env: WorkerEnv = {},
     ctx?: ExecutionContextLike
   ): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.hostname.toLowerCase() === 'www.vidnex.space') {
+      const targetUrl = `https://vidnex.space${url.pathname}${url.search}`;
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: targetUrl,
+          'Cache-Control': 'public, max-age=31536000',
+        },
+      });
+    }
+
     return adminMiddleware({
       request,
       env,

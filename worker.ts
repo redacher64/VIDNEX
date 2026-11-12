@@ -152,6 +152,21 @@ async function routeInner(
     });
   }
 
+  if (
+    pathname === '/.well-known/ai-catalog.json' ||
+    pathname === '/.well-known/ard.json' ||
+    pathname.startsWith('/.well-known/')
+  ) {
+    return new Response(request.method === 'HEAD' ? null : 'Not Found', {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow',
+      },
+    });
+  }
+
   // Static assets via Cloudflare Workers Static Assets binding
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     const response = await env.ASSETS.fetch(request);

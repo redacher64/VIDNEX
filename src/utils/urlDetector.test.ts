@@ -1983,6 +1983,18 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(res.headers.get('Content-Type'), 'text/plain; charset=utf-8');
     const body = await res.text();
     assert.equal(body, txt);
+
+    const aiCatalogRes = await worker.fetch(
+      new Request('https://vidnex.space/.well-known/ai-catalog.json'),
+      {}
+    );
+    assert.equal(aiCatalogRes.status, 404);
+
+    const ardRes = await worker.fetch(
+      new Request('https://vidnex.space/.well-known/ard.json'),
+      {}
+    );
+    assert.equal(ardRes.status, 404);
   });
 });
 

@@ -35,6 +35,17 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
             res.end(buildLlmsTxt(SITE_URL));
             return;
           }
+          if (
+            cleanPath === '/.well-known/ai-catalog.json' ||
+            cleanPath === '/.well-known/ard.json' ||
+            cleanPath.startsWith('/.well-known/')
+          ) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+            res.end(req.method === 'HEAD' ? undefined : 'Not Found');
+            return;
+          }
           const isStaticAsset =
             cleanPath.startsWith('/src/') ||
             cleanPath.startsWith('/@') ||

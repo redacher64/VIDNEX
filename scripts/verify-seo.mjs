@@ -193,11 +193,19 @@ function main() {
     fail('dist/admin/index.html is missing meta robots noindex');
   }
 
-  // 10. Verify sitemap.xml and robots.txt
+  // 10. Verify sitemap.xml, robots.txt, and llms.txt
   const sitemapPath = path.join(DIST_DIR, 'sitemap.xml');
   const robotsPath = path.join(DIST_DIR, 'robots.txt');
+  const llmsPath = path.join(DIST_DIR, 'llms.txt');
   if (!fs.existsSync(sitemapPath) || !fs.existsSync(robotsPath)) {
     fail('Missing dist/sitemap.xml or dist/robots.txt');
+  }
+  if (!fs.existsSync(llmsPath)) {
+    fail('Missing dist/llms.txt');
+  }
+  const llmsTxt = fs.readFileSync(llmsPath, 'utf8');
+  if (!llmsTxt.startsWith('# VIDNEX') || !llmsTxt.includes(`${SITE_URL}/`)) {
+    fail('dist/llms.txt is invalid or missing # VIDNEX / absolute URLs');
   }
   const sitemapXml = fs.readFileSync(sitemapPath, 'utf8');
   if (sitemapXml.includes('/admin') || sitemapXml.includes('/api/')) {
@@ -218,7 +226,7 @@ function main() {
     `  • ${hreflangGraph.size} multilingual pages with 100% reciprocal & self-referencing hreflang`
   );
   console.log(`  • ${totalLinksChecked} internal <a href> links verified (0 broken)`);
-  console.log(`  • sitemap.xml (${locCount} URLs) & robots.txt validated`);
+  console.log(`  • sitemap.xml (${locCount} URLs), robots.txt & llms.txt validated`);
   console.log('==========================================================');
 }
 

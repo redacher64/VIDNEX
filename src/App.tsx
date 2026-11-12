@@ -36,6 +36,7 @@ import {
 } from './i18n/config.ts';
 import {
   getLocaleBundleSync,
+  hasLocaleBundleSync,
   loadLocaleBundle,
 } from './i18n/localeLoader.ts';
 import {
@@ -113,8 +114,11 @@ export function App({ initialPath }: AppProps = {}) {
     ? (pageKey as PlatformPageKey)
     : 'tiktok';
 
-  // Ensure the active language chunk is loaded dynamically on the client
+  // Ensure the active language chunk is loaded dynamically on the client only if not already cached
   useEffect(() => {
+    if (hasLocaleBundleSync(language)) {
+      return;
+    }
     let cancelled = false;
     loadLocaleBundle(language)
       .then(() => {

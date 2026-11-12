@@ -71,20 +71,23 @@ export function registerPreloadedLocale(bundle: LocaleBundle): void {
   }
 }
 
-/**
- * Returns the cached LocaleBundle synchronously if already loaded (or preloaded via SSR/window),
- * falling back to the French default bundle while the async chunk loads.
- */
-export function getLocaleBundleSync(locale: SupportedLocale): LocaleBundle {
+export function hasLocaleBundleSync(locale: SupportedLocale): boolean {
   if (typeof window !== 'undefined' && window.__VIDNEX_LOCALE_BUNDLE__) {
     const winBundle = window.__VIDNEX_LOCALE_BUNDLE__;
     if (winBundle && winBundle.locale && !bundleCache.has(winBundle.locale)) {
       bundleCache.set(winBundle.locale, winBundle);
     }
   }
-  const existing = bundleCache.get(locale);
-  if (existing) {
-    return existing;
+  return bundleCache.has(locale);
+}
+
+/**
+ * Returns the cached LocaleBundle synchronously if already loaded (or preloaded via SSR/window),
+ * falling back to the French default bundle while the async chunk loads.
+ */
+export function getLocaleBundleSync(locale: SupportedLocale): LocaleBundle {
+  if (hasLocaleBundleSync(locale)) {
+    return bundleCache.get(locale)!;
   }
   const nodeLoaded = tryLoadNodeLocaleJson(locale);
   if (nodeLoaded) {

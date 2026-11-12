@@ -1,0 +1,29 @@
+# VIDNEX
+
+> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3, sans compte et sans accès aux contenus privés.
+
+## Pages principales
+
+- [Accueil VIDNEX](https://vidnex.space/)
+- [Télécharger Vidéo TikTok](https://vidnex.space/telecharger-video-tiktok)
+- [Télécharger Reel et Vidéo Instagram](https://vidnex.space/telecharger-reel-instagram)
+- [Télécharger Vidéo X (Twitter)](https://vidnex.space/telecharger-video-x-twitter)
+- [Télécharger Vidéo Facebook](https://vidnex.space/telecharger-video-facebook)
+- [À propos](https://vidnex.space/a-propos)
+- [Politique de confidentialité](https://vidnex.space/confidentialite)
+- [Conditions d’utilisation](https://vidnex.space/conditions)
+- [Contact](https://vidnex.space/contact)
+- [Droits d’auteur et DMCA](https://vidnex.space/dmca)
+
+## Langues disponibles
+
+- [Français (FR)](https://vidnex.space/)
+- [English (EN)](https://vidnex.space/en)
+- [العربية (AR)](https://vidnex.space/ar)
+- [Español (ES)](https://vidnex.space/es)
+- [Português (PT)](https://vidnex.space/pt)
+- [Deutsch (DE)](https://vidnex.space/de)
+- [Türkçe (TR)](https://vidnex.space/tr)
+- [Bahasa Indonesia (ID)](https://vidnex.space/id)
+- [Italiano (IT)](https://vidnex.space/it)
+- [Русский (RU)](https://vidnex.space/ru)

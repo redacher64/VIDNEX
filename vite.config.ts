@@ -27,6 +27,14 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
 
         if (!req.url.startsWith('/api/')) {
           const cleanPath = req.url.split('?')[0];
+          if (cleanPath === '/llms.txt') {
+            const { buildLlmsTxt } = await import('./src/i18n/config.ts');
+            const { SITE_URL } = await import('./src/config/site.ts');
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.end(buildLlmsTxt(SITE_URL));
+            return;
+          }
           const isStaticAsset =
             cleanPath.startsWith('/src/') ||
             cleanPath.startsWith('/@') ||

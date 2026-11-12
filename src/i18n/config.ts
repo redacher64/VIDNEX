@@ -660,3 +660,39 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
 
   return routes;
 }
+
+/**
+ * Génère le contenu de /llms.txt à partir de la configuration du site et des langues.
+ */
+export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
+  const base = siteUrl.replace(/\/+$/, '');
+  return [
+    '# VIDNEX',
+    '',
+    '> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3, sans compte et sans accès aux contenus privés.',
+    '',
+    '## Pages principales',
+    '',
+    `- [Accueil VIDNEX](${base}/)`,
+    `- [Télécharger Vidéo TikTok](${base}${getLocalizedPagePath('fr', 'tiktok')})`,
+    `- [Télécharger Reel et Vidéo Instagram](${base}${getLocalizedPagePath('fr', 'instagram')})`,
+    `- [Télécharger Vidéo X (Twitter)](${base}${getLocalizedPagePath('fr', 'x')})`,
+    `- [Télécharger Vidéo Facebook](${base}${getLocalizedPagePath('fr', 'facebook')})`,
+    `- [À propos](${base}${getLocalizedPagePath('fr', 'about')})`,
+    `- [Politique de confidentialité](${base}${getLocalizedPagePath('fr', 'privacy')})`,
+    `- [Conditions d’utilisation](${base}${getLocalizedPagePath('fr', 'terms')})`,
+    `- [Contact](${base}${getLocalizedPagePath('fr', 'contact')})`,
+    `- [Droits d’auteur et DMCA](${base}${getLocalizedPagePath('fr', 'dmca')})`,
+    '',
+    '## Langues disponibles',
+    '',
+    ...SUPPORTED_LOCALES.map((code) => {
+      const def = LOCALES_CONFIG[code];
+      const homePath = getLocalizedPagePath(code, 'home');
+      const url = homePath === '/' ? `${base}/` : `${base}${homePath}`;
+      return `- [${def.nativeName} (${def.shortLabel})](${url})`;
+    }),
+    '',
+  ].join('\n');
+}
+

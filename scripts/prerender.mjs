@@ -422,6 +422,7 @@ async function main() {
     );
     const { SITE_URL } = await vite.ssrLoadModule('/src/config/site.ts');
     const {
+      buildLlmsTxt,
       getAllPublicRoutes,
       LEGAL_PAGE_KEYS,
       PLATFORM_PAGE_KEYS,
@@ -498,7 +499,7 @@ async function main() {
     fs.mkdirSync(path.dirname(adminOutPath), { recursive: true });
     fs.writeFileSync(adminOutPath, adminHtml, 'utf8');
 
-    // 6. Generate sitemap.xml in public/ and dist/ (and ensure sitemap.css is in dist/)
+    // 6. Generate sitemap.xml and llms.txt in public/ and dist/ (and ensure sitemap.css is in dist/)
     const sitemapXml = generateSitemapXml(
       SITE_URL,
       getAllPublicRoutes,
@@ -506,13 +507,18 @@ async function main() {
     );
     fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemapXml, 'utf8');
     fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemapXml, 'utf8');
+
+    const llmsTxt = buildLlmsTxt(SITE_URL);
+    fs.writeFileSync(path.join(PUBLIC_DIR, 'llms.txt'), llmsTxt, 'utf8');
+    fs.writeFileSync(path.join(DIST_DIR, 'llms.txt'), llmsTxt, 'utf8');
+
     const cssPath = path.join(PUBLIC_DIR, 'sitemap.css');
     if (fs.existsSync(cssPath)) {
       fs.copyFileSync(cssPath, path.join(DIST_DIR, 'sitemap.css'));
     }
 
     console.log(
-      `✓ Pre-rendered ${routes.length} public pages + /admin shell + sitemap.xml.`
+      `✓ Pre-rendered ${routes.length} public pages + /admin shell + sitemap.xml + llms.txt.`
     );
   } finally {
     await vite.close();

@@ -103,7 +103,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                     </span>
                     <span
                       dir="ltr"
-                      className="font-mono text-xs text-orange-600 dark:text-amber-400 font-semibold"
+                      className="font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold"
                     >
                       0{idx + 1} / 03
                     </span>
@@ -121,7 +121,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                     <span className="font-semibold uppercase tracking-wider text-orange-800 dark:text-amber-400 truncate pr-2">
                       {step.codeHint}
                     </span>
-                    <span className="text-orange-600 dark:text-amber-400 font-bold shrink-0">
+                    <span className="text-orange-700 dark:text-amber-400 font-bold shrink-0">
                       {t.readyStatus}
                     </span>
                   </div>

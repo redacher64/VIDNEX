@@ -140,6 +140,18 @@ async function routeInner(
     );
   }
 
+  if (pathname === '/llms.txt' && (request.method === 'GET' || request.method === 'HEAD')) {
+    const { buildLlmsTxt } = await import('./src/i18n/config.ts');
+    const { SITE_URL } = await import('./src/config/site.ts');
+    return new Response(request.method === 'HEAD' ? null : buildLlmsTxt(SITE_URL), {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+  }
+
   // Static assets via Cloudflare Workers Static Assets binding
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     const response = await env.ASSETS.fetch(request);
@@ -164,6 +176,14 @@ async function routeInner(
       if (pathname === '/sitemap.css') {
         const headers = new Headers(response.headers);
         headers.set('Content-Type', 'text/css; charset=utf-8');
+        return new Response(response.body, {
+          status: response.status,
+          headers,
+        });
+      }
+      if (pathname === '/robots.txt' || pathname === '/llms.txt') {
+        const headers = new Headers(response.headers);
+        headers.set('Content-Type', 'text/plain; charset=utf-8');
         return new Response(response.body, {
           status: response.status,
           headers,

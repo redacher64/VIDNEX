@@ -1964,5 +1964,26 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(statsGetJson.platforms.instagram_profile);
     assert.ok(statsGetJson.platforms.instagram_profile.total >= 3);
   });
+
+  it('Serves /llms.txt in text/plain with site name, public-only description, main absolute URLs, and 10 languages', async () => {
+    const { buildLlmsTxt } = await import('../i18n/config.ts');
+    const txt = buildLlmsTxt('https://vidnex.space');
+    assert.ok(txt.startsWith('# VIDNEX\n'));
+    assert.ok(txt.includes('vidéos publiques'));
+    assert.ok(txt.includes('https://vidnex.space/telecharger-video-tiktok'));
+    assert.ok(txt.includes('https://vidnex.space/a-propos'));
+    assert.ok(txt.includes('https://vidnex.space/en'));
+    assert.ok(txt.includes('https://vidnex.space/ar'));
+
+    const res = await worker.fetch(
+      new Request('https://vidnex.space/llms.txt'),
+      {}
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('Content-Type'), 'text/plain; charset=utf-8');
+    const body = await res.text();
+    assert.equal(body, txt);
+  });
 });
+
 

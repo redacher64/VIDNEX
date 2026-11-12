@@ -169,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({
               aria-expanded={langMenuOpen}
               aria-haspopup="menu"
               aria-controls="vidnex-lang-menu"
-              aria-label={navStrings.languageLabel}
+              aria-label={`${navStrings.languageLabel} (${currentLangMeta.shortLabel})`}
               className="min-h-[44px] min-w-[44px] px-3 rounded-xl flex items-center justify-center gap-1.5 bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/60 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 hover:border-orange-300 transition-colors cursor-pointer"
             >
               <svg

@@ -15,6 +15,7 @@ export type ToolSlug =
   | 'youtube-shorts'
   | 'x-video'
   | 'facebook-reels'
+  | 'linkedin-dp'
   | 'snapchat-spotlight';
 
 export interface ToolHowToStep {
@@ -52,6 +53,7 @@ export const DEFAULT_TOOL_BY_PLATFORM: Record<PlatformId, ToolSlug> = {
   twitter: 'x-video',
   youtube: 'youtube-shorts',
   facebook: 'facebook-reels',
+  linkedin: 'linkedin-dp',
   snapchat: 'snapchat-spotlight',
 };
 
@@ -612,6 +614,52 @@ export const SEO_TOOLS_CONFIG: Record<ToolSlug, SeoToolConfig> = {
         question: 'Does VIDNEX support shortened fb.watch links?',
         answer:
           'Yes. Both full facebook.com/reel/ URLs and shortened fb.watch/ share links are detected automatically.',
+      },
+    ],
+  },
+
+  'linkedin-dp': {
+    slug: 'linkedin-dp',
+    path: '/telecharger-photo-profil-linkedin',
+    platform: 'linkedin',
+    shortLabel: 'LinkedIn',
+    h1: 'Télécharger Photo de Profil LinkedIn Publique HD',
+    subtitle:
+      'Enregistrez la photo de profil publique LinkedIn en qualité JPG HD originale à partir d’un lien linkedin.com/in/{slug}, sans compte.',
+    placeholder: 'https://www.linkedin.com/in/satyanadella',
+    sampleUrl: 'https://www.linkedin.com/in/satyanadella',
+    metaTitle: 'Télécharger Photo de Profil LinkedIn HD | VIDNEX',
+    metaDescription:
+      'Téléchargez gratuitement toute photo de profil LinkedIn publique en JPG HD original à partir d’un lien linkedin.com/in/ sans inscription.',
+    specs: ['JPG HD ORIGINAL', 'PROFIL PUBLIC', 'SANS COMPTE', 'INSTANTANÉ'],
+    howToSteps: [
+      {
+        number: '01',
+        title: 'Copier le lien du profil LinkedIn',
+        codeHint: 'linkedin.com/in/{slug}',
+        description:
+          'Copiez l’URL publique du profil LinkedIn au format linkedin.com/in/nom-utilisateur.',
+      },
+      {
+        number: '02',
+        title: 'Coller dans VIDNEX',
+        codeHint: 'EXTRACTION PHOTO',
+        description:
+          'Collez le lien dans le champ ci-dessus pour récupérer l’aperçu HD de la photo publique.',
+      },
+      {
+        number: '03',
+        title: 'Télécharger en JPG HD',
+        codeHint: 'ORIGINAL JPG',
+        description:
+          'Cliquez sur « Télécharger la photo de profil » pour enregistrer le fichier JPG original.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'Quels profils LinkedIn sont pris en charge ?',
+        answer:
+          'Seules les photos de profil publiques accessibles via une URL linkedin.com/in/{slug} sont prises en charge.',
       },
     ],
   },

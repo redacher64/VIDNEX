@@ -8,7 +8,7 @@
  * et toute URL non conforme avec `isValid: false` (qui renvoie `UNSUPPORTED_URL` · HTTP 400).
  */
 
-export type SupportedPlatform = 'tiktok' | 'instagram' | 'x' | 'facebook';
+export type SupportedPlatform = 'tiktok' | 'instagram' | 'x' | 'facebook' | 'linkedin';
 export type ContentKind = 'video' | 'slideshow' | 'reel' | 'post' | 'story' | 'profile';
 
 export interface DetectionResult {
@@ -35,6 +35,39 @@ const ALLOWED_FACEBOOK_HOSTS = new Set([
 
 export function isAllowedFacebookHost(hostname: string): boolean {
   return ALLOWED_FACEBOOK_HOSTS.has(hostname.trim().toLowerCase());
+}
+
+const RESERVED_LINKEDIN_SLUGS = new Set([
+  'login',
+  'authwall',
+  'checkpoint',
+  'feed',
+  'company',
+  'posts',
+  'jobs',
+  'pulse',
+  'school',
+  'learning',
+  'pub',
+  'groups',
+  'events',
+  'help',
+  'legal',
+]);
+
+export function normalizeLinkedInSlug(rawSegment: string): string | null {
+  if (!rawSegment) return null;
+  let decoded = rawSegment.trim();
+  try {
+    decoded = decodeURIComponent(decoded).trim();
+  } catch {
+    return null;
+  }
+  const lowered = decoded.toLowerCase();
+  if (!lowered || lowered.length < 2 || lowered.length > 100) return null;
+  if (RESERVED_LINKEDIN_SLUGS.has(lowered)) return null;
+  if (!/^[\p{L}\p{N}._-]+$/u.test(lowered)) return null;
+  return lowered;
 }
 
 const RESERVED_IG_SEGMENTS = new Set([
@@ -199,8 +232,60 @@ export function detectUrl(
     };
   }
 
-  const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+  const rawHost = parsed.hostname.toLowerCase();
+  const host = rawHost.replace(/^www\./, '');
   const pathname = parsed.pathname;
+
+  // =========================================================================
+  // 0. LINKEDIN (linkedin.com/in/{slug} avec www. ou sous-domaine de pays)
+  // =========================================================================
+  const isLinkedInAllowedHost =
+    rawHost === 'linkedin.com' ||
+    rawHost === 'www.linkedin.com' ||
+    /^[a-z]{2}\.linkedin\.com$/.test(rawHost);
+
+  if (
+    isLinkedInAllowedHost ||
+    rawHost.endsWith('.linkedin.com') ||
+    host === 'lnkd.in'
+  ) {
+    if (!isLinkedInAllowedHost) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length !== 2 || segments[0].toLowerCase() !== 'in') {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+    const normalizedSlug = normalizeLinkedInSlug(segments[1]);
+    if (!normalizedSlug) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+    return {
+      isValid: true,
+      platform: 'linkedin',
+      kind: 'profile',
+      identifier: normalizedSlug,
+      cleanUrl: `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`,
+    };
+  }
 
   // Rejet explicite des domaines miroirs tiers (fxtwitter, vxtwitter, etc.)
   if (

@@ -5,6 +5,7 @@ export type PlatformId =
   | 'twitter'
   | 'youtube'
   | 'facebook'
+  | 'linkedin'
   | 'snapchat';
 
 export type MediaType =
@@ -32,7 +33,8 @@ export type SampleLabelKey =
   | 'tiktokVid'
   | 'xVid'
   | 'fbVid'
-  | 'igDp';
+  | 'igDp'
+  | 'linkedinDp';
 
 export interface SampleLink {
   id: string;
@@ -49,6 +51,7 @@ export const SUPPORTED_BACKEND_PLATFORMS = new Set<PlatformId>([
   'x',
   'twitter',
   'facebook',
+  'linkedin',
 ]);
 
 let runtimeEnabledPlatforms: {
@@ -56,11 +59,13 @@ let runtimeEnabledPlatforms: {
   instagram: boolean;
   x: boolean;
   facebook: boolean;
+  linkedin: boolean;
 } = {
   tiktok: true,
   instagram: true,
   x: true,
   facebook: true,
+  linkedin: true,
 };
 
 export function setRuntimePlatformStates(states: {
@@ -68,6 +73,7 @@ export function setRuntimePlatformStates(states: {
   instagram?: boolean;
   x?: boolean;
   facebook?: boolean;
+  linkedin?: boolean;
 }): void {
   runtimeEnabledPlatforms = {
     tiktok:
@@ -83,6 +89,10 @@ export function setRuntimePlatformStates(states: {
       states.facebook !== undefined
         ? states.facebook
         : runtimeEnabledPlatforms.facebook,
+    linkedin:
+      states.linkedin !== undefined
+        ? states.linkedin
+        : runtimeEnabledPlatforms.linkedin,
   };
 }
 
@@ -92,6 +102,7 @@ export function isPlatformSupported(platform: PlatformId): boolean {
   if (platform === 'instagram') return runtimeEnabledPlatforms.instagram;
   if (platform === 'x' || platform === 'twitter') return runtimeEnabledPlatforms.x;
   if (platform === 'facebook') return runtimeEnabledPlatforms.facebook;
+  if (platform === 'linkedin') return runtimeEnabledPlatforms.linkedin;
   return true;
 }
 
@@ -135,6 +146,14 @@ export const SAMPLE_LINKS: SampleLink[] = [
     platform: 'instagram',
     subType: 'Profile',
     url: 'https://www.instagram.com/natgeo/',
+  },
+  {
+    id: 'linkedin-dp',
+    labelKey: 'linkedinDp',
+    label: 'Photo de profil LinkedIn',
+    platform: 'linkedin',
+    subType: 'Profile',
+    url: 'https://www.linkedin.com/in/satyanadella',
   },
 ];
 
@@ -192,10 +211,126 @@ const REJECTED_MIRROR_DOMAINS = [
   'bettertwitfix.com',
 ];
 
+export const LINKEDIN_ALLOWED_HOST_REGEX =
+  /^(?:(?:www|[a-z]{2})\.)?linkedin\.com$/i;
+
+export const LINKEDIN_ANY_HOST_REGEX =
+  /(?:^|\.)linkedin\.com$|^(?:www\.)?lnkd\.in$/i;
+
+export const LINKEDIN_PROFILE_PATH_REGEX = /^\/in\/([^/]+)\/?$/i;
+
+export const LINKEDIN_SLUG_REGEX = /^[\p{L}\p{N}._-]{2,100}$/u;
+
+export const LINKEDIN_PROFILE_URL_REGEX =
+  /^(?:https?:\/\/)?(?:(?:www|[a-z]{2})\.)?linkedin\.com\/in\/([^/?#]+)\/?(?:\?[^#]*)?(?:#.*)?$/i;
+
+export const RESERVED_LINKEDIN_SLUGS: ReadonlySet<string> = new Set([
+  'login',
+  'authwall',
+  'checkpoint',
+  'feed',
+  'company',
+  'posts',
+  'jobs',
+  'pulse',
+  'school',
+  'learning',
+  'pub',
+  'groups',
+  'events',
+  'help',
+  'legal',
+]);
+
+export function normalizeLinkedInSlug(rawSegment: string): string | null {
+  if (!rawSegment) return null;
+  let decoded = rawSegment.trim();
+  try {
+    decoded = decodeURIComponent(decoded).trim();
+  } catch {
+    return null;
+  }
+  const normalizedSlug = decoded.toLowerCase();
+  if (
+    !normalizedSlug ||
+    RESERVED_LINKEDIN_SLUGS.has(normalizedSlug) ||
+    !LINKEDIN_SLUG_REGEX.test(normalizedSlug)
+  ) {
+    return null;
+  }
+  return normalizedSlug;
+}
+
+export function detectLinkedInUrl(rawInput: string): DetectedUrlInfo | null {
+  const trimmed = (rawInput || '').trim();
+  if (!trimmed) return null;
+
+  const urlWithProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  let parsedLi: URL;
+  try {
+    parsedLi = new URL(urlWithProtocol);
+  } catch {
+    return null;
+  }
+
+  if (parsedLi.protocol !== 'http:' && parsedLi.protocol !== 'https:') {
+    return null;
+  }
+
+  const liRawHost = parsedLi.hostname.toLowerCase();
+  if (!LINKEDIN_ANY_HOST_REGEX.test(liRawHost)) {
+    return null;
+  }
+
+  if (!LINKEDIN_ALLOWED_HOST_REGEX.test(liRawHost)) {
+    return {
+      isValid: false,
+      platform: null,
+      mediaType: null,
+      badgeLabel: '',
+      normalizedUrl: trimmed,
+    };
+  }
+
+  const pathMatch = parsedLi.pathname.match(LINKEDIN_PROFILE_PATH_REGEX);
+  if (!pathMatch || !pathMatch[1]) {
+    return {
+      isValid: false,
+      platform: null,
+      mediaType: null,
+      badgeLabel: '',
+      normalizedUrl: trimmed,
+    };
+  }
+
+  const normalizedSlug = normalizeLinkedInSlug(pathMatch[1]);
+  if (!normalizedSlug) {
+    return {
+      isValid: false,
+      platform: null,
+      mediaType: null,
+      badgeLabel: '',
+      normalizedUrl: trimmed,
+    };
+  }
+
+  return {
+    isValid: true,
+    platform: 'linkedin',
+    mediaType: 'profile',
+    badgeLabel: `LinkedIn (@${normalizedSlug})`,
+    identifier: normalizedSlug,
+    normalizedUrl: `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`,
+  };
+}
+
 /**
  * Real-time deterministic parser for social media URLs and @handles.
  * Synchronized with `functions/_lib/detect.ts`.
- * Active backend extractors: Instagram, TikTok, X (Twitter), Facebook.
+ * Active backend extractors: Instagram, TikTok, X (Twitter), Facebook, LinkedIn.
  * Coming Soon: YouTube, Snapchat.
  */
 export function detectMediaUrl(
@@ -577,6 +712,12 @@ export function detectMediaUrl(
     // Continue
   }
 
+  // 5B. LINKEDIN PUBLIC PROFILE DETECTION (linkedin.com/in/{slug} with www. or country subdomain)
+  const linkedInDetected = detectLinkedInUrl(trimmed);
+  if (linkedInDetected) {
+    return linkedInDetected;
+  }
+
   // 6. SNAPCHAT DETECTION (Coming Soon)
   const snapSpotlightMatch = urlWithProtocol.match(
     /(?:https?:\/\/)?(?:www\.|story\.)?snapchat\.com\/(?:spotlight\/([A-Za-z0-9_-]+)|s\/([A-Za-z0-9_:-]+)|add\/([A-Za-z0-9._-]+))/i
@@ -603,3 +744,11 @@ export function detectMediaUrl(
     normalizedUrl: trimmed,
   };
 }
+
+export function getDetectedUrlInfo(
+  rawInput: string,
+  preferredPlatform: PlatformId = 'instagram'
+): DetectedUrlInfo {
+  return detectMediaUrl(rawInput, preferredPlatform);
+}
+

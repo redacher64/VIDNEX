@@ -14,7 +14,8 @@ type HealthPlatformId =
   | 'instagram'
   | 'instagram_profile'
   | 'x'
-  | 'facebook';
+  | 'facebook'
+  | 'linkedin';
 
 interface EngineRow {
   platform: HealthPlatformId;
@@ -75,6 +76,14 @@ export const Health: React.FC = () => {
       last_error_code: null,
       test_url: '',
     },
+    linkedin: {
+      platform: 'linkedin',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+      test_url: '',
+    },
   });
   const [igCookieConfigured, setIgCookieConfigured] = useState(false);
   const [tiktokUrl, setTiktokUrl] = useState(DEFAULT_ENGINE_TEST_URLS.tiktok);
@@ -82,6 +91,7 @@ export const Health: React.FC = () => {
   const [instagramProfileUrl, setInstagramProfileUrl] = useState('');
   const [xUrl, setXUrl] = useState(DEFAULT_X_TEST_URL);
   const [facebookUrl, setFacebookUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [testingPlatform, setTestingPlatform] = useState<HealthPlatformId | null>(null);
   const [testFeedback, setTestFeedback] = useState<
     Record<string, { ok: boolean; message: string }>
@@ -130,6 +140,12 @@ export const Health: React.FC = () => {
                 test_url: data.engines.facebook.test_url || '',
               }
             : prev.facebook,
+          linkedin: data.engines?.linkedin
+            ? {
+                ...data.engines.linkedin,
+                test_url: data.engines.linkedin.test_url || '',
+              }
+            : prev.linkedin,
         }));
         setIgCookieConfigured(Boolean(data.instagramCookie?.configured));
         if (data.engines?.tiktok?.test_url) {
@@ -149,6 +165,9 @@ export const Health: React.FC = () => {
         }
         if (typeof data.engines?.facebook?.test_url === 'string' && data.engines.facebook.test_url) {
           setFacebookUrl(data.engines.facebook.test_url);
+        }
+        if (typeof data.engines?.linkedin?.test_url === 'string' && data.engines.linkedin.test_url) {
+          setLinkedinUrl(data.engines.linkedin.test_url);
         }
       }
     } catch {
@@ -170,6 +189,8 @@ export const Health: React.FC = () => {
         ? instagramProfileUrl
         : platform === 'x'
         ? xUrl
+        : platform === 'linkedin'
+        ? linkedinUrl
         : facebookUrl
     ).trim();
     const urlToTest =
@@ -269,7 +290,7 @@ export const Health: React.FC = () => {
           Santé des moteurs d’extraction
         </h2>
         <p className="text-xs text-orange-200/65 font-mono">
-          Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, Profil Instagram, X et Facebook)
+          Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, Profil Instagram, X, Facebook et LinkedIn)
         </p>
       </div>
 
@@ -281,6 +302,7 @@ export const Health: React.FC = () => {
             'instagram_profile',
             'x',
             'facebook',
+            'linkedin',
           ] as const
         ).map((platform) => {
           const info = engines[platform];
@@ -295,6 +317,8 @@ export const Health: React.FC = () => {
               ? instagramProfileUrl
               : platform === 'x'
               ? xUrl
+              : platform === 'linkedin'
+              ? linkedinUrl
               : facebookUrl;
           const setInputValue =
             platform === 'tiktok'
@@ -305,6 +329,8 @@ export const Health: React.FC = () => {
               ? setInstagramProfileUrl
               : platform === 'x'
               ? setXUrl
+              : platform === 'linkedin'
+              ? setLinkedinUrl
               : setFacebookUrl;
           const feedback = testFeedback[platform];
           const platformLabel =
@@ -316,6 +342,8 @@ export const Health: React.FC = () => {
               ? 'Profil Instagram'
               : platform === 'x'
               ? 'X (Twitter)'
+              : platform === 'linkedin'
+              ? 'LinkedIn'
               : 'Facebook';
           const engineDesc =
             platform === 'tiktok'
@@ -326,6 +354,8 @@ export const Health: React.FC = () => {
               ? 'web_profile_info / OG / Polaris'
               : platform === 'x'
               ? 'Syndication twimg.com'
+              : platform === 'linkedin'
+              ? 'Photo de profil publique (og:image / JSON-LD)'
               : 'HTML / Mobile Multi-Niveaux';
 
           return (

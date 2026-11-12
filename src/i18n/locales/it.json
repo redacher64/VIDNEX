@@ -11,26 +11,28 @@
       "soonBadge": "Presto",
       "languageLabel": "Lingua",
       "switchToDark": "Attiva modalità scura",
-      "switchToLight": "Attiva modalità chiara"
+      "switchToLight": "Attiva modalità chiara",
+      "linkedin": "LinkedIn"
     },
     "omnibox": {
-      "inputAriaLabel": "Incolla un link pubblico di TikTok, Instagram, X o Facebook...",
+      "inputAriaLabel": "Incolla un link pubblico di TikTok, Instagram, X, Facebook o LinkedIn...",
       "pasteButton": "Incolla",
       "pastedFeedback": "Incollato!",
       "clearInputAria": "Cancella link",
       "downloadButton": "Scarica",
       "extractingButton": "Preparazione...",
       "trySampleLabel": "Prova un esempio:",
-      "errEmptyInput": "Incolla un link pubblico di TikTok, Instagram, X o Facebook.",
-      "errInvalidUrl": "Questo link non è supportato. Inserisci un URL pubblico di TikTok, Instagram, X (Twitter) o Facebook.",
+      "errEmptyInput": "Per favore, incolla un link pubblico di TikTok, Instagram, X, Facebook o LinkedIn.",
+      "errInvalidUrl": "Questo link non è supportato. Inserisci un URL pubblico di TikTok, Instagram, X, Facebook o di un profilo LinkedIn (linkedin.com/in/...).",
       "errClipboardBlocked": "Accesso agli appunti bloccato. Tieni premuto il campo per incollare.",
-      "comingSoonNotice": "Questa piattaforma sarà supportata a breve. Attualmente: TikTok, Instagram, X e Facebook.",
+      "comingSoonNotice": "Questa piattaforma sarà supportata a breve. Attualmente disponibili: TikTok, Instagram, X, Facebook e LinkedIn.",
       "samples": {
         "igReel": "Reel Instagram",
         "tiktokVid": "Video TikTok",
         "xVid": "Video X (Twitter)",
         "fbVid": "Video Facebook",
-        "igDp": "Foto profilo Instagram"
+        "igDp": "Foto profilo Instagram",
+        "linkedinDp": "Foto profilo LinkedIn"
       }
     },
     "drawer": {
@@ -81,7 +83,7 @@
       "stepOf": "PASSO",
       "readyStatus": "PRONTO",
       "platformsHeading": "Piattaforme supportate",
-      "platformsSubheading": "Seleziona lo strumento dedicato a ciascun social network per scaricare i video pubblici.",
+      "platformsSubheading": "Seleziona lo strumento dedicato per TikTok, Instagram, X (Twitter), Facebook o LinkedIn.",
       "openToolCta": "Apri strumento",
       "knowledgeBase": "DOMANDE FREQUENTI",
       "faqHeading": "Domande frequenti (FAQ)",
@@ -111,7 +113,7 @@
       "tryPlatformsLabel": "Strumenti disponibili"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Questo link non è supportato. Inserisci un URL pubblico di TikTok, Instagram, X (Twitter) o Facebook.",
+      "UNSUPPORTED_URL": "Link non supportato. Inserisci un URL pubblico di TikTok, Instagram, X, Facebook o un profilo LinkedIn (/in/...).",
       "NOT_FOUND": "Il post richiesto non è stato trovato o è stato rimosso dalla piattaforma di origine.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Questo contenuto è privato o richiede l'accesso. VIDNEX elabora esclusivamente post pubblici.",
       "BLOCKED_BY_PLATFORM": "La piattaforma di origine ha temporaneamente rifiutato l'accesso a questo post. Riprova tra qualche istante.",
@@ -138,9 +140,9 @@
   },
   "home": {
     "metaTitle": "VIDNEX — Scaricare video da TikTok, Instagram, X e Facebook",
-    "metaDescription": "Scarica video pubblici da TikTok senza filigrana, Instagram Reels, X (Twitter) e Facebook in MP4 o MP3 gratis direttamente dal browser.",
+    "metaDescription": "Scarica video pubblici da TikTok senza filigrana, Instagram Reels, video X, Facebook e foto profilo pubbliche di LinkedIn gratis.",
     "h1": "Scaricatore di video pubblici da TikTok, Instagram, X e Facebook",
-    "subtitle": "Salva video pubblici, Reels, caroselli e tracce audio in MP4 o MP3 direttamente sul tuo telefono o computer.",
+    "subtitle": "Salva video pubblici, Reels, caroselli, tracce MP3 e foto profilo pubbliche di LinkedIn direttamente sul tuo smartphone o computer.",
     "placeholder": "https://www.tiktok.com/@utente/video/1234567890...",
     "specs": [
       "MP4 HD & SD",
@@ -161,7 +163,8 @@
         "TikTok: download di video pubblici in MP4 senza filigrana sovrapposta ed estrazione dell'audio originale in MP3/M4A.",
         "Instagram: supporto per Instagram Reels pubblici, video del feed e post carosello con più foto o clip.",
         "X (Twitter): estrazione di video da tweet pubblici con scelta della risoluzione (da 360p a 1080p) e salvataggio di GIF in MP4.",
-        "Facebook: salvataggio di video pubblici, Facebook Reels e link brevi fb.watch in qualità SD o HD."
+        "Facebook: salvataggio di video pubblici, Facebook Reels e link brevi fb.watch in qualità SD o HD.",
+        "LinkedIn: anteprima e download della foto del profilo pubblico (linkedin.com/in/{slug}) in formato JPG originale."
       ],
       "limitsTitle": "Condizioni di utilizzo e limiti tecnici",
       "limitsText": "VIDNEX elabora esclusivamente contenuti pubblici. Non è possibile estrarre video da account privati, gruppi chiusi, Storie protette da login o post con restrizioni di età. Rispetta sempre il diritto d'autore dei creatori."
@@ -209,7 +212,7 @@
       }
     ],
     "ogTitle": "VIDNEX — Scaricare video da TikTok, Instagram, X e Facebook",
-    "ogDescription": "Scarica video pubblici da TikTok senza filigrana, Instagram Reels, X (Twitter) e Facebook in MP4 o MP3 gratis direttamente dal browser.",
+    "ogDescription": "Scarica video pubblici da TikTok senza filigrana, Instagram Reels, video X, Facebook e foto profilo pubbliche di LinkedIn gratis.",
     "ogImageAlt": "Anteprima VIDNEX: scaricatore di video pubblici da TikTok, Instagram, X e Facebook in MP4"
   },
   "platforms": {
@@ -508,6 +511,76 @@
       "ogTitle": "Scaricare video Facebook e Reels in MP4 HD / SD | VIDNEX",
       "ogDescription": "Scarica video pubblici di Facebook, Facebook Reels e link fb.watch in formato MP4 in qualità HD o SD gratis direttamente dal browser.",
       "ogImageAlt": "Anteprima scaricatore video Facebook Watch e Reels pubblici in qualità MP4 HD e SD"
+    },
+    "linkedin": {
+      "slug": "scaricare-foto-profilo-linkedin",
+      "metaTitle": "Scaricare Foto Profilo LinkedIn Pubblica in HD | VIDNEX",
+      "metaDescription": "Visualizza e scarica gratis qualsiasi foto profilo pubblica di LinkedIn a dimensione intera (JPG) da un link linkedin.com/in/ senza account.",
+      "h1": "Scaricare foto profilo pubblica di LinkedIn",
+      "subtitle": "Visualizza in anteprima e salva a dimensione originale la foto profilo pubblica di qualsiasi account LinkedIn (linkedin.com/in/...) senza login.",
+      "shortLabel": "LinkedIn",
+      "breadcrumbLabel": "Foto profilo LinkedIn",
+      "placeholder": "https://www.linkedin.com/in/satyanadella",
+      "specs": [
+        "FOTO PROFILO JPG",
+        "PROFILI PUBBLICI",
+        "SENZA ACCOUNT",
+        "QUALITÀ ORIGINALE"
+      ],
+      "editorial": {
+        "heading": "Come visualizzare e salvare una foto profilo pubblica di LinkedIn",
+        "subheading": "Risoluzione diretta per link personali linkedin.com/in/{slug} senza account, senza cookie e senza API di terze parti.",
+        "paragraphs": [
+          "Su LinkedIn, l’immagine del profilo di un iscritto viene mostrata all’interno di una piccola cornice circolare sulla pagina pubblica e spesso richiede l’accesso con un account quando si prova ad aprirla a schermo intero. Lo strumento LinkedIn di VIDNEX analizza esclusivamente la pagina web pubblica di un profilo personale (nel formato linkedin.com/in/nomeutente) per individuare l’URL diretto della foto profilo pubblica ospitata sulla rete di distribuzione ufficiale media.licdn.com.",
+          "Non vengono mai utilizzati account LinkedIn, cookie di sessione o servizi esterni di terze parti. Quando incolli l’indirizzo di un profilo pubblico nel campo qui sopra, il nostro server verifica i metadati aperti della pagina, mantiene intatto l’URL firmato dell’immagine originale senza applicare alcuna ricompressione e ti consente di scaricare il file JPG direttamente sul tuo smartphone, tablet o computer.",
+          "Nel pieno rispetto della privacy degli utenti, questo strumento estrae unicamente la foto profilo pubblica associata all’identificativo @slug senza archiviare alcun file sui nostri server. Non raccoglie nomi completi, qualifiche professionali o curriculum e non tenta mai di aggirare i muri di autenticazione."
+        ],
+        "formatsTitle": "Link e caratteristiche supportate per LinkedIn",
+        "formatsList": [
+          "Profili personali: indirizzi con struttura linkedin.com/in/{slug} (inclusi www. e sottodomini nazionali come it.linkedin.com).",
+          "Immagine originale firmata: file JPG diretto da media.licdn.com senza ritaglio circolare.",
+          "Nome file ordinato: salvataggio immediato con il nome linkedin_{slug}_profile.jpg."
+        ],
+        "limitsTitle": "Solo foto profilo pubbliche — nessuna promessa sui profili privati",
+        "limitsText": "Possono essere scaricate esclusivamente le foto del profilo rese visibili pubblicamente dall’utente senza autenticazione. Se il profilo è ristretto agli utenti connessi, non ha una foto o se LinkedIn mostra un muro di accesso (authwall), l’immagine non può essere estratta. Le pagine aziendali (/company/) e i post (/posts/) non sono supportati."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copia il link del profilo LinkedIn",
+          "description": "Copia l’URL pubblico del profilo personale che inizia con linkedin.com/in/ dal browser o dall’app.",
+          "codeHint": "linkedin.com/in/{slug}"
+        },
+        {
+          "number": "02",
+          "title": "Incolla l’indirizzo su VIDNEX",
+          "description": "Inserisci il link copiato nel campo qui sopra e premi Scarica per verificare i metadati pubblici.",
+          "codeHint": "VERIFICA PUBBLICA"
+        },
+        {
+          "number": "03",
+          "title": "Scarica la foto profilo in JPG",
+          "description": "Controlla l’anteprima dell’immagine e clicca su «Scarica foto del profilo» per salvare il file JPG.",
+          "codeHint": "linkedin_{slug}_profile.jpg"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Posso scaricare la foto di un profilo LinkedIn privato o protetto?",
+          "answer": "No. Se l’utente ha limitato la visibilità della propria foto ai soli contatti o agli utenti registrati, oppure se LinkedIn impone una pagina di login, VIDNEX non può recuperare l’immagine e non aggira mai queste protezioni."
+        },
+        {
+          "question": "Sono supportate le pagine aziendali o i post video di LinkedIn?",
+          "answer": "No. Questo strumento accetta esclusivamente gli URL di profili personali nel formato linkedin.com/in/{slug} per la foto del profilo pubblico."
+        },
+        {
+          "question": "Devo accedere al mio account LinkedIn per usare lo strumento?",
+          "answer": "No. Lo strumento funziona senza registrazione e senza cookie, leggendo soltanto i metadati pubblici accessibili ai visitatori non connessi."
+        }
+      ],
+      "ogTitle": "Scaricare Foto Profilo LinkedIn Pubblica in HD | VIDNEX",
+      "ogDescription": "Visualizza e scarica gratis qualsiasi foto profilo pubblica di LinkedIn a dimensione intera (JPG) da un link linkedin.com/in/ senza account.",
+      "ogImageAlt": "Anteprima dello strumento VIDNEX per scaricare foto profilo pubbliche da LinkedIn in JPG"
     }
   }
 }

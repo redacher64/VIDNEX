@@ -360,7 +360,7 @@ function main() {
   }
 
   console.log('====================================================================================================');
-  console.log('✓ VIDNEX OpenGraph, Twitter Cards & Favicons Audit Passed (65/65 pages verified)');
+  console.log(`✓ VIDNEX OpenGraph, Twitter Cards & Favicons Audit Passed (${routes.length}/${routes.length} pages verified)`);
   console.log('----------------------------------------------------------------------------------------------------');
   console.log(
     `${'PAGE'.padEnd(38)} | ${'LANG'.padEnd(4)} | ${'DESC'.padEnd(5)} | ${'IMAGE'.padEnd(32)} | TITLE`

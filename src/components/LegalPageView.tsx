@@ -129,7 +129,7 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
           <h2 className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-4">
             {bundle.ui.footer.platformsTitle}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pData = bundle.platforms[pKey];
               const pHref = getLocalizedPagePath(locale, pKey);

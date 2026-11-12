@@ -43,6 +43,8 @@ const ALLOWED_EXACT_MEDIA_HOSTS = new Set([
   'video.twimg.com',
   'pbs.twimg.com',
   'abs.twimg.com',
+  // Domaine d'images de profil public LinkedIn réellement observé (URLs signées)
+  'media.licdn.com',
 ]);
 
 /**
@@ -151,13 +153,17 @@ export function isAllowedMediaHost(hostname: string): boolean {
     lower === 't.co' ||
     lower === 'twimg.com' ||
     lower === 'www.twimg.com' ||
-    lower === 'cdn.syndication.twimg.com'
+    lower === 'cdn.syndication.twimg.com' ||
+    lower === 'linkedin.com' ||
+    lower === 'www.linkedin.com' ||
+    lower === 'licdn.com' ||
+    lower === 'static.licdn.com'
   ) {
     return false;
   }
 
-  // Autoriser strictement les 3 hôtes médias officiels de X (pas de wildcard *.twimg.com)
-  if (ALLOWED_EXACT_MEDIA_HOSTS.has(lower)) {
+  // Autoriser strictement les hôtes médias exacts de X et LinkedIn (media.licdn.com)
+  if (ALLOWED_EXACT_MEDIA_HOSTS.has(lower) || lower.endsWith('.media.licdn.com')) {
     return true;
   }
 
@@ -186,3 +192,16 @@ export function isAllowedMediaHost(hostname: string): boolean {
 
   return false;
 }
+
+export function isAllowedMediaUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return false;
+    }
+    return isAllowedMediaHost(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+

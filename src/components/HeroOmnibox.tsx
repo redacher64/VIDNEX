@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   detectMediaUrl,
   DetectedUrlInfo,
+  isPlatformSupported,
   PlatformId,
   SAMPLE_LINKS,
   SampleLink,
@@ -362,31 +363,38 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             )}
           </form>
 
-          {/* Supported Platform Chips (smooth horizontal snap-x scroll on mobile, no unsupported YouTube/Snapchat chips) */}
+          {/* Supported Platform Chips (smooth horizontal snap-x scroll on mobile, hides disabled platforms) */}
           <div className="mt-3.5 sm:mt-5 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto snap-x snap-mandatory no-scrollbar py-0.5">
-            {PLATFORM_PAGE_KEYS.map((pKey) => {
-              const pInfo = bundle.platforms[pKey];
-              const isSelected = pageKey === pKey;
-              const href = getLocalizedPagePath(language, pKey);
-              return (
-                <a
-                  key={pKey}
-                  href={href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigatePage(pKey);
-                  }}
-                  className={`snap-start shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
-                      : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
-                  }`}
-                >
-                  <PlatformIcon platform={pKey} className="w-3.5 h-3.5 shrink-0" />
-                  <span>{pInfo.shortLabel}</span>
-                </a>
-              );
-            })}
+            {PLATFORM_PAGE_KEYS.filter((pKey) => isPlatformSupported(pKey)).map(
+              (pKey) => {
+                const pInfo = bundle.platforms[pKey];
+                const isSelected =
+                  pageKey === pKey || detected.platform === pKey;
+                const href = getLocalizedPagePath(language, pKey);
+                return (
+                  <a
+                    key={pKey}
+                    href={href}
+                    data-testid={`chip-${pKey}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigatePage(pKey);
+                    }}
+                    className={`snap-start shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
+                        : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
+                    }`}
+                  >
+                    <PlatformIcon
+                      platform={pKey}
+                      className="w-3.5 h-3.5 shrink-0"
+                    />
+                    <span>{pInfo.shortLabel}</span>
+                  </a>
+                );
+              }
+            )}
             <div className="snap-start shrink-0">
               <ShareButton pageKey={pageKey} language={language} />
             </div>
@@ -397,20 +405,22 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             <span className="text-xs text-orange-900/70 dark:text-orange-200/70 font-medium">
               {t.trySampleLabel}
             </span>
-            {SAMPLE_LINKS.map((sample) => {
-              const localizedLabel =
-                t.samples?.[sample.labelKey] || sample.label;
-              return (
-                <button
-                  key={sample.id}
-                  type="button"
-                  onClick={() => handleSampleClick(sample)}
-                  className="min-h-[36px] font-mono text-xs px-2.5 py-1.5 rounded-lg bg-orange-100/70 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 text-orange-900 dark:text-orange-200 font-semibold transition-all shadow-sm whitespace-nowrap cursor-pointer"
-                >
-                  {localizedLabel}
-                </button>
-              );
-            })}
+            {SAMPLE_LINKS.filter((s) => isPlatformSupported(s.platform)).map(
+              (sample) => {
+                const localizedLabel =
+                  t.samples?.[sample.labelKey] || sample.label;
+                return (
+                  <button
+                    key={sample.id}
+                    type="button"
+                    onClick={() => handleSampleClick(sample)}
+                    className="min-h-[36px] font-mono text-xs px-2.5 py-1.5 rounded-lg bg-orange-100/70 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 text-orange-900 dark:text-orange-200 font-semibold transition-all shadow-sm whitespace-nowrap cursor-pointer"
+                  >
+                    {localizedLabel}
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
 

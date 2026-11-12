@@ -16,6 +16,7 @@ interface SystemSettings {
   platform_instagram: boolean;
   platform_x: boolean;
   platform_facebook: boolean;
+  platform_linkedin: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
 }
@@ -34,6 +35,7 @@ export const Controls: React.FC = () => {
     platform_instagram: true,
     platform_x: true,
     platform_facebook: true,
+    platform_linkedin: true,
     rate_limit_per_min: 30,
     ads_enabled: true,
   });
@@ -59,6 +61,7 @@ export const Controls: React.FC = () => {
           platform_instagram: settingsJson.settings.platform_instagram !== false,
           platform_x: settingsJson.settings.platform_x !== false,
           platform_facebook: settingsJson.settings.platform_facebook !== false,
+          platform_linkedin: settingsJson.settings.platform_linkedin !== false,
           rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 30,
           ads_enabled: settingsJson.settings.ads_enabled !== false,
         });
@@ -96,6 +99,7 @@ export const Controls: React.FC = () => {
           platform_instagram: data.settings.platform_instagram !== false,
           platform_x: data.settings.platform_x !== false,
           platform_facebook: data.settings.platform_facebook !== false,
+          platform_linkedin: data.settings.platform_linkedin !== false,
           rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 30,
           ads_enabled: data.settings.ads_enabled !== false,
         });
@@ -412,6 +416,52 @@ export const Controls: React.FC = () => {
             <span
               className={`block w-5 h-5 rounded-full bg-white transition-transform ${
                 settings.platform_facebook !== false ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* LinkedIn Toggle */}
+        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-sm font-bold text-white">
+                Extracteur LinkedIn (Photo de profil)
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.platform_linkedin !== false
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.platform_linkedin !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
+            <p className="text-xs text-orange-200/65">
+              Active ou désactive l’extraction de la photo de profil publique LinkedIn (/in/&#123;slug&#125;).
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Extracteur LinkedIn"
+            aria-checked={settings.platform_linkedin !== false}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                platform_linkedin: settings.platform_linkedin === false ? true : false,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.platform_linkedin !== false
+                ? 'bg-emerald-500'
+                : 'bg-[#120c08] border border-orange-900/80'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+                settings.platform_linkedin !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>

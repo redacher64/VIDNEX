@@ -10,6 +10,7 @@ import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
 import { extractFacebook, resolveFacebookRedirect } from '../_lib/facebook.ts';
+import { extractLinkedIn } from '../_lib/linkedin.ts';
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -142,7 +143,13 @@ async function handleExtract(
     const parsed = new URL(request.url);
     targetUrl = (parsed.searchParams.get('url') || '').trim();
     const p = parsed.searchParams.get('platform');
-    if (p === 'tiktok' || p === 'instagram' || p === 'x' || p === 'facebook') {
+    if (
+      p === 'tiktok' ||
+      p === 'instagram' ||
+      p === 'x' ||
+      p === 'facebook' ||
+      p === 'linkedin'
+    ) {
       preferredPlatform = p;
     } else if (p === 'twitter') {
       preferredPlatform = 'x';
@@ -157,7 +164,8 @@ async function handleExtract(
         body?.platform === 'tiktok' ||
         body?.platform === 'instagram' ||
         body?.platform === 'x' ||
-        body?.platform === 'facebook'
+        body?.platform === 'facebook' ||
+        body?.platform === 'linkedin'
       ) {
         preferredPlatform = body.platform;
       } else if (body?.platform === 'twitter') {
@@ -218,7 +226,7 @@ async function handleExtract(
   if (!targetUrl) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram, X (Twitter) ou Facebook.',
+      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram, X (Twitter), Facebook ou LinkedIn.',
       400
     );
   }
@@ -249,7 +257,7 @@ async function handleExtract(
   if (!detection.isValid || !detection.platform) {
     return createErrorResponse(
       'UNSUPPORTED_URL',
-      'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter) et Facebook.',
+      'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn (/in/{slug}).',
       400
     );
   }
@@ -337,7 +345,8 @@ async function handleExtract(
     (detection.platform === 'tiktok' && !settings.platform_tiktok) ||
     (detection.platform === 'instagram' && !settings.platform_instagram) ||
     (detection.platform === 'x' && settings.platform_x === false) ||
-    (detection.platform === 'facebook' && settings.platform_facebook === false)
+    (detection.platform === 'facebook' && settings.platform_facebook === false) ||
+    (detection.platform === 'linkedin' && settings.platform_linkedin === false)
   ) {
     const label =
       detection.platform === 'tiktok'
@@ -346,6 +355,8 @@ async function handleExtract(
         ? 'Instagram'
         : detection.platform === 'x'
         ? 'X (Twitter)'
+        : detection.platform === 'linkedin'
+        ? 'LinkedIn'
         : 'Facebook';
     scheduleAsyncLog(
       ctx,
@@ -390,6 +401,8 @@ async function handleExtract(
     result = await extractX(detection.identifier || '');
   } else if (detection.platform === 'facebook') {
     result = await extractFacebook(detection.cleanUrl, detection.identifier);
+  } else if (detection.platform === 'linkedin') {
+    result = await extractLinkedIn(detection.identifier || '');
   } else {
     return createErrorResponse(
       'UNSUPPORTED_URL',
@@ -401,9 +414,12 @@ async function handleExtract(
   const durationMs = Date.now() - startedAt;
   const isIgProfile =
     detection.platform === 'instagram' && detection.kind === 'profile';
+  const isLinkedInProfile = detection.platform === 'linkedin';
   const loggedPlatform = isIgProfile ? 'instagram_profile' : detection.platform;
   const defaultStage = isIgProfile
     ? 'ig_profile'
+    : isLinkedInProfile
+    ? 'linkedin_profile'
     : `${detection.platform}_${detection.kind || 'media'}`;
 
   if (!result.ok || result.error) {
@@ -451,7 +467,7 @@ async function handleExtract(
   )
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, '');
-  const sharedCookie = isIgProfile ? undefined : result.cookie;
+  const sharedCookie = isIgProfile || isLinkedInProfile ? undefined : result.cookie;
   const tweetOrMediaId = (
     result.id ||
     detection.identifier ||
@@ -465,6 +481,8 @@ async function handleExtract(
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
     const safeFilename = isIgProfile
       ? `instagram_${profileUsername}_profile.jpg`
+      : isLinkedInProfile
+      ? `linkedin_${profileUsername}_profile.jpg`
       : result.platform === 'tiktok' && item.kind === 'audio'
       ? `tiktok_${tweetOrMediaId}.${ext}`
       : result.platform === 'facebook'
@@ -474,7 +492,8 @@ async function handleExtract(
         ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
         : `x_${username}_${tweetOrMediaId}.${ext}`
       : `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
-    const itemCookie = isIgProfile ? undefined : item.cookie || sharedCookie;
+    const itemCookie =
+      isIgProfile || isLinkedInProfile ? undefined : item.cookie || sharedCookie;
 
     return {
       ...item,
@@ -483,6 +502,8 @@ async function handleExtract(
             item.thumbnail,
             isIgProfile
               ? `instagram_${profileUsername}_profile.jpg`
+              : isLinkedInProfile
+              ? `linkedin_${profileUsername}_profile.jpg`
               : result.platform === 'facebook'
               ? `facebook_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : result.platform === 'x'
@@ -510,6 +531,8 @@ async function handleExtract(
       proxyThumbnail,
       isIgProfile
         ? `instagram_${profileUsername}_profile.jpg`
+        : isLinkedInProfile
+        ? `linkedin_${profileUsername}_profile.jpg`
         : `VIDNEX_${result.platform}_${username}_thumb.jpg`,
       true,
       { cookie: sharedCookie }
@@ -528,6 +551,8 @@ async function handleExtract(
                 result.author.avatar,
                 isIgProfile
                   ? `instagram_${profileUsername}_profile.jpg`
+                  : isLinkedInProfile
+                  ? `linkedin_${profileUsername}_profile.jpg`
                   : `VIDNEX_${result.platform}_${username}_avatar.jpg`,
                 true,
                 { cookie: sharedCookie }

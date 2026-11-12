@@ -19,6 +19,7 @@ export const OG_IMAGES = {
   instagram: '/og/og-instagram.ba9cd0f7.jpg',
   x: '/og/og-x.02de4119.jpg',
   facebook: '/og/og-facebook.0a720bf6.jpg',
+  linkedin: '/og/og-linkedin.08770587.jpg',
 } as const;
 
 export const DEFAULT_OG_IMAGE = OG_IMAGES.default;
@@ -53,7 +54,8 @@ export function getOgImageUrlForPage(pageKey: string): string {
     pageKey === 'tiktok' ||
     pageKey === 'instagram' ||
     pageKey === 'x' ||
-    pageKey === 'facebook'
+    pageKey === 'facebook' ||
+    pageKey === 'linkedin'
   ) {
     return buildAbsoluteUrl(OG_IMAGES[pageKey]);
   }

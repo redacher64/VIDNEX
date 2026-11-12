@@ -12,6 +12,7 @@ export interface PublicConfig {
     instagram: boolean;
     x: boolean;
     facebook: boolean;
+    linkedin?: boolean;
   };
   ads_enabled: boolean;
 }
@@ -23,6 +24,7 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
     instagram: true,
     x: true,
     facebook: true,
+    linkedin: true,
   },
   ads_enabled: ENABLE_ADS,
 };
@@ -81,6 +83,7 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
           instagram: data.platforms?.instagram !== false,
           x: data.platforms?.x !== false,
           facebook: data.platforms?.facebook !== false,
+          linkedin: data.platforms?.linkedin !== false,
         },
         ads_enabled:
           typeof data.ads_enabled === 'boolean' ? data.ads_enabled : ENABLE_ADS,

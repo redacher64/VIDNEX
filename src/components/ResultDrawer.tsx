@@ -501,6 +501,8 @@ const ProfileDpResultView: React.FC<{
     const filename =
       data.platform === 'instagram'
         ? `instagram_${cleanUsername || 'user'}_profile.jpg`
+        : data.platform === 'linkedin'
+        ? `linkedin_${cleanUsername || 'user'}_profile.jpg`
         : `VIDNEX_${cleanUsername || 'user'}_HD_DP.jpg`;
     triggerNativeBackendDownload(filename, data.hdOriginalUrl);
     setTimeout(() => setDownloading(false), 1000);

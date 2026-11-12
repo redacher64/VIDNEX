@@ -1337,8 +1337,24 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://vidnex.space/'
     );
 
-    // 5. 65 routes publiques au total (50 principales + 15 légales)
-    assert.equal(getAllPublicRoutes().length, 65);
+    // 5. 75 routes publiques au total (60 principales + 15 légales)
+    assert.equal(getAllPublicRoutes().length, 75);
+    assert.equal(
+      getLocalizedPagePath('fr', 'linkedin'),
+      '/telecharger-photo-profil-linkedin'
+    );
+    assert.equal(
+      getLocalizedPagePath('en', 'linkedin'),
+      '/en/linkedin-profile-picture-downloader'
+    );
+    assert.equal(
+      getLocalizedPagePath('ar', 'linkedin'),
+      '/ar/linkedin-profile-picture-downloader'
+    );
+    assert.equal(
+      getLocalizedPagePath('ru', 'linkedin'),
+      '/ru/linkedin-profile-picture-downloader'
+    );
 
     // 6. Messages d'erreur localisés dans les 10 langues
     for (const loc of SUPPORTED_LOCALES) {
@@ -1394,6 +1410,9 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(esX.ogImage, `${SITE_URL}${OG_IMAGES.x}`);
     const deFb = buildHeadMetadataForRoute('de', 'facebook');
     assert.equal(deFb.ogImage, `${SITE_URL}${OG_IMAGES.facebook}`);
+    const frLi = buildHeadMetadataForRoute('fr', 'linkedin');
+    assert.equal(frLi.ogImage, `${SITE_URL}${OG_IMAGES.linkedin}`);
+    assert.equal(frLi.ogUrl, 'https://vidnex.space/telecharger-photo-profil-linkedin');
 
     // 2. Troncature propre sans couper un mot ni un caractère arabe en deux
     const longAr =

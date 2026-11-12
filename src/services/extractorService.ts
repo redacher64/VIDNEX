@@ -206,13 +206,124 @@ const PROFILE_ERROR_MESSAGES: Record<
   },
 };
 
+const LINKEDIN_ERROR_MESSAGES: Record<
+  LanguageCode,
+  {
+    NOT_FOUND: string;
+    BLOCKED_BY_PLATFORM: string;
+    PRIVATE_OR_LOGIN_REQUIRED: string;
+    TIMEOUT: string;
+  }
+> = {
+  fr: {
+    NOT_FOUND:
+      "Profil introuvable. Ce profil LinkedIn n'existe pas ou a été supprimé.",
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn bloque temporairement la demande (mur de connexion). Réessayez dans quelques minutes.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      "Ce profil LinkedIn n'est pas public ou sa photo de profil est absente.",
+    TIMEOUT:
+      "Délai d'attente dépassé lors de la récupération de la photo de profil LinkedIn.",
+  },
+  en: {
+    NOT_FOUND:
+      'Profile not found. This LinkedIn profile does not exist or has been removed.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn is temporarily blocking the request (login wall). Please try again later.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'This LinkedIn profile is not public or has no public profile photo.',
+    TIMEOUT:
+      'Request timed out while fetching the LinkedIn profile photo.',
+  },
+  ar: {
+    NOT_FOUND: 'الملف الشخصي غير موجود. حساب لينكدإن هذا غير موجود أو تم حذفه.',
+    BLOCKED_BY_PLATFORM:
+      'يحظر لينكدإن الطلب مؤقتاً (جدار تسجيل الدخول). يرجى المحاولة لاحقاً.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'ملف لينكدإن هذا غير عام أو لا يحتوي على صورة ملف شخصي عامة.',
+    TIMEOUT: 'انتهت مهلة الاتصال أثناء جلب صورة ملف لينكدإن الشخصي.',
+  },
+  es: {
+    NOT_FOUND:
+      'Perfil no encontrado. Este perfil de LinkedIn no existe o fue eliminado.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn está bloqueando temporalmente la solicitud (muro de inicio de sesión). Inténtalo más tarde.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Este perfil de LinkedIn no es público o no tiene foto de perfil pública.',
+    TIMEOUT:
+      'Tiempo de espera agotado al obtener la foto de perfil de LinkedIn.',
+  },
+  pt: {
+    NOT_FOUND:
+      'Perfil não encontrado. Este perfil do LinkedIn não existe ou foi removido.',
+    BLOCKED_BY_PLATFORM:
+      'O LinkedIn está bloqueando temporariamente a solicitação (muro de login). Tente novamente mais tarde.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Este perfil do LinkedIn não é público ou não possui foto de perfil pública.',
+    TIMEOUT:
+      'Tempo limite esgotado ao buscar a foto de perfil do LinkedIn.',
+  },
+  de: {
+    NOT_FOUND:
+      'Profil nicht gefunden. Dieses LinkedIn-Profil existiert nicht oder wurde gelöscht.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn blockiert die Anfrage vorübergehend (Login-Wall). Bitte später erneut versuchen.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Dieses LinkedIn-Profil ist nicht öffentlich oder hat kein öffentliches Profilbild.',
+    TIMEOUT:
+      'Zeitüberschreitung beim Abrufen des LinkedIn-Profilbilds.',
+  },
+  tr: {
+    NOT_FOUND:
+      'Profil bulunamadı. Bu LinkedIn profili mevcut değil veya silinmiş.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn isteği geçici olarak engelliyor (giriş duvarı). Lütfen daha sonra tekrar deneyin.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Bu LinkedIn profili herkese açık değil veya profil fotoğrafı yok.',
+    TIMEOUT:
+      'LinkedIn profil fotoğrafı alınırken zaman aşımı oluştu.',
+  },
+  id: {
+    NOT_FOUND:
+      'Profil tidak ditemukan. Profil LinkedIn ini tidak ada atau telah dihapus.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn memblokir permintaan sementara (dinding login). Silakan coba lagi nanti.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Profil LinkedIn ini tidak publik atau tidak memiliki foto profil publik.',
+    TIMEOUT:
+      'Waktu tunggu habis saat mengambil foto profil LinkedIn.',
+  },
+  it: {
+    NOT_FOUND:
+      'Profilo non trovato. Questo profilo LinkedIn non esiste o è stato rimosso.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn sta temporaneamente bloccando la richiesta (muro di accesso). Riprova più tardi.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Questo profilo LinkedIn non è pubblico o non ha una foto del profilo pubblica.',
+    TIMEOUT:
+      'Tempo scaduto durante il recupero della foto del profilo LinkedIn.',
+  },
+  ru: {
+    NOT_FOUND:
+      'Профиль не найден. Этот профиль LinkedIn не существует или был удалён.',
+    BLOCKED_BY_PLATFORM:
+      'LinkedIn временно блокирует запрос (стена входа). Попробуйте позже.',
+    PRIVATE_OR_LOGIN_REQUIRED:
+      'Этот профиль LinkedIn не является публичным или не имеет публичного фото профиля.',
+    TIMEOUT:
+      'Превышено время ожидания при загрузке фото профиля LinkedIn.',
+  },
+};
+
 export function getLocalizedErrorMessage(
   code: string,
   language: LanguageCode = 'fr',
-  options?: { isProfile?: boolean }
+  options?: { isProfile?: boolean; platform?: PlatformId | null }
 ): string {
-  const profileDict =
-    PROFILE_ERROR_MESSAGES[language] || PROFILE_ERROR_MESSAGES.fr;
+  const isLinkedIn = options?.platform === 'linkedin';
+  const profileDict = isLinkedIn
+    ? LINKEDIN_ERROR_MESSAGES[language] || LINKEDIN_ERROR_MESSAGES.fr
+    : PROFILE_ERROR_MESSAGES[language] || PROFILE_ERROR_MESSAGES.fr;
 
   if (code === 'PROFILE_NOT_FOUND' || (options?.isProfile && code === 'NOT_FOUND')) {
     return profileDict.NOT_FOUND;
@@ -293,7 +404,9 @@ export async function extractMediaFromUrl(
   if (!data || !data.ok || data.error) {
     const errCode = data?.error?.code || 'BLOCKED_BY_PLATFORM';
     const localized = getLocalizedErrorMessage(errCode, language, {
-      isProfile: detected.mediaType === 'profile',
+      isProfile:
+        detected.mediaType === 'profile' || detected.platform === 'linkedin',
+      platform: detected.platform,
     });
     throw new Error(localized);
   }
@@ -302,12 +415,14 @@ export async function extractMediaFromUrl(
     (data.platform as PlatformId) ||
     (detected.platform as PlatformId) ||
     'tiktok';
-  const creatorHandle = `@${(data.author?.username || 'user').replace(/^@/, '')}`;
+  const creatorHandle = `@${(data.author?.username || detected.identifier || 'user').replace(/^@/, '')}`;
   const fullAuthorName =
-    data.author?.full_name ||
-    (data.author?.nickname && data.author.nickname !== creatorHandle
-      ? data.author.nickname
-      : '');
+    platform === 'linkedin'
+      ? ''
+      : data.author?.full_name ||
+        (data.author?.nickname && data.author.nickname !== creatorHandle
+          ? data.author.nickname
+          : '');
   const authorName = fullAuthorName || creatorHandle;
   const nowTime = new Date().toLocaleTimeString([], {
     hour: '2-digit',
@@ -321,12 +436,15 @@ export async function extractMediaFromUrl(
       ? `X Post (${creatorHandle})`
       : platform === 'facebook'
       ? 'Facebook Video'
+      : platform === 'linkedin'
+      ? `LinkedIn (${creatorHandle})`
       : 'Instagram Reel');
 
   // 1. Format Photo de Profil (DP)
   const isProfilePayload =
     data.type === 'profile' ||
     detected.mediaType === 'profile' ||
+    platform === 'linkedin' ||
     (platform === 'instagram' &&
       data.type === 'image' &&
       typeof data.title === 'string' &&
@@ -354,14 +472,16 @@ export async function extractMediaFromUrl(
       badgeLabel:
         platform === 'tiktok'
           ? `TikTok Profile (${creatorHandle})`
+          : platform === 'linkedin'
+          ? `LinkedIn (${creatorHandle})`
           : `Instagram Profile (${creatorHandle})`,
       sourceUrl: url,
-      creatorHandle,
-      creatorName: fullAuthorName,
+      creatorHandle: platform === 'linkedin' ? data.title || creatorHandle : creatorHandle,
+      creatorName: platform === 'linkedin' ? '' : fullAuthorName,
       verified: Boolean(data.author?.verified),
       extractedAt: nowTime,
-      biography: data.author?.biography || data.title || '',
-      followersCount: data.author?.followers || undefined,
+      biography: platform === 'linkedin' ? '' : data.author?.biography || data.title || '',
+      followersCount: platform === 'linkedin' ? undefined : data.author?.followers || undefined,
       standardPreviewUrl: previewUrl,
       hdOriginalUrl: downloadUrl,
       quality: itemQuality,

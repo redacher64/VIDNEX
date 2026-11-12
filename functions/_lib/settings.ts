@@ -11,6 +11,7 @@ export interface SystemSettings {
   platform_instagram: boolean;
   platform_x: boolean;
   platform_facebook: boolean;
+  platform_linkedin: boolean;
   rate_limit_per_min: number;
   ads_enabled: boolean;
   test_url_tiktok: string;
@@ -18,6 +19,7 @@ export interface SystemSettings {
   test_url_instagram_profile: string;
   test_url_x: string;
   test_url_facebook: string;
+  test_url_linkedin: string;
 }
 
 export interface BlocklistEntry {
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   platform_instagram: true,
   platform_x: true,
   platform_facebook: true,
+  platform_linkedin: true,
   rate_limit_per_min: 30,
   ads_enabled: true,
   test_url_tiktok: '',
@@ -40,6 +43,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   test_url_instagram_profile: '',
   test_url_x: '',
   test_url_facebook: '',
+  test_url_linkedin: '',
 };
 
 /**
@@ -84,6 +88,9 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       platform_facebook: map.has('platform_facebook')
         ? map.get('platform_facebook') !== 'false'
         : true,
+      platform_linkedin: map.has('platform_linkedin')
+        ? map.get('platform_linkedin') !== 'false'
+        : true,
       rate_limit_per_min: rateLimit,
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
@@ -93,6 +100,7 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       test_url_instagram_profile: map.get('test_url_instagram_profile') ?? '',
       test_url_x: map.get('test_url_x') ?? '',
       test_url_facebook: map.get('test_url_facebook') ?? '',
+      test_url_linkedin: map.get('test_url_linkedin') ?? '',
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -127,6 +135,9 @@ export async function updateSystemSettings(
   if (typeof partial.platform_facebook === 'boolean') {
     entries.push(['platform_facebook', String(partial.platform_facebook)]);
   }
+  if (typeof partial.platform_linkedin === 'boolean') {
+    entries.push(['platform_linkedin', String(partial.platform_linkedin)]);
+  }
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));
     entries.push(['rate_limit_per_min', String(clamped)]);
@@ -148,6 +159,9 @@ export async function updateSystemSettings(
   }
   if (typeof partial.test_url_facebook === 'string') {
     entries.push(['test_url_facebook', partial.test_url_facebook.trim()]);
+  }
+  if (typeof partial.test_url_linkedin === 'string') {
+    entries.push(['test_url_linkedin', partial.test_url_linkedin.trim()]);
   }
 
   for (const [key, value] of entries) {

@@ -23,7 +23,13 @@ interface PlatformStats {
 }
 
 interface EngineHealthSummary {
-  platform: 'tiktok' | 'instagram' | 'instagram_profile' | 'x' | 'facebook';
+  platform:
+    | 'tiktok'
+    | 'instagram'
+    | 'instagram_profile'
+    | 'x'
+    | 'facebook'
+    | 'linkedin';
   last_success_ts: number | null;
   last_test_ts: number | null;
   last_test_ok: number | null;
@@ -44,6 +50,7 @@ interface StatsResponse {
     instagram_profile?: PlatformStats;
     x: PlatformStats;
     facebook: PlatformStats;
+    linkedin?: PlatformStats;
   };
   errors: Array<{ code: string; count: number }>;
   daily: DailyBucket[];
@@ -61,6 +68,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
     instagram_profile: EngineHealthSummary;
     x: EngineHealthSummary;
     facebook: EngineHealthSummary;
+    linkedin: EngineHealthSummary;
   }>({
     tiktok: {
       platform: 'tiktok',
@@ -97,6 +105,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       last_test_ok: 1,
       last_error_code: null,
     },
+    linkedin: {
+      platform: 'linkedin',
+      last_success_ts: null,
+      last_test_ts: null,
+      last_test_ok: 1,
+      last_error_code: null,
+    },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +140,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               healthJson.engines.instagram_profile || prev.instagram_profile,
             x: healthJson.engines.x || prev.x,
             facebook: healthJson.engines.facebook || prev.facebook,
+            linkedin: healthJson.engines.linkedin || prev.linkedin,
           }));
         }
       }
@@ -150,6 +166,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   };
   const xStats = data?.platforms.x || { total: 0, success: 0, error: 0, successRate: 0 };
   const facebookStats = data?.platforms.facebook || { total: 0, success: 0, error: 0, successRate: 0 };
+  const linkedinStats = data?.platforms.linkedin || { total: 0, success: 0, error: 0, successRate: 0 };
   const daily = data?.daily || [];
   const maxDaily = Math.max(1, ...daily.map((d) => d.total));
   const totalErrors = (data?.errors || []).reduce((acc, item) => acc + item.count, 0);
@@ -244,7 +261,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {(
             [
               { key: 'tiktok', label: 'TikTok', sub: 'TikWM / HTML' },
@@ -252,6 +269,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               { key: 'instagram_profile', label: 'Profil Instagram', sub: 'Photo de profil' },
               { key: 'x', label: 'X (Twitter)', sub: 'Syndication twimg' },
               { key: 'facebook', label: 'Facebook', sub: 'HTML / Mobile' },
+              { key: 'linkedin', label: 'LinkedIn', sub: 'Photo de profil publique' },
             ] as const
           ).map(({ key, label, sub }) => {
             const eng = engines[key];
@@ -294,13 +312,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       </div>
 
       {/* Taux de succès et d'échec par plateforme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { key: 'tiktok', label: 'TikTok (TikWM / HTML)', stats: tiktok },
           { key: 'instagram', label: 'Instagram (Reels / Posts)', stats: instagram },
           { key: 'instagram_profile', label: 'Profil Instagram (DP)', stats: instagramProfileStats },
           { key: 'x', label: 'X (Twitter) (Syndication)', stats: xStats },
           { key: 'facebook', label: 'Facebook (HTML / Mobile)', stats: facebookStats },
+          { key: 'linkedin', label: 'LinkedIn (Photo de profil)', stats: linkedinStats },
         ].map(({ key, label, stats }) => {
           const failRate =
             stats.total > 0 ? Math.round((stats.error / stats.total) * 1000) / 10 : 0;

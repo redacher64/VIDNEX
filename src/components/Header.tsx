@@ -5,6 +5,7 @@ import {
   getLocalizedPagePath,
   LOCALES_CONFIG,
   type PageKey,
+  PLATFORM_PAGE_KEYS,
   type PlatformPageKey,
   SUPPORTED_LOCALES,
   type SupportedLocale,
@@ -16,12 +17,19 @@ export interface ToolTab {
   label: string;
 }
 
-export const PLATFORM_TABS: ToolTab[] = [
-  { id: 'tiktok', label: 'TikTok' },
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'x', label: 'X (Twitter)' },
-  { id: 'facebook', label: 'Facebook' },
-];
+export const PLATFORM_TABS: ToolTab[] = PLATFORM_PAGE_KEYS.map((id) => ({
+  id,
+  label:
+    id === 'tiktok'
+      ? 'TikTok'
+      : id === 'instagram'
+      ? 'Instagram'
+      : id === 'x'
+      ? 'X'
+      : id === 'facebook'
+      ? 'Facebook'
+      : 'LinkedIn',
+}));
 
 interface HeaderProps {
   activePageKey: PageKey | 'not_found';
@@ -88,13 +96,14 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const visibleTabs = PLATFORM_TABS.filter((tab) => isPlatformSupported(tab.id));
 
   return (
     <header
       ref={headerRef}
       className="sticky top-0 z-40 w-full bg-[#fffaf5]/95 dark:bg-[#140e0a]/95 backdrop-blur-xl border-b border-orange-200/60 dark:border-orange-900/50 shadow-[0_2px_16px_rgba(234,88,12,0.05)] safe-area-header"
     >
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 h-[55px] flex items-center justify-between gap-2">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 h-[55px] flex items-center justify-between gap-1.5 sm:gap-2">
         {/* Brand Wordmark linking to localized Home (touch target >= 44x44px) */}
         <a
           href={homeHref}
@@ -121,36 +130,37 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Platform Navigation"
           className={
             mobileMenuOpen
-              ? 'absolute top-14 left-0 right-0 bg-[#fffaf5] dark:bg-[#1c140e] border-b border-orange-200 dark:border-orange-900/70 shadow-xl p-3 grid grid-cols-2 gap-2 md:static md:flex md:items-center md:gap-1 md:p-1 md:bg-orange-100/50 md:dark:bg-[#231710] md:rounded-xl md:border md:border-orange-200/70 md:dark:border-orange-900/50 md:shadow-inner z-50'
-              : 'hidden md:flex items-center gap-1 p-1 bg-orange-100/50 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner'
+              ? 'absolute top-14 left-0 right-0 bg-[#fffaf5] dark:bg-[#1c140e] border-b border-orange-200 dark:border-orange-900/70 shadow-xl p-3 grid grid-cols-2 gap-2 md:static md:flex md:items-center md:gap-0.5 lg:gap-1 md:p-1 md:bg-orange-100/50 md:dark:bg-[#231710] md:rounded-xl md:border md:border-orange-200/70 md:dark:border-orange-900/50 md:shadow-inner z-50'
+              : 'hidden md:flex items-center md:gap-0.5 lg:gap-1 p-1 bg-orange-100/50 dark:bg-[#231710] rounded-xl border border-orange-200/70 dark:border-orange-900/50 shadow-inner min-w-0'
           }
         >
-          {PLATFORM_TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const pKey = tab.id;
             const isActive =
               activePageKey === pKey ||
               (activePageKey === 'home' && activePlatform === tab.id);
-            const supported = isPlatformSupported(tab.id);
             const href = getLocalizedPagePath(language, pKey);
 
             return (
               <a
                 key={tab.id}
                 href={href}
+                data-testid={`nav-${tab.id}`}
                 onClick={(e) => {
                   e.preventDefault();
                   setMobileMenuOpen(false);
-                  if (supported) onNavigatePage(pKey);
+                  onNavigatePage(pKey);
                 }}
-                className={`min-h-[44px] md:min-h-[36px] px-3.5 py-2 md:py-1.5 rounded-xl md:rounded-lg text-xs font-semibold whitespace-nowrap flex items-center justify-center md:justify-start gap-2 transition-all ${
-                  !supported
-                    ? 'opacity-50 pointer-events-none text-[#6c4e40] dark:text-orange-200/50'
-                    : isActive
+                className={`min-h-[44px] md:min-h-[36px] px-3 md:px-2.5 lg:px-3.5 py-2 md:py-1.5 rounded-xl md:rounded-lg text-xs font-semibold whitespace-nowrap flex items-center justify-center md:justify-start gap-1.5 lg:gap-2 transition-all ${
+                  isActive
                     ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
                     : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
                 }`}
               >
-                <PlatformIcon platform={tab.id} className="w-4 h-4 md:w-3.5 md:h-3.5 shrink-0" />
+                <PlatformIcon
+                  platform={tab.id}
+                  className="w-4 h-4 md:w-3.5 md:h-3.5 shrink-0"
+                />
                 <span>{tab.label}</span>
               </a>
             );

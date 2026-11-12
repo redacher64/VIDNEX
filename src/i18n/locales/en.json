@@ -11,26 +11,28 @@
       "soonBadge": "Soon",
       "languageLabel": "Language",
       "switchToDark": "Switch to dark mode",
-      "switchToLight": "Switch to light mode"
+      "switchToLight": "Switch to light mode",
+      "linkedin": "LinkedIn"
     },
     "omnibox": {
-      "inputAriaLabel": "Public video or post URL",
+      "inputAriaLabel": "Public video or profile URL (TikTok, Instagram, X, Facebook, LinkedIn)",
       "pasteButton": "Paste",
       "pastedFeedback": "Pasted!",
       "clearInputAria": "Clear input URL",
       "downloadButton": "Download",
       "extractingButton": "Preparing…",
       "trySampleLabel": "Try an example:",
-      "errEmptyInput": "Please paste a public TikTok, Instagram, X (Twitter), or Facebook link.",
-      "errInvalidUrl": "Unrecognized link. Please enter a valid public link from TikTok, Instagram, X, or Facebook.",
+      "errEmptyInput": "Please paste a public TikTok, Instagram, X (Twitter), Facebook, or LinkedIn link.",
+      "errInvalidUrl": "Unrecognized link. Please enter a valid public link from TikTok, Instagram, X, Facebook, or a LinkedIn profile (linkedin.com/in/...).",
       "errClipboardBlocked": "Clipboard access was blocked by your browser. Tap and hold the input field to paste.",
-      "comingSoonNotice": "This platform is coming soon! Currently supported: TikTok, Instagram, X, and Facebook.",
+      "comingSoonNotice": "This platform is coming soon! Currently supported: TikTok, Instagram, X, Facebook, and LinkedIn.",
       "samples": {
         "igReel": "Instagram Reel",
         "tiktokVid": "TikTok Video",
         "xVid": "X (Twitter) Video",
         "fbVid": "Facebook Video",
-        "igDp": "Instagram Profile Photo"
+        "igDp": "Instagram Profile Photo",
+        "linkedinDp": "LinkedIn Profile Photo"
       }
     },
     "drawer": {
@@ -81,7 +83,7 @@
       "stepOf": "STEP",
       "readyStatus": "READY",
       "platformsHeading": "Dedicated downloaders by social network",
-      "platformsSubheading": "Select the tool for your public TikTok, Instagram, X (Twitter), or Facebook link.",
+      "platformsSubheading": "Select the dedicated tool for your public TikTok, Instagram, X (Twitter), Facebook, or LinkedIn link.",
       "openToolCta": "Open tool",
       "knowledgeBase": "FREQUENTLY ASKED QUESTIONS",
       "faqHeading": "Common questions about downloading public social videos",
@@ -111,7 +113,7 @@
       "tryPlatformsLabel": "Browse platform downloaders:"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Unsupported link. Please paste a public link from TikTok, Instagram, X (Twitter), or Facebook.",
+      "UNSUPPORTED_URL": "Unsupported link. Please paste a public link from TikTok, Instagram, X (Twitter), Facebook, or a LinkedIn profile (/in/...).",
       "NOT_FOUND": "Media not found. The video, Reel, tweet, or post may have been deleted.",
       "PRIVATE_OR_LOGIN_REQUIRED": "This video is not public or requires a login. Only public videos can be downloaded.",
       "BLOCKED_BY_PLATFORM": "The platform temporarily restricted access to this post. Please try again in a moment.",
@@ -138,9 +140,9 @@
   },
   "home": {
     "metaTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
-    "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) clips, and Facebook videos in HD MP4 for free in your browser.",
+    "metaDescription": "Download public TikTok videos without watermark, Instagram Reels, X clips, Facebook videos, and LinkedIn profile photos for free.",
     "h1": "Public Video Downloader for TikTok, Instagram, X & Facebook",
-    "subtitle": "Save public social videos, Reels, photo carousels, and MP3 audio tracks directly to your phone or computer.",
+    "subtitle": "Save public social videos, Reels, carousels, MP3 audio tracks, and LinkedIn profile pictures directly to your phone or computer.",
     "placeholder": "https://www.tiktok.com/@username/video/...",
     "specs": [
       "HD & SD MP4",
@@ -161,7 +163,8 @@
         "TikTok: watermark-free MP4 video, Photo Mode JPG slideshows, and original MP3 audio.",
         "Instagram: public Reels in MP4, multi-slide photo/video carousels (.ZIP), and HD profile pictures.",
         "X (Twitter): public tweet videos and animated GIFs saved as MP4 sorted by bitrate.",
-        "Facebook: public Watch videos, fb.watch shortlinks, and Facebook Reels in HD or SD MP4."
+        "Facebook: public Watch videos, fb.watch shortlinks, and Facebook Reels in HD or SD MP4.",
+        "LinkedIn: full-size public profile picture preview and original JPG download from linkedin.com/in/{slug} links."
       ],
       "limitsTitle": "Privacy boundaries and public-content policy",
       "limitsText": "VIDNEX only processes public posts that can be viewed without logging in. Private accounts, closed Facebook group videos, subscriber-only stories, and age-restricted posts behind a login wall cannot be downloaded."
@@ -193,7 +196,7 @@
       },
       {
         "question": "Which social media platforms are currently supported?",
-        "answer": "VIDNEX supports four platforms: TikTok (videos, photo slideshows, MP3), Instagram (Reels, carousels, profile pictures), X / Twitter (public videos and GIFs), and Facebook (public Watch videos and Reels)."
+        "answer": "VIDNEX supports five platforms: TikTok (videos, photo slideshows, MP3), Instagram (Reels, carousels, profile pictures), X / Twitter (public videos and GIFs), Facebook (public Watch videos and Reels), and LinkedIn (public profile pictures)."
       },
       {
         "question": "Why do some links return a private or login-required message?",
@@ -209,7 +212,7 @@
       }
     ],
     "ogTitle": "TikTok, Instagram, X & Facebook Video Downloader | VIDNEX",
-    "ogDescription": "Download public TikTok videos without watermark, Instagram Reels, X (Twitter) clips, and Facebook videos in HD MP4 for free in your browser.",
+    "ogDescription": "Download public TikTok videos without watermark, Instagram Reels, X clips, Facebook videos, and LinkedIn profile photos for free.",
     "ogImageAlt": "VIDNEX preview: download public TikTok, Instagram, X and Facebook videos in HD MP4"
   },
   "platforms": {
@@ -512,6 +515,76 @@
       "ogTitle": "Facebook Video & Reels Downloader (HD & SD MP4) | VIDNEX",
       "ogDescription": "Download public Facebook Watch videos, Reels, and fb.watch share links in HD or SD MP4 for free on mobile and desktop without logging into Facebook.",
       "ogImageAlt": "VIDNEX Facebook downloader preview — save public Watch videos and Reels in HD MP4"
+    },
+    "linkedin": {
+      "slug": "linkedin-profile-picture-downloader",
+      "metaTitle": "LinkedIn Profile Picture Downloader (Public JPG) | VIDNEX",
+      "metaDescription": "View and download any public LinkedIn profile picture in original JPG resolution from a linkedin.com/in/ URL for free without logging in.",
+      "h1": "LinkedIn Public Profile Picture Downloader",
+      "subtitle": "Preview and save public LinkedIn profile photos in original resolution from any linkedin.com/in/{slug} link without an account.",
+      "shortLabel": "LinkedIn",
+      "breadcrumbLabel": "LinkedIn Profile Photo",
+      "placeholder": "https://www.linkedin.com/in/satyanadella",
+      "specs": [
+        "PROFILE PHOTO",
+        "PUBLIC PROFILES",
+        "NO LOGIN NEEDED",
+        "ORIGINAL JPG"
+      ],
+      "editorial": {
+        "heading": "How to view and save a public LinkedIn profile picture",
+        "subheading": "Direct anonymous lookup for public linkedin.com/in/{slug} profile portraits with zero account login.",
+        "paragraphs": [
+          "When browsing LinkedIn on mobile or desktop, member profile pictures are displayed inside a small circular frame and often trigger a sign-in prompt when clicked. The VIDNEX LinkedIn tool inspects the publicly accessible web page of a personal profile (formatted as linkedin.com/in/username) to locate the original profile photo URL served from LinkedIn’s official media.licdn.com content delivery network.",
+          "No LinkedIn account, session cookie, or third-party scraping API is ever used during the extraction process. When you paste a valid public profile URL into the input bar, our server checks the open metadata of the public page, preserves the signed image URL intact without re-encoding or compression, and lets you preview and download the original JPG file directly to your smartphone, tablet, or desktop computer.",
+          "To strictly respect user privacy and platform boundaries, this utility only retrieves the public profile image and normalizes the profile handle as @slug. It never scrapes personal resumes, job titles, or employment history, and it never attempts to bypass authentication walls."
+        ],
+        "formatsTitle": "What the LinkedIn profile photo tool supports",
+        "formatsList": [
+          "Personal profile URLs: standard linkedin.com/in/{slug} links (including www. and regional country subdomains).",
+          "Original signed image: direct JPG delivery from media.licdn.com without cropping or quality loss.",
+          "Clean file naming: one-click download saved automatically as linkedin_{slug}_profile.jpg."
+        ],
+        "limitsTitle": "Public profile photos only — no private profile access",
+        "limitsText": "Only profile pictures configured by the member as visible to the public internet can be resolved. If a member hides their photo from signed-out visitors, has no profile photo, or if LinkedIn serves an authentication wall, the image cannot be downloaded. Company pages (/company/) and feed posts (/posts/) are not supported."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copy the LinkedIn profile URL",
+          "description": "Copy the public personal profile link starting with linkedin.com/in/ from your browser address bar or share menu.",
+          "codeHint": "linkedin.com/in/{slug}"
+        },
+        {
+          "number": "02",
+          "title": "Paste the link into VIDNEX",
+          "description": "Paste the URL into the input box above and press Download to check the public profile metadata.",
+          "codeHint": "PUBLIC METADATA CHECK"
+        },
+        {
+          "number": "03",
+          "title": "Download the profile photo",
+          "description": "Preview the full-size portrait and click \"Download Profile Photo\" to save the JPG file.",
+          "codeHint": "linkedin_{slug}_profile.jpg"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I download the profile picture of a private LinkedIn profile?",
+          "answer": "No. If the profile owner restricts their photo to logged-in members or connections, or if LinkedIn blocks anonymous access with a login wall, VIDNEX cannot retrieve the photo and never bypasses login restrictions."
+        },
+        {
+          "question": "Does this tool support LinkedIn company pages, videos, or posts?",
+          "answer": "No. This tool is dedicated exclusively to personal profile URLs matching linkedin.com/in/{slug} to download public profile pictures."
+        },
+        {
+          "question": "Do I need to sign in with my LinkedIn account?",
+          "answer": "No. VIDNEX operates completely without accounts or cookies, reading only the public metadata available to signed-out web visitors."
+        }
+      ],
+      "ogTitle": "LinkedIn Profile Picture Downloader (Public JPG) | VIDNEX",
+      "ogDescription": "View and download any public LinkedIn profile picture in original JPG resolution from a linkedin.com/in/ URL for free without logging in.",
+      "ogImageAlt": "VIDNEX LinkedIn profile picture downloader preview — save public profile photos in JPG"
     }
   },
   "legal": {
@@ -521,7 +594,7 @@
       "h1": "About VIDNEX",
       "breadcrumbLabel": "About Us",
       "updatedAt": "November 10, 2026",
-      "intro": "VIDNEX is an independent web utility built to make saving public social media videos from TikTok, Instagram, X (Twitter), and Facebook straightforward and transparent.",
+      "intro": "VIDNEX is an independent web utility built to make saving public social media videos and public profile photos from TikTok, Instagram, X (Twitter), Facebook, and LinkedIn straightforward and transparent.",
       "sections": [
         {
           "heading": "How VIDNEX works",
@@ -586,7 +659,7 @@
         {
           "heading": "1. Service scope and user responsibility",
           "paragraphs": [
-            "VIDNEX operates solely as a user-initiated technical resolver for publicly accessible URLs. VIDNEX claims no ownership over any media content resolved from TikTok, Instagram, X, or Facebook; all copyrights and trademarks remain the property of their respective creators and platforms.",
+            "VIDNEX operates solely as a user-initiated technical resolver for publicly accessible URLs. VIDNEX claims no ownership over any media content resolved from TikTok, Instagram, X, Facebook, or LinkedIn; all copyrights and trademarks remain the property of their respective creators and platforms.",
             "You are solely responsible for ensuring that you have the legal right or creator permission to download and use any media file obtained through this tool."
           ]
         },
@@ -613,7 +686,7 @@
           "heading": "Official Email Contact",
           "paragraphs": [
             "Official compliance and support email: compliance@vidnex.space",
-            "When reporting a technical issue, please include the platform name (TikTok, Instagram, X, or Facebook), your browser/device type, and the public URL you tested."
+            "When reporting a technical issue, please include the platform name (TikTok, Instagram, X, Facebook, or LinkedIn), your browser/device type, and the public URL you tested."
           ]
         }
       ],
@@ -632,7 +705,7 @@
         {
           "heading": "1. No media files hosted on VIDNEX servers",
           "paragraphs": [
-            "VIDNEX does not store or host any video, audio, or image files on its infrastructure. All media streams are served directly by the origin social platforms (TikTok, Instagram, X, Facebook). To remove content from the internet permanently, it must be removed or set to private on the source platform."
+            "VIDNEX does not store or host any video, audio, or image files on its infrastructure. All media streams are served directly by the origin social platforms (TikTok, Instagram, X, Facebook, LinkedIn). To remove content from the internet permanently, it must be removed or set to private on the source platform."
           ]
         },
         {

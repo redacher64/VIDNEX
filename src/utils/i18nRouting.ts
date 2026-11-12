@@ -26,6 +26,7 @@ const PLATFORM_TO_PRIMARY_TOOL_SLUG: Record<PlatformPageKey, ToolSlug> = {
   instagram: 'instagram-reels',
   x: 'x-video',
   facebook: 'facebook-reels',
+  linkedin: 'linkedin-dp',
 };
 
 const TOOL_SLUG_TO_PLATFORM_PAGE: Record<ToolSlug, PlatformPageKey> = {
@@ -39,6 +40,7 @@ const TOOL_SLUG_TO_PLATFORM_PAGE: Record<ToolSlug, PlatformPageKey> = {
   'instagram-stories': 'instagram',
   'x-video': 'x',
   'facebook-reels': 'facebook',
+  'linkedin-dp': 'linkedin',
   'youtube-shorts': 'tiktok',
   'snapchat-spotlight': 'tiktok',
 };
@@ -58,7 +60,8 @@ export function pageKeyToPrimaryToolSlug(pageKey: PageKey): ToolSlug | null {
     pageKey === 'tiktok' ||
     pageKey === 'instagram' ||
     pageKey === 'x' ||
-    pageKey === 'facebook'
+    pageKey === 'facebook' ||
+    pageKey === 'linkedin'
   ) {
     return PLATFORM_TO_PRIMARY_TOOL_SLUG[pageKey];
   }
@@ -74,6 +77,7 @@ export function toolSlugToPageKey(slug?: string | null): PageKey {
     clean === 'instagram' ||
     clean === 'x' ||
     clean === 'facebook' ||
+    clean === 'linkedin' ||
     clean === 'about' ||
     clean === 'privacy' ||
     clean === 'terms' ||

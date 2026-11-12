@@ -5,6 +5,7 @@ import { extractTikTok } from '../../_lib/tiktok.ts';
 import { extractInstagram } from '../../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../../_lib/x.ts';
 import { extractFacebook, resolveFacebookRedirect } from '../../_lib/facebook.ts';
+import { extractLinkedIn } from '../../_lib/linkedin.ts';
 import { getSystemSettings, updateSystemSettings } from '../../_lib/settings.ts';
 import { logExtractionEvent, recordEngineHealthTest } from '../../_lib/logger.ts';
 
@@ -70,6 +71,14 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       last_error_code: null as string | null,
       test_url: settings.test_url_facebook || '',
     },
+    linkedin: {
+      platform: 'linkedin',
+      last_success_ts: null as number | null,
+      last_test_ts: null as number | null,
+      last_test_ok: null as number | null,
+      last_error_code: null as string | null,
+      test_url: settings.test_url_linkedin || '',
+    },
   };
 
   if (db) {
@@ -92,7 +101,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
           row.platform === 'instagram' ||
           row.platform === 'instagram_profile' ||
           row.platform === 'x' ||
-          row.platform === 'facebook'
+          row.platform === 'facebook' ||
+          row.platform === 'linkedin'
         ) {
           defaultEngines[row.platform] = {
             ...defaultEngines[row.platform],
@@ -137,7 +147,13 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const db = getDb(env);
   let body: {
     action?: 'test_engine' | 'test_ig_cookie';
-    platform?: 'tiktok' | 'instagram' | 'instagram_profile' | 'x' | 'facebook';
+    platform?:
+      | 'tiktok'
+      | 'instagram'
+      | 'instagram_profile'
+      | 'x'
+      | 'facebook'
+      | 'linkedin';
     url?: string;
   } = {};
 
@@ -201,13 +217,14 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     platform !== 'instagram' &&
     platform !== 'instagram_profile' &&
     platform !== 'x' &&
-    platform !== 'facebook'
+    platform !== 'facebook' &&
+    platform !== 'linkedin'
   ) {
     return new Response(
       JSON.stringify({
         ok: false,
         message:
-          'Plateforme invalide (tiktok, instagram, instagram_profile, x ou facebook requis).',
+          'Plateforme invalide (tiktok, instagram, instagram_profile, x, facebook ou linkedin requis).',
       }),
       {
         status: 400,
@@ -241,6 +258,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
         ? { test_url_instagram_profile: testUrl }
         : platform === 'x'
         ? { test_url_x: testUrl }
+        : platform === 'linkedin'
+        ? { test_url_linkedin: testUrl }
         : { test_url_facebook: testUrl }
     );
   }
@@ -313,6 +332,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
         ? 'de profil Instagram'
         : platform === 'x'
         ? 'X (Twitter)'
+        : platform === 'linkedin'
+        ? 'de profil LinkedIn (/in/{slug})'
         : 'Facebook';
     return new Response(
       JSON.stringify({
@@ -351,6 +372,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
         )
       : platform === 'x'
       ? await extractX(detection.identifier || '')
+      : platform === 'linkedin'
+      ? await extractLinkedIn(detection.identifier || '')
       : await extractFacebook(detection.cleanUrl, detection.identifier);
 
   const durationMs = Date.now() - startedAt;
@@ -367,6 +390,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     errorCode,
     durationMs,
     ipHash,
+    engineStage: result.engineStage || null,
+    httpStatus: result.httpStatus ?? null,
   });
 
   return new Response(

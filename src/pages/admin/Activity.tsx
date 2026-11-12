@@ -106,6 +106,8 @@ export const Activity: React.FC = () => {
                         ? 'X (Twitter)'
                         : row.platform === 'facebook'
                         ? 'Facebook'
+                        : row.platform === 'linkedin'
+                        ? 'LinkedIn'
                         : row.platform === 'instagram_profile'
                         ? 'Profil Instagram'
                         : row.platform}

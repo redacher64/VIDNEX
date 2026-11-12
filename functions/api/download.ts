@@ -18,6 +18,7 @@ import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX } from '../_lib/x.ts';
 import { extractFacebook } from '../_lib/facebook.ts';
+import { extractLinkedIn } from '../_lib/linkedin.ts';
 import { checkRateLimit, extractClientIp } from '../_lib/ratelimit.ts';
 
 export interface PagesContext {
@@ -75,6 +76,9 @@ function inferMimeType(
 
 export function inferRefererForHost(hostname: string, isFacebookHint = false): string {
   const lower = hostname.toLowerCase();
+  if (lower.includes('licdn.com') || lower.includes('linkedin.com')) {
+    return 'https://www.linkedin.com/';
+  }
   if (
     isFacebookHint ||
     (lower.includes('fbcdn') && (lower.includes('video') || lower.startsWith('fb')))
@@ -442,6 +446,19 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
         }
       } else if (detection.isValid && detection.platform === 'facebook') {
         const fresh = await extractFacebook(detection.cleanUrl, detection.identifier);
+        if (fresh.ok && fresh.items?.length) {
+          const freshItem = fresh.items[0];
+          if (freshItem?.url) {
+            attempt = await fetchMediaStreamWithManualRedirects(
+              freshItem.url,
+              method,
+              isInline,
+              rangeHeader
+            );
+          }
+        }
+      } else if (detection.isValid && detection.platform === 'linkedin') {
+        const fresh = await extractLinkedIn(detection.identifier || '');
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];
           if (freshItem?.url) {

@@ -34,6 +34,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
           instagram_profile: { total: 0, success: 0, error: 0, successRate: 0 },
           x: { total: 0, success: 0, error: 0, successRate: 0 },
           facebook: { total: 0, success: 0, error: 0, successRate: 0 },
+          linkedin: { total: 0, success: 0, error: 0, successRate: 0 },
         },
         errors: [],
         daily: Array.from(dailyMap.values()),
@@ -73,6 +74,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       instagram_profile: { total: 0, success: 0, error: 0, successRate: 0 },
       x: { total: 0, success: 0, error: 0, successRate: 0 },
       facebook: { total: 0, success: 0, error: 0, successRate: 0 },
+      linkedin: { total: 0, success: 0, error: 0, successRate: 0 },
     };
 
     const errorCounts = new Map<string, number>();
@@ -95,6 +97,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
           ? 'x'
           : row.platform === 'facebook' || row.platform === 'fb'
           ? 'facebook'
+          : row.platform === 'linkedin'
+          ? 'linkedin'
           : null;
       if (p) {
         platforms[p].total++;
@@ -119,7 +123,14 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       }
     }
 
-    for (const key of ['tiktok', 'instagram', 'instagram_profile', 'x', 'facebook'] as const) {
+    for (const key of [
+      'tiktok',
+      'instagram',
+      'instagram_profile',
+      'x',
+      'facebook',
+      'linkedin',
+    ] as const) {
       const p = platforms[key];
       p.successRate = p.total > 0 ? Math.round((p.success / p.total) * 1000) / 10 : 0;
     }

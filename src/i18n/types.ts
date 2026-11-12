@@ -113,6 +113,7 @@ export interface LocaleBundle {
       instagram: string;
       x: string;
       facebook: string;
+      linkedin: string;
       morePlatforms: string;
       soonBadge: string;
       languageLabel: string;
@@ -137,6 +138,7 @@ export interface LocaleBundle {
         xVid: string;
         fbVid: string;
         igDp: string;
+        linkedinDp: string;
       };
     };
     drawer: {

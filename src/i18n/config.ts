@@ -18,7 +18,12 @@ export type SupportedLocale =
   | 'it'
   | 'ru';
 
-export type PlatformPageKey = 'tiktok' | 'instagram' | 'x' | 'facebook';
+export type PlatformPageKey =
+  | 'tiktok'
+  | 'instagram'
+  | 'x'
+  | 'facebook'
+  | 'linkedin';
 
 export type LegalPageKey = 'about' | 'privacy' | 'terms' | 'contact' | 'dmca';
 
@@ -172,6 +177,7 @@ export const PLATFORM_PAGE_KEYS: readonly PlatformPageKey[] = [
   'instagram',
   'x',
   'facebook',
+  'linkedin',
 ] as const;
 
 export const LEGAL_PAGE_KEYS: readonly LegalPageKey[] = [
@@ -216,60 +222,70 @@ export const PLATFORM_SLUGS: Record<
     instagram: 'telecharger-reel-instagram',
     x: 'telecharger-video-x-twitter',
     facebook: 'telecharger-video-facebook',
+    linkedin: 'telecharger-photo-profil-linkedin',
   },
   en: {
     tiktok: 'tiktok-video-downloader',
     instagram: 'instagram-reels-downloader',
     x: 'x-twitter-video-downloader',
     facebook: 'facebook-video-downloader',
+    linkedin: 'linkedin-profile-picture-downloader',
   },
   ar: {
     tiktok: 'tiktok-video-downloader',
     instagram: 'instagram-reels-downloader',
     x: 'x-twitter-video-downloader',
     facebook: 'facebook-video-downloader',
+    linkedin: 'linkedin-profile-picture-downloader',
   },
   es: {
     tiktok: 'descargar-video-tiktok',
     instagram: 'descargar-reels-instagram',
     x: 'descargar-video-x-twitter',
     facebook: 'descargar-video-facebook',
+    linkedin: 'descargar-foto-perfil-linkedin',
   },
   pt: {
     tiktok: 'baixar-video-tiktok',
     instagram: 'baixar-reels-instagram',
     x: 'baixar-video-x-twitter',
     facebook: 'baixar-video-facebook',
+    linkedin: 'baixar-foto-perfil-linkedin',
   },
   de: {
     tiktok: 'tiktok-video-herunterladen',
     instagram: 'instagram-reels-herunterladen',
     x: 'x-twitter-video-herunterladen',
     facebook: 'facebook-video-herunterladen',
+    linkedin: 'linkedin-profilbild-herunterladen',
   },
   tr: {
     tiktok: 'tiktok-video-indir',
     instagram: 'instagram-reels-indir',
     x: 'x-twitter-video-indir',
     facebook: 'facebook-video-indir',
+    linkedin: 'linkedin-profil-fotografi-indir',
   },
   id: {
     tiktok: 'download-video-tiktok',
     instagram: 'download-reels-instagram',
     x: 'download-video-x-twitter',
     facebook: 'download-video-facebook',
+    linkedin: 'download-foto-profil-linkedin',
   },
   it: {
     tiktok: 'scaricare-video-tiktok',
     instagram: 'scaricare-reel-instagram',
     x: 'scaricare-video-x-twitter',
     facebook: 'scaricare-video-facebook',
+    linkedin: 'scaricare-foto-profilo-linkedin',
   },
   ru: {
     tiktok: 'tiktok-video-downloader',
     instagram: 'instagram-reels-downloader',
     x: 'x-twitter-video-downloader',
     facebook: 'facebook-video-downloader',
+    linkedin: 'linkedin-profile-picture-downloader',
   },
 };
 
@@ -295,6 +311,9 @@ export const ALT_PLATFORM_SLUGS: Record<string, PlatformPageKey> = {
   'instagram-stories': 'instagram',
   'x-video': 'x',
   'facebook-reels': 'facebook',
+  'linkedin-dp': 'linkedin',
+  'telecharger-photo-linkedin': 'linkedin',
+  'linkedin-photo-downloader': 'linkedin',
 };
 
 /**
@@ -669,7 +688,7 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   return [
     '# VIDNEX',
     '',
-    '> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3, sans compte et sans accès aux contenus privés.',
+    '> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3 ainsi que les photos de profil publiques LinkedIn en JPG HD, sans compte et sans accès aux contenus privés.',
     '',
     '## Pages principales',
     '',
@@ -678,6 +697,7 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     `- [Télécharger Reel et Vidéo Instagram](${base}${getLocalizedPagePath('fr', 'instagram')})`,
     `- [Télécharger Vidéo X (Twitter)](${base}${getLocalizedPagePath('fr', 'x')})`,
     `- [Télécharger Vidéo Facebook](${base}${getLocalizedPagePath('fr', 'facebook')})`,
+    `- [Télécharger Photo de Profil LinkedIn](${base}${getLocalizedPagePath('fr', 'linkedin')})`,
     `- [À propos](${base}${getLocalizedPagePath('fr', 'about')})`,
     `- [Politique de confidentialité](${base}${getLocalizedPagePath('fr', 'privacy')})`,
     `- [Conditions d’utilisation](${base}${getLocalizedPagePath('fr', 'terms')})`,

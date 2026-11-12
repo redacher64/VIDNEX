@@ -222,7 +222,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pInfo = bundle.platforms[pKey];
               const isCurrent = pageKey === pKey;
@@ -253,7 +253,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                         <span>{pInfo.shortLabel}</span>
                       </span>
                       <span className="font-mono text-[10px] font-bold text-orange-700 dark:text-amber-400 uppercase">
-                        MP4 HD
+                        {pKey === 'linkedin' ? 'JPG HD' : 'MP4 HD'}
                       </span>
                     </div>
                     <h3 className="font-display text-base font-bold text-[#1f130b] dark:text-[#fffaf5] mb-1.5">

@@ -11,26 +11,28 @@
       "soonBadge": "Segera",
       "languageLabel": "Bahasa",
       "switchToDark": "Aktifkan mode gelap",
-      "switchToLight": "Aktifkan mode terang"
+      "switchToLight": "Aktifkan mode terang",
+      "linkedin": "LinkedIn"
     },
     "omnibox": {
-      "inputAriaLabel": "Tempel tautan publik dari TikTok, Instagram, X, atau Facebook...",
+      "inputAriaLabel": "Tempel tautan publik dari TikTok, Instagram, X, Facebook, atau LinkedIn...",
       "pasteButton": "Tempel",
       "pastedFeedback": "Ditempel!",
       "clearInputAria": "Hapus tautan",
       "downloadButton": "Unduh",
       "extractingButton": "Menyiapkan...",
       "trySampleLabel": "Coba contoh:",
-      "errEmptyInput": "Silakan tempel tautan publik dari TikTok, Instagram, X, atau Facebook.",
-      "errInvalidUrl": "Tautan ini tidak didukung. Masukkan URL publik dari TikTok, Instagram, X (Twitter), atau Facebook.",
+      "errEmptyInput": "Silakan tempel tautan publik dari TikTok, Instagram, X, Facebook, atau LinkedIn.",
+      "errInvalidUrl": "Tautan ini tidak didukung. Masukkan URL publik dari TikTok, Instagram, X, Facebook, atau profil LinkedIn (linkedin.com/in/...).",
       "errClipboardBlocked": "Akses papan klip ditolak browser. Tekan dan tahan kolom untuk menempel.",
-      "comingSoonNotice": "Platform ini akan segera didukung. Saat ini: TikTok, Instagram, X, dan Facebook.",
+      "comingSoonNotice": "Platform ini akan segera hadir. Saat ini didukung: TikTok, Instagram, X, Facebook, dan LinkedIn.",
       "samples": {
         "igReel": "Reel Instagram",
         "tiktokVid": "Video TikTok",
         "xVid": "Video X (Twitter)",
         "fbVid": "Video Facebook",
-        "igDp": "Foto Profil Instagram"
+        "igDp": "Foto Profil Instagram",
+        "linkedinDp": "Foto Profil LinkedIn"
       }
     },
     "drawer": {
@@ -81,7 +83,7 @@
       "stepOf": "LANGKAH",
       "readyStatus": "SIAP",
       "platformsHeading": "Platform yang didukung",
-      "platformsSubheading": "Pilih alat khusus untuk mengunduh video publik dari jejaring sosial pilihan Anda.",
+      "platformsSubheading": "Pilih alat khusus untuk menyimpan media publik dari TikTok, Instagram, X, Facebook, atau LinkedIn.",
       "openToolCta": "Buka alat",
       "knowledgeBase": "PERTANYAAN UMUM",
       "faqHeading": "Pertanyaan yang Sering Diajukan (FAQ)",
@@ -111,7 +113,7 @@
       "tryPlatformsLabel": "Alat yang tersedia"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Tautan ini tidak didukung. Masukkan URL publik dari TikTok, Instagram, X (Twitter), atau Facebook.",
+      "UNSUPPORTED_URL": "Tautan tidak didukung. Masukkan URL publik dari TikTok, Instagram, X, Facebook, atau profil LinkedIn (/in/...).",
       "NOT_FOUND": "Postingan yang diminta tidak ditemukan atau telah dihapus dari platform asal.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Konten ini bersifat pribadi atau memerlukan login. VIDNEX hanya memproses postingan publik.",
       "BLOCKED_BY_PLATFORM": "Platform sumber menolak akses sementara ke postingan ini. Silakan coba lagi beberapa saat lagi.",
@@ -138,9 +140,9 @@
   },
   "home": {
     "metaTitle": "VIDNEX — Download Video TikTok, Instagram, X & Facebook MP4",
-    "metaDescription": "Unduh video publik TikTok tanpa watermark, Reels Instagram, X (Twitter), dan Facebook dalam format MP4 atau MP3 gratis lewat browser.",
+    "metaDescription": "Unduh video publik TikTok tanpa watermark, Instagram Reels, video X, Facebook, dan foto profil LinkedIn gratis langsung dari browser.",
     "h1": "Pengunduh Video Publik TikTok, Instagram, X, dan Facebook",
-    "subtitle": "Simpan video publik, Reels, karusel foto, dan audio MP3 langsung ke ponsel atau komputer Anda secara gratis.",
+    "subtitle": "Simpan video publik, Reels, karusel, audio MP3, serta foto profil publik LinkedIn langsung ke ponsel atau komputer Anda.",
     "placeholder": "https://www.tiktok.com/@pengguna/video/1234567890...",
     "specs": [
       "MP4 HD & SD",
@@ -161,7 +163,8 @@
         "TikTok: unduh video publik MP4 tanpa watermark bawaan dan ekstrak audio dalam format MP3/M4A.",
         "Instagram: dukungan untuk Instagram Reels publik, video feed, dan postingan karusel multi-slide.",
         "X (Twitter): ekstraksi video dari tweet publik dengan pilihan resolusi (360p hingga 1080p) serta konversi GIF ke MP4.",
-        "Facebook: simpan video halaman publik, Facebook Reels, dan tautan pendek fb.watch dalam kualitas SD atau HD."
+        "Facebook: simpan video halaman publik, Facebook Reels, dan tautan pendek fb.watch dalam kualitas SD atau HD.",
+        "LinkedIn: pratinjau dan unduhan foto profil publik (linkedin.com/in/{slug}) dalam format JPG asli."
       ],
       "limitsTitle": "Ketentuan penggunaan dan batasan teknis",
       "limitsText": "VIDNEX hanya memproses konten yang bersifat publik. Video dari akun pribadi, grup tertutup, Stories yang memerlukan login, atau postingan dengan batasan usia tidak dapat diambil. Harap selalu menghormati hak cipta pembuat konten."
@@ -209,7 +212,7 @@
       }
     ],
     "ogTitle": "VIDNEX — Download Video TikTok, Instagram, X & Facebook MP4",
-    "ogDescription": "Unduh video publik TikTok tanpa watermark, Reels Instagram, X (Twitter), dan Facebook dalam format MP4 atau MP3 gratis lewat browser.",
+    "ogDescription": "Unduh video publik TikTok tanpa watermark, Instagram Reels, video X, Facebook, dan foto profil LinkedIn gratis langsung dari browser.",
     "ogImageAlt": "Pratinjau VIDNEX: pengunduh video publik TikTok, Instagram, X, dan Facebook dalam MP4 HD"
   },
   "platforms": {
@@ -508,6 +511,76 @@
       "ogTitle": "Download Video Facebook & Reels MP4 HD / SD | VIDNEX",
       "ogDescription": "Unduh video publik Facebook, Facebook Reels, dan tautan fb.watch dalam format MP4 kualitas HD atau SD secara gratis tanpa login.",
       "ogImageAlt": "Pratinjau pengunduh video Facebook Watch dan Reels publik dalam kualitas HD dan SD"
+    },
+    "linkedin": {
+      "slug": "download-foto-profil-linkedin",
+      "metaTitle": "Download Foto Profil LinkedIn Publik Ukuran Penuh | VIDNEX",
+      "metaDescription": "Lihat dan unduh foto profil publik LinkedIn dalam resolusi JPG asli melalui tautan linkedin.com/in/ secara gratis tanpa perlu login akun.",
+      "h1": "Download Foto Profil LinkedIn Publik (JPG Asli)",
+      "subtitle": "Tampilkan dan simpan foto profil publik dari tautan akun pribadi LinkedIn (linkedin.com/in/...) dalam ukuran penuh tanpa akun.",
+      "shortLabel": "LinkedIn",
+      "breadcrumbLabel": "Foto Profil LinkedIn",
+      "placeholder": "https://www.linkedin.com/in/satyanadella",
+      "specs": [
+        "FOTO PROFIL JPG",
+        "PROFIL PUBLIK",
+        "TANPA LOGIN",
+        "KUALITAS ASLI"
+      ],
+      "editorial": {
+        "heading": "Cara melihat dan menyimpan foto profil LinkedIn publik ukuran penuh",
+        "subheading": "Ekstraksi langsung untuk tautan profil pribadi linkedin.com/in/{slug} tanpa akun, tanpa cookie, dan tanpa API pihak ketiga.",
+        "paragraphs": [
+          "Saat membuka halaman anggota di LinkedIn melalui browser ponsel maupun komputer desktop, foto profil biasanya ditampilkan dalam bingkai lingkaran kecil dan sering meminta pengguna masuk (login) ketika diklik untuk diperbesar. Alat LinkedIn di VIDNEX memeriksa halaman web publik dari profil pribadi (dengan format tautan linkedin.com/in/nama-pengguna) guna menemukan alamat gambar profil publik asli yang disajikan oleh server jaringan distribusi resmi media.licdn.com.",
+          "Seluruh proses ini bekerja sepenuhnya tanpa akun LinkedIn, tanpa cookie sesi, dan tanpa layanan pihak ketiga. Begitu Anda menempelkan URL profil publik ke kolom pencarian di atas, server kami membaca metadata terbuka pada halaman tersebut, mempertahankan URL gambar bertanda tangan asli tanpa kompresi ulang, dan memungkinkan Anda mengunduh file JPG langsung ke ponsel Android, iPhone, tablet, atau komputer.",
+          "Demi menjaga privasi pengguna secara ketat, alat ini hanya mengambil foto profil publik dengan penanda @slug dan tidak pernah menyimpan salinan gambar di server kami. Kami tidak pernah mengambil nama lengkap, jabatan pekerjaan, atau riwayat karier, serta tidak pernah mencoba melewati dinding login LinkedIn."
+        ],
+        "formatsTitle": "Format dan tautan LinkedIn yang didukung",
+        "formatsList": [
+          "URL profil pribadi: tautan dengan format linkedin.com/in/{slug} (termasuk www. dan subdomain negara seperti id.linkedin.com).",
+          "File JPG asli: gambar bertanda tangan langsung dari media.licdn.com tanpa pemotongan lingkaran.",
+          "Penamaan file rapi: disimpan otomatis dengan nama linkedin_{slug}_profile.jpg."
+        ],
+        "limitsTitle": "Khusus foto profil publik — tidak ada janji untuk profil privat",
+        "limitsText": "Hanya foto profil yang diatur oleh pemiliknya agar dapat dilihat oleh publik tanpa login yang dapat diunduh. Jika profil disembunyikan, tidak memiliki foto, atau jika LinkedIn menampilkan halaman login (authwall), foto tidak dapat diambil. Halaman perusahaan (/company/) dan postingan (/posts/) tidak didukung."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Salin tautan profil LinkedIn",
+          "description": "Salin URL publik profil pribadi yang diawali dengan linkedin.com/in/ dari bilah alamat browser atau aplikasi.",
+          "codeHint": "linkedin.com/in/{slug}"
+        },
+        {
+          "number": "02",
+          "title": "Tempel tautan ke kolom VIDNEX",
+          "description": "Masukkan alamat yang disalin ke kotak di atas lalu tekan tombol Unduh untuk memeriksa profil publik.",
+          "codeHint": "PEMERIKSAAN PUBLIK"
+        },
+        {
+          "number": "03",
+          "title": "Unduh foto profil dalam JPG",
+          "description": "Lihat pratinjau foto ukuran penuh dan klik «Unduh foto profil» untuk menyimpan file JPG ke perangkat Anda.",
+          "codeHint": "linkedin_{slug}_profile.jpg"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Bisakah saya mengunduh foto dari profil LinkedIn yang diprivat?",
+          "answer": "Tidak. Jika pemilik akun membatasi visibilitas foto profilnya hanya untuk pengguna yang login atau koneksi, atau jika LinkedIn memblokir akses anonim, VIDNEX tidak dapat mengambil foto tersebut dan tidak pernah melewati batasan privasi."
+        },
+        {
+          "question": "Apakah halaman perusahaan atau postingan video LinkedIn didukung?",
+          "answer": "Tidak. Alat ini khusus menerima URL profil pribadi berformat linkedin.com/in/{slug} untuk mengambil foto profil publik."
+        },
+        {
+          "question": "Apakah saya harus login ke akun LinkedIn saya?",
+          "answer": "Tidak. Anda tidak perlu memasukkan akun atau kata sandi apa pun karena alat ini hanya membaca metadata halaman publik."
+        }
+      ],
+      "ogTitle": "Download Foto Profil LinkedIn Publik Ukuran Penuh | VIDNEX",
+      "ogDescription": "Lihat dan unduh foto profil publik LinkedIn dalam resolusi JPG asli melalui tautan linkedin.com/in/ secara gratis tanpa perlu login akun.",
+      "ogImageAlt": "Pratinjau alat pengunduh foto profil LinkedIn publik dalam format JPG di VIDNEX"
     }
   }
 }

@@ -52,7 +52,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       JSON.stringify({
         ok: false,
         message:
-          'Secrets ADMIN_PASSWORD ou SESSION_SECRET non configurés dans Cloudflare. Consultez SETUP.md.',
+          'Secrets ADMIN_PASSWORD ou SESSION_SECRET non configurés dans Cloudflare. Consultez README.md.',
       }),
       {
         status: 500,

@@ -11,26 +11,28 @@
       "soonBadge": "Yakında",
       "languageLabel": "Dil",
       "switchToDark": "Koyu temayı etkinleştir",
-      "switchToLight": "Açık temayı etkinleştir"
+      "switchToLight": "Açık temayı etkinleştir",
+      "linkedin": "LinkedIn"
     },
     "omnibox": {
-      "inputAriaLabel": "Herkese açık bir TikTok, Instagram, X veya Facebook bağlantısı yapıştırın...",
+      "inputAriaLabel": "Herkese açık bir TikTok, Instagram, X, Facebook veya LinkedIn bağlantısı yapıştırın...",
       "pasteButton": "Yapıştır",
       "pastedFeedback": "Yapıştırıldı!",
       "clearInputAria": "Bağlantıyı temizle",
       "downloadButton": "İndir",
       "extractingButton": "Hazırlanıyor...",
       "trySampleLabel": "Örnek dene:",
-      "errEmptyInput": "Lütfen herkese açık bir TikTok, Instagram, X veya Facebook bağlantısı yapıştırın.",
-      "errInvalidUrl": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
+      "errEmptyInput": "Lütfen herkese açık bir TikTok, Instagram, X, Facebook veya LinkedIn bağlantısı yapıştırın.",
+      "errInvalidUrl": "Bu bağlantı desteklenmiyor. Lütfen TikTok, Instagram, X, Facebook veya LinkedIn profiline (linkedin.com/in/...) ait açık bir URL girin.",
       "errClipboardBlocked": "Pano erişimi engellendi. Yapıştırmak için alana basılı tutun.",
-      "comingSoonNotice": "Bu platform yakında desteklenecek. Şu anda: TikTok, Instagram, X ve Facebook.",
+      "comingSoonNotice": "Bu platform yakında eklenecek. Şu anda desteklenenler: TikTok, Instagram, X, Facebook ve LinkedIn.",
       "samples": {
         "igReel": "Instagram Reel",
         "tiktokVid": "TikTok Videosu",
         "xVid": "X (Twitter) Videosu",
         "fbVid": "Facebook Videosu",
-        "igDp": "Instagram Profil Fotoğrafı"
+        "igDp": "Instagram Profil Fotoğrafı",
+        "linkedinDp": "LinkedIn Profil Fotoğrafı"
       }
     },
     "drawer": {
@@ -81,7 +83,7 @@
       "stepOf": "ADIM",
       "readyStatus": "HAZIR",
       "platformsHeading": "Desteklenen platformlar",
-      "platformsSubheading": "Herkese açık videoları indirmek için ilgili sosyal ağ aracını seçin.",
+      "platformsSubheading": "TikTok, Instagram, X (Twitter), Facebook veya LinkedIn bağlantınız için özel aracı seçin.",
       "openToolCta": "Aracı aç",
       "knowledgeBase": "SIKÇA SORULAN SORULAR",
       "faqHeading": "Sıkça Sorulan Sorular",
@@ -111,7 +113,7 @@
       "tryPlatformsLabel": "Kullanılabilir araçlar"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Bu bağlantı desteklenmiyor. Lütfen herkese açık bir TikTok, Instagram, X (Twitter) veya Facebook URL'si girin.",
+      "UNSUPPORTED_URL": "Desteklenmeyen bağlantı. Lütfen TikTok, Instagram, X, Facebook veya LinkedIn (/in/...) bağlantısı yapıştırın.",
       "NOT_FOUND": "İstenen gönderi bulunamadı veya kaynak platformdan silinmiş.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Bu içerik gizli veya oturum açmayı gerektiriyor. VIDNEX yalnızca herkese açık gönderileri indirir.",
       "BLOCKED_BY_PLATFORM": "Kaynak platform bu gönderiye erişimi geçici olarak reddetti. Lütfen biraz sonra tekrar deneyin.",
@@ -138,9 +140,9 @@
   },
   "home": {
     "metaTitle": "VIDNEX — TikTok, Instagram, X ve Facebook Video İndirici",
-    "metaDescription": "TikTok filigransız videoları, Instagram Reels, X (Twitter) ve Facebook herkese açık videolarını MP4 veya MP3 olarak tarayıcıdan ücretsiz indirin.",
+    "metaDescription": "Filigransız TikTok videolarını, Instagram Reels, X, Facebook videolarını ve herkese açık LinkedIn profil fotoğraflarını ücretsiz indirin.",
     "h1": "TikTok, Instagram, X ve Facebook için Herkese Açık Video İndirici",
-    "subtitle": "Herkese açık videoları, Reels kliplerini, fotoğraf galerilerini ve MP3 seslerini doğrudan telefonunuza veya bilgisayarınıza kaydedin.",
+    "subtitle": "Herkese açık videoları, Reels kliplerini, MP3 sesleri ve LinkedIn profil fotoğraflarını doğrudan telefonunuza veya bilgisayarınıza kaydedin.",
     "placeholder": "https://www.tiktok.com/@kullanici/video/1234567890...",
     "specs": [
       "MP4 HD & SD",
@@ -161,7 +163,8 @@
         "TikTok: Herkese açık videoları filigransız MP4 olarak kaydetme ve orijinal sesi MP3/M4A formatında çıkarma.",
         "Instagram: Herkese açık Instagram Reels, akış videoları ve çoklu fotoğraf/video (kaydırmalı) gönderi desteği.",
         "X (Twitter): Herkese açık tweetlerden çözünürlük seçimiyle (360p - 1080p) MP4 video ve GIF indirme.",
-        "Facebook: Herkese açık sayfa videoları, Facebook Reels ve fb.watch kısa bağlantılarını SD veya HD kalitede kaydetme."
+        "Facebook: Herkese açık sayfa videoları, Facebook Reels ve fb.watch kısa bağlantılarını SD veya HD kalitede kaydetme.",
+        "LinkedIn: herkese açık kişisel profillerin (linkedin.com/in/{slug}) profil fotoğrafını orijinal JPG olarak görüntüleme ve indirme."
       ],
       "limitsTitle": "Kullanım koşulları ve teknik sınırlar",
       "limitsText": "VIDNEX yalnızca herkese açık içeriklerle çalışır. Gizli hesaplardan, kapalı gruplardan, oturum açma gerektiren Hikayelerden (Stories) veya yaş kısıtlamalı gönderilerden video çıkarılamaz. İçerik üreticilerinin telif haklarına her zaman saygı gösterin."
@@ -209,7 +212,7 @@
       }
     ],
     "ogTitle": "VIDNEX — TikTok, Instagram, X ve Facebook Video İndirici",
-    "ogDescription": "TikTok filigransız videoları, Instagram Reels, X (Twitter) ve Facebook herkese açık videolarını MP4 veya MP3 olarak tarayıcıdan ücretsiz indirin.",
+    "ogDescription": "Filigransız TikTok videolarını, Instagram Reels, X, Facebook videolarını ve herkese açık LinkedIn profil fotoğraflarını ücretsiz indirin.",
     "ogImageAlt": "VIDNEX önizlemesi: TikTok, Instagram, X ve Facebook videolarını MP4 HD olarak indirin"
   },
   "platforms": {
@@ -508,6 +511,76 @@
       "ogTitle": "Facebook Video ve Reels İndir — MP4 HD / SD | VIDNEX",
       "ogDescription": "Herkese açık Facebook videolarını, Facebook Reels kliplerini ve fb.watch bağlantılarını HD veya SD MP4 olarak tarayıcıdan ücretsiz indirin.",
       "ogImageAlt": "VIDNEX Facebook video ve Reels indirici önizlemesi: HD ve SD MP4 indirme aracı"
+    },
+    "linkedin": {
+      "slug": "linkedin-profil-fotografi-indir",
+      "metaTitle": "LinkedIn Profil Fotoğrafı İndir (Herkese Açık JPG) | VIDNEX",
+      "metaDescription": "Herkese açık LinkedIn profil fotoğraflarını linkedin.com/in/ bağlantısıyla hesap açmadan orijinal JPG boyutunda ücretsiz görüntüleyin ve indirin.",
+      "h1": "Herkese Açık LinkedIn Profil Fotoğrafı İndir",
+      "subtitle": "Herhangi bir linkedin.com/in/{slug} bağlantısından herkese açık LinkedIn profil fotoğrafını oturum açmadan tam boyutta önizleyin ve indirin.",
+      "shortLabel": "LinkedIn",
+      "breadcrumbLabel": "LinkedIn Profil Fotoğrafı",
+      "placeholder": "https://www.linkedin.com/in/satyanadella",
+      "specs": [
+        "PROFİL FOTOĞRAFI",
+        "AÇIK PROFİLLER",
+        "HESAPSIZ İŞLEM",
+        "ORİJİNAL JPG"
+      ],
+      "editorial": {
+        "heading": "Herkese açık LinkedIn profil fotoğrafını tam boyutta görüntüleme ve kaydetme",
+        "subheading": "Hesap, çerez veya üçüncü taraf API kullanmadan linkedin.com/in/{slug} bağlantılarından doğrudan profil resmi çözümü.",
+        "paragraphs": [
+          "LinkedIn üzerinde bir üyenin profil sayfasını mobil tarayıcıdan veya masaüstü bilgisayardan ziyaret ettiğinizde profil fotoğrafı küçük dairesel bir çerçeve içinde görünür ve resmi büyütmek istediğinizde platform genellikle oturum açmanızı ister. VIDNEX LinkedIn profil fotoğrafı aracı, yalnızca kişisel bir hesabın herkese açık web sayfasını (linkedin.com/in/kullanici-adi biçiminde) inceleyerek resmi media.licdn.com içerik dağıtım sunucusunda barındırılan orijinal profil fotoğrafı adresini hızlıca tespit eder.",
+          "Bu işlem sırasında hiçbir LinkedIn kullanıcı hesabı, oturum çerezi (cookie) veya üçüncü taraf kazıma servisi kullanılmaz. Herkese açık bir kişisel profil bağlantısını yukarıdaki arama kutusuna yapıştırdığınızda sunucumuz sayfanın açık meta verilerini kontrol eder, imzalı görsel bağlantısını yeniden sıkıştırmadan olduğu gibi korur ve tam boyutlu JPG dosyasını doğrudan Android telefonunuza, iPhone cihazınıza veya bilgisayarınıza ücretsiz olarak indirmenizi sağlar.",
+          "Gizlilik kurallarına ve platform sınırlarına tam uyum sağlamak amacıyla bu araç yalnızca @slug kimliğine ait herkese açık profil fotoğrafını alır ve sunucularımızda hiçbir görseli depolamaz; üyelerin tam adını, görev unvanını veya iş geçmişi gibi kişisel verilerini kesinlikle kaydetmez ve oturum açma duvarlarını aşmaya çalışmaz."
+        ],
+        "formatsTitle": "Desteklenen LinkedIn bağlantıları ve özellikler",
+        "formatsList": [
+          "Kişisel profil bağlantıları: linkedin.com/in/{slug} yapısındaki adresler (www. ve tr.linkedin.com gibi ülke alt alan adları dahil).",
+          "Orijinal imzalı JPG: media.licdn.com üzerinden kırpılmamış tam boyutlu görsel aktarımı.",
+          "Düzenli dosya adı: tek tıkla linkedin_{slug}_profile.jpg adıyla doğrudan kaydetme."
+        ],
+        "limitsTitle": "Yalnızca herkese açık profil fotoğrafları — gizli profiller için vaat yoktur",
+        "limitsText": "Yalnızca profil sahibinin herkese açık olarak ayarladığı profil fotoğrafları indirilebilir. Kullanıcı fotoğrafını oturum açmayan ziyaretçilere kapattıysa, profilde fotoğraf yoksa veya LinkedIn bağlantı duvarı (authwall) gösteriyorsa görsel indirilemez. Şirket sayfaları (/company/) ve gönderiler (/posts/) desteklenmez."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "LinkedIn profil bağlantısını kopyalayın",
+          "description": "Tarayıcınızdan veya uygulamadan linkedin.com/in/ ile başlayan herkese açık kişisel profil URL’sini kopyalayın.",
+          "codeHint": "linkedin.com/in/{slug}"
+        },
+        {
+          "number": "02",
+          "title": "Bağlantıyı VIDNEX alanına yapıştırın",
+          "description": "Kopyaladığınız adresi yukarıdaki kutuya yapıştırın ve İndir düğmesine basın.",
+          "codeHint": "AÇIK VERİ KONTROLÜ"
+        },
+        {
+          "number": "03",
+          "title": "Profil fotoğrafını JPG olarak indirin",
+          "description": "Tam boyutlu önizlemeyi kontrol edin ve «Profil fotoğrafını indir» düğmesine tıklayarak JPG dosyasını kaydedin.",
+          "codeHint": "linkedin_{slug}_profile.jpg"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Gizli bir LinkedIn profilinin fotoğrafını indirebilir miyim?",
+          "answer": "Hayır. Profil sahibi fotoğrafını yalnızca bağlantılara veya giriş yapmış üyelere açtıysa ya da LinkedIn giriş duvarı gösteriyorsa VIDNEX görsele erişemez ve bu korumayı asla aşmaz."
+        },
+        {
+          "question": "Şirket sayfaları veya LinkedIn video gönderileri destekleniyor mu?",
+          "answer": "Hayır. Bu araç yalnızca linkedin.com/in/{slug} biçimindeki bireysel profil adreslerinden herkese açık profil fotoğrafını indirmek için tasarlanmıştır."
+        },
+        {
+          "question": "LinkedIn hesabımla giriş yapmam gerekiyor mu?",
+          "answer": "Hayır. Araç tamamen hesapsız ve çerezsiz çalışır; yalnızca giriş yapmamış ziyaretçilere açık olan sayfa verilerini okur."
+        }
+      ],
+      "ogTitle": "LinkedIn Profil Fotoğrafı İndir (Herkese Açık JPG) | VIDNEX",
+      "ogDescription": "Herkese açık LinkedIn profil fotoğraflarını linkedin.com/in/ bağlantısıyla hesap açmadan orijinal JPG boyutunda ücretsiz görüntüleyin ve indirin.",
+      "ogImageAlt": "VIDNEX herkese açık LinkedIn profil fotoğrafı indirme aracı önizlemesi"
     }
   }
 }

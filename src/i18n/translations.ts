@@ -235,6 +235,7 @@ function mapToolPlatformToPageKey(platform: string): PlatformPageKey {
   if (platform === 'instagram') return 'instagram';
   if (platform === 'x' || platform === 'twitter') return 'x';
   if (platform === 'facebook') return 'facebook';
+  if (platform === 'linkedin') return 'linkedin';
   return 'tiktok';
 }
 

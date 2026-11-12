@@ -11,26 +11,28 @@
       "soonBadge": "Bientôt",
       "languageLabel": "Langue",
       "switchToDark": "Activer le mode sombre",
-      "switchToLight": "Activer le mode clair"
+      "switchToLight": "Activer le mode clair",
+      "linkedin": "LinkedIn"
     },
     "omnibox": {
-      "inputAriaLabel": "Lien de la vidéo ou publication publique",
+      "inputAriaLabel": "Lien de la vidéo ou du profil public (TikTok, Instagram, X, Facebook, LinkedIn)",
       "pasteButton": "Coller",
       "pastedFeedback": "Collé !",
       "clearInputAria": "Effacer le lien saisi",
       "downloadButton": "Télécharger",
       "extractingButton": "Préparation…",
       "trySampleLabel": "Tester un exemple :",
-      "errEmptyInput": "Veuillez coller un lien public TikTok, Instagram, X (Twitter) ou Facebook.",
-      "errInvalidUrl": "Lien non reconnu. Vérifiez qu'il s'agit d'un lien public TikTok, Instagram, X ou Facebook.",
+      "errEmptyInput": "Veuillez coller un lien public TikTok, Instagram, X (Twitter), Facebook ou LinkedIn.",
+      "errInvalidUrl": "Lien non reconnu. Vérifiez qu'il s'agit d'un lien public TikTok, Instagram, X, Facebook ou d'un profil LinkedIn (linkedin.com/in/...).",
       "errClipboardBlocked": "Accès au presse-papiers refusé par le navigateur. Maintenez le champ appuyé et choisissez Coller.",
-      "comingSoonNotice": "Cette plateforme sera prochainement prise en charge. Actuellement : TikTok, Instagram, X et Facebook.",
+      "comingSoonNotice": "Cette plateforme sera prochainement prise en charge. Actuellement : TikTok, Instagram, X, Facebook et LinkedIn.",
       "samples": {
         "igReel": "Reel Instagram",
         "tiktokVid": "Vidéo TikTok",
         "xVid": "Vidéo X (Twitter)",
         "fbVid": "Vidéo Facebook",
-        "igDp": "Photo de profil Instagram"
+        "igDp": "Photo de profil Instagram",
+        "linkedinDp": "Photo profil LinkedIn"
       }
     },
     "drawer": {
@@ -81,7 +83,7 @@
       "stepOf": "ÉTAPE",
       "readyStatus": "PRÊT",
       "platformsHeading": "Outils dédiés par réseau social",
-      "platformsSubheading": "Choisissez l'outil adapté à votre lien public TikTok, Instagram, X (Twitter) ou Facebook.",
+      "platformsSubheading": "Choisissez l'outil adapté à votre lien public TikTok, Instagram, X (Twitter), Facebook ou LinkedIn.",
       "openToolCta": "Ouvrir l'outil",
       "knowledgeBase": "QUESTIONS FRÉQUENTES",
       "faqHeading": "Tout savoir sur le téléchargement de vidéos publiques",
@@ -111,7 +113,7 @@
       "tryPlatformsLabel": "Accéder aux téléchargeurs par plateforme :"
     },
     "errors": {
-      "UNSUPPORTED_URL": "Ce lien n'est pas reconnu. Collez un lien public provenant de TikTok, Instagram, X (Twitter) ou Facebook.",
+      "UNSUPPORTED_URL": "Ce lien n’est pas reconnu. Collez un lien public provenant de TikTok, Instagram, X (Twitter), Facebook ou un profil LinkedIn (/in/...).",
       "NOT_FOUND": "Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
       "BLOCKED_BY_PLATFORM": "La plateforme bloque temporairement l'accès à ce contenu. Veuillez réessayer dans quelques instants.",
@@ -138,9 +140,9 @@
   },
   "home": {
     "metaTitle": "Télécharger Vidéo TikTok, Instagram, X & Facebook | VIDNEX",
-    "metaDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X (Twitter) et Facebook en MP4 HD sans créer de compte.",
+    "metaDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X, Facebook et photos de profil LinkedIn.",
     "h1": "Téléchargeur de vidéos publiques TikTok, Instagram, X et Facebook",
-    "subtitle": "Enregistrez vos vidéos publiques, Reels, carrousels et pistes audio en MP4 ou MP3 directement sur votre téléphone ou ordinateur.",
+    "subtitle": "Enregistrez vos vidéos publiques, Reels, carrousels, pistes MP3 et photos de profil LinkedIn directement sur votre téléphone ou ordinateur.",
     "placeholder": "https://www.tiktok.com/@utilisateur/video/...",
     "specs": [
       "MP4 HD & SD",
@@ -161,7 +163,8 @@
         "TikTok : vidéo MP4 sans filigrane, mode photo (diaporama JPG) et piste sonore MP3.",
         "Instagram : Reels en MP4, carrousels photos/vidéos (avec archive ZIP) et photo de profil.",
         "X (Twitter) : vidéos de tweets et GIFs animés convertis en MP4 avec choix du débit (bitrate).",
-        "Facebook : vidéos publiques Watch, liens courts fb.watch et Reels en qualité HD ou SD."
+        "Facebook : vidéos publiques Watch, liens courts fb.watch et Reels en qualité HD ou SD.",
+        "LinkedIn : visualisation et téléchargement de la photo de profil publique (linkedin.com/in/{slug}) en JPG original."
       ],
       "limitsTitle": "Respect de la vie privée et limites d'utilisation",
       "limitsText": "VIDNEX fonctionne exclusivement avec les publications publiques accessibles sans authentification. Les comptes privés, les vidéos de groupes fermés, les stories réservées aux abonnés et les contenus protégés par une restriction d'âge ou un mur de connexion ne peuvent pas être téléchargés."
@@ -193,7 +196,7 @@
       },
       {
         "question": "Quelles sont les plateformes actuellement compatibles ?",
-        "answer": "VIDNEX prend en charge quatre plateformes : TikTok (vidéos, diaporamas et MP3), Instagram (Reels, carrousels et photos de profil), X / Twitter (vidéos et GIFs publics) et Facebook (vidéos Watch et Reels publics)."
+        "answer": "VIDNEX prend en charge cinq plateformes : TikTok (vidéos, diaporamas et MP3), Instagram (Reels, carrousels et photos de profil), X / Twitter (vidéos et GIFs publics), Facebook (vidéos Watch et Reels publics) et LinkedIn (photos de profil publiques)."
       },
       {
         "question": "Pourquoi certaines vidéos renvoient-elles un message de connexion requise ?",
@@ -209,7 +212,7 @@
       }
     ],
     "ogTitle": "Télécharger Vidéo TikTok, Instagram, X & Facebook | VIDNEX",
-    "ogDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X (Twitter) et Facebook en MP4 HD sans créer de compte.",
+    "ogDescription": "Téléchargez gratuitement des vidéos publiques TikTok sans filigrane, Reels Instagram, vidéos X, Facebook et photos de profil LinkedIn.",
     "ogImageAlt": "Aperçu VIDNEX : téléchargeur de vidéos publiques TikTok, Instagram, X et Facebook en MP4 HD"
   },
   "platforms": {
@@ -512,6 +515,76 @@
       "ogTitle": "Télécharger Vidéo Facebook & Reel en MP4 HD/SD | VIDNEX",
       "ogDescription": "Téléchargez gratuitement des vidéos publiques Facebook, Reels et liens fb.watch en MP4 HD ou SD sur mobile et ordinateur, sans connexion à un compte.",
       "ogImageAlt": "Aperçu du téléchargeur de vidéos publiques Facebook Watch et Reels en MP4 HD sur VIDNEX"
+    },
+    "linkedin": {
+      "slug": "telecharger-photo-profil-linkedin",
+      "metaTitle": "Télécharger Photo de Profil LinkedIn Publique HD | VIDNEX",
+      "metaDescription": "Téléchargez gratuitement une photo de profil LinkedIn publique en taille réelle (JPG) via un lien linkedin.com/in/ sans compte ni connexion.",
+      "h1": "Télécharger une photo de profil LinkedIn publique",
+      "subtitle": "Affichez et enregistrez en taille réelle la photo de profil publique de tout compte LinkedIn (linkedin.com/in/...) sans créer de compte.",
+      "shortLabel": "LinkedIn",
+      "breadcrumbLabel": "Photo de profil LinkedIn",
+      "placeholder": "https://www.linkedin.com/in/satyanadella",
+      "specs": [
+        "PHOTO DE PROFIL",
+        "PROFILS PUBLICS",
+        "SANS COMPTE",
+        "JPG ORIGINAL"
+      ],
+      "editorial": {
+        "heading": "Visualiser et enregistrer une photo de profil LinkedIn publique",
+        "subheading": "Un outil direct pour récupérer le portrait public associé à une adresse linkedin.com/in/{slug} sans connexion.",
+        "paragraphs": [
+          "Sur LinkedIn, la photo de profil affichée sur une page membre est souvent réduite dans un cadre circulaire miniature ou masquée par une invitation à se connecter. L’outil LinkedIn de VIDNEX interroge uniquement la fiche publique d’un profil personnel (au format linkedin.com/in/identifiant) afin d’extraire l’adresse directe de l’image de profil publique servie par le réseau de diffusion officiel media.licdn.com.",
+          "Aucune connexion à un compte LinkedIn, aucun cookie de session et aucune clé API tierce ne sont utilisés. Dès que vous collez l’adresse d’un profil public, notre moteur vérifie la présence de l’avatar public dans les métadonnées ouvertes de la page, conserve l’URL signée d’origine sans recompression et vous permet d’enregistrer le fichier JPG directement sur votre téléphone ou votre ordinateur.",
+          "Par respect strict de la vie privée et des règles de la plateforme, cet outil se limite exclusivement aux photos de profil publiques des membres. VIDNEX n’extrait ni le nom complet, ni l’intitulé de poste, ni le parcours professionnel, et ne contourne jamais un mur d’authentification."
+        ],
+        "formatsTitle": "Ce que prend en charge l’extracteur LinkedIn",
+        "formatsList": [
+          "Adresses de profils personnels : liens linkedin.com/in/{slug} (avec www. ou sous-domaine de pays comme fr.linkedin.com).",
+          "Qualité d’image : fichier JPG original signé hébergé sur media.licdn.com, sans recadrage ni perte.",
+          "Aperçu immédiat : affichage de la photo de profil avant téléchargement sous le nom linkedin_{slug}_profile.jpg."
+        ],
+        "limitsTitle": "Profils publics uniquement — aucune promesse sur les comptes privés",
+        "limitsText": "Seules les photos de profil explicitement rendues publiques par le membre sont accessibles sans compte. Si un profil est restreint aux utilisateurs connectés, dépourvu de photo ou protégé par un mur de connexion LinkedIn, le téléchargement est impossible. Les pages entreprises (/company/) et les publications (/posts/) ne sont pas prises en charge."
+      },
+      "howToSteps": [
+        {
+          "number": "01",
+          "title": "Copier l’adresse du profil LinkedIn",
+          "description": "Copiez l’URL publique du profil membre commençant par linkedin.com/in/ depuis votre navigateur ou l’application.",
+          "codeHint": "linkedin.com/in/{slug}"
+        },
+        {
+          "number": "02",
+          "title": "Coller le lien dans VIDNEX",
+          "description": "Collez l’adresse dans le champ ci-dessus et appuyez sur Télécharger pour analyser la page publique.",
+          "codeHint": "VÉRIFICATION PUBLIQUE"
+        },
+        {
+          "number": "03",
+          "title": "Télécharger la photo de profil",
+          "description": "Prévisualisez l’image et cliquez sur « Télécharger la photo de profil » pour enregistrer le fichier JPG.",
+          "codeHint": "linkedin_{slug}_profile.jpg"
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Puis-je télécharger la photo d’un profil LinkedIn privé ou masqué ?",
+          "answer": "Non. Si le membre a restreint la visibilité de sa photo aux utilisateurs connectés ou à son réseau, ou si LinkedIn impose un mur de connexion, VIDNEX ne peut pas récupérer l’image et ne tente jamais de contourner cette protection."
+        },
+        {
+          "question": "Les pages entreprises, les vidéos ou les posts LinkedIn sont-ils acceptés ?",
+          "answer": "Non. Cet outil accepte uniquement les adresses de profils personnels au format linkedin.com/in/{slug} pour extraire la photo de profil publique."
+        },
+        {
+          "question": "Faut-il se connecter à un compte LinkedIn pour utiliser VIDNEX ?",
+          "answer": "Non. L’outil fonctionne sans compte, sans mot de passe et sans cookie, uniquement à partir des métadonnées publiques accessibles aux visiteurs non connectés."
+        }
+      ],
+      "ogTitle": "Télécharger Photo de Profil LinkedIn Publique HD | VIDNEX",
+      "ogDescription": "Téléchargez gratuitement une photo de profil LinkedIn publique en taille réelle (JPG) via un lien linkedin.com/in/ sans compte ni connexion.",
+      "ogImageAlt": "Aperçu du téléchargeur de photo de profil LinkedIn publique en JPG sur VIDNEX"
     }
   },
   "legal": {
@@ -521,7 +594,7 @@
       "h1": "À propos de VIDNEX",
       "breadcrumbLabel": "À propos",
       "updatedAt": "10 novembre 2026",
-      "intro": "VIDNEX est une application web indépendante développée pour faciliter l'accès hors ligne aux vidéos publiques partagées sur TikTok, Instagram, X (Twitter) et Facebook.",
+      "intro": "VIDNEX est une application web indépendante développée pour faciliter l'accès hors ligne aux vidéos publiques et photos de profil publiques partagées sur TikTok, Instagram, X (Twitter), Facebook et LinkedIn.",
       "sections": [
         {
           "heading": "Notre mission et fonctionnement technique",
@@ -586,7 +659,7 @@
         {
           "heading": "1. Nature du service et responsabilité de l'utilisateur",
           "paragraphs": [
-            "VIDNEX est fourni en tant qu'outil technique permettant de résoudre des liens publics à l'initiative exclusive de l'utilisateur. VIDNEX ne revendique aucun droit de propriété sur les contenus accessibles via TikTok, Instagram, X ou Facebook, lesquels restent la propriété exclusive de leurs auteurs respectifs.",
+            "VIDNEX est fourni en tant qu'outil technique permettant de résoudre des liens publics à l'initiative exclusive de l'utilisateur. VIDNEX ne revendique aucun droit de propriété sur les contenus accessibles via TikTok, Instagram, X, Facebook ou LinkedIn, lesquels restent la propriété exclusive de leurs auteurs respectifs.",
             "Vous êtes seul responsable de l'utilisation que vous faites des fichiers téléchargés. Le téléchargement doit s'effectuer dans le cadre de la copie privée, de la sauvegarde de vos propres créations ou avec l'autorisation explicite du titulaire des droits. Toute rediffusion commerciale non autorisée est strictement interdite."
           ]
         },
@@ -613,7 +686,7 @@
           "heading": "Coordonnées de contact électronique",
           "paragraphs": [
             "Adresse e-mail officielle de contact et de conformité : compliance@vidnex.space",
-            "Pour nous aider à traiter votre demande rapidement, merci d'indiquer dans votre message la plateforme concernée (TikTok, Instagram, X ou Facebook), le navigateur utilisé ainsi que l'URL publique concernée le cas échéant."
+            "Pour nous aider à traiter votre demande rapidement, merci d'indiquer dans votre message la plateforme concernée (TikTok, Instagram, X, Facebook ou LinkedIn), le navigateur utilisé ainsi que l'URL publique concernée le cas échéant."
           ]
         }
       ],
@@ -632,7 +705,7 @@
         {
           "heading": "1. Absence de stockage sur nos serveurs",
           "paragraphs": [
-            "VIDNEX n'héberge ni ne stocke aucun fichier multimédia sur ses serveurs. Toutes les vidéos et images sont hébergées directement par les plateformes tierces (TikTok, Instagram, X, Facebook). Pour retirer définitivement un contenu d'Internet, le titulaire des droits doit le supprimer ou le rendre privé sur la plateforme d'origine."
+            "VIDNEX n'héberge ni ne stocke aucun fichier multimédia sur ses serveurs. Toutes les vidéos et images sont hébergées directement par les plateformes tierces (TikTok, Instagram, X, Facebook, LinkedIn). Pour retirer définitivement un contenu d'Internet, le titulaire des droits doit le supprimer ou le rendre privé sur la plateforme d'origine."
           ]
         },
         {

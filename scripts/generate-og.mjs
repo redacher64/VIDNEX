@@ -109,6 +109,18 @@ function renderVariantPictogram(variant, primaryColor, secondaryColor) {
           <path d="M122 108 L122 130 M112 122 L122 132 L132 122" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
         </g>
       `;
+    case 'linkedin':
+      // Generic circular HD portrait frame + user silhouette + download arrow (zero third-party logo)
+      return `
+        <g transform="translate(0, 0)">
+          <rect x="18" y="14" width="124" height="124" rx="28" fill="#0a192f" stroke="${primaryColor}" stroke-width="4" />
+          <circle cx="80" cy="62" r="20" fill="${secondaryColor}" />
+          <path d="M46 116 C46 94 114 94 114 116" stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" />
+          <!-- Download badge -->
+          <circle cx="122" cy="122" r="26" fill="${primaryColor}" />
+          <path d="M122 108 L122 130 M112 122 L122 132 L132 122" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </g>
+      `;
     default:
       // Default universal media downloader (downward arrow + video play + waveform)
       return `
@@ -281,7 +293,7 @@ async function main() {
 
   // Clean old hashed OG files in public/og/
   for (const existing of fs.readdirSync(OG_DIR)) {
-    if (/^og-(default|tiktok|instagram|x|facebook)\.[a-f0-9]+\.(jpg|png)$/i.test(existing)) {
+    if (/^og-(default|tiktok|instagram|x|facebook|linkedin)\.[a-f0-9]+\.(jpg|png)$/i.test(existing)) {
       fs.unlinkSync(path.join(OG_DIR, existing));
     }
   }
@@ -326,6 +338,14 @@ async function main() {
       primaryColor: '#3b82f6',
       secondaryColor: '#60a5fa',
       accentGlow: '#2563eb',
+    },
+    {
+      key: 'linkedin',
+      bgStart: '#091526',
+      bgEnd: '#0d2644',
+      primaryColor: '#0284c7',
+      secondaryColor: '#38bdf8',
+      accentGlow: '#0284c7',
     },
   ];
 

@@ -18,6 +18,7 @@ import type { ExtractResponse, ExtractMediaItem } from './normalize.ts';
 export interface TikTokEnv {
   TIKWM_API_KEY?: string;
   TT_COOKIE?: string;
+  allow_third_party?: boolean | string;
 }
 
 export function resolveTikWmMediaUrl(rawUrl: unknown): string {
@@ -46,7 +47,10 @@ function decodeTikTokEscapedUrl(raw: string): string {
  * Extrait l'URL audio depuis l'objet `music` du JSON de la page TikTok.
  * Retourne `null` si la vidéo n'a pas de son récupérable ou si l'hôte n'est pas autorisé.
  */
-export function extractTikTokMusicUrl(music: any): string | null {
+export function extractTikTokMusicUrl(
+  music: any,
+  allowThirdParty = true
+): string | null {
   if (!music || typeof music !== 'object') return null;
   const rawCandidate =
     (typeof music.playUrl === 'string' ? music.playUrl : null) ||
@@ -63,7 +67,7 @@ export function extractTikTokMusicUrl(music: any): string | null {
   if (!decoded.startsWith('http://') && !decoded.startsWith('https://')) return null;
   try {
     const parsed = new URL(decoded);
-    if (!isAllowedTikTokAudioHost(parsed.hostname)) return null;
+    if (!isAllowedTikTokAudioHost(parsed.hostname, allowThirdParty)) return null;
     return decoded;
   } catch {
     return null;
@@ -123,7 +127,8 @@ export function detectTikTokAudioExt(
  */
 export async function buildVerifiedTikTokAudioItem(
   rawAudioUrl?: string | null,
-  sessionCookies?: string
+  sessionCookies?: string,
+  allowThirdParty = true
 ): Promise<ExtractMediaItem | null> {
   if (!rawAudioUrl || typeof rawAudioUrl !== 'string') return null;
   const cleanUrl = decodeTikTokEscapedUrl(rawAudioUrl);
@@ -131,7 +136,7 @@ export async function buildVerifiedTikTokAudioItem(
 
   try {
     const parsed = new URL(cleanUrl);
-    if (!isAllowedTikTokAudioHost(parsed.hostname)) return null;
+    if (!isAllowedTikTokAudioHost(parsed.hostname, allowThirdParty)) return null;
   } catch {
     return null;
   }
@@ -290,14 +295,19 @@ export async function extractTikTok(
   targetUrl: string,
   env?: TikTokEnv,
   kind: 'video' | 'profile' = 'video',
-  identifier?: string
+  identifier?: string,
+  allowThirdPartyOverride?: boolean
 ): Promise<ExtractResponse> {
   const apiKey = env?.TIKWM_API_KEY?.trim() || undefined;
+  const allowThirdParty =
+    typeof allowThirdPartyOverride === 'boolean'
+      ? allowThirdPartyOverride
+      : env?.allow_third_party !== false && env?.allow_third_party !== 'false';
 
   // ===========================================================================
   // CAS PROFIL TIKTOK (@username) : Photo de profil HD DP
   // ===========================================================================
-  if (kind === 'profile') {
+  if (kind === 'profile' && allowThirdParty) {
     const cleanHandle = (
       identifier ||
       targetUrl.split('/').filter(Boolean).pop() ||
@@ -334,6 +344,8 @@ export async function extractTikTok(
             ok: true,
             platform: 'tiktok',
             type: 'profile',
+            stage: 'tiers',
+            engineStage: 'tiers',
             title: user?.signature ? String(user.signature) : `@${username}`,
             author: {
               username,
@@ -400,66 +412,127 @@ export async function extractTikTok(
   };
 
   // ===========================================================================
-  // NIVEAU 1 : API Publique TikWM + JSON Page TikTok pour le son
+  // NIVEAU 1 : API Publique TikWM + JSON Page TikTok pour le son (si allow_third_party actif)
   // ===========================================================================
-  try {
-    const [data, pageSnapshot] = await Promise.all([
-      callTikWmApi(targetUrl, apiKey),
-      kind !== 'profile' ? fetchOfficialPageOnce().catch(() => null) : Promise.resolve(null),
-    ]);
+  if (allowThirdParty) {
+    try {
+      const [data, pageSnapshot] = await Promise.all([
+        callTikWmApi(targetUrl, apiKey),
+        kind !== 'profile' ? fetchOfficialPageOnce().catch(() => null) : Promise.resolve(null),
+      ]);
 
-    if (data && typeof data === 'object') {
-      const resolvedVideoId = String(
-        data.id || data.video_id || pageSnapshot?.itemStruct?.id || identifier || ''
-      ).trim() || undefined;
-      const author = data.author || {};
-      const username = String(
-        author.unique_id || author.uniqueId || identifier || 'tiktok_user'
-      ).replace(/^@/, '');
-      const nickname = String(author.nickname || `@${username}`);
-      const avatar = resolveTikWmMediaUrl(author.avatar);
-      const title = String(data.title || `@${username}`);
-      const cover = resolveTikWmMediaUrl(
-        data.origin_cover || data.cover || author.avatar
-      );
-      const duration = formatDuration(data.duration);
+      if (data && typeof data === 'object') {
+        const resolvedVideoId = String(
+          data.id || data.video_id || pageSnapshot?.itemStruct?.id || identifier || ''
+        ).trim() || undefined;
+        const author = data.author || {};
+        const username = String(
+          author.unique_id || author.uniqueId || identifier || 'tiktok_user'
+        ).replace(/^@/, '');
+        const nickname = String(author.nickname || `@${username}`);
+        const avatar = resolveTikWmMediaUrl(author.avatar);
+        const title = String(data.title || `@${username}`);
+        const cover = resolveTikWmMediaUrl(
+          data.origin_cover || data.cover || author.avatar
+        );
+        const duration = formatDuration(data.duration);
 
-      // Récupération prioritaire de l'URL audio depuis le JSON de la page TikTok (`itemStruct.music`), sinon depuis `data.music_info` / `data.music`
-      const pageMusicUrl = extractTikTokMusicUrl(pageSnapshot?.itemStruct?.music);
-      const tikwmMusicUrl = resolveTikWmMediaUrl(
-        typeof data.music === 'string' ? data.music : data.music_info?.play
-      );
-      let audioItem = await buildVerifiedTikTokAudioItem(
-        pageMusicUrl,
-        pageSnapshot?.sessionCookies
-      );
-      if (!audioItem && tikwmMusicUrl) {
-        audioItem = await buildVerifiedTikTokAudioItem(tikwmMusicUrl);
-      }
-
-      // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
-      if (Array.isArray(data.images) && data.images.length > 0) {
-        const items: ExtractMediaItem[] = data.images
-          .map((img: unknown) => resolveTikWmMediaUrl(img))
-          .filter(Boolean)
-          .map((imgUrl: string) => ({
-            kind: 'image' as const,
-            url: imgUrl,
-            thumbnail: imgUrl,
-            quality: '1080p',
-            ext: 'jpg',
-          }));
-
-        if (audioItem) {
-          items.push(audioItem);
+        // Récupération prioritaire de l'URL audio depuis le JSON de la page TikTok (`itemStruct.music`), sinon depuis `data.music_info` / `data.music`
+        const pageMusicUrl = extractTikTokMusicUrl(
+          pageSnapshot?.itemStruct?.music,
+          allowThirdParty
+        );
+        const tikwmMusicUrl = resolveTikWmMediaUrl(
+          typeof data.music === 'string' ? data.music : data.music_info?.play
+        );
+        let audioItem = await buildVerifiedTikTokAudioItem(
+          pageMusicUrl,
+          pageSnapshot?.sessionCookies,
+          allowThirdParty
+        );
+        if (!audioItem && tikwmMusicUrl) {
+          audioItem = await buildVerifiedTikTokAudioItem(
+            tikwmMusicUrl,
+            undefined,
+            allowThirdParty
+          );
         }
 
-        if (items.length > 0) {
+        // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
+        if (Array.isArray(data.images) && data.images.length > 0) {
+          const items: ExtractMediaItem[] = data.images
+            .map((img: unknown) => resolveTikWmMediaUrl(img))
+            .filter(Boolean)
+            .map((imgUrl: string) => ({
+              kind: 'image' as const,
+              url: imgUrl,
+              thumbnail: imgUrl,
+              quality: '1080p',
+              ext: 'jpg',
+            }));
+
+          if (audioItem) {
+            items.push(audioItem);
+          }
+
+          if (items.length > 0) {
+            return {
+              ok: true,
+              id: resolvedVideoId,
+              platform: 'tiktok',
+              type: 'carousel',
+              stage: 'tiers',
+              engineStage: 'tiers',
+              title,
+              duration,
+              author: {
+                username,
+                nickname,
+                avatar,
+              },
+              thumbnail: cover || items[0].url,
+              items,
+            };
+          }
+        }
+
+        // 1B. Vidéo TikTok HD 1080p & 720p Sans Filigrane
+        const hdPlay = resolveTikWmMediaUrl(data.hdplay || data.play);
+        const sdPlay = resolveTikWmMediaUrl(data.play || data.wmplay || hdPlay);
+
+        if (hdPlay) {
+          const items: ExtractMediaItem[] = [
+            {
+              kind: 'video',
+              url: hdPlay,
+              backupUrl: sdPlay && sdPlay !== hdPlay ? sdPlay : undefined,
+              quality: '1080p',
+              ext: 'mp4',
+              size: formatBytesToMb(data.hd_size || data.size),
+            },
+          ];
+
+          if (sdPlay && sdPlay !== hdPlay) {
+            items.push({
+              kind: 'video',
+              url: sdPlay,
+              quality: '720p',
+              ext: 'mp4',
+              size: formatBytesToMb(data.size),
+            });
+          }
+
+          if (audioItem) {
+            items.push(audioItem);
+          }
+
           return {
             ok: true,
             id: resolvedVideoId,
             platform: 'tiktok',
-            type: 'carousel',
+            type: 'video',
+            stage: 'tiers',
+            engineStage: 'tiers',
             title,
             duration,
             author: {
@@ -467,61 +540,14 @@ export async function extractTikTok(
               nickname,
               avatar,
             },
-            thumbnail: cover || items[0].url,
+            thumbnail: cover || hdPlay,
             items,
           };
         }
       }
-
-      // 1B. Vidéo TikTok HD 1080p & 720p Sans Filigrane
-      const hdPlay = resolveTikWmMediaUrl(data.hdplay || data.play);
-      const sdPlay = resolveTikWmMediaUrl(data.play || data.wmplay || hdPlay);
-
-      if (hdPlay) {
-        const items: ExtractMediaItem[] = [
-          {
-            kind: 'video',
-            url: hdPlay,
-            backupUrl: sdPlay && sdPlay !== hdPlay ? sdPlay : undefined,
-            quality: '1080p',
-            ext: 'mp4',
-            size: formatBytesToMb(data.hd_size || data.size),
-          },
-        ];
-
-        if (sdPlay && sdPlay !== hdPlay) {
-          items.push({
-            kind: 'video',
-            url: sdPlay,
-            quality: '720p',
-            ext: 'mp4',
-            size: formatBytesToMb(data.size),
-          });
-        }
-
-        if (audioItem) {
-          items.push(audioItem);
-        }
-
-        return {
-          ok: true,
-          id: resolvedVideoId,
-          platform: 'tiktok',
-          type: 'video',
-          title,
-          duration,
-          author: {
-            username,
-            nickname,
-            avatar,
-          },
-          thumbnail: cover || hdPlay,
-          items,
-        };
-      }
+    } catch {
+      // Basculer automatiquement sur le Niveau 2 (Scraping direct TikTok)
     }
-  } catch {
-    // Basculer automatiquement sur le Niveau 2 (Scraping direct TikTok)
   }
 
   // ===========================================================================
@@ -534,6 +560,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'NOT_FOUND',
           message: 'Cette vidéo TikTok est introuvable ou a été supprimée.',
@@ -553,6 +581,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'BLOCKED_BY_PLATFORM',
           message:
@@ -587,6 +617,8 @@ export async function extractTikTok(
                 ok: true,
                 platform: 'tiktok',
                 type: 'profile',
+                stage: 'direct',
+                engineStage: 'direct',
                 title: u.signature ? String(u.signature) : `@${uname}`,
                 cookie: sessionCookies,
                 author: {
@@ -620,6 +652,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'NOT_FOUND',
           message:
@@ -632,6 +666,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'PRIVATE_OR_LOGIN_REQUIRED',
           message:
@@ -656,10 +692,11 @@ export async function extractTikTok(
     );
     const duration = formatDuration(itemStruct.video?.duration);
 
-    const pageMusicUrl = extractTikTokMusicUrl(itemStruct.music);
+    const pageMusicUrl = extractTikTokMusicUrl(itemStruct.music, allowThirdParty);
     const audioItem = await buildVerifiedTikTokAudioItem(
       pageMusicUrl,
-      sessionCookies
+      sessionCookies,
+      allowThirdParty
     );
 
     const items: ExtractMediaItem[] = [];
@@ -694,6 +731,8 @@ export async function extractTikTok(
         id: resolvedVideoId,
         platform: 'tiktok',
         type: 'carousel',
+        stage: 'direct',
+        engineStage: 'direct',
         title,
         duration,
         cookie: sessionCookies,
@@ -724,6 +763,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'NOT_FOUND',
           message: 'Flux vidéo introuvable dans la publication TikTok.',
@@ -755,6 +796,8 @@ export async function extractTikTok(
       id: resolvedVideoId,
       platform: 'tiktok',
       type: 'video',
+      stage: 'direct',
+      engineStage: 'direct',
       title,
       duration,
       cookie: sessionCookies,
@@ -772,6 +815,8 @@ export async function extractTikTok(
       return {
         ok: false,
         platform: 'tiktok',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'TIMEOUT',
           message: 'Le délai d\'attente a expiré lors de la connexion à TikTok.',
@@ -781,12 +826,11 @@ export async function extractTikTok(
     return {
       ok: false,
       platform: 'tiktok',
+      stage: 'direct',
+      engineStage: 'direct',
       error: {
         code: 'BLOCKED_BY_PLATFORM',
-        message:
-          err instanceof Error
-            ? `Erreur lors de l'extraction TikTok : ${err.message}`
-            : 'Erreur inattendue lors de l\'extraction TikTok.',
+        message: 'Erreur inattendue lors de l\'extraction TikTok.',
       },
     };
   }

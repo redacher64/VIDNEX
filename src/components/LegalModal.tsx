@@ -68,7 +68,7 @@ const LEGAL_CONTENT: Partial<
     privacy: {
       title: 'Privacy Policy',
       paragraphs: [
-        'URLs pasted into VIDNEX are processed in volatile serverless memory solely to resolve the direct media stream for your active session. We never log, persist, or monitor your submitted links, social handles, IP addresses, or downloaded files.',
+        'URLs pasted into VIDNEX are processed in volatile serverless memory solely to resolve the direct media stream for your active session. For certain videos, the link may be transmitted to a third-party media resolution service, without any account or cookie. We never log, persist, or monitor your submitted links, social handles, IP addresses, or downloaded files.',
         'Browser localStorage is used exclusively to remember your preferred display language and Light/Dark interface theme preference.',
       ],
     },
@@ -91,7 +91,7 @@ const LEGAL_CONTENT: Partial<
     privacy: {
       title: 'Politique de Confidentialité',
       paragraphs: [
-        'Les liens collés dans VIDNEX sont traités en mémoire vive éphémère uniquement pour résoudre le flux direct de votre session. Nous n\'enregistrons aucun historique, adresse IP ni média téléchargé sur disque.',
+        'Les liens collés dans VIDNEX sont traités en mémoire vive éphémère uniquement pour résoudre le flux direct de votre session. Pour certaines vidéos, le lien peut être transmis à un service tiers de résolution de médias, sans compte ni cookie. Nous n\'enregistrons aucun historique, adresse IP ni média téléchargé sur disque.',
         'Le stockage local du navigateur (localStorage) est utilisé exclusivement pour mémoriser votre langue d\'affichage et votre préférence de thème (clair/sombre).',
       ],
     },
@@ -160,7 +160,7 @@ const LEGAL_CONTENT: Partial<
     privacy: {
       title: 'سياسة الخصوصية',
       paragraphs: [
-        'تتم معالجة الروابط في الذاكرة المؤقتة فقط لاستخراج رابط البث المباشر لجلستك. لا نقوم بتسجيل أو تخزين أي روابط أو أسماء مستخدمين أو عناوين IP أو ملفات محملة.',
+        'تتم معالجة الروابط في الذاكرة المؤقتة فقط لاستخراج رابط البث المباشر لجلستك. بالنسبة لبعض مقاطع الفيديو، قد يتم إرسال الرابط إلى خدمة خارجية (طرف ثالث) لاستخراج الوسائط، وذلك دون أي حساب أو ملفات تعريف ارتباط (Cookies). لا نقوم بتسجيل أو تخزين أي روابط أو أسماء مستخدمين أو عناوين IP أو ملفات محملة.',
         'يُستخدم التخزين المحلي في المتصفح (localStorage) حصرياً لحفظ لغة العرض المفضلة والمظهر الفاتح أو الداكن.',
       ],
     },

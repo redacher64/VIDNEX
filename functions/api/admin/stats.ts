@@ -40,6 +40,18 @@ function createEmptyPlatformStats() {
     download_success: 0,
     downloadRate: 0,
     downloadCompletionRate: 0,
+    direct: 0,
+    tiers: 0,
+    direct7d: 0,
+    tiers7d: 0,
+    thirdPartyRate7d: 0,
+    stage: {
+      direct: 0,
+      tiers: 0,
+      direct7d: 0,
+      tiers7d: 0,
+      thirdPartyRate7d: 0,
+    },
   };
 }
 
@@ -155,6 +167,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     let last30dCount = 0;
 
     const funnel = { ...emptyFunnel };
+    const success7dByPlatform = new Map<TrackedPlatform, number>();
 
     for (const row of metricRows) {
       const count = Math.max(0, Number(row.count) || 0);
@@ -175,11 +188,28 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         if (p) {
           platforms[p].extract_success += count;
           platforms[p].success += count;
+          if (dayKey >= cutoff7dDay) {
+            success7dByPlatform.set(p, (success7dByPlatform.get(p) || 0) + count);
+          }
         }
         const bucket = dailyMap.get(dayKey);
         if (bucket) {
           bucket.success += count;
           bucket.total += count;
+        }
+      } else if (ev === 'extract_success_direct') {
+        if (p) {
+          platforms[p].direct += count;
+          if (dayKey >= cutoff7dDay) {
+            platforms[p].direct7d += count;
+          }
+        }
+      } else if (ev === 'extract_success_tiers') {
+        if (p) {
+          platforms[p].tiers += count;
+          if (dayKey >= cutoff7dDay) {
+            platforms[p].tiers7d += count;
+          }
         }
       } else if (ev === 'extract_error') {
         funnel.extract_error += count;
@@ -230,6 +260,22 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
               Math.round((p.download_success / p.download_started) * 1000) / 10
             )
           : 0;
+
+      const stageTotal7d = Math.max(
+        p.direct7d + p.tiers7d,
+        success7dByPlatform.get(key) || 0
+      );
+      p.thirdPartyRate7d =
+        stageTotal7d > 0
+          ? Math.min(100, Math.round((p.tiers7d / stageTotal7d) * 1000) / 10)
+          : 0;
+      p.stage = {
+        direct: p.direct,
+        tiers: p.tiers,
+        direct7d: p.direct7d,
+        tiers7d: p.tiers7d,
+        thirdPartyRate7d: p.thirdPartyRate7d,
+      };
     }
 
     const totalExtractions = Math.max(

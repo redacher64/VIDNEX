@@ -28,6 +28,8 @@ export type MetricPlatform =
 export type DailyMetricEvent =
   | 'extract_started'
   | 'extract_success'
+  | 'extract_success_direct'
+  | 'extract_success_tiers'
   | 'extract_error'
   | 'download_started'
   | 'download_success';
@@ -38,9 +40,40 @@ export interface ExtractionLogEvent {
   errorCode?: string | null;
   durationMs: number;
   ipHash?: string;
+  stage?: 'direct' | 'tiers' | null;
   engineStage?: string | null;
   httpStatus?: number | null;
   ts?: number;
+}
+
+export function resolveExtractionStage(
+  stage?: string | null,
+  engineStage?: string | null
+): 'direct' | 'tiers' {
+  const s = (stage || '').trim().toLowerCase();
+  if (s === 'tiers') return 'tiers';
+  if (s === 'direct') return 'direct';
+  const e = (engineStage || '').trim().toLowerCase();
+  if (
+    e === 'tiers' ||
+    e.includes('tiers') ||
+    e.includes('tikwm') ||
+    e.includes('vxinstagram') ||
+    e.includes('ddinstagram') ||
+    e.includes('fallback')
+  ) {
+    return 'tiers';
+  }
+  return 'direct';
+}
+
+function sanitizeStageLabel(raw?: string | null): string | null {
+  if (!raw) return null;
+  const cleaned = String(raw)
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/[^a-zA-Z0-9_+:-]/g, '')
+    .slice(0, 64);
+  return cleaned || null;
 }
 
 const lastHealthyEngineSyncMs = new Map<string, number>();
@@ -188,8 +221,8 @@ function isTrackedEnginePlatform(
 
 /**
  * Enregistre une requête d'extraction :
- * - Compteurs agrégés dans `daily_metrics` (`extract_started` + `extract_success` ou `extract_error`).
- * - Journal détaillé dans `request_log` UNIQUEMENT pour les erreurs (sans aucun identifiant personnel).
+ * - Compteurs agrégés dans `daily_metrics` (`extract_started` + `extract_success` (+ `extract_success_direct`/`extract_success_tiers`) ou `extract_error`).
+ * - Journal détaillé dans `request_log` UNIQUEMENT pour les erreurs (sans aucun identifiant personnel ni URL).
  * - Suivi des échecs consécutifs dans `engine_status` et alerte webhook à 5 échecs consécutifs / retour à la normale.
  */
 export async function logExtractionEvent(
@@ -203,9 +236,7 @@ export async function logExtractionEvent(
   const durationMs = Math.max(0, Math.round(event.durationMs));
   const errorCode =
     event.status === 'success' ? null : event.errorCode || 'UNKNOWN_ERROR';
-  const engineStage = event.engineStage
-    ? String(event.engineStage).slice(0, 64)
-    : null;
+  const engineStage = sanitizeStageLabel(event.engineStage || event.stage);
   const httpStatus =
     typeof event.httpStatus === 'number' && Number.isFinite(event.httpStatus)
       ? Math.round(event.httpStatus)
@@ -213,16 +244,24 @@ export async function logExtractionEvent(
 
   try {
     // 1. Compteurs journaliers agrégés (1 écriture multi-lignes D1)
-    await incrementDailyMetrics(
-      env,
-      event.platform,
+    const metricEvents: DailyMetricEvent[] =
       event.status === 'success'
         ? ['extract_started', 'extract_success']
-        : ['extract_started', 'extract_error'],
-      ts
-    );
+        : ['extract_started', 'extract_error'];
 
-    // 2. Journal détaillé UNIQUEMENT en cas d'erreur, sans aucun identifiant personnel (ip_hash = '')
+    if (
+      event.status === 'success' &&
+      (event.platform === 'tiktok' || event.platform === 'instagram')
+    ) {
+      const stage = resolveExtractionStage(event.stage, event.engineStage);
+      metricEvents.push(
+        stage === 'tiers' ? 'extract_success_tiers' : 'extract_success_direct'
+      );
+    }
+
+    await incrementDailyMetrics(env, event.platform, metricEvents, ts);
+
+    // 2. Journal détaillé UNIQUEMENT en cas d'erreur, sans aucun identifiant personnel ni URL (ip_hash = '')
     if (event.status === 'error') {
       try {
         await db

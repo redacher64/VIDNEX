@@ -626,7 +626,7 @@
         {
           "heading": "1. Ephemeral URL processing and zero video storage",
           "paragraphs": [
-            "When you paste a public URL into VIDNEX, the link is processed in memory by our `/api/extract` endpoint solely to resolve the direct media stream. Downloaded videos, audio tracks, and images are streamed through memory and are never written to disk.",
+            "When you paste a public URL into VIDNEX, the link is processed in memory by our `/api/extract` endpoint solely to resolve the direct media stream. For certain videos, the link may be transmitted to a third-party media resolution service, without any account or cookie. Downloaded videos, audio tracks, and images are streamed through memory and are never written to disk.",
             "To monitor engine health and enforce per-minute rate limits against automated abuse, our internal database records only aggregated technical telemetry: target platform name, status (success or error code), response duration in milliseconds, and a one-way salted SHA-256 hash of the client IP address. Raw IP addresses and submitted URLs are not stored in request logs."
           ]
         },

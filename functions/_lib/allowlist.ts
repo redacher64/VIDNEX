@@ -15,6 +15,8 @@ const ALLOWED_CDN_WILDCARD_DOMAINS = [
   'cdninstagram.com',
   'fbcdn.net',
   'fbsbx.com',
+  'vxinstagram.com',
+  'ddinstagram.com',
 
   // TikTok, ByteDance & TikWM Media CDNs
   'tiktokcdn.com',
@@ -48,6 +50,24 @@ const ALLOWED_EXACT_MEDIA_HOSTS = new Set([
 ]);
 
 /**
+ * Domaines des services tiers de résolution de médias.
+ * Refusés dans l'allowlist lorsque le réglage admin `allow_third_party` est désactivé.
+ */
+export const THIRD_PARTY_MEDIA_DOMAINS = [
+  'tikwm.com',
+  'vxinstagram.com',
+  'ddinstagram.com',
+] as const;
+
+export function isThirdPartyMediaHost(hostname: string): boolean {
+  if (!hostname) return false;
+  const lower = hostname.trim().toLowerCase();
+  return THIRD_PARTY_MEDIA_DOMAINS.some(
+    (domain) => lower === domain || lower.endsWith(`.${domain}`)
+  );
+}
+
+/**
  * Suffixes CDN audio TikTok réellement observés en production
  * (ex: sf16-music.tiktokcdn-eu.com, v45.tiktokcdn-eu.com, v16-ies-music.tiktokcdn-us.com,
  * v19.tiktokcdn-us.com, sf16.tiktokcdn-us.com, sf16-ies-music.tiktokcdn.com,
@@ -65,10 +85,14 @@ export const OBSERVED_TIKTOK_AUDIO_HOST_SUFFIXES = [
   '.tikwm.com',
 ] as const;
 
-export function isAllowedTikTokAudioHost(hostname: string): boolean {
+export function isAllowedTikTokAudioHost(
+  hostname: string,
+  allowThirdParty = true
+): boolean {
   if (!hostname) return false;
   const lower = hostname.trim().toLowerCase();
   if (isPrivateOrReservedHost(lower)) return false;
+  if (!allowThirdParty && isThirdPartyMediaHost(lower)) return false;
   if (lower === 'tikwm.com' || lower === 'www.tikwm.com') return true;
   return OBSERVED_TIKTOK_AUDIO_HOST_SUFFIXES.some((suffix) =>
     lower.endsWith(suffix)
@@ -118,11 +142,18 @@ export function isPrivateOrReservedHost(hostname: string): boolean {
   return false;
 }
 
-export function isAllowedMediaHost(hostname: string): boolean {
+export function isAllowedMediaHost(
+  hostname: string,
+  allowThirdParty = true
+): boolean {
   if (!hostname) return false;
   const lower = hostname.trim().toLowerCase();
 
   if (isPrivateOrReservedHost(lower)) {
+    return false;
+  }
+
+  if (!allowThirdParty && isThirdPartyMediaHost(lower)) {
     return false;
   }
 
@@ -167,7 +198,7 @@ export function isAllowedMediaHost(hostname: string): boolean {
     return true;
   }
 
-  if (isAllowedTikTokAudioHost(lower)) {
+  if (isAllowedTikTokAudioHost(lower, allowThirdParty)) {
     return true;
   }
 
@@ -193,13 +224,16 @@ export function isAllowedMediaHost(hostname: string): boolean {
   return false;
 }
 
-export function isAllowedMediaUrl(rawUrl: string): boolean {
+export function isAllowedMediaUrl(
+  rawUrl: string,
+  allowThirdParty = true
+): boolean {
   try {
     const parsed = new URL(rawUrl);
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       return false;
     }
-    return isAllowedMediaHost(parsed.hostname);
+    return isAllowedMediaHost(parsed.hostname, allowThirdParty);
   } catch {
     return false;
   }

@@ -12,6 +12,7 @@ import { fetchPublicConfig } from '../../services/adsenseService';
 
 interface SystemSettings {
   maintenance: boolean;
+  allow_third_party: boolean;
   platform_tiktok: boolean;
   platform_instagram: boolean;
   platform_x: boolean;
@@ -32,6 +33,7 @@ interface BlocklistItem {
 export const Controls: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>({
     maintenance: false,
+    allow_third_party: true,
     platform_tiktok: true,
     platform_instagram: true,
     platform_x: true,
@@ -59,6 +61,7 @@ export const Controls: React.FC = () => {
       if (settingsRes.ok && settingsJson.ok && settingsJson.settings) {
         setSettings({
           maintenance: Boolean(settingsJson.settings.maintenance),
+          allow_third_party: settingsJson.settings.allow_third_party !== false,
           platform_tiktok: settingsJson.settings.platform_tiktok !== false,
           platform_instagram: settingsJson.settings.platform_instagram !== false,
           platform_x: settingsJson.settings.platform_x !== false,
@@ -98,6 +101,7 @@ export const Controls: React.FC = () => {
       if (res.ok && data.ok) {
         setSettings({
           maintenance: Boolean(data.settings.maintenance),
+          allow_third_party: data.settings.allow_third_party !== false,
           platform_tiktok: data.settings.platform_tiktok !== false,
           platform_instagram: data.settings.platform_instagram !== false,
           platform_x: data.settings.platform_x !== false,
@@ -236,6 +240,53 @@ export const Controls: React.FC = () => {
             <span
               className={`block w-5 h-5 rounded-full bg-white transition-transform ${
                 settings.ads_enabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Services tiers (allow_third_party) */}
+        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4 md:col-span-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-amber-400" />
+              <h3 className="font-display text-sm font-bold text-white">
+                Services tiers (`allow_third_party` : tikwm.com, vxinstagram.com, ddinstagram.com)
+              </h3>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  settings.allow_third_party !== false
+                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                }`}
+              >
+                {settings.allow_third_party !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+              </span>
+            </div>
+            <p className="text-xs text-orange-200/65">
+              Désactivé, plus aucun appel vers tikwm.com, vxinstagram.com ou ddinstagram.com : seuls les niveaux directs sont utilisés et ces hôtes sont refusés dans l’allowlist de /api/download (sans redéploiement).
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Services tiers (allow_third_party)"
+            aria-checked={settings.allow_third_party !== false}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                allow_third_party: settings.allow_third_party === false ? true : false,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.allow_third_party !== false
+                ? 'bg-emerald-500'
+                : 'bg-[#120c08] border border-orange-900/80'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+                settings.allow_third_party !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>

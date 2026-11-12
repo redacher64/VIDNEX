@@ -47,6 +47,7 @@ export interface ExtractResponse {
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];
+  stage?: 'direct' | 'tiers';
   engineStage?: string;
   httpStatus?: number;
   error?: {

@@ -37,6 +37,7 @@ export interface InstagramEnv {
   IG_SESSION_ID?: string;
   IG_CSRF_TOKEN?: string;
   IG_COOKIES?: string;
+  allow_third_party?: boolean | string;
 }
 
 export interface ParsedInstagramAuth {
@@ -980,6 +981,7 @@ function buildInstagramProfileResponse(
     platform: 'instagram',
     type: 'image',
     title: `@${cleanUser}`,
+    stage: 'direct',
     engineStage: opts.engineStage,
     httpStatus: opts.httpStatus ?? 200,
     author: {
@@ -1716,9 +1718,14 @@ export async function extractInstagram(
   identifier: string,
   env?: InstagramEnv,
   kind: 'post' | 'profile' | 'story' = 'post',
-  customFetch?: typeof fetch
+  customFetch?: typeof fetch,
+  allowThirdPartyOverride?: boolean
 ): Promise<ExtractResponse> {
   const auth = parseInstagramCookies(env);
+  const allowThirdParty =
+    typeof allowThirdPartyOverride === 'boolean'
+      ? allowThirdPartyOverride
+      : env?.allow_third_party !== false && env?.allow_third_party !== 'false';
 
   if (kind === 'profile') {
     return extractInstagramProfile(identifier, auth, customFetch);
@@ -1736,7 +1743,11 @@ export async function extractInstagram(
       kind === 'story'
     );
     if (apiV1Result) {
-      return apiV1Result;
+      return {
+        ...apiV1Result,
+        stage: 'direct',
+        engineStage: 'direct',
+      };
     }
   }
 
@@ -1746,7 +1757,11 @@ export async function extractInstagram(
   if (kind !== 'story') {
     const graphqlResult = await queryInstagramGraphQL(shortcode, auth);
     if (graphqlResult) {
-      return graphqlResult;
+      return {
+        ...graphqlResult,
+        stage: 'direct',
+        engineStage: 'direct',
+      };
     }
   }
 
@@ -1761,6 +1776,8 @@ export async function extractInstagram(
       return {
         ok: false,
         platform: 'instagram',
+        stage: 'direct',
+        engineStage: 'direct',
         error: {
           code: 'NOT_FOUND',
           message:
@@ -1769,29 +1786,44 @@ export async function extractInstagram(
       };
     }
     if (embedResult.videoOrCarousel) {
-      return embedResult.videoOrCarousel;
+      return {
+        ...embedResult.videoOrCarousel,
+        stage: 'direct',
+        engineStage: 'direct',
+      };
     }
     staticImageFallback = embedResult.staticImageFallback;
   }
 
   // ===========================================================================
   // NIVEAU 3 : Fallback Passerelles Publiques Gratuites Sans Clé (Anti-WAF)
+  // Uniquement exécuté si allow_third_party est activé
   // ===========================================================================
-  if (kind !== 'story') {
+  if (kind !== 'story' && allowThirdParty) {
     const fallbackResult = await extractViaPublicFreeFallbacks(shortcode);
     if (fallbackResult) {
-      return fallbackResult;
+      return {
+        ...fallbackResult,
+        stage: 'tiers',
+        engineStage: 'tiers',
+      };
     }
   }
 
   // Si l'embed a tout de même fourni une image haute résolution
   if (staticImageFallback) {
-    return staticImageFallback;
+    return {
+      ...staticImageFallback,
+      stage: 'direct',
+      engineStage: 'direct',
+    };
   }
 
   return {
     ok: false,
     platform: 'instagram',
+    stage: 'direct',
+    engineStage: 'direct',
     error: {
       code: 'PRIVATE_OR_LOGIN_REQUIRED',
       message:

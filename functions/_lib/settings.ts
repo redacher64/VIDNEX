@@ -7,6 +7,7 @@ import { type AdminEnv, getDb } from './db.ts';
 
 export interface SystemSettings {
   maintenance: boolean;
+  allow_third_party: boolean;
   platform_tiktok: boolean;
   platform_instagram: boolean;
   platform_x: boolean;
@@ -32,6 +33,7 @@ export interface BlocklistEntry {
 
 export const DEFAULT_SETTINGS: SystemSettings = {
   maintenance: false,
+  allow_third_party: true,
   platform_tiktok: true,
   platform_instagram: true,
   platform_x: true,
@@ -84,6 +86,9 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
 
     return {
       maintenance: map.get('maintenance') === 'true',
+      allow_third_party: map.has('allow_third_party')
+        ? map.get('allow_third_party') !== 'false'
+        : true,
       platform_tiktok: map.has('platform_tiktok')
         ? map.get('platform_tiktok') !== 'false'
         : true,
@@ -131,6 +136,9 @@ export async function updateSystemSettings(
   const entries: Array<[string, string]> = [];
   if (typeof partial.maintenance === 'boolean') {
     entries.push(['maintenance', String(partial.maintenance)]);
+  }
+  if (typeof partial.allow_third_party === 'boolean') {
+    entries.push(['allow_third_party', String(partial.allow_third_party)]);
   }
   if (typeof partial.platform_tiktok === 'boolean') {
     entries.push(['platform_tiktok', String(partial.platform_tiktok)]);

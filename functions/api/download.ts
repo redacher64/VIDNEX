@@ -180,12 +180,16 @@ async function fetchMediaStreamWithManualRedirects(
   method: string,
   isInline: boolean,
   rangeHeader: string | null,
-  cookieHeader?: string
+  cookieHeader?: string,
+  allowThirdParty = true
 ): Promise<StreamAttemptResult> {
   let currentUrlStr = initialTargetUrl.trim();
   if (currentUrlStr.startsWith('//')) {
     currentUrlStr = `https:${currentUrlStr}`;
   } else if (currentUrlStr.startsWith('/')) {
+    if (!allowThirdParty) {
+      return { response: null, forbiddenHost: 'www.tikwm.com' };
+    }
     currentUrlStr = `https://www.tikwm.com${currentUrlStr}`;
   }
 
@@ -199,7 +203,7 @@ async function fetchMediaStreamWithManualRedirects(
 
     if (
       (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') ||
-      !isAllowedMediaHost(parsed.hostname)
+      !isAllowedMediaHost(parsed.hostname, allowThirdParty)
     ) {
       return { response: null, forbiddenHost: parsed.hostname };
     }
@@ -239,7 +243,7 @@ async function fetchMediaStreamWithManualRedirects(
         }
         try {
           const nextUrl = new URL(location, parsed);
-          if (!isAllowedMediaHost(nextUrl.hostname)) {
+          if (!isAllowedMediaHost(nextUrl.hostname, allowThirdParty)) {
             return { response: null, forbiddenHost: nextUrl.hostname };
           }
           currentUrlStr = nextUrl.toString();
@@ -350,6 +354,8 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
   }
 
+  const allowThirdParty = settings.allow_third_party !== false;
+
   // Validation initiale de l'URL cible avant tout appel réseau
   let initialParsed: URL;
   try {
@@ -374,7 +380,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
 
   if (
     (initialParsed.protocol !== 'https:' && initialParsed.protocol !== 'http:') ||
-    !isAllowedMediaHost(initialParsed.hostname)
+    !isAllowedMediaHost(initialParsed.hostname, allowThirdParty)
   ) {
     return new Response(
       JSON.stringify({
@@ -396,7 +402,8 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     method,
     isInline,
     rangeHeader,
-    decodedCookie
+    decodedCookie,
+    allowThirdParty
   );
 
   if (attempt.tooLarge) {
@@ -436,7 +443,8 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       method,
       isInline,
       rangeHeader,
-      decodedCookie
+      decodedCookie,
+      allowThirdParty
     );
     if (attempt.tooLarge) {
       return new Response(
@@ -458,13 +466,18 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   //    on régénère un flux frais à la volée
   if (!attempt.response && sourcePageUrl) {
     try {
+      const extractorEnv = {
+        ...context.env,
+        allow_third_party: allowThirdParty,
+      };
       const detection = detectUrl(sourcePageUrl);
       if (detection.isValid && detection.platform === 'tiktok') {
         const fresh = await extractTikTok(
           detection.cleanUrl,
-          context.env,
+          extractorEnv,
           detection.kind === 'profile' ? 'profile' : 'video',
-          detection.identifier
+          detection.identifier,
+          allowThirdParty
         );
         if (fresh.ok && fresh.items?.length) {
           const lowerFilename = safeFilename.toLowerCase();
@@ -480,15 +493,18 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
               method,
               isInline,
               rangeHeader,
-              freshItem.cookie || fresh.cookie
+              freshItem.cookie || fresh.cookie,
+              allowThirdParty
             );
           }
         }
       } else if (detection.isValid && detection.platform === 'instagram') {
         const fresh = await extractInstagram(
           detection.identifier || '',
-          context.env,
-          detection.kind === 'profile' ? 'profile' : 'post'
+          extractorEnv,
+          detection.kind === 'profile' ? 'profile' : 'post',
+          undefined,
+          allowThirdParty
         );
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];
@@ -498,7 +514,8 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
               method,
               isInline,
               rangeHeader,
-              freshItem.cookie || fresh.cookie
+              freshItem.cookie || fresh.cookie,
+              allowThirdParty
             );
           }
         }

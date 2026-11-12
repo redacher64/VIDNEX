@@ -349,26 +349,36 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     );
   }
 
+  const settings = await getSystemSettings(env);
+  const allowThirdParty = settings.allow_third_party !== false;
+  const extractorEnv = {
+    ...env,
+    allow_third_party: allowThirdParty,
+  };
+
   const startedAt = Date.now();
   const result =
     platform === 'tiktok'
       ? await extractTikTok(
           detection.cleanUrl,
-          env,
+          extractorEnv,
           detection.kind === 'profile' ? 'profile' : 'video',
-          detection.identifier
+          detection.identifier,
+          allowThirdParty
         )
       : platform === 'instagram_profile'
-      ? await extractInstagram(detection.identifier || '', env, 'profile')
+      ? await extractInstagram(detection.identifier || '', extractorEnv, 'profile')
       : platform === 'instagram'
       ? await extractInstagram(
           detection.identifier || '',
-          env,
+          extractorEnv,
           detection.kind === 'profile'
             ? 'profile'
             : detection.kind === 'story'
             ? 'story'
-            : 'post'
+            : 'post',
+          undefined,
+          allowThirdParty
         )
       : platform === 'x'
       ? await extractX(detection.identifier || '')
@@ -390,7 +400,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     errorCode,
     durationMs,
     ipHash,
-    engineStage: result.engineStage || null,
+    stage: result.stage ?? null,
+    engineStage: result.engineStage || result.stage || null,
     httpStatus: result.httpStatus ?? null,
   });
 

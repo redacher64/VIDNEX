@@ -626,7 +626,7 @@
         {
           "heading": "1. Traitement des URLs et absence de stockage des vidéos",
           "paragraphs": [
-            "Lorsque vous collez un lien public dans VIDNEX, cette URL est transmise à notre API (/api/extract) uniquement le temps de résoudre l'adresse du fichier média auprès de la plateforme source. Les vidéos, pistes audio et images téléchargées transitent en flux direct (streaming proxy) et ne sont jamais enregistrées sur disque.",
+            "Lorsque vous collez un lien public dans VIDNEX, cette URL est transmise à notre API (/api/extract) uniquement le temps de résoudre l'adresse du fichier média auprès de la plateforme source. Pour certaines vidéos, le lien peut être transmis à un service tiers de résolution de médias, sans compte ni cookie. Les vidéos, pistes audio et images téléchargées transitent en flux direct (streaming proxy) et ne sont jamais enregistrées sur disque.",
             "Pour assurer la supervision technique du service et limiter les abus (rate-limiting), nous enregistrons uniquement des statistiques techniques anonymisées dans notre base de données sécurisée : la plateforme sollicitée, le code de statut (succès ou type d'erreur), la durée de traitement en millisecondes et une empreinte hachée irréversible (SHA-256 avec sel secret) de l'adresse IP. L'adresse IP brute et les URLs soumises par les visiteurs ne sont pas stockées dans les journaux."
           ]
         },

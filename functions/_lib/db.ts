@@ -82,7 +82,7 @@ const migratedEngineColumnsDbs = new WeakSet<object>();
 
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
-  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
+  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('allow_third_party', 'true'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
   `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
   `CREATE TABLE IF NOT EXISTS daily_metrics (day TEXT NOT NULL, platform TEXT NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, platform, event))`,
@@ -210,6 +210,7 @@ export function getDb(env?: AdminEnv): D1Database | null {
 export function createMemoryD1Database(): D1Database {
   const settings = new Map<string, string>([
     ['maintenance', 'false'],
+    ['allow_third_party', 'true'],
     ['platform_tiktok', 'true'],
     ['platform_instagram', 'true'],
     ['platform_x', 'true'],

@@ -29,6 +29,18 @@ interface PlatformStats {
   download_success?: number;
   downloadRate?: number;
   downloadCompletionRate?: number;
+  direct?: number;
+  tiers?: number;
+  direct7d?: number;
+  tiers7d?: number;
+  thirdPartyRate7d?: number;
+  stage?: {
+    direct: number;
+    tiers: number;
+    direct7d: number;
+    tiers7d: number;
+    thirdPartyRate7d: number;
+  };
 }
 
 interface FunnelStats {
@@ -465,6 +477,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
                 <span>Téléchargements : {dlStarted} lancés</span>
                 <span className="text-emerald-300">{dlSuccess} terminés</span>
               </div>
+
+              {(key === 'tiktok' || key === 'instagram') && (
+                <div className="p-2.5 rounded-xl bg-[#120c08] border border-orange-950/90 space-y-1.5 text-[11px] font-mono">
+                  <div className="flex items-center justify-between text-orange-200/85">
+                    <span>Succès Direct (`stage: direct`) :</span>
+                    <span className="text-emerald-300 font-semibold tabular-nums">
+                      {stats.stage?.direct ?? stats.direct ?? 0} (7j : {stats.stage?.direct7d ?? stats.direct7d ?? 0})
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-orange-200/85">
+                    <span>Succès Tiers (`stage: tiers`) :</span>
+                    <span className="text-amber-300 font-semibold tabular-nums">
+                      {stats.stage?.tiers ?? stats.tiers ?? 0} (7j : {stats.stage?.tiers7d ?? stats.tiers7d ?? 0})
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-orange-950/80 pt-1 text-orange-300">
+                    <span>Part services tiers (7 jours) :</span>
+                    <span className="font-bold tabular-nums">
+                      {stats.stage?.thirdPartyRate7d ?? stats.thirdPartyRate7d ?? 0}%
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Barre de progression SVG/CSS */}
               <div className="w-full h-2.5 rounded-full bg-[#120c08] overflow-hidden flex">

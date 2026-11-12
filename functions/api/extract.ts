@@ -380,22 +380,29 @@ async function handleExtract(
   let result: ExtractResponse;
 
   // 2. Aiguillage vers les moteurs 100 % gratuits
+  const extractorEnv = {
+    ...env,
+    allow_third_party: settings.allow_third_party,
+  };
   if (detection.platform === 'tiktok') {
     result = await extractTikTok(
       detection.cleanUrl,
-      env,
+      extractorEnv,
       detection.kind === 'profile' ? 'profile' : 'video',
-      detection.identifier
+      detection.identifier,
+      settings.allow_third_party
     );
   } else if (detection.platform === 'instagram') {
     result = await extractInstagram(
       detection.identifier || '',
-      env,
+      extractorEnv,
       detection.kind === 'profile'
         ? 'profile'
         : detection.kind === 'story'
         ? 'story'
-        : 'post'
+        : 'post',
+      undefined,
+      settings.allow_third_party
     );
   } else if (detection.platform === 'x') {
     result = await extractX(detection.identifier || '');
@@ -433,7 +440,8 @@ async function handleExtract(
         errorCode: errCode,
         durationMs,
         ipHash,
-        engineStage: result.engineStage || defaultStage,
+        stage: result.stage ?? null,
+        engineStage: result.engineStage || result.stage || defaultStage,
         httpStatus: result.httpStatus ?? mappedStatus,
       })
     );
@@ -453,7 +461,8 @@ async function handleExtract(
       errorCode: null,
       durationMs,
       ipHash,
-      engineStage: result.engineStage || defaultStage,
+      stage: result.stage ?? null,
+      engineStage: result.engineStage || result.stage || defaultStage,
       httpStatus: result.httpStatus ?? 200,
     })
   );

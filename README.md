@@ -23,6 +23,7 @@
 13. [Limites connues et dépannage](#13-limites-connues-et-dépannage)
 14. [Pistes à venir](#14-pistes-à-venir)
 15. [Blog](#15-blog)
+16. [Services tiers](#16-services-tiers)
 
 ---
 
@@ -740,3 +741,26 @@ Pour collaborer efficacement à deux développeurs sans conflit ni régression e
 1. Dans `src/data/blogArticles.ts`, passer `translationStatus: 'published'` sur les traductions prêtes de cette langue (ex. `es` ou `de`) et ajouter le code langue dans `BLOG_HUB_LOCALES` ainsi que dans `isBlogHubLocale()`.
 2. Vérifier les métadonnées du hub dans `BLOG_HUB_SEO[{locale}]` et les libellés d'interface dans `BLOG_UI_BY_LOCALE[{locale}]`.
 3. Lancer `npm run build` et `npm test` pour valider le prérendu, la réciprocité `hreflang` et le `sitemap.xml`.
+
+---
+
+## 16. Services tiers
+
+### 16.1 Rôle des services tiers de résolution
+- **TikTok (`tikwm.com`)** : Utilisé au Niveau 1 de `functions/_lib/tiktok.ts` (ainsi que pour les avatars de profils publics) afin de récupérer rapidement le flux MP4 HD sans filigrane et la piste audio originale avant de basculer, en cas d'échec ou de désactivation, sur l'analyse directe du HTML officiel TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__` / `SIGI_STATE`, Niveau 2).
+- **Instagram (`vxinstagram.com`, `ddinstagram.com`)** : Utilisés uniquement en dernier recours au Niveau 3 de `functions/_lib/instagram.ts` lorsque les niveaux directs (Niveau 0 : page d'embed publique `/embed/captioned/`, Niveau 1 : GraphQL public anonyme `/graphql/query`, Niveau 2 : API mobile privée authentifiée) sont bloqués ou limités par Instagram.
+- **Suivi (`stage`)** : Dans les compteurs agrégés D1 (`daily_metrics` : `extract_success_direct` vs `extract_success_tiers`) et sur le tableau de bord `/admin`, chaque extraction réussie sur TikTok et Instagram est comptabilisée en **`direct`** ou **`tiers`** avec calcul automatique du pourcentage de succès venant d'un service tiers sur 7 jours (`thirdPartyRate7d`). Aucune URL ni identifiant personnel n'est enregistré dans les journaux.
+
+### 16.2 Risques et limites associés
+- **Dépendance externe** : Disponibilité, latence ou quotas propres à ces services tiers indépendants (`tikwm.com`, `vxinstagram.com`, `ddinstagram.com`).
+- **Confidentialité du lien public** : Lorsqu'un niveau tiers est sollicité, l'URL publique du média à résoudre est transmise par le Worker Cloudflare au service tiers (toujours sans compte utilisateur, sans cookie visiteur et sans adresse IP cliente).
+- **Sécurité du proxy `/api/download`** : Tant que les services tiers sont autorisés, leurs domaines figurent dans l'allowlist de `functions/_lib/allowlist.ts`. Dès qu'ils sont désactivés, `/api/download` rejette immédiatement tout téléchargement ou redirection pointant vers `tikwm.com`, `vxinstagram.com` ou `ddinstagram.com` (`HTTP 403`).
+
+### 16.3 Comment désactiver les services tiers (sans redéploiement)
+Le réglage système `allow_third_party` (activé par défaut : `'true'`) est stocké dans la table `settings` de Cloudflare D1 et lu dynamiquement à chaque requête :
+1. **Depuis l'interface d'administration** : Ouvrir `/admin` -> onglet **Contrôles**, puis basculer l'interrupteur **« Services tiers (`allow_third_party`) »** sur **Désactivé**.
+2. **Ou via l'API / D1 en ligne de commande** :
+   ```bash
+   npx wrangler d1 execute vidnex-db --remote --command "INSERT INTO settings (key, value) VALUES ('allow_third_party', 'false') ON CONFLICT(key) DO UPDATE SET value = 'false';"
+   ```
+Une fois désactivé (`allow_third_party = false`), **aucun appel** n'est émis vers `tikwm.com`, `vxinstagram.com` ni `ddinstagram.com` (seuls les niveaux d'extraction directs sont exécutés) et ces hôtes sont refusés par l'allowlist de `/api/download`, **immédiatement et sans redéploiement**.

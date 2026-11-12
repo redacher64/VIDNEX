@@ -1076,49 +1076,21 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       IP_HASH_SALT: 'ip-salt-2026',
     };
 
-    // (1) Vidéo Facebook publique (/{page}/videos/{id} & /watch/?v={id}) => HD + SD MP4 + nom facebook_{id}.mp4
-    const fbVideoRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.facebook.com/facebook/videos/10153231379946729/'
-      ),
-      adminEnv
-    );
-    assert.equal(fbVideoRes.status, 200);
-    const fbVideoJson: any = await fbVideoRes.json();
-    assert.equal(fbVideoJson.ok, true);
-    assert.equal(fbVideoJson.platform, 'facebook');
-    assert.equal(fbVideoJson.type, 'video');
-    assert.ok(fbVideoJson.items.length >= 1);
-    assert.equal(fbVideoJson.items[0].quality, 'HD');
-    assert.equal(fbVideoJson.items[0].ext, 'mp4');
-    assert.ok(
-      fbVideoJson.items[0].url.includes('filename=facebook_10153231379946729.mp4')
-    );
-
-    // (2) Reel Facebook public (/reel/{id})
-    const fbReelRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.facebook.com/reel/10153231379946729'
-      ),
-      adminEnv
-    );
-    assert.equal(fbReelRes.status, 200);
-    const fbReelJson: any = await fbReelRes.json();
-    assert.equal(fbReelJson.ok, true);
-    assert.equal(fbReelJson.platform, 'facebook');
-    assert.equal(fbReelJson.type, 'video');
-    assert.equal(fbReelJson.items[0].quality, 'HD');
-
-    // (3) Lien court fb.watch & (4) Lien /share/v/ ou /share/r/ (avec interception contrôlée de redirection pour tester la résolution multi-sauts + revalidation anti-SSRF)
     const origFetch = globalThis.fetch;
     try {
       globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const u = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
         if (u.startsWith('https://fb.watch/testwatch123')) {
           return new Response(null, {
             status: 302,
             headers: {
-              Location: 'https://www.facebook.com/facebook/videos/10153231379946729/',
+              Location:
+                'https://www.facebook.com/facebook/videos/10153231379946729/',
             },
           });
         }
@@ -1134,15 +1106,66 @@ describe('VIDNEX URL Detection & Security Suite', () => {
           return new Response(null, {
             status: 302,
             headers: {
-              Location: 'https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2Freel%2F999',
+              Location:
+                'https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2Freel%2F999',
             },
           });
+        }
+        if (u.includes('10153231379946729')) {
+          return new Response(
+            `<html><head><meta property="og:title" content="Facebook Demo Video" /><meta property="og:image" content="https://scontent-fra5-1.xx.fbcdn.net/thumb.jpg" /></head><body><script>{"browser_native_hd_url":"https:\\/\\/video-fra3-1.xx.fbcdn.net\\/v\\/t42.1790-2\\/10153231379946729_hd.mp4?oh=1","browser_native_sd_url":"https:\\/\\/video-fra3-1.xx.fbcdn.net\\/v\\/t42.1790-2\\/10153231379946729_sd.mp4?oh=1","owner":{"name":"Facebook"}}</script></body></html>`,
+            { status: 200, headers: { 'Content-Type': 'text/html' } }
+          );
+        }
+        if (u.includes('999999999999999999')) {
+          return new Response(
+            "<html><body><div>This Video Isn't Available Anymore</div></body></html>",
+            { status: 404, headers: { 'Content-Type': 'text/html' } }
+          );
         }
         return origFetch(input, init);
       };
 
+      // (1) Vidéo Facebook publique (/{page}/videos/{id} & /watch/?v={id}) => HD + SD MP4 + nom facebook_{id}.mp4
+      const fbVideoRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.facebook.com/facebook/videos/10153231379946729/'
+        ),
+        adminEnv
+      );
+      assert.equal(fbVideoRes.status, 200);
+      const fbVideoJson: any = await fbVideoRes.json();
+      assert.equal(fbVideoJson.ok, true);
+      assert.equal(fbVideoJson.platform, 'facebook');
+      assert.equal(fbVideoJson.type, 'video');
+      assert.ok(fbVideoJson.items.length >= 1);
+      assert.equal(fbVideoJson.items[0].quality, 'HD');
+      assert.equal(fbVideoJson.items[0].ext, 'mp4');
+      assert.ok(
+        fbVideoJson.items[0].url.includes(
+          'filename=facebook_10153231379946729.mp4'
+        )
+      );
+
+      // (2) Reel Facebook public (/reel/{id})
+      const fbReelRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.facebook.com/reel/10153231379946729'
+        ),
+        adminEnv
+      );
+      assert.equal(fbReelRes.status, 200);
+      const fbReelJson: any = await fbReelRes.json();
+      assert.equal(fbReelJson.ok, true);
+      assert.equal(fbReelJson.platform, 'facebook');
+      assert.equal(fbReelJson.type, 'video');
+      assert.equal(fbReelJson.items[0].quality, 'HD');
+
+      // (3) Lien court fb.watch & (4) Lien /share/v/ ou /share/r/
       const fbWatchShortRes = await worker.fetch(
-        new Request('https://vidnex.space/api/extract?url=https://fb.watch/testwatch123/'),
+        new Request(
+          'https://vidnex.space/api/extract?url=https://fb.watch/testwatch123/'
+        ),
         adminEnv
       );
       assert.equal(fbWatchShortRes.status, 200);
@@ -1170,98 +1193,103 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       );
       assert.equal(fbPrivateShareRes.status, 403);
       const fbPrivateShareJson: any = await fbPrivateShareRes.json();
-      assert.equal(fbPrivateShareJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+      assert.equal(
+        fbPrivateShareJson.error.code,
+        'PRIVATE_OR_LOGIN_REQUIRED'
+      );
+
+      // (5b) Lien direct vers /login => PRIVATE_OR_LOGIN_REQUIRED (HTTP 403)
+      const fbLoginRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2Freel%2F123'
+        ),
+        adminEnv
+      );
+      assert.equal(fbLoginRes.status, 403);
+      const fbLoginJson: any = await fbLoginRes.json();
+      assert.equal(fbLoginJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+
+      // (6) Vidéo Facebook supprimée / inexistante => NOT_FOUND (HTTP 404) ou PRIVATE_OR_LOGIN_REQUIRED
+      const fbDeletedRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.facebook.com/watch/?v=999999999999999999'
+        ),
+        adminEnv
+      );
+      assert.ok(fbDeletedRes.status === 404 || fbDeletedRes.status === 403);
+      const fbDeletedJson: any = await fbDeletedRes.json();
+      assert.equal(fbDeletedJson.ok, false);
+      assert.ok(
+        fbDeletedJson.error.code === 'NOT_FOUND' ||
+          fbDeletedJson.error.code === 'PRIVATE_OR_LOGIN_REQUIRED'
+      );
+
+      // (7) URL Facebook invalide (photo / story / live) => UNSUPPORTED_URL (HTTP 400)
+      const fbPhotoInvalidRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.facebook.com/photo/?fbid=10153231379946729'
+        ),
+        adminEnv
+      );
+      assert.equal(fbPhotoInvalidRes.status, 400);
+      const fbPhotoInvalidJson: any = await fbPhotoInvalidRes.json();
+      assert.equal(fbPhotoInvalidJson.error.code, 'UNSUPPORTED_URL');
+
+      // (8) Non-régression X / TikTok / Instagram + (9) Test Facebook dans /admin met à jour engine_status
+      const loginRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Origin: 'https://vidnex.space',
+            'CF-Connecting-IP': '198.51.100.200',
+          },
+          body: JSON.stringify({ password: 'super-secret-admin-pwd' }),
+        }),
+        adminEnv
+      );
+      const sessionCookie = (loginRes.headers.get('Set-Cookie') || '').split(
+        ';'
+      )[0];
+
+      const fbAdminTestRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/health', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Origin: 'https://vidnex.space',
+            Cookie: sessionCookie,
+          },
+          body: JSON.stringify({
+            action: 'test_engine',
+            platform: 'facebook',
+            url: 'https://www.facebook.com/facebook/videos/10153231379946729/',
+          }),
+        }),
+        adminEnv
+      );
+      assert.equal(fbAdminTestRes.status, 200);
+      const fbAdminTestJson: any = await fbAdminTestRes.json();
+      assert.equal(fbAdminTestJson.ok, true);
+      assert.equal(fbAdminTestJson.platform, 'facebook');
+      assert.equal(fbAdminTestJson.testOk, true);
+      assert.ok(fbAdminTestJson.itemsCount >= 1);
+
+      const afterHealthRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/health', {
+          headers: { Cookie: sessionCookie },
+        }),
+        adminEnv
+      );
+      const afterHealthJson: any = await afterHealthRes.json();
+      assert.equal(afterHealthJson.engines.facebook.last_test_ok, 1);
+      assert.equal(
+        afterHealthJson.engines.facebook.test_url,
+        'https://www.facebook.com/facebook/videos/10153231379946729/'
+      );
     } finally {
       globalThis.fetch = origFetch;
     }
-
-    // (5b) Lien direct vers /login => PRIVATE_OR_LOGIN_REQUIRED (HTTP 403)
-    const fbLoginRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2Freel%2F123'
-      ),
-      adminEnv
-    );
-    assert.equal(fbLoginRes.status, 403);
-    const fbLoginJson: any = await fbLoginRes.json();
-    assert.equal(fbLoginJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
-
-    // (6) Vidéo Facebook supprimée / inexistante => NOT_FOUND (HTTP 404) ou PRIVATE_OR_LOGIN_REQUIRED
-    const fbDeletedRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.facebook.com/watch/?v=999999999999999999'
-      ),
-      adminEnv
-    );
-    assert.ok(fbDeletedRes.status === 404 || fbDeletedRes.status === 403);
-    const fbDeletedJson: any = await fbDeletedRes.json();
-    assert.equal(fbDeletedJson.ok, false);
-    assert.ok(
-      fbDeletedJson.error.code === 'NOT_FOUND' ||
-        fbDeletedJson.error.code === 'PRIVATE_OR_LOGIN_REQUIRED'
-    );
-
-    // (7) URL Facebook invalide (photo / story / live) => UNSUPPORTED_URL (HTTP 400)
-    const fbPhotoInvalidRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.facebook.com/photo/?fbid=10153231379946729'
-      ),
-      adminEnv
-    );
-    assert.equal(fbPhotoInvalidRes.status, 400);
-    const fbPhotoInvalidJson: any = await fbPhotoInvalidRes.json();
-    assert.equal(fbPhotoInvalidJson.error.code, 'UNSUPPORTED_URL');
-
-    // (8) Non-régression X / TikTok / Instagram + (9) Test Facebook dans /admin met à jour engine_status
-    const loginRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: 'https://vidnex.space',
-          'CF-Connecting-IP': '198.51.100.200',
-        },
-        body: JSON.stringify({ password: 'super-secret-admin-pwd' }),
-      }),
-      adminEnv
-    );
-    const sessionCookie = (loginRes.headers.get('Set-Cookie') || '').split(';')[0];
-
-    const fbAdminTestRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/health', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: 'https://vidnex.space',
-          Cookie: sessionCookie,
-        },
-        body: JSON.stringify({
-          action: 'test_engine',
-          platform: 'facebook',
-          url: 'https://www.facebook.com/facebook/videos/10153231379946729/',
-        }),
-      }),
-      adminEnv
-    );
-    assert.equal(fbAdminTestRes.status, 200);
-    const fbAdminTestJson: any = await fbAdminTestRes.json();
-    assert.equal(fbAdminTestJson.ok, true);
-    assert.equal(fbAdminTestJson.platform, 'facebook');
-    assert.equal(fbAdminTestJson.testOk, true);
-    assert.ok(fbAdminTestJson.itemsCount >= 1);
-
-    const afterHealthRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/health', {
-        headers: { Cookie: sessionCookie },
-      }),
-      adminEnv
-    );
-    const afterHealthJson: any = await afterHealthRes.json();
-    assert.equal(afterHealthJson.engines.facebook.last_test_ok, 1);
-    assert.equal(
-      afterHealthJson.engines.facebook.test_url,
-      'https://www.facebook.com/facebook/videos/10153231379946729/'
-    );
   });
 
   it('ÉTAPE 1 à 8 (SEO INTERNATIONAL 10 LANGUES) — Routage 10 langues, slugs localisés, hreflang réciproques + x-default, X-Robots-Tag sur .pages.dev/.workers.dev, et statut HTTP 404', async () => {
@@ -2540,4 +2568,188 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(history.length >= 2);
     assert.equal(history[history.length - 1].type, 'blog_tool_cta_click');
   });
+
+  it('Gère le réglage allow_third_party (extraction directe uniquement + refus allowlist /api/download) et distingue les succès direct vs tiers sur 7 jours sans URL en base', async () => {
+    const { isAllowedMediaHost, isAllowedMediaUrl } = await import(
+      '../../functions/_lib/allowlist.ts'
+    );
+    const { getSystemSettings, updateSystemSettings } = await import(
+      '../../functions/_lib/settings.ts'
+    );
+    const { logExtractionEvent } = await import('../../functions/_lib/logger.ts');
+
+    const db = createMemoryD1Database();
+    const adminEnv = {
+      DB: db,
+      ADMIN_PASSWORD: 'super-secret-admin-pwd',
+      SESSION_SECRET: 'hmac-session-secret-key-2026',
+      IP_HASH_SALT: 'ip-salt-2026',
+    };
+
+    // 1. Par défaut allow_third_party est activé (true)
+    const initialSettings = await getSystemSettings(adminEnv);
+    assert.equal(initialSettings.allow_third_party, true);
+    assert.equal(isAllowedMediaHost('www.tikwm.com', true), true);
+    assert.equal(isAllowedMediaHost('d.ddinstagram.com', true), true);
+    assert.equal(isAllowedMediaHost('api.vxinstagram.com', true), true);
+
+    // 2. Quand allow_third_party = false, l'allowlist refuse tikwm.com, vxinstagram.com et ddinstagram.com
+    assert.equal(isAllowedMediaHost('www.tikwm.com', false), false);
+    assert.equal(isAllowedMediaHost('tikwm.com', false), false);
+    assert.equal(isAllowedMediaHost('d.ddinstagram.com', false), false);
+    assert.equal(isAllowedMediaHost('api.vxinstagram.com', false), false);
+    assert.equal(
+      isAllowedMediaUrl('https://www.tikwm.com/video/media/hdplay/123.mp4', false),
+      false
+    );
+    // Les CDN officiels restent autorisés
+    assert.equal(isAllowedMediaHost('v16-webapp-prime.tiktok.com', false), true);
+    assert.equal(isAllowedMediaHost('scontent.cdninstagram.com', false), true);
+
+    // 3. Désactivation dynamique via updateSystemSettings (sans redéploiement)
+    await updateSystemSettings(adminEnv, { allow_third_party: false });
+    const updatedSettings = await getSystemSettings(adminEnv);
+    assert.equal(updatedSettings.allow_third_party, false);
+
+    // 4. /api/download refuse immédiatement ces hôtes tiers en 403 quand allow_third_party = false
+    for (const blockedUrl of [
+      'https://www.tikwm.com/video/media/hdplay/7123456789.mp4',
+      'https://d.ddinstagram.com/reel/C8x9kLmN2pQ.mp4',
+      'https://api.vxinstagram.com/reel/C8x9kLmN2pQ.mp4',
+    ]) {
+      const dlRes = await worker.fetch(
+        new Request(
+          `https://vidnex.space/api/download?url=${encodeURIComponent(blockedUrl)}`
+        ),
+        adminEnv
+      );
+      assert.equal(dlRes.status, 403);
+    }
+
+    // 4b. Vérifier qu'aucun appel vers tikwm.com, vxinstagram.com ou ddinstagram.com n'est émis quand allow_third_party = false
+    const calledHosts: string[] = [];
+    const origFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        calledHosts.push(new URL(u).hostname);
+        return new Response('<html></html>', { status: 403 });
+      };
+
+      await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.tiktok.com/@tiktok/video/7106594312292453675'
+        ),
+        adminEnv
+      );
+      await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/reel/C8x9kLmN2pQ/'
+        ),
+        adminEnv
+      );
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+    assert.equal(
+      calledHosts.some(
+        (h) =>
+          h.includes('tikwm.com') ||
+          h.includes('vxinstagram.com') ||
+          h.includes('ddinstagram.com')
+      ),
+      false
+    );
+
+    // 5. Enregistrement des compteurs direct vs tiers pour TikTok et Instagram + absence totale d'URL dans les logs
+    await logExtractionEvent(adminEnv, {
+      platform: 'tiktok',
+      status: 'success',
+      errorCode: null,
+      stage: 'direct',
+      durationMs: 120,
+      ipHash: 'hash_tt_1',
+      country: 'FR',
+    });
+    await logExtractionEvent(adminEnv, {
+      platform: 'tiktok',
+      status: 'success',
+      errorCode: null,
+      stage: 'tiers',
+      durationMs: 180,
+      ipHash: 'hash_tt_2',
+      country: 'FR',
+    });
+    await logExtractionEvent(adminEnv, {
+      platform: 'tiktok',
+      status: 'success',
+      errorCode: null,
+      stage: 'tiers',
+      durationMs: 195,
+      ipHash: 'hash_tt_3',
+      country: 'FR',
+    });
+    await logExtractionEvent(adminEnv, {
+      platform: 'instagram',
+      status: 'success',
+      errorCode: null,
+      stage: 'direct',
+      durationMs: 140,
+      ipHash: 'hash_ig_1',
+      country: 'FR',
+    });
+    await logExtractionEvent(adminEnv, {
+      platform: 'instagram',
+      status: 'success',
+      errorCode: null,
+      stage: 'tiers',
+      durationMs: 250,
+      ipHash: 'hash_ig_2',
+      country: 'FR',
+    });
+
+    // Connexion admin pour lire /api/admin/stats
+    const loginRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://vidnex.space',
+          'CF-Connecting-IP': '198.51.100.250',
+        },
+        body: JSON.stringify({ password: 'super-secret-admin-pwd' }),
+      }),
+      adminEnv
+    );
+    assert.equal(loginRes.status, 200);
+    const cookie = (loginRes.headers.get('Set-Cookie') || '').split(';')[0];
+
+    const statsRes = await worker.fetch(
+      new Request('https://vidnex.space/api/admin/stats', {
+        headers: { Cookie: cookie },
+      }),
+      adminEnv
+    );
+    assert.equal(statsRes.status, 200);
+    const statsJson: any = await statsRes.json();
+
+    assert.equal(statsJson.platforms.tiktok.direct, 1);
+    assert.equal(statsJson.platforms.tiktok.tiers, 2);
+    assert.equal(statsJson.platforms.tiktok.direct7d, 1);
+    assert.equal(statsJson.platforms.tiktok.tiers7d, 2);
+    assert.equal(statsJson.platforms.tiktok.thirdPartyRate7d, 66.7);
+    assert.equal(statsJson.platforms.tiktok.stage.thirdPartyRate7d, 66.7);
+
+    assert.equal(statsJson.platforms.instagram.direct, 1);
+    assert.equal(statsJson.platforms.instagram.tiers, 1);
+    assert.equal(statsJson.platforms.instagram.direct7d, 1);
+    assert.equal(statsJson.platforms.instagram.tiers7d, 1);
+    assert.equal(statsJson.platforms.instagram.thirdPartyRate7d, 50);
+  });
 });
+

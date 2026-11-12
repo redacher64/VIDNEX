@@ -1996,6 +1996,165 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(ardRes.status, 404);
   });
+
+  it('TikTok audio extraction: detects real mp3 vs m4a format from page JSON, validates observed CDN suffixes, sets filename tiktok_{id}.{ext}, omits audio when absent, and localizes button in 10 languages', async () => {
+    const {
+      extractTikTokMusicUrl,
+      detectTikTokAudioExt,
+    } = await import('../../functions/_lib/tiktok.ts');
+    const { isAllowedTikTokAudioHost } = await import(
+      '../../functions/_lib/allowlist.ts'
+    );
+    const { SUPPORTED_LOCALES } = await import('../i18n/config.ts');
+    const { loadLocaleBundle } = await import('../i18n/localeLoader.ts');
+
+    // 1. Verify observed audio CDN hosts in allowlist
+    assert.equal(isAllowedTikTokAudioHost('sf16-music.tiktokcdn-eu.com'), true);
+    assert.equal(isAllowedTikTokAudioHost('v45.tiktokcdn-eu.com'), true);
+    assert.equal(isAllowedTikTokAudioHost('v16-ies-music.tiktokcdn-us.com'), true);
+    assert.equal(isAllowedTikTokAudioHost('sf16-ies-music-sg.tiktokcdn.com'), true);
+    assert.equal(isAllowedTikTokAudioHost('sf16-ies-music-va.tiktokcdn.com'), true);
+    assert.equal(isAllowedTikTokAudioHost('evil.example.com'), false);
+    assert.equal(isAllowedTikTokAudioHost('tiktok.com'), false);
+
+    // 2. Verify real format detection (mp3 vs m4a)
+    const m4aUrl =
+      'https://v45.tiktokcdn-eu.com/abc/video/tos/maliva/tos-maliva-v-27dcd7c799-us/3b1e/?mime_type=video_mp4';
+    const mp3QueryUrl =
+      'https://v45.tiktokcdn-eu.com/def/video/tos/useast2a/tos-useast2a-v-27dcd7/e336/?mime_type=audio_mpeg';
+    const mp3PathUrl =
+      'https://sf16-music.tiktokcdn-eu.com/obj/ies-music-eu2-no/7680158674307812118.mp3';
+
+    assert.equal(detectTikTokAudioExt(m4aUrl, 'audio/x-m4a'), 'm4a');
+    assert.equal(detectTikTokAudioExt(m4aUrl, null), 'm4a');
+    assert.equal(detectTikTokAudioExt(mp3QueryUrl, 'audio/mpeg'), 'mp3');
+    assert.equal(detectTikTokAudioExt(mp3PathUrl, null), 'mp3');
+
+    assert.equal(extractTikTokMusicUrl({ playUrl: m4aUrl }), m4aUrl);
+    assert.equal(extractTikTokMusicUrl({ playUrl: '' }), null);
+    assert.equal(extractTikTokMusicUrl(undefined), null);
+
+    // 3. Verify /api/extract emits { kind: "audio", quality: "Audio", ext: "m4a" | "mp3" } with filename=tiktok_{id}.{ext}, and omits audio when missing
+    resetRateLimitBuckets();
+    resetD1RateLimitFallback();
+    const origFetch = globalThis.fetch;
+    try {
+      // Case A: Page JSON has m4a audio (Content-Type: audio/x-m4a)
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const u = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        if (u.includes('tikwm.com')) {
+          return new Response(JSON.stringify({ code: -1 }), { status: 500 });
+        }
+        if (init?.method === 'HEAD' && u.includes('v45.tiktokcdn-eu.com')) {
+          return new Response(null, {
+            status: 200,
+            headers: { 'content-type': 'audio/x-m4a' },
+          });
+        }
+        const pageJson = {
+          __DEFAULT_SCOPE__: {
+            'webapp.video-detail': {
+              itemInfo: {
+                itemStruct: {
+                  id: '7106594312292453675',
+                  desc: 'Test TikTok M4A Audio',
+                  author: { uniqueId: 'tiktok', nickname: 'TikTok' },
+                  video: {
+                    duration: 24,
+                    playAddr: 'https://v45.tiktokcdn-eu.com/video.mp4',
+                    cover: 'https://p16-common-sign.tiktokcdn-eu.com/cover.jpeg',
+                  },
+                  music: {
+                    id: '7106594280055130923',
+                    title: 'original sound',
+                    playUrl: m4aUrl,
+                  },
+                },
+              },
+            },
+          },
+        };
+        return new Response(
+          `<html><body><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${JSON.stringify(pageJson)}</script></body></html>`,
+          { status: 200, headers: { 'content-type': 'text/html' } }
+        );
+      };
+
+      const resM4a = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=' +
+            encodeURIComponent('https://www.tiktok.com/@tiktok/video/7106594312292453675')
+        ),
+        {}
+      );
+      assert.equal(resM4a.status, 200);
+      const jsonM4a: any = await resM4a.json();
+      assert.equal(jsonM4a.ok, true);
+      const audioItemM4a = jsonM4a.items.find((it: any) => it.kind === 'audio');
+      assert.ok(audioItemM4a);
+      assert.equal(audioItemM4a.quality, 'Audio');
+      assert.equal(audioItemM4a.ext, 'm4a');
+      assert.ok(
+        audioItemM4a.url.includes('filename=tiktok_7106594312292453675.m4a'),
+        `Expected tiktok_7106594312292453675.m4a in ${audioItemM4a.url}`
+      );
+
+      // Case B: Video without recoverable audio -> no audio item emitted
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        if (u.includes('tikwm.com')) {
+          return new Response(JSON.stringify({ code: -1 }), { status: 500 });
+        }
+        const pageJsonNoAudio = {
+          __DEFAULT_SCOPE__: {
+            'webapp.video-detail': {
+              itemInfo: {
+                itemStruct: {
+                  id: '7002287836661337350',
+                  desc: 'Silent TikTok Video',
+                  author: { uniqueId: 'khaby.lame', nickname: 'Khaby Lame' },
+                  video: {
+                    duration: 15,
+                    playAddr: 'https://v45.tiktokcdn-eu.com/video2.mp4',
+                    cover: 'https://p16-common-sign.tiktokcdn-eu.com/cover2.jpeg',
+                  },
+                  music: {},
+                },
+              },
+            },
+          },
+        };
+        return new Response(
+          `<html><body><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${JSON.stringify(pageJsonNoAudio)}</script></body></html>`,
+          { status: 200, headers: { 'content-type': 'text/html' } }
+        );
+      };
+
+      const resNoAudio = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=' +
+            encodeURIComponent('https://www.tiktok.com/@khaby.lame/video/7002287836661337350')
+        ),
+        {}
+      );
+      assert.equal(resNoAudio.status, 200);
+      const jsonNoAudio: any = await resNoAudio.json();
+      assert.equal(jsonNoAudio.ok, true);
+      const missingAudio = jsonNoAudio.items.find((it: any) => it.kind === 'audio');
+      assert.equal(missingAudio, undefined);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // 4. Verify all 10 locales have the localized sound download label (and FR is "Télécharger le son")
+    for (const loc of SUPPORTED_LOCALES) {
+      const bundle = await loadLocaleBundle(loc);
+      assert.ok(bundle.ui.drawer.extractAudioMp3.length > 0);
+      assert.ok(!bundle.ui.drawer.extractAudioMp3.includes('MP3'));
+    }
+    const frBundle = await loadLocaleBundle('fr');
+    assert.equal(frBundle.ui.drawer.extractAudioMp3, 'Télécharger le son');
+  });
 });
 
 

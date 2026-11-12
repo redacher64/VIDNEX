@@ -28,7 +28,7 @@ export interface VideoFormatOption {
   id: string;
   label: string;
   quality: string;
-  container: 'MP4' | 'MP3' | 'JPG' | 'PNG';
+  container: 'MP4' | 'MP3' | 'M4A' | 'JPG' | 'PNG';
   fileSize?: string;
   noWatermark: boolean;
   downloadUrl: string;
@@ -88,6 +88,7 @@ export interface CarouselMediaResult extends BaseMediaResult {
   items: CarouselSlideItem[];
   audioTrack?: {
     title: string;
+    ext: 'mp3' | 'm4a';
     fileSize?: string;
     downloadUrl: string;
   };
@@ -387,10 +388,20 @@ export async function extractMediaFromUrl(
         downloadUrl: resolveApiUrl(it.url),
       }));
 
-    const audioItem = (data.items || []).find((it: any) => it.kind === 'audio');
+    const audioItem = (data.items || []).find(
+      (it: any) => it.kind === 'audio' && typeof it.url === 'string' && it.url.trim().length > 0
+    );
+    const resolvedId = String(
+      data.id ||
+        (detected.normalizedUrl || url).match(/\/(?:video|photo)\/([0-9]{10,25})/)?.[1] ||
+        `car-${Date.now()}`
+    ).replace(/[^a-zA-Z0-9_-]/g, '');
+
+    const carouselAudioExt: 'mp3' | 'm4a' =
+      String(audioItem?.ext || '').toLowerCase() === 'mp3' ? 'mp3' : 'm4a';
 
     return {
-      id: `car-${Date.now()}`,
+      id: resolvedId,
       payloadType: 'carousel',
       platform,
       badgeLabel: `${badgeLabel} (Carousel)`,
@@ -405,7 +416,8 @@ export async function extractMediaFromUrl(
       items,
       audioTrack: audioItem
         ? {
-            title: 'Original Audio MP3',
+            title: carouselAudioExt === 'mp3' ? 'Audio MP3' : 'Audio M4A',
+            ext: carouselAudioExt,
             fileSize: audioItem.size || undefined,
             downloadUrl: resolveApiUrl(audioItem.url),
           }
@@ -418,7 +430,14 @@ export async function extractMediaFromUrl(
     (it: any) => it.kind === 'video' || it.kind === 'image'
   );
   const primaryMedia = mediaItems[0] || data.items?.[0];
-  const audioItem = (data.items || []).find((it: any) => it.kind === 'audio');
+  const audioItem = (data.items || []).find(
+    (it: any) => it.kind === 'audio' && typeof it.url === 'string' && it.url.trim().length > 0
+  );
+  const resolvedVideoId = String(
+    data.id ||
+      (detected.normalizedUrl || url).match(/\/(?:video|photo)\/([0-9]{10,25})/)?.[1] ||
+      `vid-${Date.now()}`
+  ).replace(/[^a-zA-Z0-9_-]/g, '');
 
   const formats: VideoFormatOption[] = [];
 
@@ -466,11 +485,14 @@ export async function extractMediaFromUrl(
   }
 
   if (audioItem) {
+    const audioExt: 'mp3' | 'm4a' =
+      String(audioItem.ext || '').toLowerCase() === 'mp3' ? 'mp3' : 'm4a';
+    const audioContainer: 'MP3' | 'M4A' = audioExt === 'mp3' ? 'MP3' : 'M4A';
     formats.push({
-      id: 'audio-mp3',
-      label: 'Extract Audio (MP3)',
-      quality: 'MP3',
-      container: 'MP3',
+      id: `audio-${audioExt}`,
+      label: `Download Audio (${audioContainer})`,
+      quality: 'Audio',
+      container: audioContainer,
       fileSize: audioItem.size || undefined,
       noWatermark: true,
       downloadUrl: resolveApiUrl(audioItem.url),
@@ -487,7 +509,7 @@ export async function extractMediaFromUrl(
       : undefined;
 
   return {
-    id: `vid-${Date.now()}`,
+    id: resolvedVideoId,
     payloadType: 'video',
     platform,
     badgeLabel,

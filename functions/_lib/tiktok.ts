@@ -12,6 +12,7 @@
  */
 
 import { fetchWithContext } from './http.ts';
+import { isAllowedTikTokAudioHost } from './allowlist.ts';
 import type { ExtractResponse, ExtractMediaItem } from './normalize.ts';
 
 export interface TikTokEnv {
@@ -29,6 +30,196 @@ export function resolveTikWmMediaUrl(rawUrl: unknown): string {
     return `https://www.tikwm.com/${trimmed.replace(/^\/+/, '')}`;
   }
   return trimmed;
+}
+
+function decodeTikTokEscapedUrl(raw: string): string {
+  return raw
+    .replace(/\\u002F/gi, '/')
+    .replace(/\\u0026/gi, '&')
+    .replace(/\\u003D/gi, '=')
+    .replace(/\\\//g, '/')
+    .replace(/&amp;/g, '&')
+    .trim();
+}
+
+/**
+ * Extrait l'URL audio depuis l'objet `music` du JSON de la page TikTok.
+ * Retourne `null` si la vidéo n'a pas de son récupérable ou si l'hôte n'est pas autorisé.
+ */
+export function extractTikTokMusicUrl(music: any): string | null {
+  if (!music || typeof music !== 'object') return null;
+  const rawCandidate =
+    (typeof music.playUrl === 'string' ? music.playUrl : null) ||
+    (Array.isArray(music.playUrl?.urlList) ? music.playUrl.urlList[0] : null) ||
+    (typeof music.play_url === 'string' ? music.play_url : null) ||
+    (typeof music.play_url?.uri === 'string' && music.play_url.uri.startsWith('http')
+      ? music.play_url.uri
+      : null) ||
+    (Array.isArray(music.play_url?.url_list) ? music.play_url.url_list[0] : null) ||
+    (typeof music.play === 'string' ? music.play : null);
+
+  if (!rawCandidate || typeof rawCandidate !== 'string') return null;
+  const decoded = decodeTikTokEscapedUrl(rawCandidate);
+  if (!decoded.startsWith('http://') && !decoded.startsWith('https://')) return null;
+  try {
+    const parsed = new URL(decoded);
+    if (!isAllowedTikTokAudioHost(parsed.hostname)) return null;
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Détermine l'extension réelle (`mp3` ou `m4a`) fournie par la source audio TikTok.
+ * Ne renvoie `mp3` que si le flux est réellement du MP3 (`audio/mpeg`, `.mp3`, `mime_type=audio_mpeg`).
+ */
+export function detectTikTokAudioExt(
+  audioUrl: string,
+  contentType?: string | null
+): 'mp3' | 'm4a' {
+  if (contentType) {
+    const ct = contentType.toLowerCase();
+    if (ct.includes('audio/mpeg') || ct.includes('audio/mp3')) {
+      return 'mp3';
+    }
+    if (ct.includes('m4a') || ct.includes('mp4') || ct.includes('aac')) {
+      return 'm4a';
+    }
+  }
+
+  try {
+    const parsed = new URL(audioUrl);
+    const pathLower = parsed.pathname.toLowerCase();
+    const mimeParam = (parsed.searchParams.get('mime_type') || '').toLowerCase();
+    if (
+      pathLower.endsWith('.mp3') ||
+      mimeParam === 'audio_mpeg' ||
+      mimeParam === 'audio/mpeg'
+    ) {
+      return 'mp3';
+    }
+    if (
+      pathLower.endsWith('.m4a') ||
+      pathLower.endsWith('.mp4') ||
+      pathLower.endsWith('.aac') ||
+      mimeParam.includes('mp4') ||
+      mimeParam.includes('m4a') ||
+      mimeParam.includes('aac')
+    ) {
+      return 'm4a';
+    }
+  } catch {
+    // Ignorer
+  }
+
+  return 'm4a';
+}
+
+/**
+ * Vérifie le format réel de l'URL audio TikTok (via les en-têtes HEAD et paramètres d'URL)
+ * et construit l'item `{ kind: "audio", url, quality: "Audio", ext }`.
+ * Retourne `null` si la vidéo n'a pas de son récupérable.
+ */
+export async function buildVerifiedTikTokAudioItem(
+  rawAudioUrl?: string | null,
+  sessionCookies?: string
+): Promise<ExtractMediaItem | null> {
+  if (!rawAudioUrl || typeof rawAudioUrl !== 'string') return null;
+  const cleanUrl = decodeTikTokEscapedUrl(rawAudioUrl);
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) return null;
+
+  try {
+    const parsed = new URL(cleanUrl);
+    if (!isAllowedTikTokAudioHost(parsed.hostname)) return null;
+  } catch {
+    return null;
+  }
+
+  let contentType: string | null = null;
+  try {
+    const headFetch = await fetchWithContext(cleanUrl, {
+      method: 'HEAD',
+      timeoutMs: 2500,
+      headers: {
+        Referer: 'https://www.tiktok.com/',
+        ...(sessionCookies ? { Cookie: sessionCookies } : {}),
+      },
+    });
+    const status = headFetch.response.status;
+    if (status === 404 || status === 410 || status === 403) {
+      return null;
+    }
+    if (headFetch.response.ok || status === 206) {
+      contentType = headFetch.response.headers.get('content-type');
+    }
+  } catch {
+    // En cas de timeout sur HEAD, on détermine le format via l'URL
+  }
+
+  const ext = detectTikTokAudioExt(cleanUrl, contentType);
+  return {
+    kind: 'audio',
+    url: cleanUrl,
+    ...(sessionCookies ? { cookie: sessionCookies } : {}),
+    quality: 'Audio',
+    ext,
+  };
+}
+
+function parseItemStructFromTikTokHtml(html: string): any | null {
+  let itemStruct: any = null;
+
+  const universalMatch = html.match(
+    /<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/i
+  );
+  if (universalMatch?.[1]) {
+    try {
+      const parsed = JSON.parse(universalMatch[1]);
+      const defaultScope = parsed['__DEFAULT_SCOPE__'] || {};
+      const videoDetail =
+        defaultScope['webapp.video-detail'] ||
+        defaultScope['webapp.reflow.video.detail'] ||
+        {};
+      itemStruct = videoDetail.itemInfo?.itemStruct;
+    } catch {
+      // Poursuivre
+    }
+  }
+
+  if (!itemStruct) {
+    const sigiMatch = html.match(
+      /<script id="SIGI_STATE"[^>]*>([\s\S]*?)<\/script>/i
+    );
+    if (sigiMatch?.[1]) {
+      try {
+        const parsed = JSON.parse(sigiMatch[1]);
+        const itemModule = parsed.ItemModule || {};
+        const firstKey = Object.keys(itemModule)[0];
+        if (firstKey) {
+          itemStruct = itemModule[firstKey];
+        }
+      } catch {
+        // Poursuivre
+      }
+    }
+  }
+
+  if (!itemStruct) {
+    const nextMatch = html.match(
+      /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i
+    );
+    if (nextMatch?.[1]) {
+      try {
+        const parsed = JSON.parse(nextMatch[1]);
+        itemStruct = parsed.props?.pageProps?.itemInfo?.itemStruct;
+      } catch {
+        // Poursuivre
+      }
+    }
+  }
+
+  return itemStruct;
 }
 
 function formatDuration(sec: unknown): string | undefined {
@@ -169,13 +360,58 @@ export async function extractTikTok(
     }
   }
 
+  // Pré-récupération du JSON de la page TikTok pour extraire l'URL audio officielle (`itemStruct.music`)
+  let cachedPageFetch: {
+    responseStatus: number;
+    html: string;
+    sessionCookies: string;
+    itemStruct: any | null;
+  } | null = null;
+
+  const fetchOfficialPageOnce = async () => {
+    if (cachedPageFetch) return cachedPageFetch;
+    const customHeaders: Record<string, string> = {
+      Referer: 'https://www.tiktok.com/',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    };
+    if (env?.TT_COOKIE?.trim()) {
+      customHeaders['Cookie'] = env.TT_COOKIE.trim();
+    }
+    const initialFetch = await fetchWithContext(targetUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: customHeaders,
+      timeoutMs: 8000,
+    });
+    const html = await initialFetch.response.text();
+    const sessionCookies = initialFetch.cookieString || '';
+    const itemStruct =
+      initialFetch.response.ok && html ? parseItemStructFromTikTokHtml(html) : null;
+    cachedPageFetch = {
+      responseStatus: initialFetch.response.status,
+      html,
+      sessionCookies,
+      itemStruct,
+    };
+    return cachedPageFetch;
+  };
+
   // ===========================================================================
-  // NIVEAU 1 : API Publique TikWM (Sans clé codée en dur)
+  // NIVEAU 1 : API Publique TikWM + JSON Page TikTok pour le son
   // ===========================================================================
   try {
-    const data = await callTikWmApi(targetUrl, apiKey);
+    const [data, pageSnapshot] = await Promise.all([
+      callTikWmApi(targetUrl, apiKey),
+      kind !== 'profile' ? fetchOfficialPageOnce().catch(() => null) : Promise.resolve(null),
+    ]);
 
     if (data && typeof data === 'object') {
+      const resolvedVideoId = String(
+        data.id || data.video_id || pageSnapshot?.itemStruct?.id || identifier || ''
+      ).trim() || undefined;
       const author = data.author || {};
       const username = String(
         author.unique_id || author.uniqueId || identifier || 'tiktok_user'
@@ -187,9 +423,19 @@ export async function extractTikTok(
         data.origin_cover || data.cover || author.avatar
       );
       const duration = formatDuration(data.duration);
-      const musicUrl = resolveTikWmMediaUrl(
+
+      // Récupération prioritaire de l'URL audio depuis le JSON de la page TikTok (`itemStruct.music`), sinon depuis `data.music_info` / `data.music`
+      const pageMusicUrl = extractTikTokMusicUrl(pageSnapshot?.itemStruct?.music);
+      const tikwmMusicUrl = resolveTikWmMediaUrl(
         typeof data.music === 'string' ? data.music : data.music_info?.play
       );
+      let audioItem = await buildVerifiedTikTokAudioItem(
+        pageMusicUrl,
+        pageSnapshot?.sessionCookies
+      );
+      if (!audioItem && tikwmMusicUrl) {
+        audioItem = await buildVerifiedTikTokAudioItem(tikwmMusicUrl);
+      }
 
       // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
       if (Array.isArray(data.images) && data.images.length > 0) {
@@ -204,18 +450,14 @@ export async function extractTikTok(
             ext: 'jpg',
           }));
 
-        if (musicUrl) {
-          items.push({
-            kind: 'audio',
-            url: musicUrl,
-            quality: 'MP3',
-            ext: 'mp3',
-          });
+        if (audioItem) {
+          items.push(audioItem);
         }
 
         if (items.length > 0) {
           return {
             ok: true,
+            id: resolvedVideoId,
             platform: 'tiktok',
             type: 'carousel',
             title,
@@ -257,18 +499,13 @@ export async function extractTikTok(
           });
         }
 
-        if (musicUrl) {
-          items.push({
-            kind: 'audio',
-            url: musicUrl,
-            backupUrl: sdPlay || hdPlay,
-            quality: 'MP3',
-            ext: 'mp3',
-          });
+        if (audioItem) {
+          items.push(audioItem);
         }
 
         return {
           ok: true,
+          id: resolvedVideoId,
           platform: 'tiktok',
           type: 'video',
           title,
@@ -291,24 +528,9 @@ export async function extractTikTok(
   // NIVEAU 2 : Scraping Direct Page Officielle TikTok (+ transmission cookies)
   // ===========================================================================
   try {
-    const customHeaders: Record<string, string> = {
-      Referer: 'https://www.tiktok.com/',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'same-origin',
-      'Sec-Fetch-User': '?1',
-      'Upgrade-Insecure-Requests': '1',
-    };
-    if (env?.TT_COOKIE?.trim()) {
-      customHeaders['Cookie'] = env.TT_COOKIE.trim();
-    }
+    const pageSnapshot = await fetchOfficialPageOnce();
 
-    const initialFetch = await fetchWithContext(targetUrl, {
-      method: 'GET',
-      redirect: 'follow',
-      headers: customHeaders,
-    });
-
-    if (initialFetch.response.status === 404) {
+    if (pageSnapshot.responseStatus === 404) {
       return {
         ok: false,
         platform: 'tiktok',
@@ -319,15 +541,14 @@ export async function extractTikTok(
       };
     }
 
-    const html = await initialFetch.response.text();
-    const sessionCookies = initialFetch.cookieString || '';
+    const { html, sessionCookies } = pageSnapshot;
 
     if (
       html.includes('verify-bar') ||
       html.includes('captcha-disable') ||
       html.includes('SlardarWAF') ||
       html.includes('_wafchallengeid') ||
-      initialFetch.response.status === 403
+      pageSnapshot.responseStatus === 403
     ) {
       return {
         ok: false,
@@ -340,16 +561,16 @@ export async function extractTikTok(
       };
     }
 
-    let itemStruct: any = null;
+    let itemStruct: any = pageSnapshot.itemStruct;
 
-    const universalMatch = html.match(
-      /<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/i
-    );
-    if (universalMatch?.[1]) {
-      try {
-        const parsed = JSON.parse(universalMatch[1]);
-        const defaultScope = parsed['__DEFAULT_SCOPE__'] || {};
-        if (kind === 'profile') {
+    if (kind === 'profile') {
+      const universalMatch = html.match(
+        /<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/i
+      );
+      if (universalMatch?.[1]) {
+        try {
+          const parsed = JSON.parse(universalMatch[1]);
+          const defaultScope = parsed['__DEFAULT_SCOPE__'] || {};
           const userDetail = defaultScope['webapp.user-detail']?.userInfo;
           if (userDetail?.user) {
             const u = userDetail.user;
@@ -389,40 +610,6 @@ export async function extractTikTok(
               };
             }
           }
-        }
-        const videoDetail = defaultScope['webapp.video-detail'] || {};
-        itemStruct = videoDetail.itemInfo?.itemStruct;
-      } catch {
-        // Poursuivre
-      }
-    }
-
-    if (!itemStruct) {
-      const sigiMatch = html.match(
-        /<script id="SIGI_STATE"[^>]*>([\s\S]*?)<\/script>/i
-      );
-      if (sigiMatch?.[1]) {
-        try {
-          const parsed = JSON.parse(sigiMatch[1]);
-          const itemModule = parsed.ItemModule || {};
-          const firstKey = Object.keys(itemModule)[0];
-          if (firstKey) {
-            itemStruct = itemModule[firstKey];
-          }
-        } catch {
-          // Poursuivre
-        }
-      }
-    }
-
-    if (!itemStruct) {
-      const nextMatch = html.match(
-        /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i
-      );
-      if (nextMatch?.[1]) {
-        try {
-          const parsed = JSON.parse(nextMatch[1]);
-          itemStruct = parsed.props?.pageProps?.itemInfo?.itemStruct;
         } catch {
           // Poursuivre
         }
@@ -453,6 +640,7 @@ export async function extractTikTok(
       };
     }
 
+    const resolvedVideoId = String(itemStruct.id || identifier || '').trim() || undefined;
     const author = itemStruct.author || {};
     const username = String(author.uniqueId || 'tiktok_user').replace(/^@/, '');
     const nickname = String(author.nickname || `@${username}`);
@@ -467,6 +655,12 @@ export async function extractTikTok(
         avatar
     );
     const duration = formatDuration(itemStruct.video?.duration);
+
+    const pageMusicUrl = extractTikTokMusicUrl(itemStruct.music);
+    const audioItem = await buildVerifiedTikTokAudioItem(
+      pageMusicUrl,
+      sessionCookies
+    );
 
     const items: ExtractMediaItem[] = [];
 
@@ -491,18 +685,13 @@ export async function extractTikTok(
         }
       });
 
-      if (itemStruct.music?.playUrl) {
-        items.push({
-          kind: 'audio',
-          url: itemStruct.music.playUrl,
-          cookie: sessionCookies,
-          quality: 'MP3',
-          ext: 'mp3',
-        });
+      if (audioItem) {
+        items.push(audioItem);
       }
 
       return {
         ok: true,
+        id: resolvedVideoId,
         platform: 'tiktok',
         type: 'carousel',
         title,
@@ -557,18 +746,13 @@ export async function extractTikTok(
       height: video.height || undefined,
     });
 
-    if (itemStruct.music?.playUrl) {
-      items.push({
-        kind: 'audio',
-        url: itemStruct.music.playUrl,
-        cookie: sessionCookies,
-        quality: 'MP3',
-        ext: 'mp3',
-      });
+    if (audioItem) {
+      items.push(audioItem);
     }
 
     return {
       ok: true,
+      id: resolvedVideoId,
       platform: 'tiktok',
       type: 'video',
       title,

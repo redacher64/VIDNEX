@@ -65,6 +65,7 @@ function inferMimeType(
   const lower = filename.toLowerCase();
   if (lower.endsWith('.mp4')) return 'video/mp4';
   if (lower.endsWith('.mp3')) return 'audio/mpeg';
+  if (lower.endsWith('.m4a')) return 'audio/mp4';
   if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
   if (lower.endsWith('.png')) return 'image/png';
   if (lower.endsWith('.webp')) return 'image/webp';
@@ -391,7 +392,9 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
           detection.identifier
         );
         if (fresh.ok && fresh.items?.length) {
-          const wantAudio = safeFilename.toLowerCase().endsWith('.mp3');
+          const lowerFilename = safeFilename.toLowerCase();
+          const wantAudio =
+            lowerFilename.endsWith('.mp3') || lowerFilename.endsWith('.m4a');
           const freshItem =
             fresh.items.find((it) =>
               wantAudio ? it.kind === 'audio' : it.kind === 'video'

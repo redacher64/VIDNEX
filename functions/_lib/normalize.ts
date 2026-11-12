@@ -30,6 +30,7 @@ export interface ExtractMediaItem {
 
 export interface ExtractResponse {
   ok: boolean;
+  id?: string;
   platform?: 'tiktok' | 'instagram' | 'x' | 'facebook';
   type?: 'video' | 'image' | 'carousel' | 'profile';
   title?: string;

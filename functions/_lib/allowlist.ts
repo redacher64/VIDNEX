@@ -46,6 +46,34 @@ const ALLOWED_EXACT_MEDIA_HOSTS = new Set([
 ]);
 
 /**
+ * Suffixes CDN audio TikTok réellement observés en production
+ * (ex: sf16-music.tiktokcdn-eu.com, v45.tiktokcdn-eu.com, v16-ies-music.tiktokcdn-us.com,
+ * v19.tiktokcdn-us.com, sf16.tiktokcdn-us.com, sf16-ies-music.tiktokcdn.com,
+ * sf16-ies-music-sg.tiktokcdn.com, sf16-ies-music-va.tiktokcdn.com, v45.tiktokcdn.com).
+ */
+export const OBSERVED_TIKTOK_AUDIO_HOST_SUFFIXES = [
+  '-music.tiktokcdn-eu.com',
+  '-ies-music.tiktokcdn-us.com',
+  '-ies-music.tiktokcdn.com',
+  '-ies-music-sg.tiktokcdn.com',
+  '-ies-music-va.tiktokcdn.com',
+  '.tiktokcdn-eu.com',
+  '.tiktokcdn-us.com',
+  '.tiktokcdn.com',
+  '.tikwm.com',
+] as const;
+
+export function isAllowedTikTokAudioHost(hostname: string): boolean {
+  if (!hostname) return false;
+  const lower = hostname.trim().toLowerCase();
+  if (isPrivateOrReservedHost(lower)) return false;
+  if (lower === 'tikwm.com' || lower === 'www.tikwm.com') return true;
+  return OBSERVED_TIKTOK_AUDIO_HOST_SUFFIXES.some((suffix) =>
+    lower.endsWith(suffix)
+  );
+}
+
+/**
  * Domaines où SEULS les sous-domaines stricts (`*.domain`) sont autorisés,
  * mais JAMAIS le domaine nu (`facebook.com`, `instagram.com`, `tiktok.com`).
  */
@@ -130,6 +158,10 @@ export function isAllowedMediaHost(hostname: string): boolean {
 
   // Autoriser strictement les 3 hôtes médias officiels de X (pas de wildcard *.twimg.com)
   if (ALLOWED_EXACT_MEDIA_HOSTS.has(lower)) {
+    return true;
+  }
+
+  if (isAllowedTikTokAudioHost(lower)) {
     return true;
   }
 

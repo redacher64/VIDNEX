@@ -452,15 +452,21 @@ async function handleExtract(
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, '');
   const sharedCookie = isIgProfile ? undefined : result.cookie;
-  const tweetOrMediaId = (detection.identifier || 'post').replace(/[^a-zA-Z0-9_-]/g, '');
+  const tweetOrMediaId = (
+    result.id ||
+    detection.identifier ||
+    'post'
+  ).replace(/[^a-zA-Z0-9_-]/g, '');
 
   const transformedItems = (result.items || []).map((item, idx) => {
     const ext =
       item.ext ||
-      (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'mp3' : 'jpg');
+      (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'm4a' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
     const safeFilename = isIgProfile
       ? `instagram_${profileUsername}_profile.jpg`
+      : result.platform === 'tiktok' && item.kind === 'audio'
+      ? `tiktok_${tweetOrMediaId}.${ext}`
       : result.platform === 'facebook'
       ? `facebook_${tweetOrMediaId}.${ext}`
       : result.platform === 'x'
@@ -531,6 +537,7 @@ async function handleExtract(
     : undefined;
 
   return createSuccessResponse({
+    id: tweetOrMediaId,
     platform: result.platform,
     type: result.type,
     title: result.title,

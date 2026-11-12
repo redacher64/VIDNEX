@@ -266,7 +266,14 @@ const VideoResultView: React.FC<{
     setHasTriggeredDownload(true);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
     const ext = container.toLowerCase();
-    const filename = `VIDNEX_${data.platform}_${cleanHandle}_${quality}.${ext}`;
+    const isAudio = ext === 'mp3' || ext === 'm4a' || quality === 'Audio';
+    const cleanVideoId = (data.id || 'video')
+      .replace(/^vid-|^car-/, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
+    const filename =
+      data.platform === 'tiktok' && isAudio
+        ? `tiktok_${cleanVideoId}.${ext}`
+        : `VIDNEX_${data.platform}_${cleanHandle}_${quality}.${ext}`;
 
     triggerNativeBackendDownload(filename, downloadUrl);
 
@@ -431,7 +438,9 @@ const VideoResultView: React.FC<{
                   <span>
                     {activeDownloadId === fmt.id
                       ? t.saving
-                      : fmt.container === 'MP3'
+                      : fmt.container === 'MP3' ||
+                        fmt.container === 'M4A' ||
+                        fmt.quality === 'Audio'
                       ? t.extractAudioMp3
                       : fmt.quality === '720p' &&
                         data.platform !== 'x' &&
@@ -443,7 +452,11 @@ const VideoResultView: React.FC<{
                     dir="ltr"
                     className="font-mono text-xs text-orange-700 dark:text-amber-400 shrink-0"
                   >
-                    {fmt.fileSize || fmt.quality}
+                    {fmt.container === 'MP3' || fmt.container === 'M4A'
+                      ? fmt.fileSize
+                        ? `${fmt.container} · ${fmt.fileSize}`
+                        : fmt.container
+                      : fmt.fileSize || fmt.quality}
                   </span>
                 </button>
               ))}
@@ -840,15 +853,23 @@ const CarouselResultView: React.FC<{
                 /[^a-zA-Z0-9_-]/g,
                 ''
               );
+              const cleanVideoId = (data.id || 'video')
+                .replace(/^car-|^vid-/, '')
+                .replace(/[^a-zA-Z0-9_-]/g, '');
+              const ext = data.audioTrack?.ext === 'mp3' ? 'mp3' : 'm4a';
+              const audioFilename =
+                data.platform === 'tiktok'
+                  ? `tiktok_${cleanVideoId}.${ext}`
+                  : `VIDNEX_${cleanHandle}_audio.${ext}`;
               triggerNativeBackendDownload(
-                `VIDNEX_${cleanHandle}_audio.mp3`,
+                audioFilename,
                 data.audioTrack?.downloadUrl
               );
             }}
             className="w-full sm:w-auto min-h-[48px] px-4 py-2 rounded-xl bg-orange-50/90 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 text-xs font-mono font-bold text-orange-950 dark:text-orange-100 transition-colors cursor-pointer"
           >
-            {t.extractAudioMp3}
-            {data.audioTrack.fileSize ? ` (${data.audioTrack.fileSize})` : ''}
+            {t.extractAudioMp3} ({data.audioTrack.ext === 'mp3' ? 'MP3' : 'M4A'}
+            {data.audioTrack.fileSize ? ` · ${data.audioTrack.fileSize}` : ''})
           </button>
         </div>
       )}

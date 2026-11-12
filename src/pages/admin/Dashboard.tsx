@@ -13,6 +13,8 @@ interface DailyBucket {
   total: number;
   success: number;
   error: number;
+  download_started?: number;
+  download_success?: number;
 }
 
 interface PlatformStats {
@@ -20,6 +22,24 @@ interface PlatformStats {
   success: number;
   error: number;
   successRate: number;
+  extract_started?: number;
+  extract_success?: number;
+  extract_error?: number;
+  download_started?: number;
+  download_success?: number;
+  downloadRate?: number;
+  downloadCompletionRate?: number;
+}
+
+interface FunnelStats {
+  extract_started: number;
+  extract_success: number;
+  extract_error: number;
+  download_started: number;
+  download_success: number;
+  extractSuccessRate: number;
+  downloadConversionRate: number;
+  downloadCompletionRate: number;
 }
 
 interface EngineHealthSummary {
@@ -44,6 +64,7 @@ interface StatsResponse {
     last7d: number;
     last30d: number;
   };
+  funnel?: FunnelStats;
   platforms: {
     tiktok: PlatformStats;
     instagram: PlatformStats;
@@ -156,6 +177,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   }, []);
 
   const counts = data?.counts || { today: 0, last7d: 0, last30d: 0 };
+  const funnel: FunnelStats = data?.funnel || {
+    extract_started: counts.last30d,
+    extract_success: 0,
+    extract_error: 0,
+    download_started: 0,
+    download_success: 0,
+    extractSuccessRate: 0,
+    downloadConversionRate: 0,
+    downloadCompletionRate: 0,
+  };
   const tiktok = data?.platforms.tiktok || { total: 0, success: 0, error: 0, successRate: 0 };
   const instagram = data?.platforms.instagram || { total: 0, success: 0, error: 0, successRate: 0 };
   const instagramProfileStats = data?.platforms.instagram_profile || {
@@ -179,7 +210,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             Vue d’ensemble & Télémétrie D1
           </h2>
           <p className="text-xs text-orange-200/65 font-mono">
-            Purge automatique opportuniste des journaux de plus de 30 jours activée
+            Compteurs agrégés daily_metrics (0 identifiant personnel) & erreurs détaillées request_log (30j)
           </p>
         </div>
         <button
@@ -223,7 +254,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             {counts.last7d}
           </p>
           <p className="mt-1 text-[11px] text-orange-200/55 font-mono">
-            Fenêtre glissante 168h
+            Fenêtre glissante 7j
           </p>
         </div>
 
@@ -238,6 +269,73 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           <p className="mt-1 text-[11px] text-orange-200/55 font-mono">
             Rétention maximale D1 (30j)
           </p>
+        </div>
+      </div>
+
+      {/* Entonnoir Extraction -> Téléchargement (30 jours) */}
+      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-display text-sm font-bold text-white">
+              Entonnoir Extraction → Téléchargement (30 jours)
+            </h3>
+            <p className="text-xs text-orange-200/60 font-mono">
+              Suivi agrégé sans identifiant : extract_started → extract_success → download_started → download_success
+            </p>
+          </div>
+          <span className="text-xs font-mono text-emerald-300 bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded-lg tabular-nums">
+            Conversion globale : {funnel.downloadConversionRate}%
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-xl bg-[#120c08] border border-orange-950/80">
+            <span className="text-[11px] font-mono text-orange-300/75 block">
+              1. Extractions démarrées
+            </span>
+            <span className="font-display text-2xl font-bold text-white tabular-nums">
+              {funnel.extract_started}
+            </span>
+            <span className="text-[11px] font-mono text-orange-200/55 block">
+              extract_started ({funnel.extract_error} échec(s))
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#120c08] border border-emerald-950/80">
+            <span className="text-[11px] font-mono text-emerald-300/80 block">
+              2. Extractions réussies
+            </span>
+            <span className="font-display text-2xl font-bold text-emerald-400 tabular-nums">
+              {funnel.extract_success}
+            </span>
+            <span className="text-[11px] font-mono text-emerald-200/60 block">
+              extract_success ({funnel.extractSuccessRate}%)
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#120c08] border border-amber-950/80">
+            <span className="text-[11px] font-mono text-amber-300/80 block">
+              3. Téléchargements lancés
+            </span>
+            <span className="font-display text-2xl font-bold text-amber-300 tabular-nums">
+              {funnel.download_started}
+            </span>
+            <span className="text-[11px] font-mono text-amber-200/60 block">
+              download_started (1x / fichier / min)
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#120c08] border border-emerald-900/70">
+            <span className="text-[11px] font-mono text-emerald-300/85 block">
+              4. Flux terminés sans erreur
+            </span>
+            <span className="font-display text-2xl font-bold text-emerald-400 tabular-nums">
+              {funnel.download_success}
+            </span>
+            <span className="text-[11px] font-mono text-emerald-200/65 block">
+              download_success ({funnel.downloadCompletionRate}% des flux)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -323,6 +421,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
         ].map(({ key, label, stats }) => {
           const failRate =
             stats.total > 0 ? Math.round((stats.error / stats.total) * 1000) / 10 : 0;
+          const dlStarted = stats.download_started ?? 0;
+          const dlSuccess = stats.download_success ?? 0;
           return (
             <div
               key={key}
@@ -359,6 +459,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
                     {stats.error} échec(s)
                   </span>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] font-mono text-orange-200/75 px-1">
+                <span>Téléchargements : {dlStarted} lancés</span>
+                <span className="text-emerald-300">{dlSuccess} terminés</span>
               </div>
 
               {/* Barre de progression SVG/CSS */}

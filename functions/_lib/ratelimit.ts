@@ -91,12 +91,17 @@ export function checkRateLimit(
   };
 }
 
+const downloadFileWindowSeen = new Map<string, { window: number; result: D1RateLimitResult }>();
+const MAX_DOWNLOAD_FILE_SEEN = 10_000;
+
 export function resetRateLimitBuckets(): void {
   buckets.clear();
+  downloadFileWindowSeen.clear();
 }
 
 export function resetD1RateLimitFallback(): void {
   buckets.clear();
+  downloadFileWindowSeen.clear();
 }
 
 export interface D1RateLimitResult {
@@ -104,6 +109,7 @@ export interface D1RateLimitResult {
   count: number;
   limit: number;
   retryAfterSec: number;
+  firstRequestForFile?: boolean;
 }
 
 /**
@@ -176,4 +182,63 @@ export async function checkD1RateLimit(
       retryAfterSec: mem.retryAfterSec,
     };
   }
+}
+
+/**
+ * Limite le débit de `/api/download` par IP hachée via `checkD1RateLimit` (D1 `rate_limits` avec repli mémoire).
+ * Compte UNE SEULE FOIS par fichier et par minute (requêtes HTTP `Range` comprises).
+ */
+export async function checkD1DownloadRateLimit(
+  env: AdminEnv | undefined,
+  ipHash: string,
+  fileKey: string,
+  limitPerMin = 60,
+  nowMs = Date.now()
+): Promise<D1RateLimitResult> {
+  const safeLimit = Math.max(1, Math.floor(limitPerMin || 60));
+  const currentWindow = Math.floor(nowMs / 60_000);
+  const retryAfterSec = Math.max(
+    1,
+    Math.ceil(((currentWindow + 1) * 60_000 - nowMs) / 1000)
+  );
+
+  if (downloadFileWindowSeen.size > MAX_DOWNLOAD_FILE_SEEN) {
+    for (const [k, v] of downloadFileWindowSeen.entries()) {
+      if (v.window < currentWindow) {
+        downloadFileWindowSeen.delete(k);
+      }
+    }
+    if (downloadFileWindowSeen.size > MAX_DOWNLOAD_FILE_SEEN) {
+      downloadFileWindowSeen.clear();
+    }
+  }
+
+  const normalizedFileKey = (fileKey || 'default').trim();
+  const dedupeKey = `${ipHash}:${currentWindow}:${normalizedFileKey}`;
+  const seen = downloadFileWindowSeen.get(dedupeKey);
+  if (seen && seen.window === currentWindow) {
+    return {
+      ...seen.result,
+      retryAfterSec: seen.result.allowed ? 0 : retryAfterSec,
+      firstRequestForFile: false,
+    };
+  }
+
+  const res = await checkD1RateLimit(
+    env,
+    `dl:${ipHash}`,
+    safeLimit,
+    nowMs
+  );
+
+  const finalResult: D1RateLimitResult = {
+    ...res,
+    firstRequestForFile: true,
+  };
+  downloadFileWindowSeen.set(dedupeKey, {
+    window: currentWindow,
+    result: finalResult,
+  });
+
+  return finalResult;
 }

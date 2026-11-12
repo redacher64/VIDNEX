@@ -21,12 +21,15 @@ export interface D1Database {
   prepare(query: string): D1PreparedStatement;
   batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
   exec(query: string): Promise<{ count: number; duration: number }>;
+  getWriteCount?: () => number;
+  resetWriteCount?: () => void;
 }
 
 export interface AdminEnv {
   DB?: D1Database | null;
   DB_DISABLED?: string;
   ADMIN_PASSWORD?: string;
+  ALERT_WEBHOOK_URL?: string;
   SESSION_SECRET?: string;
   IP_HASH_SALT?: string;
   IG_SESSION_ID?: string;
@@ -75,14 +78,16 @@ export async function hashIpAddress(
 
 const bootstrappedDbs = new WeakSet<object>();
 const migratedColumnsDbs = new WeakSet<object>();
+const migratedEngineColumnsDbs = new WeakSet<object>();
 
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
-  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('rate_limit_per_min', '30'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
+  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
   `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
-  `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT)`,
-  `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code) VALUES ('tiktok', NULL, NULL, NULL, NULL), ('instagram', NULL, NULL, NULL, NULL), ('instagram_profile', NULL, NULL, NULL, NULL), ('x', NULL, NULL, NULL, NULL), ('facebook', NULL, NULL, NULL, NULL), ('linkedin', NULL, NULL, NULL, NULL)`,
+  `CREATE TABLE IF NOT EXISTS daily_metrics (day TEXT NOT NULL, platform TEXT NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, platform, event))`,
+  `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT, consecutive_failures INTEGER NOT NULL DEFAULT 0, alert_sent INTEGER NOT NULL DEFAULT 0)`,
+  `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code, consecutive_failures, alert_sent) VALUES ('tiktok', NULL, NULL, NULL, NULL, 0, 0), ('instagram', NULL, NULL, NULL, NULL, 0, 0), ('instagram_profile', NULL, NULL, NULL, NULL, 0, 0), ('x', NULL, NULL, NULL, NULL, 0, 0), ('facebook', NULL, NULL, NULL, NULL, 0, 0), ('linkedin', NULL, NULL, NULL, NULL, 0, 0)`,
   `CREATE TABLE IF NOT EXISTS blocklist (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, value TEXT NOT NULL, created_ts INTEGER NOT NULL, UNIQUE(type, value))`,
   `CREATE TABLE IF NOT EXISTS rate_limits (ip_hash TEXT NOT NULL, window INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (ip_hash, window))`,
   `CREATE TABLE IF NOT EXISTS login_attempts (ip_hash TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, window_start_ts INTEGER NOT NULL, blocked_until_ts INTEGER)`,
@@ -96,6 +101,17 @@ async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boo
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_stage TEXT').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
       migratedColumnsDbs.add(rawDb);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  if (msg.includes('no such column: consecutive_failures') || msg.includes('no such column: alert_sent')) {
+    if (migratedEngineColumnsDbs.has(rawDb)) return false;
+    try {
+      await rawDb.prepare('ALTER TABLE engine_status ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE engine_status ADD COLUMN alert_sent INTEGER NOT NULL DEFAULT 0').run().catch(() => {});
+      migratedEngineColumnsDbs.add(rawDb);
       return true;
     } catch {
       return false;
@@ -169,6 +185,8 @@ function wrapAutoBootstrapD1(rawDb: D1Database): D1Database {
     exec(query: string) {
       return rawDb.exec(query);
     },
+    getWriteCount: rawDb.getWriteCount,
+    resetWriteCount: rawDb.resetWriteCount,
   };
 }
 
@@ -198,6 +216,7 @@ export function createMemoryD1Database(): D1Database {
     ['platform_facebook', 'true'],
     ['platform_linkedin', 'true'],
     ['rate_limit_per_min', '30'],
+    ['download_limit_per_min', '60'],
     ['ads_enabled', 'true'],
     ['test_url_tiktok', ''],
     ['test_url_instagram', ''],
@@ -219,12 +238,21 @@ export function createMemoryD1Database(): D1Database {
     http_status: number | null;
   }
 
+  interface DailyMetricRow {
+    day: string;
+    platform: string;
+    event: string;
+    count: number;
+  }
+
   interface EngineStatusRow {
     platform: string;
     last_success_ts: number | null;
     last_test_ts: number | null;
     last_test_ok: number | null;
     last_error_code: string | null;
+    consecutive_failures: number;
+    alert_sent: number;
   }
 
   interface BlocklistRow {
@@ -243,7 +271,9 @@ export function createMemoryD1Database(): D1Database {
 
   let logSeq = 1;
   let blockSeq = 1;
+  let writeCount = 0;
   let requestLogs: RequestLogRow[] = [];
+  const dailyMetrics = new Map<string, DailyMetricRow>();
   const engineStatus = new Map<string, EngineStatusRow>([
     [
       'tiktok',
@@ -253,6 +283,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
     [
@@ -263,6 +295,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
     [
@@ -273,6 +307,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
     [
@@ -283,6 +319,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
     [
@@ -293,6 +331,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
     [
@@ -303,6 +343,8 @@ export function createMemoryD1Database(): D1Database {
         last_test_ts: null,
         last_test_ok: null,
         last_error_code: null,
+        consecutive_failures: 0,
+        alert_sent: 0,
       },
     ],
   ]);
@@ -315,6 +357,14 @@ export function createMemoryD1Database(): D1Database {
     const lower = normalized.toLowerCase();
 
     const execute = async (): Promise<unknown[]> => {
+      if (
+        lower.startsWith('insert ') ||
+        lower.startsWith('update ') ||
+        lower.startsWith('delete ')
+      ) {
+        writeCount += 1;
+      }
+
       // 1. SETTINGS
       if (lower.startsWith('select key, value from settings')) {
         return Array.from(settings.entries()).map(([key, value]) => ({ key, value }));
@@ -402,9 +452,50 @@ export function createMemoryD1Database(): D1Database {
         return [];
       }
 
-      // 5. ENGINE_STATUS
-      if (lower.startsWith('select platform, last_success_ts, last_test_ts, last_test_ok, last_error_code from engine_status')) {
-        return Array.from(engineStatus.values());
+      // 5. DAILY_METRICS
+      if (lower.startsWith('insert into daily_metrics')) {
+        for (let i = 0; i + 3 < boundValues.length; i += 4) {
+          const day = String(boundValues[i] || '');
+          const platform = String(boundValues[i + 1] || '');
+          const event = String(boundValues[i + 2] || '');
+          const delta = Number(boundValues[i + 3] ?? 1);
+          const key = `${day}:${platform}:${event}`;
+          const existing = dailyMetrics.get(key);
+          dailyMetrics.set(key, {
+            day,
+            platform,
+            event,
+            count: (existing?.count ?? 0) + delta,
+          });
+        }
+        return [];
+      }
+      if (lower.startsWith('select day, platform, event, count from daily_metrics')) {
+        const rows = Array.from(dailyMetrics.values());
+        if (lower.includes('where day >=')) {
+          const minDay = String(boundValues[0] || '');
+          return rows
+            .filter((r) => r.day >= minDay)
+            .sort((a, b) => a.day.localeCompare(b.day));
+        }
+        return rows.sort((a, b) => a.day.localeCompare(b.day));
+      }
+      if (lower.startsWith('delete from daily_metrics where day <')) {
+        const cutoffDay = String(boundValues[0] || '');
+        for (const [k, v] of dailyMetrics.entries()) {
+          if (v.day < cutoffDay) dailyMetrics.delete(k);
+        }
+        return [];
+      }
+
+      // 6. ENGINE_STATUS
+      if (lower.startsWith('select') && lower.includes('from engine_status')) {
+        if (lower.includes('where platform =')) {
+          const platform = String(boundValues[0] || '');
+          const row = engineStatus.get(platform);
+          return row ? [{ ...row }] : [];
+        }
+        return Array.from(engineStatus.values()).map((r) => ({ ...r }));
       }
       if (lower.startsWith('insert into engine_status')) {
         const platform = String(boundValues[0] || '');
@@ -414,6 +505,8 @@ export function createMemoryD1Database(): D1Database {
           last_test_ts: null,
           last_test_ok: null,
           last_error_code: null,
+          consecutive_failures: 0,
+          alert_sent: 0,
         };
         if (lower.includes('last_test_ts')) {
           const successTs = boundValues[1] ? Number(boundValues[1]) : current.last_success_ts;
@@ -426,6 +519,26 @@ export function createMemoryD1Database(): D1Database {
             last_test_ts: testTs,
             last_test_ok: ok,
             last_error_code: ok === 1 ? null : errCode,
+            consecutive_failures: ok === 1 ? 0 : current.consecutive_failures,
+            alert_sent: ok === 1 ? 0 : current.alert_sent,
+          });
+        } else if (lower.includes('consecutive_failures')) {
+          const successTs = boundValues[1] ? Number(boundValues[1]) : current.last_success_ts;
+          const errCode = boundValues[2] ? String(boundValues[2]) : null;
+          const consecutiveFailures =
+            boundValues[3] !== undefined && boundValues[3] !== null
+              ? Number(boundValues[3])
+              : current.consecutive_failures;
+          const alertSent =
+            boundValues[4] !== undefined && boundValues[4] !== null
+              ? Number(boundValues[4])
+              : current.alert_sent;
+          engineStatus.set(platform, {
+            ...current,
+            last_success_ts: successTs,
+            last_error_code: errCode,
+            consecutive_failures: consecutiveFailures,
+            alert_sent: alertSent,
           });
         } else {
           const successTs = boundValues[1] ? Number(boundValues[1]) : current.last_success_ts;
@@ -439,7 +552,7 @@ export function createMemoryD1Database(): D1Database {
         return [];
       }
 
-      // 6. REQUEST_LOG
+      // 7. REQUEST_LOG
       if (lower.startsWith('insert into request_log')) {
         const ts = Number(boundValues[0] || Date.now());
         const platform = String(boundValues[1] || 'unknown');
@@ -536,6 +649,12 @@ export function createMemoryD1Database(): D1Database {
     },
     async exec(): Promise<{ count: number; duration: number }> {
       return { count: 1, duration: 0 };
+    },
+    getWriteCount() {
+      return writeCount;
+    },
+    resetWriteCount() {
+      writeCount = 0;
     },
   };
 }

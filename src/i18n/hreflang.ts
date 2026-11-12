@@ -27,10 +27,49 @@ import {
   isPlatformPageKey,
   LOCALES_CONFIG,
   type PageKey,
+  type PlatformPageKey,
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from './config.ts';
 import { getLocaleBundleSync } from './localeLoader.ts';
+
+export interface ShareUrls {
+  canonicalUrl: string;
+  whatsapp: string;
+  telegram: string;
+  facebook: string;
+  x: string;
+}
+
+/**
+ * Pure helper to build clean, tracking-free social share URLs for a given locale and tool page.
+ * Exported for unit testing.
+ */
+export function buildSocialShareUrls(
+  locale: SupportedLocale,
+  pageKey: 'home' | PlatformPageKey
+): ShareUrls {
+  const bundle = getLocaleBundleSync(locale);
+  const canonicalUrl = getPageCanonicalUrl(locale, pageKey);
+  const pageData =
+    pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
+  const shareTitle = pageData.ogTitle || pageData.metaTitle;
+  const shareTextWithUrl = `${shareTitle} — ${canonicalUrl}`;
+
+  return {
+    canonicalUrl,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTextWithUrl)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(
+      canonicalUrl
+    )}&text=${encodeURIComponent(shareTitle)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      canonicalUrl
+    )}`,
+    x: `https://x.com/intent/tweet?url=${encodeURIComponent(
+      canonicalUrl
+    )}&text=${encodeURIComponent(shareTitle)}`,
+  };
+}
 
 export interface HreflangEntry {
   hreflang: string;

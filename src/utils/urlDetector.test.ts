@@ -1376,11 +1376,9 @@ describe('VIDNEX URL Detection & Security Suite', () => {
   it('ÉTAPE 1 à 7 (OPENGRAPH, TWITTER CARDS, IMAGES /OG/, FAVICONS & SHAREBUTTON) — Métadonnées sociales par page/langue, troncature propre arabe/latin, liens de partage sans suivi, et accès robots', async () => {
     const {
       buildHeadMetadataForRoute,
+      buildSocialShareUrls,
       clampSocialText,
     } = await import('../i18n/hreflang.ts');
-    const { buildSocialShareUrls } = await import(
-      '../components/ShareButton.tsx'
-    );
     const { OG_IMAGES, SITE_URL } = await import('../config/site.ts');
 
     // 1. Vérifie que chaque plateforme utilise son image dédiée avec hash en URL absolue https
@@ -1958,19 +1956,18 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(activityGetRes.status, 200);
     const activityGetJson: any = await activityGetRes.json();
     assert.equal(activityGetJson.ok, true);
-    assert.ok(activityGetJson.items.length >= 3);
-    const igProfileLog = activityGetJson.items.find(
+    assert.ok(activityGetJson.items.length >= 1);
+    const igProfileSuccessLog = activityGetJson.items.find(
       (it: any) => it.platform === 'instagram_profile' && it.status === 'success'
     );
-    assert.ok(igProfileLog);
-    assert.equal(igProfileLog.engine_stage, 'level3_public_page');
-    assert.equal(igProfileLog.http_status, 200);
+    assert.equal(igProfileSuccessLog, undefined, 'Successes are aggregated in daily_metrics, not request_log');
     const notFoundLog = activityGetJson.items.find(
       (it: any) => it.platform === 'instagram_profile' && it.error_code === 'NOT_FOUND'
     );
     assert.ok(notFoundLog);
     assert.ok(notFoundLog.engine_stage.includes('+'));
     assert.equal(notFoundLog.http_status, 404);
+    assert.equal(notFoundLog.ip_hash, '');
 
     const statsGetRes = await worker.fetch(
       new Request('https://vidnex.space/api/admin/stats', {
@@ -1982,6 +1979,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const statsGetJson: any = await statsGetRes.json();
     assert.ok(statsGetJson.platforms.instagram_profile);
     assert.ok(statsGetJson.platforms.instagram_profile.total >= 3);
+    assert.ok(statsGetJson.platforms.instagram_profile.success >= 1);
   });
 
   it('Serves /llms.txt in text/plain with site name, public-only description, main absolute URLs, and 10 languages', async () => {

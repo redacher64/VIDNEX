@@ -55,10 +55,10 @@ export const Activity: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-bold text-white">
-            Journal d’activité en temps réel
+            Journal détaillé des erreurs (30j)
           </h2>
           <p className="text-xs text-orange-200/65 font-mono">
-            Aucune URL de vidéo, aucun cookie ni adresse IP en clair n’est stocké (SHA-256 + IP_HASH_SALT)
+            Seules les erreurs (code, étape, statut HTTP) sont journalisées ici — aucun identifiant personnel ni URL stocké
           </p>
         </div>
 

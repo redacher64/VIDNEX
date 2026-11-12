@@ -222,8 +222,8 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               }`}
             >
               {/* Protocol / Platform Status Box (Desktop) */}
-              <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 rounded-xl shrink-0 shadow-inner">
-                <span className="text-orange-600 dark:text-amber-400">
+              <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 bg-orange-50 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-900/60 rounded-xl shrink-0 max-w-[240px] shadow-inner">
+                <span className="text-orange-600 dark:text-amber-400 shrink-0">
                   <PlatformIcon
                     platform={
                       detected.platform ? detected.platform : activePlatform
@@ -231,7 +231,14 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                     className="w-4 h-4"
                   />
                 </span>
-                <span className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap">
+                <span
+                  title={
+                    detected.badgeLabel
+                      ? detected.badgeLabel
+                      : currentBadgeLabel
+                  }
+                  className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap truncate"
+                >
                   {detected.badgeLabel
                     ? detected.badgeLabel
                     : currentBadgeLabel}
@@ -363,8 +370,8 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             )}
           </form>
 
-          {/* Supported Platform Chips (smooth horizontal snap-x scroll on mobile, hides disabled platforms) */}
-          <div className="mt-3.5 sm:mt-5 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto snap-x snap-mandatory no-scrollbar py-0.5">
+          {/* Supported Platform Chips (smooth horizontal snap-x scroll on mobile, single centered line on sm+ without clipping) */}
+          <div className="mt-3.5 sm:mt-5 flex items-center justify-start sm:justify-center sm:flex-wrap gap-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory no-scrollbar py-0.5">
             {PLATFORM_PAGE_KEYS.filter((pKey) => isPlatformSupported(pKey)).map(
               (pKey) => {
                 const pInfo = bundle.platforms[pKey];
@@ -380,7 +387,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                       e.preventDefault();
                       onNavigatePage(pKey);
                     }}
-                    className={`snap-start shrink-0 min-h-[44px] px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
+                    className={`snap-start shrink-0 min-h-[44px] px-3 sm:px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
                       isSelected
                         ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
                         : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'

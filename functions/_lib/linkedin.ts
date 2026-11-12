@@ -1,8 +1,25 @@
-import { BROWSER_USER_AGENT } from './http';
-import { isAllowedMediaUrl } from './allowlist';
-import type { ErrorCode, ExtractResponse } from './normalize';
+import { BROWSER_USER_AGENT } from './http.ts';
+import { isAllowedMediaUrl } from './allowlist.ts';
+import type { ErrorCode, ExtractResponse } from './normalize.ts';
 
 const LINKEDIN_TIMEOUT_MS = 8000;
+const LINKEDIN_ATTEMPT_TIMEOUT_MS = 4500;
+const LINKEDIN_ALLOWED_REDIRECT_HOST_REGEX = /^(?:(?:www|[a-z]{2})\.)?linkedin\.com$/i;
+
+/**
+ * Ordre des User-Agents publics utilisés pour récupérer les métadonnées OpenGraph / JSON-LD
+ * d'un profil public LinkedIn sans compte ni cookie de session utilisateur :
+ * 1. WhatsApp / Slackbot / Discordbot / FacebookExternalHit : reçoivent directement le HTML public
+ *    contenant `og:image` et `application/ld+json` sans blocage HTTP 999.
+ * 2. BROWSER_USER_AGENT : repli navigateur standard.
+ */
+const LINKEDIN_PUBLIC_USER_AGENTS: readonly string[] = [
+  'WhatsApp/2.24.12.78 A',
+  'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+  'Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)',
+  'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+  BROWSER_USER_AGENT,
+];
 
 function errorResponse(
   platform: 'linkedin',
@@ -58,6 +75,9 @@ function extractOgImageFromHtml(html: string): string | null {
     const contentMatch = tag.match(/\bcontent\s*=\s*["']([^"']+)["']/i);
     if (contentMatch && contentMatch[1]) {
       const candidate = decodeHtmlEntities(contentMatch[1].trim());
+      if (candidate.startsWith('https://') && ! isGhostOrDefaultLinkedInImage(candidate)) {
+        return candidate;
+      }
       if (candidate.startsWith('https://')) {
         return candidate;
       }
@@ -151,6 +171,34 @@ function isAuthwallHtml(html: string): boolean {
   );
 }
 
+function collectResponseCookies(headers: Headers, cookieJar: Map<string, string>): void {
+  const anyHeaders = headers as Headers & { getSetCookie?: () => string[] };
+  const rawList: string[] =
+    typeof anyHeaders.getSetCookie === 'function'
+      ? anyHeaders.getSetCookie()
+      : [];
+
+  if (rawList.length === 0) {
+    const single = headers.get('set-cookie');
+    if (single) {
+      rawList.push(...single.split(/,(?=\s*[A-Za-z0-9_-]+=)/));
+    }
+  }
+
+  for (const sc of rawList) {
+    const firstPart = sc.split(';')[0]?.trim();
+    if (!firstPart) continue;
+    const eqIdx = firstPart.indexOf('=');
+    if (eqIdx > 0) {
+      const name = firstPart.slice(0, eqIdx).trim();
+      const val = firstPart.slice(eqIdx + 1).trim();
+      if (name && val) {
+        cookieJar.set(name, val);
+      }
+    }
+  }
+}
+
 export function parseLinkedInProfileHtml(
   html: string,
   slug: string,
@@ -225,124 +273,164 @@ export function parseLinkedInProfileHtml(
 
 export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
   const normalizedSlug = slug.trim().toLowerCase();
-  const targetUrl = `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`;
+  const initialUrl = `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`;
+  const startTimeMs = Date.now();
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), LINKEDIN_TIMEOUT_MS);
+  let lastBlockedStage = 'linkedin_no_response';
+  let lastHttpStatus: number | null = null;
+  let sawTimeout = false;
 
-  try {
-    let currentUrl = targetUrl;
-    let res: Response | null = null;
-
-    // Follow at most 1 canonical redirect (e.g. trailing slash), never follow login/authwall
-    for (let hop = 0; hop < 2; hop++) {
-      res = await fetch(currentUrl, {
-        method: 'GET',
-        redirect: 'manual',
-        signal: controller.signal,
-        headers: {
-          'User-Agent': BROWSER_USER_AGENT,
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-          'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-          'Cache-Control': 'no-cache',
-        },
-      });
-
-      if (res.status >= 300 && res.status < 400) {
-        const location = res.headers.get('location') || '';
-        if (!location || isLoginOrAuthwallRedirect(location)) {
-          return errorResponse(
-            'linkedin',
-            'BLOCKED_BY_PLATFORM',
-            'LinkedIn redirige vers un mur de connexion (authwall/login).',
-            { engineStage: 'linkedin_redirect_authwall', httpStatus: res.status }
-          );
-        }
-        const nextUrl = new URL(location, currentUrl);
-        if (!nextUrl.pathname.toLowerCase().startsWith('/in/')) {
-          return errorResponse(
-            'linkedin',
-            'BLOCKED_BY_PLATFORM',
-            'LinkedIn redirige hors du profil public.',
-            { engineStage: 'linkedin_redirect_blocked', httpStatus: res.status }
-          );
-        }
-        currentUrl = nextUrl.toString();
-        continue;
-      }
+  for (const userAgent of LINKEDIN_PUBLIC_USER_AGENTS) {
+    const elapsedMs = Date.now() - startTimeMs;
+    const remainingMs = LINKEDIN_TIMEOUT_MS - elapsedMs;
+    if (remainingMs <= 400) {
+      sawTimeout = true;
       break;
     }
 
-    if (!res) {
-      return errorResponse(
-        'linkedin',
-        'BLOCKED_BY_PLATFORM',
-        'LinkedIn bloque temporairement la demande.',
-        { engineStage: 'linkedin_no_response', httpStatus: null }
-      );
-    }
+    const attemptTimeoutMs = Math.min(LINKEDIN_ATTEMPT_TIMEOUT_MS, remainingMs);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), attemptTimeoutMs);
 
-    const status = res.status;
+    try {
+      let currentUrl = initialUrl;
+      let res: Response | null = null;
+      const cookieJar = new Map<string, string>();
+      let redirectedToAuthwall = false;
 
-    if (status === 404 || status === 410) {
-      return errorResponse(
-        'linkedin',
-        'NOT_FOUND',
-        'Ce profil LinkedIn est introuvable (404).',
-        { engineStage: 'linkedin_http_404', httpStatus: status }
-      );
-    }
+      // Suit jusqu'à 2 redirections canoniques (ex. www.linkedin.com -> ma.linkedin.com/in/{slug})
+      // en propageant les cookies techniques (__cf_bm, bcookie, lidc) mais sans jamais suivre un authwall.
+      for (let hop = 0; hop < 3; hop++) {
+        const cookieHeader =
+          cookieJar.size > 0
+            ? Array.from(cookieJar.entries())
+                .map(([k, v]) => `${k}=${v}`)
+                .join('; ')
+            : '';
 
-    if (
-      status === 999 ||
-      status === 401 ||
-      status === 403 ||
-      status === 429 ||
-      status >= 500
-    ) {
-      return errorResponse(
-        'linkedin',
-        'BLOCKED_BY_PLATFORM',
-        'LinkedIn bloque temporairement la demande depuis ce réseau (statut ' +
-          status +
-          ').',
-        { engineStage: `linkedin_http_${status}`, httpStatus: status }
-      );
-    }
+        res = await fetch(currentUrl, {
+          method: 'GET',
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: {
+            'User-Agent': userAgent,
+            Accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cache-Control': 'no-cache',
+            ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+          },
+        });
 
-    if (status < 200 || status >= 300) {
-      return errorResponse(
-        'linkedin',
-        'BLOCKED_BY_PLATFORM',
-        'LinkedIn bloque temporairement la demande.',
-        { engineStage: `linkedin_http_${status}`, httpStatus: status }
-      );
-    }
+        collectResponseCookies(res.headers, cookieJar);
 
-    const html = await res.text();
-    return parseLinkedInProfileHtml(html, normalizedSlug, status);
-  } catch (err) {
-    const isAbort =
-      err instanceof Error &&
-      (err.name === 'AbortError' ||
-        err.name === 'TimeoutError' ||
-        /abort|timeout/i.test(err.message));
-    if (isAbort) {
-      return errorResponse(
-        'linkedin',
-        'TIMEOUT',
-        'La récupération du profil LinkedIn a dépassé le délai de 8 secondes.',
-        { engineStage: 'linkedin_timeout', httpStatus: null }
-      );
+        if (res.status >= 300 && res.status < 400) {
+          const location = res.headers.get('location') || '';
+          if (!location || isLoginOrAuthwallRedirect(location)) {
+            redirectedToAuthwall = true;
+            lastBlockedStage = 'linkedin_redirect_authwall';
+            lastHttpStatus = res.status;
+            break;
+          }
+
+          let nextUrl: URL;
+          try {
+            nextUrl = new URL(location, currentUrl);
+          } catch {
+            redirectedToAuthwall = true;
+            lastBlockedStage = 'linkedin_redirect_invalid';
+            lastHttpStatus = res.status;
+            break;
+          }
+
+          if (
+            (nextUrl.protocol !== 'https:' && nextUrl.protocol !== 'http:') ||
+            !LINKEDIN_ALLOWED_REDIRECT_HOST_REGEX.test(nextUrl.hostname) ||
+            !nextUrl.pathname.toLowerCase().startsWith('/in/')
+          ) {
+            redirectedToAuthwall = true;
+            lastBlockedStage = 'linkedin_redirect_blocked';
+            lastHttpStatus = res.status;
+            break;
+          }
+
+          currentUrl = nextUrl.toString();
+          continue;
+        }
+        break;
+      }
+
+      if (redirectedToAuthwall || !res) {
+        continue;
+      }
+
+      const status = res.status;
+      lastHttpStatus = status;
+
+      if (status === 404 || status === 410) {
+        return errorResponse(
+          'linkedin',
+          'NOT_FOUND',
+          'Ce profil LinkedIn est introuvable (404).',
+          { engineStage: 'linkedin_http_404', httpStatus: status }
+        );
+      }
+
+      if (
+        status === 999 ||
+        status === 401 ||
+        status === 403 ||
+        status === 429 ||
+        status >= 500
+      ) {
+        lastBlockedStage = `linkedin_http_${status}`;
+        continue;
+      }
+
+      if (status < 200 || status >= 300) {
+        lastBlockedStage = `linkedin_http_${status}`;
+        continue;
+      }
+
+      const html = await res.text();
+      const parsed = parseLinkedInProfileHtml(html, normalizedSlug, status);
+      if (parsed.ok || parsed.error?.code === 'PRIVATE_OR_LOGIN_REQUIRED') {
+        return parsed;
+      }
+
+      lastBlockedStage = parsed.engineStage || 'linkedin_blocked_html';
+    } catch (err) {
+      const isAbort =
+        err instanceof Error &&
+        (err.name === 'AbortError' ||
+          err.name === 'TimeoutError' ||
+          /abort|timeout/i.test(err.message));
+      if (isAbort) {
+        sawTimeout = true;
+        lastBlockedStage = 'linkedin_timeout';
+      } else {
+        lastBlockedStage = 'linkedin_fetch_error';
+      }
+    } finally {
+      clearTimeout(timer);
     }
+  }
+
+  if (sawTimeout && lastHttpStatus === null) {
     return errorResponse(
       'linkedin',
-      'BLOCKED_BY_PLATFORM',
-      'LinkedIn bloque temporairement la demande.',
-      { engineStage: 'linkedin_fetch_error', httpStatus: null }
+      'TIMEOUT',
+      'La récupération du profil LinkedIn a dépassé le délai de 8 secondes.',
+      { engineStage: 'linkedin_timeout', httpStatus: null }
     );
-  } finally {
-    clearTimeout(timer);
   }
+
+  return errorResponse(
+    'linkedin',
+    'BLOCKED_BY_PLATFORM',
+    lastHttpStatus
+      ? `LinkedIn bloque temporairement la demande depuis ce réseau (statut ${lastHttpStatus}).`
+      : 'LinkedIn bloque temporairement la demande (mur de connexion).',
+    { engineStage: lastBlockedStage, httpStatus: lastHttpStatus }
+  );
 }

@@ -18,6 +18,7 @@ interface SystemSettings {
   platform_facebook: boolean;
   platform_linkedin: boolean;
   rate_limit_per_min: number;
+  download_limit_per_min: number;
   ads_enabled: boolean;
 }
 
@@ -37,6 +38,7 @@ export const Controls: React.FC = () => {
     platform_facebook: true,
     platform_linkedin: true,
     rate_limit_per_min: 30,
+    download_limit_per_min: 60,
     ads_enabled: true,
   });
   const [blocklist, setBlocklist] = useState<BlocklistItem[]>([]);
@@ -63,6 +65,7 @@ export const Controls: React.FC = () => {
           platform_facebook: settingsJson.settings.platform_facebook !== false,
           platform_linkedin: settingsJson.settings.platform_linkedin !== false,
           rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 30,
+          download_limit_per_min: Number(settingsJson.settings.download_limit_per_min) || 60,
           ads_enabled: settingsJson.settings.ads_enabled !== false,
         });
       }
@@ -101,6 +104,7 @@ export const Controls: React.FC = () => {
           platform_facebook: data.settings.platform_facebook !== false,
           platform_linkedin: data.settings.platform_linkedin !== false,
           rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 30,
+          download_limit_per_min: Number(data.settings.download_limit_per_min) || 60,
           ads_enabled: data.settings.ads_enabled !== false,
         });
         setStatusMessage('Paramètres enregistrés dans Cloudflare D1.');
@@ -158,7 +162,7 @@ export const Controls: React.FC = () => {
             Contrôles Opérationnels & Sécurité
           </h2>
           <p className="text-xs text-orange-200/65 font-mono">
-            Modifications appliquées en temps réel sur /api/extract et /api/public-config
+            Modifications appliquées en temps réel sur /api/extract, /api/download et /api/public-config
           </p>
         </div>
         {statusMessage && (
@@ -468,15 +472,15 @@ export const Controls: React.FC = () => {
         </div>
       </div>
 
-      {/* Limite de requêtes / minute */}
-      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5">
+      {/* Limite de requêtes / minute (Extractions & Téléchargements) */}
+      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-display text-sm font-bold text-white">
-              Limite de débit par IP (Rate Limit D1)
+              Limite d’extractions par IP (`rate_limit_per_min`)
             </h3>
             <p className="text-xs text-orange-200/65">
-              Nombre maximum d’extractions autorisées par minute et par IP hachée avant renvoi de RATE_LIMITED (429).
+              Nombre maximum d’appels `/api/extract` par minute et par IP hachée avant renvoi de 429 + Retry-After.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -484,6 +488,7 @@ export const Controls: React.FC = () => {
               type="number"
               min={1}
               max={600}
+              aria-label="Limite d'extractions par minute"
               value={settings.rate_limit_per_min}
               onChange={(e) =>
                 setSettings({
@@ -494,6 +499,34 @@ export const Controls: React.FC = () => {
               className="w-24 px-3 py-2 rounded-xl bg-[#120c08] border border-orange-900/70 text-sm text-white font-mono text-center"
             />
             <span className="text-xs font-mono text-orange-200/70">req / min</span>
+          </div>
+        </div>
+
+        <div className="border-t border-orange-950/80 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display text-sm font-bold text-white">
+              Limite de téléchargements par IP (`download_limit_per_min`)
+            </h3>
+            <p className="text-xs text-orange-200/65">
+              Nombre maximum de fichiers `/api/download` par minute et par IP hachée (1 comptage par fichier/min, requêtes Range comprises).
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={1000}
+              aria-label="Limite de téléchargements par minute"
+              value={settings.download_limit_per_min}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  download_limit_per_min: Math.max(1, parseInt(e.target.value || '1', 10)),
+                })
+              }
+              className="w-24 px-3 py-2 rounded-xl bg-[#120c08] border border-orange-900/70 text-sm text-white font-mono text-center"
+            />
+            <span className="text-xs font-mono text-orange-200/70">fichiers / min</span>
             <button
               type="button"
               disabled={saving}

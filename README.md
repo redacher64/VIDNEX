@@ -74,37 +74,45 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 | (functions/api/extract.ts)        |           | (functions/api/download.ts)       |
 +-----------------+-----------------+           +-----------------+-----------------+
                   |                                               |
-  1. Lecture settings D1 (maintenance,            1. Validation HTTPS + isAllowedMediaUrl
-     platform_*, rate_limit_per_min)                 (allowlist.ts : anti-SSRF strict,
-  2. Hachage IP (SHA-256 + IP_HASH_SALT)             blocage IP privées/loopback)
-  3. Vérification blocklist D1                    2. Fetch stream CDN amont (headers
-     (ip_hash, domain, url)                          Referer/Origin/Range/Cookie)
-  4. Vérification rate_limits D1                  3. Auto-Heal TikTok : si 403/401/410
-     (repli Token Bucket mémoire si D1 off)          et videoId présent, ré-extrait un
-  5. Détection & normalisation d'URL                 lien frais à la volée
-     (functions/_lib/detect.ts)                   4. Vérification taille <= 250 Mo et
-                  |                                  Content-Type média valide
-                  v                               5. Streaming direct (ReadableStream)
-+-----------------------------------+                avec Content-Disposition: attachment
-|       MOTEURS D'EXTRACTION        |
-|  - _lib/tiktok.ts                 |
-|  - _lib/instagram.ts              |
-|  - _lib/x.ts                      |
-|  - _lib/facebook.ts               |
-|  - _lib/linkedin.ts               |
-+-----------------+-----------------+
-                  |
-                  |  context.waitUntil(...) — Journalisation asynchrone non bloquante
-                  v
+  1. Lecture settings D1 (maintenance,            1. Limite de débit D1 par IP hachée
+     platform_*, rate_limit_per_min)                 (download_limit_per_min = 60, 1x par
+  2. Hachage IP (SHA-256 + IP_HASH_SALT)             fichier et par minute, Range compris)
+  3. Vérification blocklist D1                    2. Validation HTTPS + isAllowedMediaHost
+     (ip_hash, domain, url)                          (allowlist.ts : anti-SSRF strict)
+  4. Vérification rate_limits D1                  3. Fetch stream CDN amont + Auto-Heal
+     (repli Token Bucket mémoire si D1 off)       4. Streaming direct (TransformStream) :
+  5. Détection & normalisation d'URL                 download_started -> download_success
+     (functions/_lib/detect.ts)                      (si flux terminé sans erreur serveur)
+                  |                                               |
+                  v                                               |
++-----------------------------------+                             |
+|       MOTEURS D'EXTRACTION        |                             |
+|  - _lib/tiktok.ts                 |                             |
+|  - _lib/instagram.ts              |                             |
+|  - _lib/x.ts                      |                             |
+|  - _lib/facebook.ts               |                             |
+|  - _lib/linkedin.ts               |                             |
++-----------------+-----------------+                             |
+                  |                                               |
+                  +-----------------------+-----------------------+
+                                          |
+                                          |  ctx.waitUntil(...) — Non bloquant
+                                          v
 +-----------------------------------------------------------------------------------+
-|                        BASE DE DONNÉES CLOUDFLARE D1 (DB)                         |
-|  - requests_log   : journal des extractions (ts, platform, status, error_code,    |
-|                     engine_stage, http_status, duration_ms, country, ip_hash)     |
-|  - engine_status  : état de santé en temps réel des 6 moteurs                     |
-|  - settings       : configuration dynamique (maintenance, plateformes, pub, URLs) |
-|  - rate_limits    : compteurs de requêtes par IP hachée et fenêtre d'une minute   |
-|  - blocklist      : blocage par ip_hash, domain ou url                            |
-|  - login_attempts : protection anti-brute-force de la connexion /admin            |
+|                 BASE DE DONNÉES CLOUDFLARE D1 (DB) & ALERTES                      |
+|  - daily_metrics : compteurs agrégés par jour, plateforme et événement            |
+|                    (extract_started, extract_success, extract_error,              |
+|                     download_started, download_success) — 0 identifiant personnel |
+|  - request_log   : détail UNIQUEMENT pour les erreurs (error_code, engine_stage,  |
+|                    http_status, duration_ms) — 0 identifiant personnel            |
+|  - engine_status : santé des 6 moteurs + consecutive_failures + alert_sent        |
+|                    -> 5 échecs consécutifs : 1 alerte via ALERT_WEBHOOK_URL       |
+|                    -> succès suivant : 1 alerte de retour à la normale            |
+|  - settings      : configuration dynamique (rate_limit_per_min,                   |
+|                    download_limit_per_min, maintenance, plateformes, pub, URLs)   |
+|  - rate_limits   : compteurs de débit par IP hachée et fenêtre d'une minute       |
+|  - blocklist     : blocage par ip_hash, domain ou url                             |
+|  - login_attempts: protection anti-brute-force de la connexion /admin             |
 +-----------------------------------------------------------------------------------+
 ```
 
@@ -131,35 +139,36 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   │   ├── allowlist.ts         # Liste blanche stricte des CDN médias autorisés (anti-SSRF)
 │   │   ├── auth.ts              # Authentification admin (SHA-256 constant-time, cookie HMAC-SHA256, CSRF, brute-force)
 │   │   ├── cors.ts              # Gestion des en-têtes CORS pour /api/*
-│   │   ├── db.ts                # Accès sécurisé à Cloudflare D1, hachage IP SHA-256, logs et engine_status
+│   │   ├── db.ts                # Accès sécurisé à Cloudflare D1, hachage IP SHA-256, daily_metrics et engine_status
 │   │   ├── detect.ts            # Détection, validation et normalisation d'URL pour les 5 plateformes
 │   │   ├── facebook.ts          # Moteur d'extraction Facebook (desktop, mobile m.facebook.com, plugin embed)
 │   │   ├── http.ts              # Client HTTP avec AbortController, timeout et collecte de cookies Set-Cookie
 │   │   ├── instagram.ts         # Moteur d'extraction Instagram (publications, Reels, Stories et profils)
 │   │   ├── linkedin.ts          # Moteur d'extraction LinkedIn (photo de profil publique via og:image / JSON-LD)
+│   │   ├── logger.ts            # Compteurs daily_metrics, journal d'erreurs request_log et alertes ALERT_WEBHOOK_URL
 │   │   ├── normalize.ts         # Types partagés (Platform, ErrorCode, ExtractResponse, STATUTS HTTP)
-│   │   ├── ratelimit.ts         # Limitation de débit D1 (rate_limits) + repli mémoire Token Bucket
+│   │   ├── ratelimit.ts         # Limitation de débit D1 (/api/extract et /api/download) + repli mémoire Token Bucket
 │   │   ├── settings.ts          # Lecture/écriture de la table settings et vérification de la blocklist
 │   │   ├── tiktok.ts            # Moteur d'extraction TikTok (API TikWM + scraping page officielle + audio)
 │   │   └── x.ts                 # Moteur d'extraction X / Twitter (cdn.syndication.twimg.com + résolution t.co)
 │   └── api/                     # Endpoints HTTP exposés sous /api/*
-│       ├── config.ts            # GET /api/config : état public (maintenance, plateformes actives, ads_enabled)
-│       ├── download.ts          # GET/HEAD /api/download : proxy de streaming média sécurisé + Auto-Heal
+│       ├── public-config.ts     # GET /api/public-config : état public (maintenance, plateformes actives, ads_enabled)
+│       ├── download.ts          # GET/HEAD /api/download : proxy de streaming média sécurisé + rate-limit + Auto-Heal
 │       ├── extract.ts           # POST/GET /api/extract : point d'entrée principal d'extraction média
-│       ├── health.ts            # GET /api/health : vérification rapide de l'état de l'API
 │       └── admin/               # Endpoints protégés d'administration (/api/admin/*)
-│           ├── activity.ts      # GET/DELETE /api/admin/activity : consultation, export CSV et purge des logs
+│           ├── activity.ts      # GET /api/admin/activity : consultation paginée du journal des erreurs
 │           ├── blocklist.ts     # GET/POST/DELETE /api/admin/blocklist : gestion des règles de blocage
 │           ├── health.ts        # GET/POST /api/admin/health : état des moteurs et tests en direct
 │           ├── login.ts         # GET/POST /api/admin/login : vérification de session et connexion admin
 │           ├── logout.ts        # POST /api/admin/logout : révocation immédiate du cookie de session
 │           ├── settings.ts      # GET/POST /api/admin/settings : modification des réglages système D1
-│           └── stats.ts         # GET /api/admin/stats : agrégations analytiques (24h, 7j, 30j)
+│           └── stats.ts         # GET /api/admin/stats : entonnoir extraction->téléchargement et taux par plateforme
 │
 ├── migrations/                  # Migrations SQL pour Cloudflare D1
-│   ├── 0001_init.sql            # Tables initiales (requests_log, settings, rate_limits, blocklist, engine_status, login_attempts)
+│   ├── 0001_init.sql            # Tables initiales (request_log, settings, rate_limits, blocklist, engine_status, login_attempts)
 │   ├── 0002_add_engine_stage_http_status.sql # Ajout de engine_stage, http_status et test_url_instagram_profile
-│   └── 0003_add_linkedin.sql    # Ajout de platform_linkedin, test_url_linkedin et engine_status linkedin
+│   ├── 0003_add_linkedin.sql    # Ajout de platform_linkedin, test_url_linkedin et engine_status linkedin
+│   └── 0004_metrics_and_alerts.sql # Ajout de daily_metrics, download_limit_per_min, consecutive_failures et alert_sent
 │
 ├── public/                      # Fichiers statiques copiés à la racine de dist/
 │   ├── _headers                 # En-têtes Cloudflare Pages (CSP, HSTS, X-Frame-Options, cache long pour assets)
@@ -323,8 +332,13 @@ Toutes les réponses de `/api/extract` respectent l'interface `ExtractResponse` 
 
 ### 4.4 Proxy de téléchargement (`/api/download`) et Allowlist anti-SSRF
 
-Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (`ReadableStream`) entre les CDN des plateformes et le navigateur de l'utilisateur :
-1. **Allowlist stricte (`functions/_lib/allowlist.ts`)** :
+Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (`ReadableStream` / `TransformStream`) entre les CDN des plateformes et le navigateur de l'utilisateur :
+1. **Limite de débit par IP hachée (`checkD1DownloadRateLimit`)** :
+   - Utilise le limiteur existant (`rate_limits` D1 avec repli mémoire Token Bucket) sur l'empreinte SHA-256 salée de l'IP (`dl:{ip_hash}`).
+   - Réglage administrateur dynamique : `download_limit_per_min` (défaut : **60 fichiers / minute**).
+   - **Déduplication par fichier et par minute** : les requêtes multiples pour un même fichier dans la même minute — y compris les requêtes HTTP `Range` — ne sont comptabilisées qu'**une seule fois**.
+   - En cas de dépassement, renvoie `HTTP 429` avec l'en-tête `Retry-After`.
+2. **Allowlist stricte (`functions/_lib/allowlist.ts`)** :
    - Seul le protocole `https:` est accepté.
    - Les adresses IP littérales (IPv4/IPv6), `localhost`, `.local`, `.internal` et `.oko.local` sont rejetés.
    - Seuls les hôtes CDN officiels explicitement listés dans `EXACT_HOSTS` ou `SUFFIX_HOSTS` sont autorisés :
@@ -332,26 +346,31 @@ Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (
      - **Instagram & Facebook** : `*.cdninstagram.com`, `*.fbcdn.net`, `*.instagram.com`, `vxinstagram.com`, `ddinstagram.com`.
      - **X / Twitter** : `video.twimg.com`, `pbs.twimg.com`, `abs.twimg.com`, `ton.twimg.com`.
      - **LinkedIn** : `media.licdn.com`, `*.media.licdn.com` (le domaine d'assets statiques `static.licdn.com` est volontairement exclu).
-2. **En-têtes et Cookies de session** : Ajoute automatiquement les en-têtes `Referer` et `Origin` requis par chaque CDN et supporte l'en-tête `Range` pour la reprise de téléchargement.
-3. **Auto-Heal TikTok** : Si un lien vidéo TikTok a expiré (`403`, `401`, `410`) ou renvoie une page d'erreur HTML/JSON et que le paramètre `videoId` est fourni, `/api/download` relance `extractTikTok` à la volée pour récupérer une nouvelle URL CDN fraîche de manière transparente.
-4. **Limite de taille** : Rejette avec `413 Payload Too Large` tout fichier dépassant **250 Mo** (`MAX_CONTENT_LENGTH_BYTES = 250 * 1024 * 1024`).
-5. **Nommage des fichiers** : Nettoie le paramètre `filename` et force l'en-tête `Content-Disposition: attachment; filename="..."` (ex. `linkedin_{slug}_profile.jpg` pour LinkedIn).
+3. **En-têtes et Cookies de session** : Ajoute automatiquement les en-têtes `Referer` et `Origin` requis par chaque CDN et supporte l'en-tête `Range` pour la reprise de téléchargement.
+4. **Auto-Heal** : Si un lien média signé a expiré (`403`, `401`, `410`) et que le paramètre `src` est fourni, `/api/download` relance le moteur correspondant à la volée pour récupérer une nouvelle URL CDN fraîche.
+5. **Limite de taille** : Rejette avec `413 Payload Too Large` tout fichier dépassant **250 Mo** (`MAX_CONTENT_LENGTH_BYTES = 250 * 1024 * 1024`).
+6. **Mesure de bout en bout du flux (`download_started` / `download_success`)** : Lors d'un téléchargement (`!inline`), incrémente `download_started` au démarrage, puis pipe le flux à travers un `TransformStream` dans `ctx.waitUntil` et n'incrémente `download_success` que lorsque le flux se termine intégralement sans erreur côté serveur.
 
 ---
 
-### 4.5 Limite de débit (Rate Limit), Blocklist et Mode Maintenance
+### 4.5 Limite de débit, Blocklist, Mesures D1 et Alertes Moteurs
 
-Dans `functions/api/extract.ts`, chaque requête passe par trois garde-fous avant d'appeler un moteur :
 1. **Mode Maintenance (`settings.maintenance`)** : Si actif (`'true'`), renvoie immédiatement `503 MAINTENANCE`.
-2. **Plateforme désactivée (`settings.platform_{platform}`)** : Si la plateforme détectée est à `'false'`, renvoie `403 PLATFORM_DISABLED` (et l'interface publique masque automatiquement la plateforme dans la navigation, les puces et le pied de page via `GET /api/config`).
-3. **Blocklist (`functions/_lib/settings.ts` -> `isRequestBlocked`)** : Compare la requête aux entrées de la table D1 `blocklist` selon 3 types :
-   - `ip_hash` : empreinte SHA-256 de l'adresse IP cliente salée avec `IP_HASH_SALT`.
-   - `domain` : domaine ou sous-domaine de l'URL soumise.
-   - `url` : correspondance exacte ou sous-chaîne de l'URL soumise.
-4. **Rate Limit (`functions/_lib/ratelimit.ts` -> `checkD1RateLimit`)** :
-   - Compte le nombre de requêtes par `ip_hash` dans une fenêtre glissante d'une minute (`Math.floor(Date.now() / 60000)`) dans la table D1 `rate_limits`.
-   - La limite par défaut est de **30 requêtes / minute** (modifiable en direct dans `/admin` via `rate_limit_per_min`).
-   - En cas d'indisponibilité de D1, bascule automatiquement sur un limiteur **Token Bucket en mémoire** (`checkRateLimit`, jusqu'à 5 000 compartiments) pour ne jamais interrompre le service public.
+2. **Plateforme désactivée (`settings.platform_{platform}`)** : Si la plateforme détectée est à `'false'`, renvoie `403 PLATFORM_DISABLED` (et l'interface publique masque automatiquement la plateforme dans la navigation, les puces et le pied de page via `GET /api/public-config`).
+3. **Blocklist (`functions/_lib/settings.ts` -> `isRequestBlocked`)** : Compare la requête aux entrées de la table D1 `blocklist` (`ip_hash`, `domain`, `url`).
+4. **Rate Limit `/api/extract` et `/api/download` (`functions/_lib/ratelimit.ts`)** :
+   - `/api/extract` : contrôlé par `rate_limit_per_min` (défaut **30 req/min** par IP hachée).
+   - `/api/download` : contrôlé par `download_limit_per_min` (défaut **60 fichiers/min** par IP hachée, 1 comptage par fichier/min, requêtes `Range` comprises).
+   - En cas d'indisponibilité de D1, bascule automatiquement sur le limiteur **Token Bucket en mémoire** (`checkRateLimit`).
+5. **Mesures agrégées (`daily_metrics`) et économie d'écritures D1 (`functions/_lib/logger.ts`)** :
+   - Les extractions réussies ne sont plus enregistrées ligne par ligne dans `request_log`. Elles sont agrégées dans `daily_metrics` (1 ligne par `day` UTC, `platform` et `event` : `extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`).
+   - La table `request_log` conserve le détail (`error_code`, `engine_stage`, `http_status`, `duration_ms`) **uniquement pour les erreurs**.
+   - **Aucun identifiant personnel** n'est stocké dans `daily_metrics` ni dans `request_log`.
+   - **Économie d'écritures D1 mesurée par extraction réussie** : avant, chaque succès exécutait **3 requêtes d'écriture SQL** (`rate_limits` + `request_log` + `engine_status`, soit 4 écritures B-tree avec l'index `idx_request_log_ts`). Après, en régime stabilisé, une extraction réussie exécute **2 requêtes d'écriture SQL** (`rate_limits` + upsert `daily_metrics`, `engine_status` n'étant mis à jour en cas de succès qu'après une erreur ou au plus 1 fois par minute) et **0 insertion dans `request_log`**.
+6. **Alertes automatiques (`ALERT_WEBHOOK_URL`)** :
+   - À **5 échecs consécutifs** d'un moteur (`engine_status.consecutive_failures >= 5` et `alert_sent = 0`), `logExtractionEvent` envoie **UNE seule alerte** via `ALERT_WEBHOOK_URL` (compatible Webhook Discord et Bot API Telegram) dans `ctx.waitUntil`, sans jamais bloquer la réponse utilisateur.
+   - Dès le prochain succès du moteur, envoie une **alerte de retour à la normale** et remet `consecutive_failures = 0` et `alert_sent = 0`.
+   - Si le secret `ALERT_WEBHOOK_URL` est absent, aucune requête externe n'est effectuée.
 
 ---
 
@@ -441,7 +460,7 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
   - `functions/_middleware.ts` et `worker.ts` ajoutent `X-Robots-Tag: noindex, nofollow` sur tout domaine `*.pages.dev` ou `*.workers.dev`, ainsi que sur `/admin` et `/api/*`.
   - Redirection permanente `301` de `https://www.vidnex.space/*` vers `https://vidnex.space/*`.
 - **Performance & Code-Splitting** :
-  - Le panneau `/admin` (et sa dépendance `recharts`) est chargé via `React.lazy(() => import('./pages/admin/AdminApp'))` dans `src/main.tsx` et isolé dans un chunk Rollup dédié (`admin-*.js` dans `vite.config.ts`). Les visiteurs publics ne téléchargent jamais le code de l'admin.
+  - Le panneau `/admin` est chargé via `React.lazy(() => import('./pages/admin/AdminApp'))` dans `src/main.tsx` et isolé dans un chunk Rollup dédié (`admin-*.js` dans `vite.config.ts`). Les visiteurs publics ne téléchargent jamais le code de l'admin.
   - Les emplacements publicitaires (`src/components/AdSlot.tsx`) ne sont jamais rendus en production tant qu'un identifiant AdSense réel (`VITE_ADSENSE_CLIENT_ID`) n'est pas configuré **et** que `ads_enabled` est actif, garantissant un **CLS de 0**.
 
 ---
@@ -458,15 +477,16 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 - **Protection anti-brute-force (`login_attempts`)** : Après **5 tentatives échouées** en moins de 15 minutes depuis la même IP hachée, la connexion est verrouillée pendant **15 minutes** (`HTTP 429` avec en-tête `Retry-After`). Une connexion réussie purge immédiatement le compteur.
 - **Protection anti-CSRF (`verifyCsrfAndJson`)** : Toutes les requêtes mutatives (`POST`, `PUT`, `DELETE`) sur `/api/admin/*` exigent `Content-Type: application/json` et vérifient que l'en-tête `Origin` correspond exactement à l'hôte du serveur.
 
-### 7.2 Schéma des 6 tables Cloudflare D1 (`migrations/`)
+### 7.2 Schéma des 7 tables Cloudflare D1 (`migrations/`)
 
 | Table D1 | Clé primaire | Colonnes principales | Rôle |
 | :--- | :--- | :--- | :--- |
-| **`requests_log`** | `id` (AUTOINCREMENT) | `ts`, `platform`, `status`, `error_code`, `engine_stage`, `http_status`, `duration_ms`, `country`, `ip_hash` | Journal anonymisé de toutes les extractions (rétention glissante de 30 jours nettoyée automatiquement). |
-| **`settings`** | `key` (TEXT) | `key`, `value` | Paramètres dynamiques du site (`maintenance`, `platform_*`, `rate_limit_per_min`, `ads_enabled`, `test_url_*`). |
-| **`rate_limits`** | `(ip_hash, window)` | `ip_hash`, `window`, `count` | Compteur de requêtes par IP hachée et par minute. |
+| **`daily_metrics`** | `(day, platform, event)` | `day`, `platform`, `event`, `count` | Compteurs journaliers agrégés sans identifiant personnel (`extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`). |
+| **`request_log`** | `id` (AUTOINCREMENT) | `ts`, `platform`, `status`, `error_code`, `engine_stage`, `http_status`, `duration_ms`, `ip_hash` | Journal détaillé **uniquement pour les erreurs** (`ip_hash` vide, aucun identifiant personnel, rétention glissante de 30 jours). |
+| **`settings`** | `key` (TEXT) | `key`, `value` | Paramètres dynamiques du site (`maintenance`, `platform_*`, `rate_limit_per_min`, `download_limit_per_min`, `ads_enabled`, `test_url_*`). |
+| **`rate_limits`** | `(ip_hash, window)` | `ip_hash`, `window`, `count` | Compteur de requêtes par IP hachée et par minute (`/api/extract` et `dl:` pour `/api/download`). |
 | **`blocklist`** | `id` (AUTOINCREMENT) | `type` (`ip_hash` \| `domain` \| `url`), `value`, `created_ts` | Liste noire administrable en direct. |
-| **`engine_status`** | `platform` (TEXT) | `platform`, `last_ok_ts`, `last_err_ts`, `last_err_code`, `last_stage`, `last_http_status`, `consecutive_failures` | État de santé en temps réel des 6 moteurs (`tiktok`, `instagram`, `instagram_profile`, `x`, `facebook`, `linkedin`). |
+| **`engine_status`** | `platform` (TEXT) | `platform`, `last_success_ts`, `last_test_ts`, `last_test_ok`, `last_error_code`, `consecutive_failures`, `alert_sent` | État de santé en temps réel des 6 moteurs et suivi des pannes consécutives pour les alertes `ALERT_WEBHOOK_URL`. |
 | **`login_attempts`** | `ip_hash` (TEXT) | `ip_hash`, `count`, `window_start_ts`, `blocked_until_ts` | Suivi des échecs de connexion `/admin` pour le blocage anti-brute-force. |
 
 ### 7.3 Réglages système (`settings`)
@@ -480,6 +500,7 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 | `platform_facebook` | `'true'` | Active ou désactive Facebook (moteur + navigation + puces). |
 | `platform_linkedin` | `'true'` | Active ou désactive LinkedIn (moteur + navigation + puces). |
 | `rate_limit_per_min` | `'30'` | Nombre maximal de requêtes `/api/extract` par minute et par IP hachée (entre `1` et `5000`). |
+| `download_limit_per_min` | `'60'` | Nombre maximal de fichiers `/api/download` par minute et par IP hachée (1 comptage par fichier/min, requêtes `Range` comprises). |
 | `ads_enabled` | `'true'` | Autorise ou masque l'affichage des emplacements publicitaires AdSense. |
 | `test_url_tiktok` | `''` | URL TikTok utilisée par le bouton « Tester maintenant » de l'onglet Santé. |
 | `test_url_instagram` | `''` | URL de publication/Reel Instagram utilisée pour le test de santé. |
@@ -490,10 +511,10 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 
 ### 7.4 Pages de l'interface `/admin` (`src/pages/admin/`)
 1. **`Login.tsx`** : Formulaire d'authentification administrateur avec affichage du nombre d'essais restants et du compte à rebours en cas de blocage anti-brute-force.
-2. **`Dashboard.tsx` (`/api/admin/stats`)** : Cartes de synthèse (requêtes totales, taux de succès, latence moyenne, erreurs), répartition par plateforme, top pays, top erreurs et graphiques temporels sur **24 heures**, **7 jours** ou **30 jours**.
-3. **`Health.tsx` (`/api/admin/health`)** : État en temps réel des **6 moteurs** (`tiktok`, `instagram`, `instagram_profile`, `x`, `facebook`, `linkedin`) avec badge (`Opérationnel`, `Dégradé`, `En panne`), dernier succès, dernière erreur (`last_stage`, `last_http_status`), champ de configuration de l'URL de test et bouton **« Tester maintenant »** (unitaire ou global).
-4. **`Controls.tsx` (`/api/admin/settings` & `/api/admin/blocklist`)** : Interrupteurs instantanés pour le mode maintenance, l'activation individuelle des 5 plateformes, l'activation des publicités, le curseur de `rate_limit_per_min` et le gestionnaire de la `blocklist` (`ip_hash`, `domain`, `url`).
-5. **`Activity.tsx` (`/api/admin/activity`)** : Journal paginé des requêtes d'extraction avec filtres par plateforme et par statut (`ok` / `error`), affichage de `engine_stage` et `http_status`, bouton d'export CSV et bouton de purge des logs.
+2. **`Dashboard.tsx` (`/api/admin/stats`)** : Cartes de synthèse (aujourd'hui, 7j, 30j), **entonnoir extraction -> téléchargement** (`extract_started` -> `extract_success` -> `download_started` -> `download_success`), taux de réussite et téléchargements par plateforme, historique quotidien sur 30 jours et répartition des codes d'erreur.
+3. **`Health.tsx` (`/api/admin/health`)** : État en temps réel des **6 moteurs** (`tiktok`, `instagram`, `instagram_profile`, `x`, `facebook`, `linkedin`), dernier succès, dernière erreur, champ de configuration de l'URL de test et bouton **« Tester maintenant »**.
+4. **`Controls.tsx` (`/api/admin/settings` & `/api/admin/blocklist`)** : Interrupteurs instantanés pour le mode maintenance, l'activation individuelle des 5 plateformes, l'activation des publicités, les limites `rate_limit_per_min` et `download_limit_per_min`, et le gestionnaire de la `blocklist` (`ip_hash`, `domain`, `url`).
+5. **`Activity.tsx` (`/api/admin/activity`)** : Journal paginé des erreurs d'extraction (`error_code`, `engine_stage`, `http_status`, `duration_ms`) sans aucun identifiant personnel.
 
 ---
 
@@ -518,7 +539,7 @@ Copiez le `database_id` généré par cette commande et vérifiez qu'il correspo
 ```
 *(Si vous utilisez un projet Cloudflare Pages connecté à GitHub, vérifiez également dans **Workers & Pages > Votre projet > Settings > Bindings** que le binding D1 nommé `DB` pointe vers `vidnex-db`).*
 
-### 8.2 Appliquer les migrations SQL (0001, 0002 et 0003)
+### 8.2 Appliquer les migrations SQL (0001 à 0004)
 - **En local** (pour tester avec Wrangler en local) :
   ```bash
   npx wrangler d1 migrations apply vidnex-db --local
@@ -537,8 +558,9 @@ Ne stockez **jamais** les valeurs des secrets dans le dépôt Git ni dans `wrang
   npx wrangler pages secret put SESSION_SECRET
   npx wrangler pages secret put IP_HASH_SALT
   ```
-  Optionnel (pour le Niveau 2 de l'extracteur de photo de profil Instagram) :
+  Optionnel (alertes de panne moteur Discord/Telegram et repli Instagram) :
   ```bash
+  npx wrangler pages secret put ALERT_WEBHOOK_URL
   npx wrangler pages secret put IG_SESSION_ID
   ```
 - **Option B — Si votre projet est déployé via `wrangler deploy` (Workers Static Assets)** :
@@ -549,6 +571,7 @@ Ne stockez **jamais** les valeurs des secrets dans le dépôt Git ni dans `wrang
   ```
   Optionnel :
   ```bash
+  npx wrangler secret put ALERT_WEBHOOK_URL
   npx wrangler secret put IG_SESSION_ID
   ```
 
@@ -583,7 +606,8 @@ npm run indexnow
 | :--- | :---: | :--- |
 | `ADMIN_PASSWORD` | **Oui** (pour `/admin`) | Mot de passe administrateur vérifié en temps constant dans `functions/api/admin/login.ts`. |
 | `SESSION_SECRET` | **Oui** (pour `/admin`) | Clé secrète aléatoire utilisée pour signer et vérifier le cookie `vidnex_admin_session` en `HMAC-SHA256` (`functions/_lib/auth.ts`). |
-| `IP_HASH_SALT` | **Oui** (recommandé) | Sel cryptographique ajouté à l'adresse IP avant le hachage `SHA-256` (`functions/_lib/db.ts`) afin de ne jamais stocker d'IP brute. |
+| `IP_HASH_SALT` | **Oui** (recommandé) | Sel cryptographique ajouté à l'adresse IP avant le hachage `SHA-256` (`functions/_lib/db.ts`) pour le rate-limiting et la blocklist. |
+| `ALERT_WEBHOOK_URL` | Non (optionnel) | URL de webhook Discord ou Telegram appelée en `ctx.waitUntil` à 5 échecs consécutifs d'un moteur et lors du retour à la normale (`functions/_lib/logger.ts`). |
 | `IG_SESSION_ID` | Non (optionnel) | Identifiant de session Instagram utilisé en repli (Niveau 0 / Niveau 2) dans `functions/_lib/instagram.ts`. |
 | `IG_CSRF_TOKEN` | Non (optionnel) | Jeton CSRF compagnon optionnel pour les requêtes Instagram authentifiées (`functions/_lib/instagram.ts`). |
 | `IG_COOKIES` | Non (optionnel) | Chaîne de cookies ou tableau JSON Cookie-Editor optionnel pour Instagram (`functions/_lib/instagram.ts`). |
@@ -622,7 +646,7 @@ Pour configurer vos variables locales, copiez `.env.example` vers `.env` (ou `.d
 | `npm run preview` | `vite preview` | Sert localement le dossier `dist/` compilé. |
 | `npm run lint` | `tsc --noEmit && npm run lint:backend` | Vérifie le typage TypeScript de tout le frontend (`src/`) ainsi que du backend (`functions/`, `worker.ts`). |
 | `npm run lint:backend` | `tsc -p tsconfig.backend.json --noEmit` | Vérifie strictement le typage TypeScript des fonctions Cloudflare et de `worker.ts`. |
-| `npm test` | `npx tsx --test src/utils/urlDetector.test.ts tests/linkedin.test.ts` | Exécute la suite de tests unitaires (détecteur d'URL client/serveur, moteur LinkedIn et allowlist). |
+| `npm test` | `npx tsx --test src/utils/urlDetector.test.ts tests/linkedin.test.ts` | Exécute la suite de tests unitaires (détecteur d'URL, LinkedIn, rate-limit `/api/download`, `daily_metrics` et alertes `ALERT_WEBHOOK_URL`). |
 | `npm run generate:og` | `node scripts/generate-og.mjs` | Régénère les images OpenGraph `1200x630` dans `public/og/` et met à jour `public/og/manifest.json`. |
 | `npm run indexnow` | `node scripts/indexnow.mjs` | Envoie toutes les URLs de `public/sitemap.xml` à l'API IndexNow (`api.indexnow.org`). |
 
@@ -634,7 +658,7 @@ Avant toute mise en production, trois vérifications automatisées permettent de
 
 1. **Tests unitaires (`npm test`)** :
    - `src/utils/urlDetector.test.ts` : Teste la détection et le rejet des URLs pour TikTok, Instagram, X, Facebook et LinkedIn.
-   - `tests/linkedin.test.ts` : Teste `detectPlatform` sur toutes les variantes d'URLs LinkedIn (`www.`, sous-domaines pays `fr.linkedin.com`, rejet de `/company/`, `/posts/`, `/jobs/`), le parsing HTML (`og:image`, `JSON-LD`, rejet des avatars « ghost », détection d'authwall) et l'allowlist anti-SSRF (`media.licdn.com` autorisé, `static.licdn.com` refusé).
+   - `tests/linkedin.test.ts` : Teste `detectUrl` sur LinkedIn, le parsing HTML (`og:image`, `JSON-LD`, avatars « ghost », authwall), l'allowlist anti-SSRF, la limite de débit `/api/download` (`download_limit_per_min`, 1x par fichier/minute avec `Range`), les compteurs agrégés `daily_metrics` sans identifiant personnel et les alertes `ALERT_WEBHOOK_URL` à 5 échecs consécutifs + retour à la normale.
 2. **Vérification des images OpenGraph (`node scripts/check-og.mjs`)** :
    - Vérifie que `public/og/manifest.json` existe et que chacune des 6 images (`default`, `tiktok`, `instagram`, `x`, `facebook`, `linkedin`) est présente, au format JPEG `1200×630` px et pèse moins de `300 Ko`.
 3. **Audit SEO du build prérendu (`node scripts/verify-seo.mjs`)** :
@@ -685,14 +709,14 @@ Pour collaborer efficacement à deux développeurs sans conflit ni régression e
 | **Facebook renvoie `403 PRIVATE_OR_LOGIN_REQUIRED` ou `502 BLOCKED_BY_PLATFORM`** | La vidéo est réservée aux amis, publiée dans un groupe privé, soumise à une limite d'âge ou Facebook impose un checkpoint anti-robot. | Vérifier que la vidéo est bien accessible publiquement en navigation privée sans compte Facebook. |
 | **X (Twitter) renvoie `403 PRIVATE_OR_LOGIN_REQUIRED` sur une vidéo existante** | Le tweet est marqué comme contenu sensible / restreint par l'âge (`NsfwViewerIsLoggedOut`), ce que l'API de syndication publique d'embed masque sans compte. | Limite inhérente à l'API publique `cdn.syndication.twimg.com` (sans clé ni compte X). |
 | **Erreur `500` lors de la connexion à `/admin` : « Secrets ADMIN_PASSWORD ou SESSION_SECRET non configurés »** | Les secrets Cloudflare n'ont pas encore été définis dans l'environnement d'exécution. | Exécuter `npx wrangler pages secret put ADMIN_PASSWORD` et `npx wrangler pages secret put SESSION_SECRET` (ou `npx wrangler secret put ...`), puis redéployer. |
-| **Le téléchargement TikTok échoue avec `403` après quelques heures** | Les URLs signées des CDN TikTok ont une durée de vie limitée. | S'assurer que le paramètre `videoId` est bien transmis à `/api/download` (géré automatiquement par `ResultCard.tsx` et `extractorService.ts`) pour déclencher l'**Auto-Heal** à la volée. |
+| **Le téléchargement TikTok échoue avec `403` après quelques heures** | Les URLs signées des CDN TikTok ont une durée de vie limitée. | S'assurer que le paramètre `src` est bien transmis à `/api/download` (géré automatiquement par `ResultCard.tsx` et `extractorService.ts`) pour déclencher l'**Auto-Heal** à la volée. |
 | **Le tableau de bord `/admin` affiche « Base D1 non connectée »** | Le binding D1 `DB` n'est pas relié au projet Cloudflare Pages/Workers ou les migrations n'ont pas été appliquées. | Vérifier le binding `DB` -> `vidnex-db` dans `wrangler.jsonc` / Dashboard Cloudflare et exécuter `npx wrangler d1 migrations apply vidnex-db --remote`. |
 
 ---
 
 ## 14. Pistes à venir
 
-1. **Alertes automatiques de santé des moteurs** : Déclencher une notification (Webhook Discord / Slack / Email via un Cron Trigger Cloudflare) lorsque `consecutive_failures` dépasse un seuil (ex. 5 échecs consécutifs) dans la table D1 `engine_status`.
-2. **Cache de court terme des extractions publiques** : Mettre en cache pendant 2 à 5 minutes (via Cloudflare Cache API ou une table D1 dédiée) les métadonnées d'extraction d'une même URL publique très partagée afin de réduire la pression sur les moteurs et d'accélérer les réponses répétées.
-3. **Traduction native des pages légales dans les 7 langues secondaires** : Étendre `LEGAL_SLUGS` et `LegalPagesContent.tsx` pour proposer des pages légales traduites nativement en `es`, `pt`, `de`, `tr`, `id`, `it` et `ru` (actuellement redirigées vers `/en/...`).
-4. **Téléchargement groupé (ZIP) pour les carrousels** : Permettre de télécharger en un seul clic l'ensemble des diapositives d'un carrousel TikTok, Instagram ou X sous forme d'archive côté client.
+1. **Cache de court terme des extractions publiques** : Mettre en cache pendant 2 à 5 minutes (via Cloudflare Cache API ou une table D1 dédiée) les métadonnées d'extraction d'une même URL publique très partagée afin de réduire la pression sur les moteurs et d'accélérer les réponses répétées.
+2. **Traduction native des pages légales dans les 7 langues secondaires** : Étendre `LEGAL_SLUGS` et `LegalPagesContent.tsx` pour proposer des pages légales traduites nativement en `es`, `pt`, `de`, `tr`, `id`, `it` et `ru` (actuellement redirigées vers `/en/...`).
+3. **Téléchargement groupé (ZIP) pour les carrousels** : Permettre de télécharger en un seul clic l'ensemble des diapositives d'un carrousel TikTok, Instagram ou X sous forme d'archive côté client.
+

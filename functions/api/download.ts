@@ -19,11 +19,74 @@ import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX } from '../_lib/x.ts';
 import { extractFacebook } from '../_lib/facebook.ts';
 import { extractLinkedIn } from '../_lib/linkedin.ts';
-import { checkRateLimit, extractClientIp } from '../_lib/ratelimit.ts';
+import {
+  type AdminEnv,
+  type ExecutionContextLike,
+  getRawClientIp,
+  hashIpAddress,
+} from '../_lib/db.ts';
+import { getSystemSettings } from '../_lib/settings.ts';
+import { checkD1DownloadRateLimit } from '../_lib/ratelimit.ts';
+import { incrementDailyMetrics, type MetricPlatform } from '../_lib/logger.ts';
 
 export interface PagesContext {
   request: Request;
-  env: Record<string, string | undefined>;
+  env: AdminEnv;
+  ctx?: ExecutionContextLike;
+  waitUntil?: (promise: Promise<unknown>) => void;
+}
+
+function scheduleBackground(context: PagesContext, promise: Promise<unknown>): void {
+  if (typeof context.waitUntil === 'function') {
+    context.waitUntil(promise);
+  } else if (context.ctx && typeof context.ctx.waitUntil === 'function') {
+    context.ctx.waitUntil(promise);
+  } else {
+    promise.catch(() => {});
+  }
+}
+
+export function inferDownloadPlatform(
+  sourcePageUrl: string,
+  rawTargetUrl: string,
+  safeFilename: string
+): MetricPlatform {
+  if (sourcePageUrl) {
+    const det = detectUrl(sourcePageUrl);
+    if (det.isValid && det.platform) {
+      if (det.platform === 'instagram' && det.kind === 'profile') {
+        return 'instagram_profile';
+      }
+      return det.platform;
+    }
+  }
+
+  const lowerFile = safeFilename.toLowerCase();
+  if (lowerFile.startsWith('linkedin_')) return 'linkedin';
+  if (lowerFile.startsWith('instagram_') && lowerFile.includes('profile')) {
+    return 'instagram_profile';
+  }
+  if (lowerFile.startsWith('instagram_') || lowerFile.includes('_ig_')) return 'instagram';
+  if (lowerFile.startsWith('x_') || lowerFile.startsWith('twitter_')) return 'x';
+  if (lowerFile.startsWith('facebook_') || lowerFile.startsWith('fb_')) return 'facebook';
+  if (lowerFile.startsWith('tiktok_')) return 'tiktok';
+
+  const lowerUrl = rawTargetUrl.toLowerCase();
+  if (lowerUrl.includes('licdn.com') || lowerUrl.includes('linkedin.com')) return 'linkedin';
+  if (lowerUrl.includes('twimg.com')) return 'x';
+  if (lowerUrl.includes('cdninstagram.com')) return 'instagram';
+  if (lowerUrl.includes('fbcdn.net')) {
+    return lowerUrl.includes('video') ? 'facebook' : 'instagram';
+  }
+  if (
+    lowerUrl.includes('tiktokcdn') ||
+    lowerUrl.includes('tikwm.com') ||
+    lowerUrl.includes('musical.ly')
+  ) {
+    return 'tiktok';
+  }
+
+  return 'unknown';
 }
 
 const MAX_REDIRECTS = 4;
@@ -236,26 +299,6 @@ export const onRequestOptions = async (): Promise<Response> => {
 };
 
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
-  const clientIp = extractClientIp(context.request);
-  if (clientIp !== 'anonymous') {
-    const rate = checkRateLimit(`download:${clientIp}`, 60, 60_000);
-    if (!rate.allowed) {
-      return new Response(
-        JSON.stringify({
-          error: `Trop de téléchargements simultanés. Veuillez réessayer dans ${rate.retryAfterSec}s.`,
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Retry-After': String(rate.retryAfterSec),
-          },
-        }
-      );
-    }
-  }
-
   const reqUrl = new URL(context.request.url);
   const rawTargetUrl = (reqUrl.searchParams.get('url') || '').trim();
   const altTargetUrl = (reqUrl.searchParams.get('alt') || '').trim();
@@ -265,6 +308,33 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const isInline = reqUrl.searchParams.get('inline') === '1';
   const rangeHeader = context.request.headers.get('Range');
   const method = context.request.method;
+
+  const rawIp = getRawClientIp(context.request);
+  const ipHash = await hashIpAddress(rawIp, context.env?.IP_HASH_SALT);
+  const settings = await getSystemSettings(context.env);
+  const fileKey = rawTargetUrl || safeFilename || reqUrl.pathname;
+  const rate = await checkD1DownloadRateLimit(
+    context.env,
+    ipHash,
+    fileKey,
+    settings.download_limit_per_min
+  );
+
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Trop de téléchargements simultanés. Veuillez réessayer dans ${rate.retryAfterSec}s.`,
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Retry-After': String(rate.retryAfterSec),
+        },
+      }
+    );
+  }
 
   if (!rawTargetUrl) {
     return new Response(
@@ -535,6 +605,44 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     responseHeaders.set('Accept-Ranges', acceptRanges);
   } else if (!isInline) {
     responseHeaders.set('Accept-Ranges', 'bytes');
+  }
+
+  const shouldTrackDownloadMetric =
+    !isInline && method !== 'HEAD' && rate.firstRequestForFile !== false;
+
+  if (shouldTrackDownloadMetric) {
+    const downloadPlatform = inferDownloadPlatform(
+      sourcePageUrl,
+      rawTargetUrl,
+      safeFilename
+    );
+    scheduleBackground(
+      context,
+      incrementDailyMetrics(context.env, downloadPlatform, ['download_started'])
+    );
+
+    if (upstreamRes.body) {
+      const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>(
+        undefined,
+        new CountQueuingStrategy({ highWaterMark: 16 })
+      );
+      const streamTask = upstreamRes.body
+        .pipeTo(writable)
+        .then(() =>
+          incrementDailyMetrics(context.env, downloadPlatform, ['download_success'])
+        );
+      scheduleBackground(context, streamTask);
+
+      return new Response(readable, {
+        status: upstreamRes.status,
+        headers: responseHeaders,
+      });
+    }
+
+    scheduleBackground(
+      context,
+      incrementDailyMetrics(context.env, downloadPlatform, ['download_success'])
+    );
   }
 
   return new Response(upstreamRes.body, {

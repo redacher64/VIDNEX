@@ -13,6 +13,7 @@ export interface SystemSettings {
   platform_facebook: boolean;
   platform_linkedin: boolean;
   rate_limit_per_min: number;
+  download_limit_per_min: number;
   ads_enabled: boolean;
   test_url_tiktok: string;
   test_url_instagram: string;
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   platform_facebook: true,
   platform_linkedin: true,
   rate_limit_per_min: 30,
+  download_limit_per_min: 60,
   ads_enabled: true,
   test_url_tiktok: '',
   test_url_instagram: '',
@@ -74,6 +76,12 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
         ? Math.floor(rawRate)
         : DEFAULT_SETTINGS.rate_limit_per_min;
 
+    const rawDownloadRate = Number(map.get('download_limit_per_min'));
+    const downloadLimit =
+      Number.isFinite(rawDownloadRate) && rawDownloadRate >= 1 && rawDownloadRate <= 10_000
+        ? Math.floor(rawDownloadRate)
+        : DEFAULT_SETTINGS.download_limit_per_min;
+
     return {
       maintenance: map.get('maintenance') === 'true',
       platform_tiktok: map.has('platform_tiktok')
@@ -92,6 +100,7 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
         ? map.get('platform_linkedin') !== 'false'
         : true,
       rate_limit_per_min: rateLimit,
+      download_limit_per_min: downloadLimit,
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
         : true,
@@ -141,6 +150,10 @@ export async function updateSystemSettings(
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));
     entries.push(['rate_limit_per_min', String(clamped)]);
+  }
+  if (typeof partial.download_limit_per_min === 'number') {
+    const clamped = Math.max(1, Math.min(5000, Math.floor(partial.download_limit_per_min)));
+    entries.push(['download_limit_per_min', String(clamped)]);
   }
   if (typeof partial.ads_enabled === 'boolean') {
     entries.push(['ads_enabled', String(partial.ads_enabled)]);

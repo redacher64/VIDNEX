@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit && tsc --noEmit -p tsconfig.backend.json",
     "lint:backend": "tsc --noEmit -p tsconfig.backend.json",
-    "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts",
+    "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts tests/linkedin.test.ts",
     "indexnow": "node --experimental-strip-types scripts/indexnow.mjs"
   },
   "dependencies": {

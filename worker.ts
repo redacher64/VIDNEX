@@ -63,13 +63,8 @@ async function routeInner(
     if (request.method === 'GET' || request.method === 'HEAD') {
       return downloadGet({
         request,
-        env: {
-          IG_SESSION_ID: env.IG_SESSION_ID,
-          IG_CSRF_TOKEN: env.IG_CSRF_TOKEN,
-          IG_COOKIES: env.IG_COOKIES,
-          TIKWM_API_KEY: env.TIKWM_API_KEY,
-          TT_COOKIE: env.TT_COOKIE,
-        },
+        env,
+        ctx,
       });
     }
     return new Response('Method Not Allowed', { status: 405 });

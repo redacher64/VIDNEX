@@ -21,6 +21,16 @@ import {
   THEME_COLOR,
 } from '../config/site.ts';
 import {
+  BLOG_HUB_LOCALES,
+  BLOG_HUB_SEO,
+  type BlogLocale,
+  getBlogHomePath,
+  getPublishedArticleBySlug,
+  getPublishedArticleTranslations,
+  getPublishedArticlesForLocale,
+  isBlogHubLocale,
+} from '../data/blogArticles.ts';
+import {
   getLocaleDefinition,
   getLocalizedPagePath,
   isLegalPageKey,
@@ -120,13 +130,61 @@ export function clampSocialText(text: string, maxChars: number): string {
 }
 
 /**
- * Génère la liste complète des liens hreflang pour une page donnée.
- * - Pour 'home' et les 4 pages plateformes ('tiktok', 'instagram', 'x', 'facebook') :
- *   renvoie les 10 langues (y compris l'auto-référence) + 'x-default' pointant vers la version anglaise.
- * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') :
- *   renvoie un tableau vide [] (conformément à l'ÉTAPE 2 : "sans hreflang pour ces pages").
+ * Génère la liste des liens hreflang pour le Blog Hub (/blog, /fr/blog, /es/blog, /de/blog)
+ * ou un article du Blog (/blog/{slug}, /{locale}/blog/{localizedSlug}).
+ * N'invente JAMAIS de balise hreflang pour une langue dans laquelle l'article n'est pas publié.
  */
-export function buildHreflangCluster(pageKey: PageKey): HreflangEntry[] {
+export function buildBlogHreflangCluster(
+  pageKey: 'blog' | 'blog_article',
+  blogArticleId?: string | null
+): HreflangEntry[] {
+  if (pageKey === 'blog') {
+    const entries: HreflangEntry[] = BLOG_HUB_LOCALES.map((loc) => ({
+      hreflang: LOCALES_CONFIG[loc].hreflang,
+      href: getCanonicalUrl(getBlogHomePath(loc)),
+    }));
+    entries.push({
+      hreflang: 'x-default',
+      href: getCanonicalUrl('/blog'),
+    });
+    return entries;
+  }
+
+  if (!blogArticleId) return [];
+
+  const publishedTranslations = getPublishedArticleTranslations(blogArticleId);
+  if (publishedTranslations.length === 0) return [];
+
+  const entries: HreflangEntry[] = publishedTranslations.map((item) => ({
+    hreflang: LOCALES_CONFIG[item.locale].hreflang,
+    href: getCanonicalUrl(item.canonicalPath),
+  }));
+
+  const enItem =
+    publishedTranslations.find((item) => item.locale === 'en') ||
+    publishedTranslations[0];
+  entries.push({
+    hreflang: 'x-default',
+    href: getCanonicalUrl(enItem.canonicalPath),
+  });
+
+  return entries;
+}
+
+/**
+ * Génère la liste complète des liens hreflang pour une page donnée.
+ * - Pour 'home' et les 5 pages plateformes : renvoie les 10 langues + 'x-default' vers la version anglaise.
+ * - Pour 'blog' et 'blog_article' : renvoie uniquement les versions linguistiques réellement publiées + 'x-default' vers la version anglaise.
+ * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') : renvoie [].
+ */
+export function buildHreflangCluster(
+  pageKey: PageKey | 'blog_article',
+  blogArticleId?: string | null
+): HreflangEntry[] {
+  if (pageKey === 'blog' || pageKey === 'blog_article') {
+    return buildBlogHreflangCluster(pageKey, blogArticleId);
+  }
+
   if (isLegalPageKey(pageKey)) {
     return [];
   }
@@ -163,11 +221,29 @@ export function getPageCanonicalUrl(
  */
 export function getOgLocales(
   locale: SupportedLocale,
-  pageKey: PageKey
+  pageKey: PageKey | 'blog_article',
+  blogArticleId?: string | null
 ): { ogLocale: string; ogLocaleAlternates: string[] } {
   const currentDef = getLocaleDefinition(locale);
-  if (isLegalPageKey(pageKey)) {
+  if (isLegalPageKey(pageKey as PageKey)) {
     return { ogLocale: currentDef.ogLocale, ogLocaleAlternates: [] };
+  }
+
+  if (pageKey === 'blog') {
+    const alternates = BLOG_HUB_LOCALES.filter((code) => code !== locale).map(
+      (code) => LOCALES_CONFIG[code].ogLocale
+    );
+    return { ogLocale: currentDef.ogLocale, ogLocaleAlternates: alternates };
+  }
+
+  if (pageKey === 'blog_article') {
+    const publishedTranslations = blogArticleId
+      ? getPublishedArticleTranslations(blogArticleId)
+      : [];
+    const alternates = publishedTranslations
+      .filter((t) => t.locale !== locale)
+      .map((t) => LOCALES_CONFIG[t.locale].ogLocale);
+    return { ogLocale: currentDef.ogLocale, ogLocaleAlternates: alternates };
   }
 
   const alternates = SUPPORTED_LOCALES.filter((code) => code !== locale).map(
@@ -218,7 +294,8 @@ export interface RouteHeadMetadata {
  */
 export function buildHeadMetadataForRoute(
   locale: SupportedLocale,
-  pageKey: PageKey | 'admin' | 'not_found'
+  pageKey: PageKey | 'blog_article' | 'admin' | 'not_found',
+  blogSlug?: string | null
 ): RouteHeadMetadata {
   const localeMeta = LOCALES_CONFIG[locale] || LOCALES_CONFIG.fr;
   const bundle = getLocaleBundleSync(locale);
@@ -293,6 +370,240 @@ export function buildHeadMetadataForRoute(
       twitterImageAlt: bundle.home.ogImageAlt,
       hreflangs: [],
       jsonLdGraph: { '@context': 'https://schema.org', '@graph': [] },
+    };
+  }
+
+  // Blog Hub (/blog, /fr/blog, /es/blog, /de/blog)
+  if (pageKey === 'blog') {
+    const blogLoc: BlogLocale = isBlogHubLocale(locale) ? locale : 'en';
+    const blogMeta = BLOG_HUB_SEO[blogLoc];
+    const canonicalUrl = getCanonicalUrl(getBlogHomePath(blogLoc));
+    const hreflangs = buildBlogHreflangCluster('blog');
+    const { ogLocale, ogLocaleAlternates } = getOgLocales(blogLoc, 'blog');
+    const homeUrl = getPageCanonicalUrl(blogLoc, 'home');
+    const title = clampSocialText(blogMeta.metaTitle, 60);
+    const description = clampSocialText(blogMeta.metaDescription, 150);
+    const ogImageAlt = `${SITE_NAME} — ${blogMeta.title}`;
+    const articlesInLocale = getPublishedArticlesForLocale(blogLoc);
+
+    const graph: Record<string, unknown>[] = [
+      {
+        '@type': 'Blog',
+        '@id': `${canonicalUrl}#blog`,
+        name: blogMeta.title,
+        description,
+        url: canonicalUrl,
+        inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
+        publisher: {
+          '@type': 'Organization',
+          '@id': `${SITE_URL}/#organization`,
+          name: SITE_NAME,
+          url: SITE_URL,
+          logo: {
+            '@type': 'ImageObject',
+            url: buildAbsoluteUrl('/icon-512.png'),
+          },
+        },
+        blogPost: articlesInLocale.map((item) => ({
+          '@type': 'BlogPosting',
+          headline: item.translation.title,
+          url: getCanonicalUrl(item.canonicalPath),
+          datePublished: item.article.publishedAt,
+          dateModified: item.article.updatedAt,
+          inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
+        })),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: bundle.ui.sections.breadcrumbHome,
+            item: homeUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: blogMeta.breadcrumbLabel,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ];
+
+    return {
+      lang: LOCALES_CONFIG[blogLoc].code,
+      dir: LOCALES_CONFIG[blogLoc].dir,
+      title,
+      description,
+      canonicalUrl,
+      robots: 'index, follow',
+      themeColor: THEME_COLOR,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
+      ogTitle: title,
+      ogDescription: description,
+      ogUrl: canonicalUrl,
+      ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
+      ogLocale,
+      ogLocaleAlternates,
+      twitterCard: 'summary_large_image',
+      twitterTitle: title,
+      twitterDescription: description,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
+      hreflangs,
+      jsonLdGraph: {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+      },
+    };
+  }
+
+  // Blog Article (/blog/{slug} or /{locale}/blog/{localizedSlug})
+  if (pageKey === 'blog_article') {
+    const blogLoc: BlogLocale = isBlogHubLocale(locale) ? locale : 'en';
+    const resolved = blogSlug
+      ? getPublishedArticleBySlug(blogLoc, blogSlug)
+      : null;
+
+    if (!resolved) {
+      return buildHeadMetadataForRoute(locale, 'not_found');
+    }
+
+    const { article, translation, canonicalPath } = resolved;
+    const canonicalUrl = getCanonicalUrl(canonicalPath);
+    const blogHubUrl = getCanonicalUrl(getBlogHomePath(blogLoc));
+    const homeUrl = getPageCanonicalUrl(blogLoc, 'home');
+    const hreflangs = buildBlogHreflangCluster('blog_article', article.id);
+    const { ogLocale, ogLocaleAlternates } = getOgLocales(
+      blogLoc,
+      'blog_article',
+      article.id
+    );
+
+    const title = clampSocialText(translation.metaTitle, 60);
+    const description = clampSocialText(translation.metaDescription, 150);
+    const ogImageAlt =
+      article.featuredImage.alt[blogLoc] ||
+      article.featuredImage.alt.en ||
+      title;
+
+    const graph: Record<string, unknown>[] = [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${canonicalUrl}#article`,
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': canonicalUrl,
+        },
+        headline: translation.title,
+        description,
+        image: ogImage,
+        datePublished: article.publishedAt,
+        dateModified: article.updatedAt,
+        inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
+        articleSection: article.category,
+        keywords: [
+          translation.primaryKeyword,
+          ...translation.secondaryKeywords,
+        ].join(', '),
+        author: {
+          '@type': 'Organization',
+          name: article.author.name,
+          url: SITE_URL,
+        },
+        publisher: {
+          '@type': 'Organization',
+          '@id': `${SITE_URL}/#organization`,
+          name: SITE_NAME,
+          url: SITE_URL,
+          logo: {
+            '@type': 'ImageObject',
+            url: buildAbsoluteUrl('/icon-512.png'),
+          },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: bundle.ui.sections.breadcrumbHome,
+            item: homeUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: BLOG_HUB_SEO[blogLoc].breadcrumbLabel,
+            item: blogHubUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: translation.title,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ];
+
+    if (translation.faq.length > 0) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faq`,
+        inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
+        mainEntity: translation.faq.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      });
+    }
+
+    return {
+      lang: LOCALES_CONFIG[blogLoc].code,
+      dir: LOCALES_CONFIG[blogLoc].dir,
+      title,
+      description,
+      canonicalUrl,
+      robots: 'index, follow',
+      themeColor: THEME_COLOR,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
+      ogTitle: title,
+      ogDescription: description,
+      ogUrl: canonicalUrl,
+      ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
+      ogLocale,
+      ogLocaleAlternates,
+      twitterCard: 'summary_large_image',
+      twitterTitle: title,
+      twitterDescription: description,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
+      hreflangs,
+      jsonLdGraph: {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+      },
     };
   }
 

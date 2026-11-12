@@ -27,8 +27,17 @@ export type PlatformPageKey =
 
 export type LegalPageKey = 'about' | 'privacy' | 'terms' | 'contact' | 'dmca';
 
-export type PageKey = 'home' | PlatformPageKey | LegalPageKey;
-export type RoutePageKey = PageKey;
+export type PageKey = 'home' | PlatformPageKey | LegalPageKey | 'blog';
+export type RoutePageKey = PageKey | 'blog_article';
+
+import {
+  BLOG_HUB_LOCALES,
+  type BlogLocale,
+  getBlogHomePath,
+  getPublishedArticleBySlug,
+  getPublishedArticlesForLocale,
+  isBlogHubLocale,
+} from '../data/blogArticles.ts';
 
 export interface LocaleDefinition {
   code: SupportedLocale;
@@ -43,6 +52,7 @@ export interface LocaleDefinition {
 }
 
 export const DEFAULT_LOCALE: SupportedLocale = 'fr';
+export const BLOG_DEFAULT_LOCALE: SupportedLocale = 'en';
 
 export const SUPPORTED_LOCALES: readonly SupportedLocale[] = [
   'fr',
@@ -209,7 +219,7 @@ export function isLegalPageKey(value: unknown): value is LegalPageKey {
 }
 
 /**
- * Table des slugs localisés par langue pour les 4 pages plateformes.
+ * Table des slugs localisés par langue pour les 5 pages plateformes.
  * - Alphabets latins (fr, en, es, pt, de, tr, id, it) : slugs dans la langue cible
  * - Alphabets non-latins (ar, ru) : slugs anglais sous le préfixe /ar/ et /ru/
  */
@@ -368,6 +378,10 @@ export function getLocalizedPagePath(
     return def.prefix || '/';
   }
 
+  if (pageKey === 'blog') {
+    return getBlogHomePath(locale);
+  }
+
   if (isPlatformPageKey(pageKey)) {
     const slug = PLATFORM_SLUGS[locale][pageKey];
     return `${def.prefix}/${slug}`;
@@ -392,15 +406,17 @@ export interface ResolvedRoute {
   isNotFound: boolean;
   isAdmin: boolean;
   locale: SupportedLocale;
-  pageKey: PageKey | 'admin' | 'not_found';
+  pageKey: PageKey | 'blog_article' | 'admin' | 'not_found';
   platformKey: PlatformPageKey | null;
   legalKey: LegalPageKey | null;
+  blogSlug?: string | null;
+  blogArticleId?: string | null;
   canonicalPath: string;
   isLegacyAlias?: boolean;
 }
 
 /**
- * Résout un pathname URL vers sa langue, son type de page (home, platform, legal, admin)
+ * Résout un pathname URL vers sa langue, son type de page (home, platform, legal, blog, blog_article, admin)
  * ou signale `isValidRoute: false` / `isNotFound: true` (pour renvoyer un vrai 404).
  */
 export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
@@ -438,6 +454,52 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
     };
   }
 
+  // 2b. Route /blog et /blog/{slug} => Blog en anglais par défaut (English as default language of the blog)
+  if (first === 'blog') {
+    if (segments.length === 1) {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale: 'en',
+        pageKey: 'blog',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: '/blog',
+      };
+    }
+
+    if (segments.length === 2) {
+      const articleSlug = segments[1];
+      const resolvedArticle = getPublishedArticleBySlug('en', articleSlug);
+      if (resolvedArticle) {
+        return {
+          isValidRoute: true,
+          isNotFound: false,
+          isAdmin: false,
+          locale: 'en',
+          pageKey: 'blog_article',
+          platformKey: null,
+          legalKey: null,
+          blogSlug: resolvedArticle.translation.localizedSlug,
+          blogArticleId: resolvedArticle.article.id,
+          canonicalPath: resolvedArticle.canonicalPath,
+        };
+      }
+    }
+
+    return {
+      isValidRoute: false,
+      isNotFound: true,
+      isAdmin: false,
+      locale: 'en',
+      pageKey: 'not_found',
+      platformKey: null,
+      legalKey: null,
+      canonicalPath: '/blog',
+    };
+  }
+
   // 3. Route avec préfixe de langue (/en, /ar, /es, /pt, /de, /tr, /id, /it, /ru)
   if (isSupportedLocale(first) && first !== DEFAULT_LOCALE) {
     const locale = first;
@@ -452,6 +514,55 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         platformKey: null,
         legalKey: null,
         canonicalPath: `/${locale}`,
+      };
+    }
+
+    // Blog sous préfixe de langue : seul /fr/blog est servi en 200 ; /en/blog redirige en 301 vers /blog
+    if (segments[1] === 'blog') {
+      if (locale !== 'en' && isBlogHubLocale(locale)) {
+        if (segments.length === 2) {
+          return {
+            isValidRoute: true,
+            isNotFound: false,
+            isAdmin: false,
+            locale,
+            pageKey: 'blog',
+            platformKey: null,
+            legalKey: null,
+            canonicalPath: `/${locale}/blog`,
+          };
+        }
+        if (segments.length === 3) {
+          const resolvedLoc = getPublishedArticleBySlug(
+            locale as BlogLocale,
+            segments[2]
+          );
+          if (resolvedLoc) {
+            return {
+              isValidRoute: true,
+              isNotFound: false,
+              isAdmin: false,
+              locale,
+              pageKey: 'blog_article',
+              platformKey: null,
+              legalKey: null,
+              blogSlug: resolvedLoc.translation.localizedSlug,
+              blogArticleId: resolvedLoc.article.id,
+              canonicalPath: resolvedLoc.canonicalPath,
+            };
+          }
+        }
+      }
+
+      return {
+        isValidRoute: false,
+        isNotFound: true,
+        isAdmin: false,
+        locale: locale === 'en' ? 'en' : locale,
+        pageKey: 'not_found',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: locale === 'en' ? '/blog' : `/${locale}`,
       };
     }
 
@@ -518,8 +629,50 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
     };
   }
 
-  // Support d'un ancien lien /fr ou /fr/... vers la racine sans préfixe
+  // Support de /fr/blog, /fr/blog/{slug} et d'un ancien lien /fr ou /fr/...
   if (first === 'fr') {
+    if (segments[1] === 'blog') {
+      if (segments.length === 2) {
+        return {
+          isValidRoute: true,
+          isNotFound: false,
+          isAdmin: false,
+          locale: 'fr',
+          pageKey: 'blog',
+          platformKey: null,
+          legalKey: null,
+          canonicalPath: '/fr/blog',
+        };
+      }
+      if (segments.length === 3) {
+        const resolvedFr = getPublishedArticleBySlug('fr', segments[2]);
+        if (resolvedFr) {
+          return {
+            isValidRoute: true,
+            isNotFound: false,
+            isAdmin: false,
+            locale: 'fr',
+            pageKey: 'blog_article',
+            platformKey: null,
+            legalKey: null,
+            blogSlug: resolvedFr.translation.localizedSlug,
+            blogArticleId: resolvedFr.article.id,
+            canonicalPath: resolvedFr.canonicalPath,
+          };
+        }
+      }
+      return {
+        isValidRoute: false,
+        isNotFound: true,
+        isAdmin: false,
+        locale: 'fr',
+        pageKey: 'not_found',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: '/fr/blog',
+      };
+    }
+
     if (segments.length === 1) {
       return {
         isValidRoute: true,
@@ -631,7 +784,10 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
 export interface PublicRouteEntry {
   path: string;
   locale: SupportedLocale;
-  pageKey: PageKey;
+  pageKey: PageKey | 'blog_article';
+  blogSlug?: string;
+  blogArticleId?: string;
+  lastmod?: string;
   hasHreflang: boolean;
   priority: string;
   changefreq: 'daily' | 'weekly' | 'monthly';
@@ -640,7 +796,7 @@ export interface PublicRouteEntry {
 export function getAllPublicRoutes(): PublicRouteEntry[] {
   const routes: PublicRouteEntry[] = [];
 
-  // 1. Accueil + 4 pages plateformes pour chacune des 10 langues (50 routes)
+  // 1. Accueil + 5 pages plateformes pour chacune des 10 langues (60 routes)
   for (const code of SUPPORTED_LOCALES) {
     routes.push({
       path: getLocalizedPagePath(code, 'home'),
@@ -681,10 +837,112 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
 }
 
 /**
- * Génère le contenu de /llms.txt à partir de la configuration du site et des langues.
+ * Retourne l'ensemble des routes publiques du Blog (Hubs linguistiques publiés + Articles publiés).
+ * Exclut strictement tous les articles en brouillon (`status: 'draft'`) et toutes les traductions
+ * en brouillon (`translationStatus: 'draft'`).
+ */
+export function getAllBlogPublicRoutes(): PublicRouteEntry[] {
+  const blogRoutes: PublicRouteEntry[] = [];
+
+  for (const blogLoc of BLOG_HUB_LOCALES) {
+    const hubPath = getBlogHomePath(blogLoc);
+    blogRoutes.push({
+      path: hubPath,
+      locale: blogLoc,
+      pageKey: 'blog',
+      hasHreflang: true,
+      priority: blogLoc === 'en' ? '0.9' : '0.8',
+      changefreq: 'weekly',
+    });
+
+    const publishedArticles = getPublishedArticlesForLocale(blogLoc);
+    for (const item of publishedArticles) {
+      blogRoutes.push({
+        path: item.canonicalPath,
+        locale: blogLoc,
+        pageKey: 'blog_article',
+        blogSlug: item.translation.localizedSlug,
+        blogArticleId: item.article.id,
+        lastmod: item.article.updatedAt,
+        hasHreflang: true,
+        priority: blogLoc === 'en' ? '0.8' : '0.7',
+        changefreq: 'monthly',
+      });
+    }
+  }
+
+  return blogRoutes;
+}
+
+/**
+ * Retourne la totalité des routes indexables du site (75 routes principales + routes publiques du Blog).
+ * Utilisé par scripts/prerender.mjs, sitemap.xml, scripts/verify-seo.mjs et scripts/check-og.mjs.
+ */
+export function getAllIndexableRoutes(): PublicRouteEntry[] {
+  return [...getAllPublicRoutes(), ...getAllBlogPublicRoutes()];
+}
+
+export const LEGACY_BLOG_SLUG_REDIRECTS: Record<string, string> = {
+  '/blog/tiktok-video-not-downloading':
+    '/blog/troubleshooting-expired-blocked-social-media-links',
+  '/blog/download-tiktok-without-watermark':
+    '/blog/save-public-tiktok-videos-without-watermark-guide',
+  '/blog/mp4-vs-mp3-difference':
+    '/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
+  '/blog/instagram-reel-without-sound':
+    '/blog/instagram-reels-carousels-resolution-compression-guide',
+  '/blog/social-media-video-aspect-ratios-safe-zones-2026':
+    '/blog/social-media-video-aspect-ratios-safe-zones',
+  '/fr/blog/son-reel-instagram-manquant':
+    '/fr/blog/instagram-reels-carrousels-resolution-compression-guide',
+  '/fr/blog/difference-mp4-et-mp3':
+    '/fr/blog/audio-tiktok-mp3-vs-m4a-aac-guide-technique',
+};
+
+/**
+ * Résout les redirections permanentes 301 du Blog :
+ * - /en/blog -> /blog
+ * - /en/blog/{slug} -> /blog/{slug} (avec normalisation d'ancien slug ou retrait de -2026)
+ * - Anciens slugs publiés ou slugs contenant -2026 -> nouveau slug canonique sans année
+ */
+export function resolveBlogRedirectPath(rawPathname: string): string | null {
+  const clean = (rawPathname || '/').split('?')[0].split('#')[0];
+  const normalized = clean.replace(/\/+$/, '') || '/';
+
+  if (normalized === '/en/blog') {
+    return '/blog';
+  }
+
+  if (normalized.startsWith('/en/blog/')) {
+    const rest = normalized.slice('/en/blog/'.length).replace(/^\/+|\/+$/g, '');
+    if (!rest) return '/blog';
+    const candidate = `/blog/${rest.replace(/-2026$/, '')}`;
+    return LEGACY_BLOG_SLUG_REDIRECTS[candidate] || candidate;
+  }
+
+  if (normalized in LEGACY_BLOG_SLUG_REDIRECTS) {
+    return LEGACY_BLOG_SLUG_REDIRECTS[normalized];
+  }
+
+  if (
+    (normalized.startsWith('/blog/') || normalized.startsWith('/fr/blog/')) &&
+    normalized.endsWith('-2026')
+  ) {
+    const stripped = normalized.replace(/-2026$/, '');
+    return LEGACY_BLOG_SLUG_REDIRECTS[stripped] || stripped;
+  }
+
+  return null;
+}
+
+/**
+ * Génère le contenu de /llms.txt à partir de la configuration du site, des outils et du Blog.
  */
 export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   const base = siteUrl.replace(/\/+$/, '');
+  const enArticles = getPublishedArticlesForLocale('en');
+  const frArticles = getPublishedArticlesForLocale('fr');
+
   return [
     '# VIDNEX',
     '',
@@ -698,11 +956,25 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     `- [Télécharger Vidéo X (Twitter)](${base}${getLocalizedPagePath('fr', 'x')})`,
     `- [Télécharger Vidéo Facebook](${base}${getLocalizedPagePath('fr', 'facebook')})`,
     `- [Télécharger Photo de Profil LinkedIn](${base}${getLocalizedPagePath('fr', 'linkedin')})`,
+    `- [VIDNEX Editorial Blog (English Default)](${base}/blog)`,
+    `- [Blog VIDNEX Français](${base}/fr/blog)`,
     `- [À propos](${base}${getLocalizedPagePath('fr', 'about')})`,
     `- [Politique de confidentialité](${base}${getLocalizedPagePath('fr', 'privacy')})`,
     `- [Conditions d’utilisation](${base}${getLocalizedPagePath('fr', 'terms')})`,
     `- [Contact](${base}${getLocalizedPagePath('fr', 'contact')})`,
     `- [Droits d’auteur et DMCA](${base}${getLocalizedPagePath('fr', 'dmca')})`,
+    '',
+    '## Guides techniques & Blog (English — /blog)',
+    '',
+    ...enArticles.map(
+      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+    ),
+    '',
+    '## Guides techniques & Blog (Français — /fr/blog)',
+    '',
+    ...frArticles.map(
+      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+    ),
     '',
     '## Langues disponibles',
     '',
@@ -715,4 +987,3 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '',
   ].join('\n');
 }
-

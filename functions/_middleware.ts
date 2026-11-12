@@ -1,4 +1,5 @@
 import { SITE_URL } from '../src/config/site.ts';
+import { resolveBlogRedirectPath } from '../src/i18n/config.ts';
 import { type AdminEnv } from './_lib/db.ts';
 import { isRequestAdminAuthenticated } from './_lib/auth.ts';
 
@@ -45,6 +46,7 @@ export function isPreviewHostRequiringNoindex(
 
 /**
  * Cloudflare Pages / Worker Middleware:
+ * - Redirects /en/blog and /en/blog/{slug} (plus legacy blog slugs) with HTTP 301 to /blog and /blog/{slug}.
  * - Protects all /api/admin/* routes (except /api/admin/login and OPTIONS) by verifying the signed HMAC session cookie.
  * - Adds X-Robots-Tag: noindex, nofollow on /admin, /api/*, and .pages.dev / .workers.dev preview domains.
  * - Passes all other public routes through with zero overhead.
@@ -53,6 +55,17 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
   const { request, env = {}, next } = context;
   const url = new URL(request.url);
   const pathname = url.pathname;
+
+  const blogRedirectTarget = resolveBlogRedirectPath(pathname);
+  if (blogRedirectTarget) {
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${url.origin}${blogRedirectTarget}${url.search}`,
+        'Cache-Control': 'public, max-age=31536000',
+      },
+    });
+  }
 
   const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
   const isAdminApi =

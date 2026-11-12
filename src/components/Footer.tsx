@@ -14,7 +14,7 @@ import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 
 interface FooterProps {
-  activePageKey: PageKey | 'not_found';
+  activePageKey: PageKey | 'blog_article' | 'not_found';
   onNavigatePage: (pageKey: PageKey) => void;
   language: SupportedLocale;
   onSelectLanguage: (lang: SupportedLocale) => void;
@@ -30,9 +30,16 @@ export const Footer: React.FC<FooterProps> = ({
   const f = bundle.ui.footer;
 
   const pageForLangSwitch: PageKey =
-    activePageKey === 'not_found' ? 'home' : activePageKey;
+    activePageKey === 'not_found'
+      ? 'home'
+      : activePageKey === 'blog_article'
+      ? 'blog'
+      : activePageKey;
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const blogHref = getLocalizedPagePath(language, 'blog');
+  const isBlogActive =
+    activePageKey === 'blog' || activePageKey === 'blog_article';
 
   const handlePageClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -107,12 +114,25 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* 2. Legal & Trust Pages (Col 2 on mobile, 3 cols on desktop) */}
+          {/* 2. Legal, Editorial Blog & Trust Pages (Col 2 on mobile, 3 cols on desktop) */}
           <div className="col-span-1 md:col-span-3">
             <h2 className="font-display text-xs font-bold uppercase tracking-wider text-orange-800 dark:text-amber-400 mb-3">
               {f.legalTitle}
             </h2>
             <ul className="space-y-1.5">
+              <li>
+                <a
+                  href={blogHref}
+                  onClick={(e) => handlePageClick(e, 'blog')}
+                  className={`min-h-[40px] inline-flex items-center py-1 transition-colors ${
+                    isBlogActive
+                      ? 'text-orange-600 dark:text-amber-400 font-bold'
+                      : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
+                  }`}
+                >
+                  Blog
+                </a>
+              </li>
               {LEGAL_PAGE_KEYS.map((lKey: LegalPageKey) => {
                 const href = getLocalizedPagePath(language, lKey);
                 const isActive = activePageKey === lKey;

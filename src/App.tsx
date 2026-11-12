@@ -7,6 +7,8 @@ import { BelowFoldSeoSections } from './components/BelowFoldSeoSections.tsx';
 import { SeoSchemaInjector } from './components/SeoSchemaInjector.tsx';
 import { LanguageSuggestionBanner } from './components/LanguageSuggestionBanner.tsx';
 import { LegalPageView } from './components/LegalPageView.tsx';
+import { BlogIndexView } from './components/BlogIndexView.tsx';
+import { BlogArticleView } from './components/BlogArticleView.tsx';
 import { NotFoundView } from './components/NotFoundView.tsx';
 import { AdSlot } from './components/AdSlot.tsx';
 import { Footer } from './components/Footer.tsx';
@@ -35,6 +37,12 @@ import {
   type SupportedLocale,
 } from './i18n/config.ts';
 import {
+  getPublishedArticleBySlug,
+  getPublishedArticleTranslations,
+  isBlogHubLocale,
+  type BlogLocale,
+} from './data/blogArticles.ts';
+import {
   getLocaleBundleSync,
   hasLocaleBundleSync,
   loadLocaleBundle,
@@ -53,36 +61,49 @@ interface AppProps {
 
 function resolveInitialRouteState(initialPath?: string): {
   lang: SupportedLocale;
-  pageKey: PageKey | 'admin' | 'not_found';
+  pageKey: PageKey | 'blog_article' | 'admin' | 'not_found';
+  blogSlug: string | null;
 } {
   if (initialPath) {
     const parsed = parsePathname(initialPath);
     return {
       lang: parsed.lang,
       pageKey: parsed.isAdmin ? 'admin' : parsed.pageKey,
+      blogSlug: parsed.blogSlug || null,
     };
   }
   if (typeof window === 'undefined') {
-    return { lang: DEFAULT_LOCALE, pageKey: 'home' };
+    return { lang: DEFAULT_LOCALE, pageKey: 'home', blogSlug: null };
   }
   const parsed = parsePathname(window.location.pathname);
   const params = new URLSearchParams(window.location.search);
   if (parsed.isAdmin || params.get('admin') === '1') {
-    return { lang: DEFAULT_LOCALE, pageKey: 'admin' };
+    return { lang: DEFAULT_LOCALE, pageKey: 'admin', blogSlug: null };
   }
   const urlLang = params.get('lang');
   if (urlLang && isSupportedLanguage(urlLang)) {
-    return { lang: urlLang, pageKey: parsed.pageKey };
+    return {
+      lang: urlLang,
+      pageKey: parsed.pageKey,
+      blogSlug: parsed.blogSlug || null,
+    };
   }
-  return { lang: parsed.lang, pageKey: parsed.pageKey };
+  return {
+    lang: parsed.lang,
+    pageKey: parsed.pageKey,
+    blogSlug: parsed.blogSlug || null,
+  };
 }
 
 export function App({ initialPath }: AppProps = {}) {
   const initialRoute = resolveInitialRouteState(initialPath);
 
   const [language, setLanguage] = useState<SupportedLocale>(initialRoute.lang);
-  const [pageKey, setPageKey] = useState<PageKey | 'admin' | 'not_found'>(
-    initialRoute.pageKey
+  const [pageKey, setPageKey] = useState<
+    PageKey | 'blog_article' | 'admin' | 'not_found'
+  >(initialRoute.pageKey);
+  const [blogSlug, setBlogSlug] = useState<string | null>(
+    initialRoute.blogSlug
   );
   const [, setLocaleRevision] = useState(0);
 
@@ -169,6 +190,7 @@ export function App({ initialPath }: AppProps = {}) {
       const parsed = parsePathname(window.location.pathname);
       setLanguage(parsed.lang);
       setPageKey(parsed.isAdmin ? 'admin' : parsed.pageKey);
+      setBlogSlug(parsed.blogSlug || null);
     }
   }, []);
 
@@ -177,14 +199,32 @@ export function App({ initialPath }: AppProps = {}) {
       const parsed = parsePathname(window.location.pathname);
       setLanguage(parsed.lang);
       setPageKey(parsed.isAdmin ? 'admin' : parsed.pageKey);
+      setBlogSlug(parsed.blogSlug || null);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  const handleNavigatePath = useCallback((path: string) => {
+    const parsed = parsePathname(path);
+    setLanguage(parsed.lang);
+    setPageKey(parsed.isAdmin ? 'admin' : parsed.pageKey);
+    setBlogSlug(parsed.blogSlug || null);
+    if (typeof window !== 'undefined' && window.location.pathname !== path) {
+      window.history.pushState(
+        {
+          pageKey: parsed.pageKey,
+          language: parsed.lang,
+          blogSlug: parsed.blogSlug || null,
+        },
+        '',
+        path
+      );
+    }
+  }, []);
+
   const handleNavigatePage = useCallback(
     (nextPage: PageKey) => {
-      // If navigating to a legal page in a locale that points to /en/..., switch to 'en'
       let targetLocale = language;
       if (
         isLegalPageKey(nextPage) &&
@@ -195,7 +235,12 @@ export function App({ initialPath }: AppProps = {}) {
         targetLocale = 'en';
         setLanguage('en');
       }
+      if (nextPage === 'blog' && !isBlogHubLocale(language)) {
+        targetLocale = 'en';
+        setLanguage('en');
+      }
       setPageKey(nextPage);
+      setBlogSlug(null);
       if (typeof window !== 'undefined') {
         const nextUrl = getLocalizedPagePath(targetLocale, nextPage);
         if (window.location.pathname !== nextUrl) {
@@ -217,13 +262,52 @@ export function App({ initialPath }: AppProps = {}) {
       } catch {
         // ignore
       }
+
+      // If currently reading a blog article, check if that article has a published translation in nextLang
+      if (pageKey === 'blog_article' && blogSlug) {
+        const currentBlogLoc: BlogLocale = isBlogHubLocale(language)
+          ? language
+          : 'en';
+        const resolvedCurrent = getPublishedArticleBySlug(
+          currentBlogLoc,
+          blogSlug
+        );
+        if (resolvedCurrent) {
+          const translations = getPublishedArticleTranslations(
+            resolvedCurrent.article.id
+          );
+          const match = translations.find((t) => t.locale === nextLang);
+          if (match) {
+            handleNavigatePath(match.canonicalPath);
+            return;
+          }
+        }
+        // Otherwise if nextLang has a blog hub, go to its blog hub; otherwise go to nextLang home
+        if (isBlogHubLocale(nextLang)) {
+          handleNavigatePath(getLocalizedPagePath(nextLang, 'blog'));
+          return;
+        }
+      }
+
+      if (pageKey === 'blog') {
+        if (isBlogHubLocale(nextLang)) {
+          handleNavigatePath(getLocalizedPagePath(nextLang, 'blog'));
+          return;
+        }
+        handleNavigatePath(getLocalizedPagePath(nextLang, 'home'));
+        return;
+      }
+
       const currentValidPage: PageKey =
-        pageKey === 'admin' || pageKey === 'not_found' ? 'home' : pageKey;
+        pageKey === 'admin' ||
+        pageKey === 'not_found' ||
+        pageKey === 'blog_article'
+          ? 'home'
+          : pageKey;
 
       let effectivePage: PageKey = currentValidPage;
-      let effectiveLang: SupportedLocale = nextLang;
+      const effectiveLang: SupportedLocale = nextLang;
 
-      // If on a legal page and switching to a language without native legal page, point to /en/{legal}
       if (
         isLegalPageKey(currentValidPage) &&
         nextLang !== 'fr' &&
@@ -235,6 +319,7 @@ export function App({ initialPath }: AppProps = {}) {
 
       setLanguage(effectiveLang);
       setPageKey(effectivePage);
+      setBlogSlug(null);
 
       if (typeof window !== 'undefined') {
         const nextUrl = getLocalizedPagePath(effectiveLang, effectivePage);
@@ -247,7 +332,7 @@ export function App({ initialPath }: AppProps = {}) {
         }
       }
     },
-    [pageKey]
+    [pageKey, blogSlug, language, handleNavigatePath]
   );
 
   const handleToggleTheme = () => {
@@ -314,6 +399,13 @@ export function App({ initialPath }: AppProps = {}) {
     ? (pageKey as PlatformPageKey)
     : 'home';
 
+  const bannerPageKey: PageKey =
+    pageKey === 'not_found'
+      ? 'home'
+      : pageKey === 'blog_article'
+      ? 'blog'
+      : pageKey;
+
   return (
     <div
       dir={currentLangMeta.dir}
@@ -324,7 +416,11 @@ export function App({ initialPath }: AppProps = {}) {
       <div className="absolute top-32 left-10 w-72 h-72 bg-orange-400/10 rounded-full blur-2xl pointer-events-none z-0" />
       <div className="absolute top-32 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl pointer-events-none z-0" />
 
-      <SeoSchemaInjector pageKey={pageKey} language={language} />
+      <SeoSchemaInjector
+        pageKey={pageKey}
+        language={language}
+        blogSlug={blogSlug}
+      />
 
       {publicConfig.maintenance && (
         <div
@@ -338,7 +434,7 @@ export function App({ initialPath }: AppProps = {}) {
       {/* Client-only Language Suggestion Banner (never rendered during static pre-rendering) */}
       <LanguageSuggestionBanner
         currentLocale={language}
-        pageKey={pageKey === 'not_found' ? 'home' : pageKey}
+        pageKey={bannerPageKey}
         onSelectLocale={handleSelectLanguage}
       />
 
@@ -357,6 +453,19 @@ export function App({ initialPath }: AppProps = {}) {
           <NotFoundView
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
+          />
+        ) : pageKey === 'blog' ? (
+          <BlogIndexView
+            locale={language}
+            onNavigatePath={handleNavigatePath}
+            onNavigatePage={handleNavigatePage}
+          />
+        ) : pageKey === 'blog_article' && blogSlug ? (
+          <BlogArticleView
+            locale={language}
+            blogSlug={blogSlug}
+            onNavigatePath={handleNavigatePath}
+            onNavigatePage={handleNavigatePage}
           />
         ) : isLegalPageKey(pageKey) ? (
           <LegalPageView

@@ -16,7 +16,8 @@ export function resolveSeoMetadataForPath(pathname: string): PageSeoMetadata {
   const parsed = parsePathname(pathname);
   const headMeta = buildHeadMetadataForRoute(
     parsed.lang,
-    parsed.isAdmin ? 'admin' : parsed.pageKey
+    parsed.isAdmin ? 'admin' : parsed.pageKey,
+    parsed.blogSlug
   );
 
   const hreflangs = headMeta.hreflangs

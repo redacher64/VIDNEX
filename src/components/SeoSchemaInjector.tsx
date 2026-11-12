@@ -9,18 +9,20 @@ import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 export { buildHeadMetadataForRoute, type RouteHeadMetadata };
 
 interface SeoSchemaInjectorProps {
-  pageKey: PageKey | 'admin' | 'not_found';
+  pageKey: PageKey | 'blog_article' | 'admin' | 'not_found';
   language: SupportedLocale;
+  blogSlug?: string | null;
 }
 
 export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   pageKey,
   language,
+  blogSlug,
 }) => {
   const loadedBundleLocale = getLocaleBundleSync(language).locale;
 
   useEffect(() => {
-    const meta = buildHeadMetadataForRoute(language, pageKey);
+    const meta = buildHeadMetadataForRoute(language, pageKey, blogSlug);
 
     document.documentElement.lang = meta.lang;
     document.documentElement.dir = meta.dir;
@@ -115,7 +117,7 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
       document.head.appendChild(scriptEl);
     }
     scriptEl.textContent = JSON.stringify(meta.jsonLdGraph);
-  }, [pageKey, language, loadedBundleLocale]);
+  }, [pageKey, language, blogSlug, loadedBundleLocale]);
 
   return null;
 };

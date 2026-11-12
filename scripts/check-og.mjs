@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SITE_URL, OG_IMAGES } from '../src/config/site.ts';
 import {
-  getAllPublicRoutes,
+  getAllIndexableRoutes,
   isPlatformPageKey,
   LOCALES_CONFIG,
 } from '../src/i18n/config.ts';
@@ -141,7 +141,7 @@ function main() {
 
   verifyFaviconsInDist();
 
-  const routes = getAllPublicRoutes();
+  const routes = getAllIndexableRoutes();
   const perLocaleTitles = new Map();
   const perLocaleDescriptions = new Map();
   const summaryRows = [];

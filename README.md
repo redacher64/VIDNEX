@@ -22,6 +22,7 @@
 12. [Travail à deux (Git, branches, Pull Requests)](#12-travail-à-deux-git-branches-pull-requests)
 13. [Limites connues et dépannage](#13-limites-connues-et-dépannage)
 14. [Pistes à venir](#14-pistes-à-venir)
+15. [Blog](#15-blog)
 
 ---
 
@@ -720,3 +721,22 @@ Pour collaborer efficacement à deux développeurs sans conflit ni régression e
 2. **Traduction native des pages légales dans les 7 langues secondaires** : Étendre `LEGAL_SLUGS` et `LegalPagesContent.tsx` pour proposer des pages légales traduites nativement en `es`, `pt`, `de`, `tr`, `id`, `it` et `ru` (actuellement redirigées vers `/en/...`).
 3. **Téléchargement groupé (ZIP) pour les carrousels** : Permettre de télécharger en un seul clic l'ensemble des diapositives d'un carrousel TikTok, Instagram ou X sous forme d'archive côté client.
 
+---
+
+## 15. Blog
+
+### 15.1 Architecture du Blog
+- **Langue par défaut (Anglais)** : Le blog éditorial est servi par défaut en anglais sur `/blog` et `/blog/{slug}`. Les requêtes vers `/en/blog` et `/en/blog/{slug}` (ainsi que les anciens slugs ou slugs comportant un suffixe d'année `-2026`) renvoient une redirection permanente **HTTP 301** vers `/blog` et `/blog/{slug}` (`resolveBlogRedirectPath` dans `src/i18n/config.ts`, `functions/_middleware.ts` et `public/_redirects`).
+- **Éditions localisées** : Le hub français est servi sur `/fr/blog` et `/fr/blog/{localizedSlug}`. Seules les langues listées dans `BLOG_HUB_LOCALES` (`src/data/blogArticles.ts`) et disposant d'au moins un article publié sont exposées.
+- **Exclusion stricte des brouillons (`draft`)** : Tout article ayant `status: 'draft'` ou toute traduction ayant `translationStatus: 'draft'` renvoie une vraie **404** (`isNotFound: true`) et est exclu du prérendu statique (`scripts/prerender.mjs`), de `sitemap.xml`, de `llms.txt` et des grappes `hreflang`.
+- **SEO & `hreflang` sur mesure** : Chaque article publié génère un `<link rel="canonical">` auto-référent, un graphe JSON-LD (`BlogPosting`, `BreadcrumbList`, `FAQPage`) et des balises `hreflang` réciproques **uniquement** vers ses traductions réellement publiées (plus `x-default` vers `/blog/{enSlug}`), sans jamais inventer de lien `hreflang` pour une traduction absente ou en brouillon.
+
+### 15.2 Comment ajouter ou publier un article
+1. Ouvrir `src/data/blogArticles.ts` et ajouter une entrée dans `BLOG_ARTICLES` (ou passer `status` / `translationStatus` de `'draft'` à `'published'`).
+2. Renseigner un `id` et un `localizedSlug` sans année, un `metaTitle` ($\le 60$ caractères), une `metaDescription` ($90$ à $150$ caractères), le sommaire (`tableOfContents`), les sections (`content`), la FAQ (`faq`), les liens internes (`internalLinks`) et des sources officielles répondant en HTTP `200` (`sources`).
+3. Exécuter `npm run build` (qui prérend les pages HTML, met à jour `sitemap.xml` et `llms.txt`, puis lance automatiquement `verify-seo.mjs` et `check-og.mjs`).
+
+### 15.3 Comment activer une nouvelle langue sur le Blog
+1. Dans `src/data/blogArticles.ts`, passer `translationStatus: 'published'` sur les traductions prêtes de cette langue (ex. `es` ou `de`) et ajouter le code langue dans `BLOG_HUB_LOCALES` ainsi que dans `isBlogHubLocale()`.
+2. Vérifier les métadonnées du hub dans `BLOG_HUB_SEO[{locale}]` et les libellés d'interface dans `BLOG_UI_BY_LOCALE[{locale}]`.
+3. Lancer `npm run build` et `npm test` pour valider le prérendu, la réciprocité `hreflang` et le `sitemap.xml`.

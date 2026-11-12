@@ -32,7 +32,7 @@ export const PLATFORM_TABS: ToolTab[] = PLATFORM_PAGE_KEYS.map((id) => ({
 }));
 
 interface HeaderProps {
-  activePageKey: PageKey | 'not_found';
+  activePageKey: PageKey | 'blog_article' | 'not_found';
   activePlatform: PlatformId;
   onNavigatePage: (pageKey: PageKey) => void;
   theme: 'light' | 'dark';
@@ -60,7 +60,11 @@ export const Header: React.FC<HeaderProps> = ({
   const currentLangMeta = LOCALES_CONFIG[language] || LOCALES_CONFIG.fr;
 
   const pageForLangSwitch: PageKey =
-    activePageKey === 'not_found' ? 'home' : activePageKey;
+    activePageKey === 'not_found'
+      ? 'home'
+      : activePageKey === 'blog_article'
+      ? 'blog'
+      : activePageKey;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -96,6 +100,9 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const blogHref = getLocalizedPagePath(language, 'blog');
+  const isBlogActive =
+    activePageKey === 'blog' || activePageKey === 'blog_article';
   const visibleTabs = PLATFORM_TABS.filter((tab) => isPlatformSupported(tab.id));
 
   return (
@@ -124,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </a>
 
-        {/* SINGLE Responsive Platform Navigation in the DOM (inline on md+, burger drawer on mobile) */}
+        {/* SINGLE Responsive Platform & Blog Navigation in the DOM (inline on md+, burger drawer on mobile) */}
         <nav
           id="vidnex-main-nav"
           aria-label="Platform Navigation"
@@ -165,6 +172,23 @@ export const Header: React.FC<HeaderProps> = ({
               </a>
             );
           })}
+
+          <a
+            href={blogHref}
+            data-testid="nav-blog"
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileMenuOpen(false);
+              onNavigatePage('blog');
+            }}
+            className={`min-h-[44px] md:min-h-[36px] px-3 md:px-2.5 lg:px-3.5 py-2 md:py-1.5 rounded-xl md:rounded-lg text-xs font-semibold whitespace-nowrap flex items-center justify-center md:justify-start gap-1.5 transition-all ${
+              isBlogActive
+                ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
+                : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
+            }`}
+          >
+            <span>Blog</span>
+          </a>
         </nav>
 
         {/* Right Controls: 10-Language Selector + Theme Toggle + Mobile Burger Toggle (all >= 44x44px) */}

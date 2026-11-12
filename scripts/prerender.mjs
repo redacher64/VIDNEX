@@ -206,11 +206,12 @@ function buildHtmlDocument(
   routePath,
   locale,
   pageKey,
+  blogSlug,
   bundle,
   App,
   buildHeadMetadataForRoute
 ) {
-  const meta = buildHeadMetadataForRoute(locale, pageKey);
+  const meta = buildHeadMetadataForRoute(locale, pageKey, blogSlug);
   const appHtml = renderToString(
     React.createElement(App, { initialPath: routePath })
   );
@@ -360,15 +361,20 @@ function buildHtmlDocument(
   return html;
 }
 
-function generateSitemapXml(SITE_URL, getAllPublicRoutes, buildHreflangCluster) {
-  const routes = getAllPublicRoutes();
-  const lastmod = new Date().toISOString().split('T')[0];
+function generateSitemapXml(
+  SITE_URL,
+  getAllIndexableRoutes,
+  buildHreflangCluster
+) {
+  const routes = getAllIndexableRoutes();
+  const defaultLastmod = new Date().toISOString().split('T')[0];
 
   const urlBlocks = [];
 
   for (const r of routes) {
     const loc = r.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${r.path}`;
-    const hreflangs = buildHreflangCluster(r.pageKey);
+    const hreflangs = buildHreflangCluster(r.pageKey, r.blogArticleId);
+    const lastmod = r.lastmod || defaultLastmod;
 
     const xhtmlLinks = hreflangs
       .map(
@@ -383,7 +389,7 @@ function generateSitemapXml(SITE_URL, getAllPublicRoutes, buildHreflangCluster) 
       [
         '  <url>',
         `    <loc>${escapeHtml(loc)}</loc>`,
-        `    <lastmod>${lastmod}</lastmod>`,
+        `    <lastmod>${escapeHtml(lastmod)}</lastmod>`,
         `    <changefreq>${r.changefreq}</changefreq>`,
         `    <priority>${r.priority}</priority>`,
         ...(xhtmlLinks ? [xhtmlLinks] : []),
@@ -433,7 +439,7 @@ async function main() {
     const { SITE_URL } = await vite.ssrLoadModule('/src/config/site.ts');
     const {
       buildLlmsTxt,
-      getAllPublicRoutes,
+      getAllIndexableRoutes,
       LEGAL_PAGE_KEYS,
       PLATFORM_PAGE_KEYS,
       SUPPORTED_LOCALES,
@@ -472,8 +478,8 @@ async function main() {
       'utf8'
     );
 
-    // 4. Pre-render all 65 public routes
-    const routes = getAllPublicRoutes();
+    // 4. Pre-render all indexable public routes (core pages + localized blog hubs + articles)
+    const routes = getAllIndexableRoutes();
     for (const route of routes) {
       const bundle = localesMap.get(route.locale);
       const html = buildHtmlDocument(
@@ -481,6 +487,7 @@ async function main() {
         route.path,
         route.locale,
         route.pageKey,
+        route.blogSlug || null,
         bundle,
         App,
         buildHeadMetadataForRoute
@@ -501,6 +508,7 @@ async function main() {
       '/admin',
       'fr',
       'admin',
+      null,
       localesMap.get('fr'),
       App,
       buildHeadMetadataForRoute
@@ -512,7 +520,7 @@ async function main() {
     // 6. Generate sitemap.xml and llms.txt in public/ and dist/ (and ensure sitemap.css is in dist/)
     const sitemapXml = generateSitemapXml(
       SITE_URL,
-      getAllPublicRoutes,
+      getAllIndexableRoutes,
       buildHreflangCluster
     );
     fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), sitemapXml, 'utf8');

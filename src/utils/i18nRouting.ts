@@ -4,6 +4,7 @@ import {
   isSupportedLocale,
   type PageKey,
   type PlatformPageKey,
+  resolveBlogRedirectPath,
   resolveRouteFromPathname,
   type ResolvedRoute,
   type SupportedLocale,
@@ -15,8 +16,10 @@ export const DEFAULT_LANGUAGE: SupportedLocale = DEFAULT_LOCALE;
 
 export interface ParsedPath {
   lang: SupportedLocale;
-  pageKey: PageKey | 'admin' | 'not_found';
+  pageKey: PageKey | 'blog_article' | 'admin' | 'not_found';
   toolSlug: ToolSlug | null;
+  blogSlug?: string | null;
+  blogArticleId?: string | null;
   isAdmin: boolean;
   isNotFound: boolean;
 }
@@ -55,7 +58,9 @@ export function isValidToolSlug(slug: string): slug is ToolSlug {
   );
 }
 
-export function pageKeyToPrimaryToolSlug(pageKey: PageKey): ToolSlug | null {
+export function pageKeyToPrimaryToolSlug(
+  pageKey: PageKey | 'blog_article'
+): ToolSlug | null {
   if (
     pageKey === 'tiktok' ||
     pageKey === 'instagram' ||
@@ -73,6 +78,7 @@ export function toolSlugToPageKey(slug?: string | null): PageKey {
   const clean = slug.replace(/^\/+|\/+$/g, '');
   if (
     clean === 'home' ||
+    clean === 'blog' ||
     clean === 'tiktok' ||
     clean === 'instagram' ||
     clean === 'x' ||
@@ -95,6 +101,9 @@ export function toolSlugToPageKey(slug?: string | null): PageKey {
 /**
  * Parses a URL pathname into our 10-language route descriptor:
  * - "/" => { lang: "fr", pageKey: "home", ... }
+ * - "/blog" => { lang: "en", pageKey: "blog", ... }
+ * - "/blog/tiktok-video-not-downloading" => { lang: "en", pageKey: "blog_article", blogSlug: "tiktok-video-not-downloading", ... }
+ * - "/fr/blog" => { lang: "fr", pageKey: "blog", ... }
  * - "/telecharger-video-tiktok" => { lang: "fr", pageKey: "tiktok", toolSlug: "tiktok-no-watermark", ... }
  * - "/en" => { lang: "en", pageKey: "home", ... }
  * - "/en/tiktok-video-downloader" => { lang: "en", pageKey: "tiktok", toolSlug: "tiktok-no-watermark", ... }
@@ -156,6 +165,8 @@ export function parsePathname(pathname: string): ParsedPath {
     lang: resolved.locale,
     pageKey: resolved.pageKey,
     toolSlug: pageKeyToPrimaryToolSlug(resolved.pageKey),
+    blogSlug: resolved.blogSlug || null,
+    blogArticleId: resolved.blogArticleId || null,
     isAdmin: false,
     isNotFound: false,
   };
@@ -187,6 +198,13 @@ export function handleLegacyQueryRedirect(): {
     return { redirected: false, path: '' };
   }
 
+  const blogRedirect = resolveBlogRedirectPath(window.location.pathname);
+  if (blogRedirect) {
+    const finalBlogUrl = `${blogRedirect}${window.location.search}${window.location.hash}`;
+    window.history.replaceState({}, '', finalBlogUrl);
+    return { redirected: true, path: blogRedirect };
+  }
+
   const search = window.location.search;
   if (!search) {
     return { redirected: false, path: window.location.pathname };
@@ -207,7 +225,9 @@ export function handleLegacyQueryRedirect(): {
   }
 
   let targetPage: PageKey =
-    parsed.pageKey === 'not_found' || parsed.pageKey === 'admin'
+    parsed.pageKey === 'not_found' ||
+    parsed.pageKey === 'admin' ||
+    parsed.pageKey === 'blog_article'
       ? 'home'
       : parsed.pageKey;
   if (toolParam && isValidToolSlug(toolParam)) {

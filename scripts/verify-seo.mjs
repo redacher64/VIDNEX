@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SITE_URL } from '../src/config/site.ts';
 import {
-  getAllPublicRoutes,
+  getAllIndexableRoutes,
   isLegalPageKey,
   SUPPORTED_LOCALES,
 } from '../src/i18n/config.ts';
@@ -34,7 +34,7 @@ function main() {
     fail('dist/ directory not found.');
   }
 
-  const routes = getAllPublicRoutes();
+  const routes = getAllIndexableRoutes();
   const validInternalPaths = new Set(routes.map((r) => r.path));
   validInternalPaths.add('/admin');
 
@@ -128,8 +128,24 @@ function main() {
           `Legal route ${route.path} should NOT have hreflang tags, found ${pageHreflangs.size}`
         );
       }
+    } else if (route.pageKey === 'blog' || route.pageKey === 'blog_article') {
+      // Blog hubs and blog articles must have self-referencing hreflang + x-default + only published translations
+      if (pageHreflangs.size < 2) {
+        fail(
+          `Blog route ${route.path}: expected at least 2 hreflang tags (self + x-default), found ${pageHreflangs.size}`
+        );
+      }
+      if (pageHreflangs.get(route.locale) !== expectedCanonical) {
+        fail(
+          `Blog route ${route.path}: missing or mismatched self-referencing hreflang="${route.locale}"`
+        );
+      }
+      if (!pageHreflangs.has('x-default')) {
+        fail(`Blog route ${route.path}: missing hreflang="x-default"`);
+      }
+      hreflangGraph.set(expectedCanonical, pageHreflangs);
     } else {
-      // Main pages (home + 4 platforms) must have all 10 locales + x-default = 11 hreflang links
+      // Main pages (home + 5 platforms) must have all 10 locales + x-default = 11 hreflang links
       if (pageHreflangs.size !== SUPPORTED_LOCALES.length + 1) {
         fail(
           `Route ${route.path}: expected ${

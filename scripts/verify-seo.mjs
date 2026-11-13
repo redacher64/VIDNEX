@@ -16,6 +16,8 @@ import {
   isLegalPageKey,
   SUPPORTED_LOCALES,
 } from '../src/i18n/config.ts';
+import { BLOG_ARTICLES } from '../src/data/blogArticles.ts';
+import { validateStaticBlogRepository } from '../src/utils/blogValidation.ts';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 
@@ -32,6 +34,12 @@ function extractTagContent(html, regex) {
 function main() {
   if (!fs.existsSync(DIST_DIR)) {
     fail('dist/ directory not found.');
+  }
+
+  // Shared blog validation (slug format, no year in slug, unique per locale, metaTitle <= 60, metaDescription 90-150, no H1/raw HTML in body)
+  const blogValidation = validateStaticBlogRepository(BLOG_ARTICLES);
+  if (!blogValidation.valid) {
+    fail(`Blog validation failed:\n  - ${blogValidation.errors.join('\n  - ')}`);
   }
 
   const routes = getAllIndexableRoutes();

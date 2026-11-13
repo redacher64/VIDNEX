@@ -247,8 +247,12 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
   - **Niveau 2 (Repli direct)** : Si TikWM échoue, parse directement le HTML de la page TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, ou `__NEXT_DATA__`), extrait `playAddr` / `downloadAddr` / `bitrateInfo` (ou `imagePost.images` pour les carrousels) et transmet les cookies de session au proxy `/api/download`.
 
 #### Instagram (`functions/_lib/instagram.ts`)
-- **Cas Publications, Reels, Carrousels et Stories (`extractInstagram`)** :
-  - **Niveau 0 (Session authentifiée optionnelle)** : Si `IG_COOKIES` ou `IG_SESSION_ID` est configuré, convertit le `shortcode` en `media_id` numérique (`shortcodeToMediaId`) et interroge `https://www.instagram.com/api/v1/media/{mediaId}/info/` (ou `/api/v1/feed/reels_media/` pour les Stories).
+- **Détection prioritaire Stories & Highlights (`functions/_lib/detect.ts`)** : `/stories/highlights/{id}/` est classé `highlight` et `/stories/{username}/{id}/` est classé `story` **avant** toute règle Reels/Post (y compris après redirection d'un lien court `/share/...`). Aucun lien `/stories/` n'est jamais classé `reel` ni envoyé au moteur Reels.
+- **Cas Stories & Highlights (`kind = 'story' | 'highlight'`)** :
+  - Si `env.IG_SESSION_ID` est défini, interroge exclusivement le moteur story authentifié (`/api/v1/media/{mediaId}/info/` et `/api/v1/feed/reels_media/`).
+  - Si `env.IG_SESSION_ID` est absent, renvoie immédiatement `PRIVATE_OR_LOGIN_REQUIRED` (`403`) avec le message explicite (« Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte. », traduit dans les 10 langues) et journalise `content_kind = "story"` ou `"highlight"` dans `request_log`.
+- **Cas Publications, Reels et Carrousels (`extractInstagram`)** :
+  - **Niveau 0 (Session authentifiée optionnelle)** : Si `IG_COOKIES` ou `IG_SESSION_ID` est configuré, convertit le `shortcode` en `media_id` numérique (`shortcodeToMediaId`) et interroge `https://www.instagram.com/api/v1/media/{mediaId}/info/`.
   - **Niveau 1 (GraphQL)** : Requêtes `POST` sur `https://www.instagram.com/graphql/query` et `https://www.instagram.com/api/graphql` avec les `doc_id` publics (`8845758582119845`, `10015901848480474`, `7950326061742207`).
   - **Niveau 2 (Embed Captioned + OpenGraph)** : Analyse `https://www.instagram.com/p/{shortcode}/embed/captioned/` (`window.__additionalDataLoaded`, `contextJSON`, `video_url`, `display_url`), puis les balises meta OpenGraph de la page publique.
   - **Niveau 3 (Passerelles publiques sans clé)** : Repli sur `https://api.vxinstagram.com/p/{shortcode}` et `https://d.ddinstagram.com/p/{shortcode}` si l'IP Cloudflare est filtrée par Instagram.
@@ -265,7 +269,8 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 - Filtre les flux `video/mp4` (ignore `.m3u8`), trie les variantes par `bitrate` décroissant et force `?name=orig` sur les photos.
 
 #### Facebook (`functions/_lib/facebook.ts`)
-- **Résolution préalable des liens de partage** : Si l'URL est un lien court (`fb.watch/{code}`, `/share/v/{code}`, `/share/r/{code}`), `resolveFacebookRedirect` suit manuellement jusqu'à 4 redirections avec vérification anti-SSRF stricte à chaque saut (`isAllowedFacebookHost`).
+- **Détection prioritaire des Stories (`content_kind = "story"`)** : Les liens `/stories/...`, `/story.php?story_fbid=...`, `/share/s/...` et les liens courts (`fb.watch`, `/share/r/`, `/share/v/`) qui redirigent vers `/stories/` (ou `/login?next=/stories/...`) sont classés `story` **avant** les Reels et renvoient immédiatement `PRIVATE_OR_LOGIN_REQUIRED` (`403`) avec le message explicite (« Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte. ») sans jamais appeler le moteur Reels ni contourner un mur de connexion.
+- **Résolution préalable des liens de partage** : Si l'URL est un lien court (`fb.watch/{code}`, `/share/v/{code}`, `/share/r/{code}`), `resolveFacebookRedirect` suit manuellement jusqu'à 4 redirections avec vérification anti-SSRF stricte à chaque saut (`isAllowedFacebookHost`) puis reclasse l'URL finale.
 - **Niveau 1 (Desktop)** : Récupère `https://www.facebook.com/...` et `https://www.facebook.com/watch/?v={id}` (timeout `8 s`), décode les séquences JSON/HTML échappées et extrait les flux `HD` (`browser_native_hd_url`, `playable_url_quality_hd`, `hd_src_no_ratelimit`, `hd_src`) et `SD` (`browser_native_sd_url`, `playable_url`, `sd_src_no_ratelimit`, `sd_src`, `og:video`).
 - **Niveau 2 (Mobile & Plugin Embed)** : En cas d'échec du Niveau 1, bascule sur `https://m.facebook.com/watch/?v={id}` puis sur `https://www.facebook.com/plugins/video.php?href=...`. Détecte le faux flux « Discover Popular Videos » pour ne jamais renvoyer une vidéo aléatoire lorsqu'une vidéo a été supprimée.
 
@@ -766,6 +771,26 @@ Pour collaborer efficacement à deux développeurs sans conflit ni régression e
 1. Dans `src/data/blogArticles.ts`, passer `translationStatus: 'published'` sur les traductions prêtes de cette langue (ex. `es` ou `de`) et ajouter le code langue dans `BLOG_HUB_LOCALES` ainsi que dans `isBlogHubLocale()`.
 2. Vérifier les métadonnées du hub dans `BLOG_HUB_SEO[{locale}]` et les libellés d'interface dans `BLOG_UI_BY_LOCALE[{locale}]`.
 3. Lancer `npm run build` et `npm test` pour valider le prérendu, la réciprocité `hreflang` et le `sitemap.xml`.
+
+### 15.4 Gestion des articles en base D1 — Phase 1 (Données & API `/api/admin/blog`)
+- **Migration D1 non destructive (`migrations/0007_blog_cms.sql`)** :
+  - `blog_articles` : métadonnées maîtres (`id`, `category`, `tool_route`, `secondary_tool_route`, `status` `draft|in_review|published|trashed`, `previous_status`, `trashed_at`, `created_by`, `updated_by`, `published_at`, `created_at`, `updated_at`).
+  - `blog_translations` : traductions par `(article_id, locale)` avec `slug` unique par langue, tous les champs de `BlogArticleTranslation`, `body_markdown` et `status`.
+  - `blog_revisions` : historique conservant automatiquement les **10 dernières versions** par traduction `(article_id, locale)`.
+  - `blog_redirects` : redirections permanentes **HTTP 301** (`old_slug -> new_slug`) enregistrées automatiquement lorsqu'un slug d'article publié est modifié.
+- **Markdown restreint & Validation partagée (`src/utils/blogValidation.ts` & `scripts/verify-seo.mjs`)** :
+  - Syntaxe autorisée : `H2` (`##`), `H3` (`###`), paragraphes, listes à puces, tableaux Markdown, liens (`https://` obligatoire en externe avec `rel="noopener noreferrer"` et `target="_blank"` ajoutés automatiquement) et blocs « conseil » (`:::conseil ... :::`). **Aucun HTML brut n'est accepté**.
+  - Conversion directe vers la structure `sections` (`BlogContentSection[]`) et `tableOfContents` existante, sans modifier `BlogArticleView.tsx`.
+  - Erreurs bloquantes communes à l'API et au build : `slug` en lettres latines minuscules, chiffres et tirets, unique par langue, **sans année** ; `metaTitle <= 60` ; `metaDescription` entre `90` et `150` caractères ; pas de `H1` dans le corps. Avertissements non bloquants : longueur `< 250` mots, FAQ absente, sources externes absentes.
+- **API protégée `/api/admin/blog` (`functions/api/admin/blog.ts`)** :
+  - Lecture et liste (`GET`) : `blog.write` ou plus (`blog.write`, `blog.edit_all`, `blog.delete`, `blog.publish`, ou propriétaire).
+  - Création et modification de ses propres articles (`create`, `update`) : `blog.write`.
+  - Modification des articles d'autrui : `blog.edit_all`.
+  - Soumission en relecture (`submit_review` -> `in_review`) : `blog.write` (propres articles) ou `blog.edit_all`.
+  - Mise à la corbeille et restauration 30 jours (`trash`, `restore`, `DELETE`) : `blog.delete`.
+  - Publication et dépublication (`publish`, `unpublish`) : `blog.publish` ou propriétaire (**un compte sans `blog.publish` ne peut jamais passer un article en `published`**).
+  - Action réservée au propriétaire (`import_existing`) : importe `src/data/blogArticles.ts` vers D1 sans doublon.
+  - Toutes les actions sont journalisées dans `audit_log`.
 
 ---
 

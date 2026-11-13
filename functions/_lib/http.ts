@@ -23,7 +23,8 @@ export interface FetchResult {
  */
 export async function fetchWithContext(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
+  customFetch: typeof fetch = fetch
 ): Promise<FetchResult> {
   const timeoutMs = options.timeoutMs ?? 10000;
   const controller = new AbortController();
@@ -53,7 +54,7 @@ export async function fetchWithContext(
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await customFetch(url, {
       ...options,
       headers,
       signal: controller.signal,

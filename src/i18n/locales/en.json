@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Unsupported link. Please paste a public link from TikTok, Instagram, X (Twitter), Facebook, or a LinkedIn profile (/in/...).",
       "NOT_FOUND": "Media not found. The video, Reel, tweet, or post may have been deleted.",
       "PRIVATE_OR_LOGIN_REQUIRED": "This video is not public or requires a login. Only public videos can be downloaded.",
+      "IG_STORY_LOGIN_REQUIRED": "Instagram stories require a login: they cannot be downloaded without an account.",
+      "FB_STORY_LOGIN_REQUIRED": "Facebook stories require a login: they cannot be downloaded without an account.",
       "BLOCKED_BY_PLATFORM": "The platform temporarily restricted access to this post. Please try again in a moment.",
       "TIMEOUT": "Fetching the video took too long. Please check your connection and try again.",
       "NO_MEDIA": "This post does not contain any downloadable video or image.",

@@ -9,12 +9,32 @@
  */
 
 export type SupportedPlatform = 'tiktok' | 'instagram' | 'x' | 'facebook' | 'linkedin';
-export type ContentKind = 'video' | 'slideshow' | 'reel' | 'post' | 'story' | 'profile';
+export type ContentKind =
+  | 'video'
+  | 'slideshow'
+  | 'reel'
+  | 'post'
+  | 'story'
+  | 'highlight'
+  | 'profile';
+
+export type LogContentKind =
+  | 'video'
+  | 'reel'
+  | 'photo'
+  | 'carousel'
+  | 'profile'
+  | 'story'
+  | 'highlight'
+  | 'audio'
+  | 'short_link';
 
 export interface DetectionResult {
   isValid: boolean;
   platform: SupportedPlatform | null;
   kind: ContentKind | null;
+  contentKind?: LogContentKind;
+  content_kind?: LogContentKind;
   identifier?: string;
   cleanUrl: string;
   isShortLink?: boolean;
@@ -197,6 +217,8 @@ export function detectUrl(
       isValid: true,
       platform: targetPlatform,
       kind: 'profile',
+      contentKind: 'profile',
+      content_kind: 'profile',
       identifier: username,
       cleanUrl:
         targetPlatform === 'tiktok'
@@ -282,6 +304,8 @@ export function detectUrl(
       isValid: true,
       platform: 'linkedin',
       kind: 'profile',
+      contentKind: 'profile',
+      content_kind: 'profile',
       identifier: normalizedSlug,
       cleanUrl: `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`,
     };
@@ -307,14 +331,93 @@ export function detectUrl(
   }
 
   // =========================================================================
-  // 1. INSTAGRAM (instagram.com, instagr.am)
+  // 1. INSTAGRAM (instagram.com, m.instagram.com, instagr.am)
   // =========================================================================
   if (
     host === 'instagram.com' ||
     host === 'm.instagram.com' ||
     host === 'instagr.am'
   ) {
-    // Reel / Reels / IGTV : /reel/{code} ou /reels/{code} ou /tv/{code}
+    // 1A. Story Highlight (TESTÉ AVANT LES REELS) : /stories/highlights/{id}/
+    const highlightMatch = pathname.match(
+      /^\/stories\/highlights\/([A-Za-z0-9_-]+)\/?/i
+    );
+    if (highlightMatch) {
+      const highlightId = highlightMatch[1];
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'highlight',
+        contentKind: 'highlight',
+        content_kind: 'highlight',
+        identifier: highlightId,
+        cleanUrl: `https://www.instagram.com/stories/highlights/${highlightId}/`,
+      };
+    }
+
+    // 1B. Story Instagram (TESTÉ AVANT LES REELS) : /stories/{username}/{storyId?}
+    const storyMatch = pathname.match(
+      /^\/stories\/([A-Za-z0-9._]{1,30})(?:\/([0-9A-Za-z_-]+))?\/?/i
+    );
+    if (storyMatch && storyMatch[1].toLowerCase() !== 'highlights') {
+      const username = storyMatch[1];
+      const storyId = storyMatch[2];
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'story',
+        contentKind: 'story',
+        content_kind: 'story',
+        identifier: storyId ? `${username}/${storyId}` : username,
+        cleanUrl: storyId
+          ? `https://www.instagram.com/stories/${username}/${storyId}/`
+          : `https://www.instagram.com/stories/${username}/`,
+      };
+    }
+
+    // Tout autre chemin commençant par /stories ne doit jamais tomber dans les Reels
+    if (pathname.toLowerCase().startsWith('/stories')) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // 1C. Liens courts / partage Instagram (/share/...)
+    const igShareMatch = pathname.match(
+      /^\/share\/(?:(stories|reel|reels|p)\/)?([A-Za-z0-9_-]{4,45})\/?$/i
+    );
+    if (igShareMatch) {
+      const subKind = (igShareMatch[1] || '').toLowerCase();
+      const shareCode = igShareMatch[2];
+      const kind: ContentKind =
+        subKind === 'stories'
+          ? 'story'
+          : subKind === 'reel' || subKind === 'reels'
+          ? 'reel'
+          : 'post';
+      const contentKind: LogContentKind =
+        subKind === 'stories'
+          ? 'story'
+          : subKind === 'reel' || subKind === 'reels'
+          ? 'reel'
+          : 'short_link';
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind,
+        contentKind,
+        content_kind: contentKind,
+        identifier: shareCode,
+        cleanUrl: stripTrackingParams(parsed.toString()),
+        isShortLink: true,
+      };
+    }
+
+    // 1D. Reel / Reels / IGTV : /reel/{code} ou /reels/{code} ou /tv/{code}
     const reelMatch = pathname.match(/^\/(?:reel|reels|tv)\/([A-Za-z0-9_-]{5,40})/i);
     if (reelMatch) {
       const shortcode = reelMatch[1];
@@ -322,42 +425,34 @@ export function detectUrl(
         isValid: true,
         platform: 'instagram',
         kind: 'reel',
+        contentKind: 'reel',
+        content_kind: 'reel',
         identifier: shortcode,
         cleanUrl: `https://www.instagram.com/p/${shortcode}/`,
       };
     }
 
-    // Publication / Carrousel : /p/{code} ou /{username}/p/{code} ou /{username}/reel/{code}
+    // 1E. Publication / Carrousel : /p/{code} ou /{username}/p/{code} ou /{username}/reel/{code}
     const postMatch = pathname.match(
-      /^\/(?:[A-Za-z0-9._]{1,30}\/)?(?:p|reel|reels)\/([A-Za-z0-9_-]{5,40})/i
+      /^\/(?:([A-Za-z0-9._]{1,30})\/)?(p|reel|reels)\/([A-Za-z0-9_-]{5,40})/i
     );
-    if (postMatch) {
-      const shortcode = postMatch[1];
+    if (postMatch && (!postMatch[1] || postMatch[1].toLowerCase() !== 'stories')) {
+      const isUserReel =
+        postMatch[2].toLowerCase() === 'reel' ||
+        postMatch[2].toLowerCase() === 'reels';
+      const shortcode = postMatch[3];
       return {
         isValid: true,
         platform: 'instagram',
-        kind: 'post',
+        kind: isUserReel ? 'reel' : 'post',
+        contentKind: isUserReel ? 'reel' : 'carousel',
+        content_kind: isUserReel ? 'reel' : 'carousel',
         identifier: shortcode,
         cleanUrl: `https://www.instagram.com/p/${shortcode}/`,
       };
     }
 
-    // Story : /stories/{username}/{storyId?}
-    const storyMatch = pathname.match(
-      /^\/stories\/([A-Za-z0-9._]{1,30})(?:\/([0-9]+))?/i
-    );
-    if (storyMatch) {
-      const username = storyMatch[1];
-      return {
-        isValid: true,
-        platform: 'instagram',
-        kind: 'story',
-        identifier: username,
-        cleanUrl: `https://www.instagram.com/stories/${username}/`,
-      };
-    }
-
-    // Profil : /{username}/ avec ou sans paramètres, avec ou sans / final (normalisé en minuscules)
+    // 1F. Profil : /{username}/ avec ou sans paramètres, avec ou sans / final (normalisé en minuscules)
     const profileMatch = pathname.match(/^\/([A-Za-z0-9._]{1,30})\/?$/);
     if (
       profileMatch &&
@@ -368,6 +463,8 @@ export function detectUrl(
         isValid: true,
         platform: 'instagram',
         kind: 'profile',
+        contentKind: 'profile',
+        content_kind: 'profile',
         identifier: username,
         cleanUrl: `https://www.instagram.com/${username}/`,
       };
@@ -399,6 +496,8 @@ export function detectUrl(
           isValid: true,
           platform: 'tiktok',
           kind: 'video',
+          contentKind: 'short_link',
+          content_kind: 'short_link',
           identifier: shortMatch[1],
           cleanUrl: `https://${host}/${shortMatch[1]}/`,
           isShortLink: true,
@@ -412,6 +511,8 @@ export function detectUrl(
         isValid: true,
         platform: 'tiktok',
         kind: 'video',
+        contentKind: 'short_link',
+        content_kind: 'short_link',
         identifier: tShortMatch[1],
         cleanUrl: `https://www.tiktok.com/t/${tShortMatch[1]}/`,
         isShortLink: true,
@@ -425,6 +526,8 @@ export function detectUrl(
         isValid: true,
         platform: 'tiktok',
         kind: 'slideshow',
+        contentKind: 'photo',
+        content_kind: 'photo',
         identifier: photoMatch[2],
         cleanUrl: `https://www.tiktok.com/@${photoMatch[1]}/photo/${photoMatch[2]}`,
       };
@@ -441,6 +544,8 @@ export function detectUrl(
         isValid: true,
         platform: 'tiktok',
         kind: 'video',
+        contentKind: 'video',
+        content_kind: 'video',
         identifier: videoId,
         cleanUrl: `https://www.tiktok.com/@${userPart}/video/${videoId}`,
       };
@@ -453,6 +558,8 @@ export function detectUrl(
         isValid: true,
         platform: 'tiktok',
         kind: 'profile',
+        contentKind: 'profile',
+        content_kind: 'profile',
         identifier: profileMatch[1],
         cleanUrl: `https://www.tiktok.com/@${profileMatch[1]}`,
       };
@@ -465,6 +572,8 @@ export function detectUrl(
         isValid: true,
         platform: 'tiktok',
         kind: 'video',
+        contentKind: 'short_link',
+        content_kind: 'short_link',
         identifier: rootShortMatch[1],
         cleanUrl: stripTrackingParams(parsed.toString()),
         isShortLink: true,
@@ -482,6 +591,8 @@ export function detectUrl(
         isValid: true,
         platform: 'x',
         kind: 'post',
+        contentKind: 'short_link',
+        content_kind: 'short_link',
         identifier: tcoMatch[1],
         cleanUrl: `https://t.co/${tcoMatch[1]}`,
         isShortLink: true,
@@ -503,21 +614,19 @@ export function detectUrl(
     host === 'm.twitter.com' ||
     host === 'mobile.x.com'
   ) {
-    // Chemins acceptés :
-    // - /{user}/status/{id}
-    // - /{user}/status/{id}/video/{N}
-    // - /{user}/status/{id}/photo/{N}
-    // - /i/status/{id} (et /i/status/{id}/video/{N} ou /photo/{N})
-    // - /i/web/status/{id}
+    const isPhotoStatus = /\/photo\/\d+\/?$/i.test(pathname);
     const iStatusMatch = pathname.match(
       /^\/i\/(?:web\/)?status\/(\d+)(?:\/(?:video|photo)\/\d+)?\/?$/i
     );
     if (iStatusMatch) {
       const tweetId = iStatusMatch[1];
+      const ck: LogContentKind = isPhotoStatus ? 'photo' : 'video';
       return {
         isValid: true,
         platform: 'x',
         kind: 'post',
+        contentKind: ck,
+        content_kind: ck,
         identifier: tweetId,
         cleanUrl: `https://x.com/i/status/${tweetId}`,
       };
@@ -530,10 +639,13 @@ export function detectUrl(
       const user = userStatusMatch[1];
       const tweetId = userStatusMatch[2];
       if (!RESERVED_X_USERS.has(user.toLowerCase())) {
+        const ck: LogContentKind = isPhotoStatus ? 'photo' : 'video';
         return {
           isValid: true,
           platform: 'x',
           kind: 'post',
+          contentKind: ck,
+          content_kind: ck,
           identifier: tweetId,
           cleanUrl: `https://x.com/${user}/status/${tweetId}`,
         };
@@ -554,13 +666,30 @@ export function detectUrl(
   // =========================================================================
   if (isAllowedFacebookHost(parsed.hostname)) {
     const rawHost = parsed.hostname.toLowerCase();
+    const lowerPath = pathname.toLowerCase();
 
     // Détection immédiate d'une page de connexion (/login)
     if (
-      pathname === '/login' ||
-      pathname.startsWith('/login/') ||
-      pathname.startsWith('/login.php')
+      lowerPath === '/login' ||
+      lowerPath.startsWith('/login/') ||
+      lowerPath.startsWith('/login.php')
     ) {
+      const nextParam = parsed.searchParams.get('next');
+      if (nextParam) {
+        const nextDetected = detectUrl(nextParam, 'facebook');
+        if (nextDetected.platform === 'facebook' && nextDetected.kind === 'story') {
+          return {
+            isValid: true,
+            platform: 'facebook',
+            kind: 'story',
+            contentKind: 'story',
+            content_kind: 'story',
+            identifier: nextDetected.identifier,
+            cleanUrl: nextDetected.cleanUrl,
+            isLoginRedirect: true,
+          };
+        }
+      }
       return {
         isValid: false,
         platform: 'facebook',
@@ -571,13 +700,81 @@ export function detectUrl(
       };
     }
 
-    // V1 : Rejeter explicitement les photos, stories et lives avec UNSUPPORTED_URL
+    // Format 0A (TESTÉ AVANT LES REELS) : Stories Facebook (/stories/...)
+    const fbStoriesMatch = pathname.match(
+      /^\/stories\/([^/?#]+)(?:\/([^/?#]+))?/i
+    );
+    if (fbStoriesMatch) {
+      const storyId = fbStoriesMatch[2] || fbStoriesMatch[1];
+      return {
+        isValid: true,
+        platform: 'facebook',
+        kind: 'story',
+        contentKind: 'story',
+        content_kind: 'story',
+        identifier: storyId,
+        cleanUrl: stripTrackingParams(parsed.toString()),
+      };
+    }
+
+    // Format 0B (TESTÉ AVANT LES REELS) : /story.php?story_fbid=...
+    if (lowerPath === '/story.php' || lowerPath === '/story.php/') {
+      const storyFbid = (parsed.searchParams.get('story_fbid') || '').trim();
+      if (storyFbid) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          kind: 'story',
+          contentKind: 'story',
+          content_kind: 'story',
+          identifier: storyFbid,
+          cleanUrl: stripTrackingParams(parsed.toString()),
+        };
+      }
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Format 0C (TESTÉ AVANT LES REELS) : Lien de partage de story /share/s/{code}
+    const fbShareStoryMatch = pathname.match(
+      /^\/share\/s\/([A-Za-z0-9_-]{3,60})\/?$/i
+    );
+    if (fbShareStoryMatch) {
+      const shareCode = fbShareStoryMatch[1];
+      return {
+        isValid: true,
+        platform: 'facebook',
+        kind: 'story',
+        contentKind: 'story',
+        content_kind: 'story',
+        identifier: shareCode,
+        cleanUrl: `https://www.facebook.com/share/s/${shareCode}/`,
+        isShortLink: true,
+      };
+    }
+
+    // Tout autre chemin /stories ne doit jamais être classé en Reel
+    if (lowerPath.startsWith('/stories')) {
+      return {
+        isValid: false,
+        platform: null,
+        kind: null,
+        identifier: undefined,
+        cleanUrl: trimmed,
+      };
+    }
+
+    // Rejeter explicitement les photos et lives avec UNSUPPORTED_URL
     if (
-      pathname.startsWith('/photo') ||
-      pathname.startsWith('/photos/') ||
-      pathname.startsWith('/stories/') ||
-      pathname.includes('/live/') ||
-      pathname.startsWith('/watch/live')
+      lowerPath.startsWith('/photo') ||
+      lowerPath.startsWith('/photos/') ||
+      lowerPath.includes('/live/') ||
+      lowerPath.startsWith('/watch/live')
     ) {
       return {
         isValid: false,
@@ -597,6 +794,8 @@ export function detectUrl(
           isValid: true,
           platform: 'facebook',
           kind: 'video',
+          contentKind: 'short_link',
+          content_kind: 'short_link',
           identifier: code,
           cleanUrl: `https://fb.watch/${code}/`,
           isShortLink: true,
@@ -619,6 +818,8 @@ export function detectUrl(
         isValid: true,
         platform: 'facebook',
         kind: 'reel',
+        contentKind: 'reel',
+        content_kind: 'reel',
         identifier: reelId,
         cleanUrl: `https://www.facebook.com/reel/${reelId}`,
       };
@@ -632,6 +833,8 @@ export function detectUrl(
           isValid: true,
           platform: 'facebook',
           kind: 'video',
+          contentKind: 'video',
+          content_kind: 'video',
           identifier: vParam,
           cleanUrl: `https://www.facebook.com/watch/?v=${vParam}`,
         };
@@ -657,6 +860,8 @@ export function detectUrl(
           isValid: true,
           platform: 'facebook',
           kind: 'video',
+          contentKind: 'video',
+          content_kind: 'video',
           identifier: vParam,
           cleanUrl: `https://www.facebook.com/watch/?v=${vParam}`,
         };
@@ -683,22 +888,31 @@ export function detectUrl(
         isValid: true,
         platform: 'facebook',
         kind: 'video',
+        contentKind: 'video',
+        content_kind: 'video',
         identifier: videoId,
         cleanUrl: `https://www.facebook.com/${pageName}/videos/${videoId}/`,
       };
     }
 
-    // Format 6 : /share/v/{code} et /share/r/{code} (liens de partage à résoudre)
-    const fbShareMatch = pathname.match(/^\/share\/([vr])\/([A-Za-z0-9_-]{4,45})\/?$/i);
+    // Format 6 : /share/v/{code}, /share/r/{code} ou /share/{code} (liens de partage à résoudre)
+    const fbShareMatch = pathname.match(
+      /^\/share\/(?:([vr])\/)?([A-Za-z0-9_-]{4,45})\/?$/i
+    );
     if (fbShareMatch) {
-      const shareType = fbShareMatch[1].toLowerCase();
+      const shareType = (fbShareMatch[1] || 'v').toLowerCase();
       const shareCode = fbShareMatch[2];
+      const cleanSharePath = fbShareMatch[1]
+        ? `/share/${shareType}/${shareCode}/`
+        : `/share/${shareCode}/`;
       return {
         isValid: true,
         platform: 'facebook',
         kind: shareType === 'r' ? 'reel' : 'video',
+        contentKind: shareType === 'r' ? 'reel' : 'short_link',
+        content_kind: shareType === 'r' ? 'reel' : 'short_link',
         identifier: shareCode,
-        cleanUrl: `https://www.facebook.com/share/${shareType}/${shareCode}/`,
+        cleanUrl: `https://www.facebook.com${cleanSharePath}`,
         isShortLink: true,
       };
     }
@@ -721,15 +935,94 @@ export function detectUrl(
   };
 }
 
-export type LogContentKind =
-  | 'video'
-  | 'reel'
-  | 'photo'
-  | 'carousel'
-  | 'profile'
-  | 'story'
-  | 'audio'
-  | 'short_link';
+/**
+ * Suit les redirections d'un lien court ou de partage (Facebook /share/..., fb.watch, Instagram /share/..., etc.)
+ * puis reclasse l'URL finale avec `detectUrl` afin qu'un lien redirigeant vers `/stories/...`
+ * soit toujours reclassé en `story` (ou `highlight`), jamais en `reel`.
+ */
+export async function resolveAndDetectUrl(
+  rawInput: string,
+  preferredPlatform: SupportedPlatform = 'instagram',
+  customFetch: typeof fetch = globalThis.fetch
+): Promise<DetectionResult> {
+  const initial = detectUrl(rawInput, preferredPlatform);
+  if (!initial.isValid || !initial.isShortLink || !initial.cleanUrl) {
+    return initial;
+  }
+
+  let currentUrl = initial.cleanUrl;
+  for (let hop = 0; hop < 4; hop++) {
+    let parsed: URL;
+    try {
+      parsed = new URL(currentUrl);
+    } catch {
+      break;
+    }
+
+    try {
+      const res = await customFetch(parsed.toString(), {
+        method: 'GET',
+        redirect: 'manual',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+
+      if (
+        res.status === 301 ||
+        res.status === 302 ||
+        res.status === 303 ||
+        res.status === 307 ||
+        res.status === 308
+      ) {
+        const location = res.headers.get('Location');
+        if (!location) break;
+        const nextUrl = new URL(location, parsed);
+        const nextPathLower = nextUrl.pathname.toLowerCase();
+        if (
+          nextPathLower === '/login' ||
+          nextPathLower.startsWith('/login/') ||
+          nextPathLower.startsWith('/login.php')
+        ) {
+          const nextTarget = nextUrl.searchParams.get('next');
+          if (nextTarget) {
+            currentUrl = new URL(nextTarget, nextUrl).toString();
+            break;
+          }
+        }
+        currentUrl = nextUrl.toString();
+        continue;
+      }
+
+      if (res.status === 200) {
+        const html = await res.text().catch(() => '');
+        const refreshMatch =
+          html.match(/http-equiv=["']refresh["'][^>]+content=["']\d+;\s*url=([^"']+)["']/i) ||
+          html.match(/content=["']\d+;\s*url=([^"']+)["'][^>]+http-equiv=["']refresh["']/i) ||
+          html.match(/window\.location\.replace\(["']([^"']+)["']\)/i);
+        if (refreshMatch?.[1]) {
+          const decoded = refreshMatch[1].replace(/\\\//g, '/').replace(/&amp;/gi, '&');
+          currentUrl = new URL(decoded, parsed).toString();
+          continue;
+        }
+      }
+      break;
+    } catch {
+      break;
+    }
+  }
+
+  if (currentUrl && currentUrl !== initial.cleanUrl) {
+    const reclassified = detectUrl(currentUrl, initial.platform || preferredPlatform);
+    if (reclassified.isValid || reclassified.isLoginRedirect) {
+      return reclassified;
+    }
+  }
+
+  return initial;
+}
 
 export interface UrlLogClassification {
   platform: SupportedPlatform;
@@ -774,7 +1067,21 @@ export function classifyUrlForLog(
   const parseSafe = (u: string): URL | null => {
     try {
       const withProto = /^https?:\/\//i.test(u) ? u : `https://${u}`;
-      return new URL(withProto);
+      const parsed = new URL(withProto);
+      const pLower = parsed.pathname.toLowerCase();
+      if (
+        (pLower === '/login' ||
+          pLower.startsWith('/login/') ||
+          pLower.startsWith('/login.php')) &&
+        parsed.searchParams.get('next')
+      ) {
+        try {
+          return new URL(parsed.searchParams.get('next')!, parsed);
+        } catch {
+          return parsed;
+        }
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -844,17 +1151,21 @@ export function classifyUrlForLog(
     origPath.startsWith('/t/') ||
     origHost === 't.co' ||
     origHost === 'fb.watch' ||
-    origPath.startsWith('/share/v/') ||
-    origPath.startsWith('/share/r/') ||
+    origPath.startsWith('/share/') ||
     origHost === 'lnkd.in' ||
     origHost === 'instagr.am';
+
+  const hasResolvedDifferentTarget =
+    Boolean(resolvedUrl) &&
+    resolvedUrl!.trim() !== '' &&
+    (host !== origHost || path !== origPath || effParsed.search !== origParsed.search);
 
   // 1. TIKTOK
   if (platform === 'tiktok') {
     if (path.includes('/photo/')) {
       return {
         platform: 'tiktok',
-        contentKind: isOrigShortLink ? 'short_link' : 'photo',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'photo',
         engineFn: 'tiktok.photo',
       };
     }
@@ -872,7 +1183,7 @@ export function classifyUrlForLog(
         engineFn: 'tiktok.profile',
       };
     }
-    if (isOrigShortLink) {
+    if (isOrigShortLink && !hasResolvedDifferentTarget) {
       return {
         platform: 'tiktok',
         contentKind: 'short_link',
@@ -886,9 +1197,24 @@ export function classifyUrlForLog(
     };
   }
 
-  // 2. INSTAGRAM
+  // 2. INSTAGRAM (TESTER HIGHLIGHTS & STORIES AVANT REELS !)
   if (platform === 'instagram') {
-    if (path.startsWith('/stories/') || path.includes('/stories/')) {
+    if (
+      path.startsWith('/stories/highlights/') ||
+      origPath.startsWith('/stories/highlights/')
+    ) {
+      return {
+        platform: 'instagram',
+        contentKind: 'highlight',
+        engineFn: 'instagram.highlight',
+      };
+    }
+    if (
+      path.startsWith('/stories/') ||
+      path.includes('/stories/') ||
+      origPath.startsWith('/stories/') ||
+      origPath.startsWith('/share/stories/')
+    ) {
       return {
         platform: 'instagram',
         contentKind: 'story',
@@ -904,18 +1230,19 @@ export function classifyUrlForLog(
     }
     if (
       /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(path) ||
-      /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(origPath)
+      (!path.startsWith('/stories') &&
+        /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(origPath))
     ) {
       return {
         platform: 'instagram',
-        contentKind: isOrigShortLink ? 'short_link' : 'reel',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'reel',
         engineFn: 'instagram.reel',
       };
     }
     if (/^\/(?:[a-z0-9._]{1,30}\/)?p\//.test(path)) {
       return {
         platform: 'instagram',
-        contentKind: isOrigShortLink ? 'short_link' : 'carousel',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'carousel',
         engineFn: 'instagram.carousel',
       };
     }
@@ -929,7 +1256,7 @@ export function classifyUrlForLog(
     }
     return {
       platform: 'instagram',
-      contentKind: isOrigShortLink ? 'short_link' : 'carousel',
+      contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'carousel',
       engineFn: 'instagram.carousel',
     };
   }
@@ -947,36 +1274,52 @@ export function classifyUrlForLog(
     if (path.includes('/photo/')) {
       return {
         platform: 'x',
-        contentKind: isOrigShortLink ? 'short_link' : 'photo',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'photo',
         engineFn: 'x.syndication',
       };
     }
     if (path.includes('/status/')) {
       return {
         platform: 'x',
-        contentKind: isOrigShortLink ? 'short_link' : 'video',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'video',
         engineFn: 'x.syndication',
       };
     }
     return {
       platform: 'x',
-      contentKind: isOrigShortLink ? 'short_link' : 'video',
+      contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'video',
       engineFn: 'x.syndication',
     };
   }
 
-  // 4. FACEBOOK
+  // 4. FACEBOOK (TESTER STORIES AVANT REELS, MÊME APRÈS REDIRECTION DE LIEN COURT !)
   if (platform === 'facebook') {
+    const isFbStory =
+      path.startsWith('/stories/') ||
+      (path === '/story.php' && effParsed.searchParams.has('story_fbid')) ||
+      origPath.startsWith('/stories/') ||
+      (origPath === '/story.php' && origParsed.searchParams.has('story_fbid')) ||
+      origPath.startsWith('/share/s/');
+
+    if (isFbStory) {
+      return {
+        platform: 'facebook',
+        contentKind: 'story',
+        engineFn: 'facebook.story',
+      };
+    }
     if (
       path.startsWith('/reel/') ||
       path.startsWith('/reels/') ||
-      origPath.startsWith('/reel/') ||
-      origPath.startsWith('/reels/') ||
-      origPath.startsWith('/share/r/')
+      (!hasResolvedDifferentTarget &&
+        (origPath.startsWith('/reel/') ||
+          origPath.startsWith('/reels/') ||
+          origPath.startsWith('/share/r/')))
     ) {
       return {
         platform: 'facebook',
-        contentKind: isOrigShortLink ? 'short_link' : 'reel',
+        contentKind:
+          isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'reel',
         engineFn: 'facebook.reel',
       };
     }
@@ -987,16 +1330,10 @@ export function classifyUrlForLog(
         engineFn: 'facebook.video',
       };
     }
-    if (path.startsWith('/stories/')) {
-      return {
-        platform: 'facebook',
-        contentKind: 'story',
-        engineFn: 'facebook.video',
-      };
-    }
     return {
       platform: 'facebook',
-      contentKind: isOrigShortLink ? 'short_link' : 'video',
+      contentKind:
+        isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'video',
       engineFn: 'facebook.video',
     };
   }
@@ -1004,7 +1341,7 @@ export function classifyUrlForLog(
   // 5. LINKEDIN
   return {
     platform: 'linkedin',
-    contentKind: isOrigShortLink ? 'short_link' : 'profile',
+    contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'profile',
     engineFn: 'linkedin.profile',
   };
 }

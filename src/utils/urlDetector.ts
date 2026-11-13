@@ -12,6 +12,7 @@ export type MediaType =
   | 'reel'
   | 'post'
   | 'story'
+  | 'highlight'
   | 'profile'
   | 'video'
   | 'slideshow'
@@ -419,9 +420,41 @@ export function detectMediaUrl(
     // Continue
   }
 
-  // 1. INSTAGRAM DETECTION (instagram.com & instagr.am)
+  // 1. INSTAGRAM DETECTION (instagram.com & instagr.am) — TEST HIGHLIGHTS & STORIES BEFORE REELS!
+  const igHighlightMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/stories\/highlights\/([A-Za-z0-9_-]+)\/?/i
+  );
+  if (igHighlightMatch) {
+    return {
+      isValid: true,
+      platform: 'instagram',
+      mediaType: 'highlight',
+      badgeLabel: `Instagram Highlight (${igHighlightMatch[1]})`,
+      identifier: igHighlightMatch[1],
+      normalizedUrl: `https://www.instagram.com/stories/highlights/${igHighlightMatch[1]}/`,
+    };
+  }
+
+  const igStoryMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/stories\/([A-Za-z0-9._]{1,30})(?:\/([0-9A-Za-z_-]+))?\/?/i
+  );
+  if (igStoryMatch && igStoryMatch[1].toLowerCase() !== 'highlights') {
+    const storyUser = igStoryMatch[1];
+    const storyId = igStoryMatch[2];
+    return {
+      isValid: true,
+      platform: 'instagram',
+      mediaType: 'story',
+      badgeLabel: `Instagram Story (@${storyUser})`,
+      identifier: storyId ? `${storyUser}/${storyId}` : storyUser,
+      normalizedUrl: storyId
+        ? `https://www.instagram.com/stories/${storyUser}/${storyId}/`
+        : `https://www.instagram.com/stories/${storyUser}/`,
+    };
+  }
+
   const igReelMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:reel|reels|tv)\/([A-Za-z0-9_-]+)/i
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:reel|reels|tv)\/([A-Za-z0-9_-]+)/i
   );
   if (igReelMatch) {
     return {
@@ -434,36 +467,22 @@ export function detectMediaUrl(
     };
   }
 
-  const igStoryMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:(?:www|m)\.)?instagram\.com\/stories\/([A-Za-z0-9._]+)(?:\/([0-9]+))?/i
-  );
-  if (igStoryMatch) {
-    return {
-      isValid: true,
-      platform: 'instagram',
-      mediaType: 'story',
-      badgeLabel: `Instagram Story (@${igStoryMatch[1]})`,
-      identifier: igStoryMatch[1],
-      normalizedUrl: urlWithProtocol,
-    };
-  }
-
   const igPostMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:[A-Za-z0-9._]{1,30}\/)?p\/([A-Za-z0-9_-]+)/i
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:([A-Za-z0-9._]{1,30})\/)?p\/([A-Za-z0-9_-]+)/i
   );
-  if (igPostMatch) {
+  if (igPostMatch && (!igPostMatch[1] || igPostMatch[1].toLowerCase() !== 'stories')) {
     return {
       isValid: true,
       platform: 'instagram',
       mediaType: 'post',
       badgeLabel: 'Instagram Post / Carousel',
-      identifier: igPostMatch[1],
-      normalizedUrl: `https://www.instagram.com/p/${igPostMatch[1]}/`,
+      identifier: igPostMatch[2],
+      normalizedUrl: `https://www.instagram.com/p/${igPostMatch[2]}/`,
     };
   }
 
   const igProfileMatch = urlWithProtocol.match(
-    /(?:https?:\/\/)?(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i
   );
   if (igProfileMatch && !RESERVED_IG_PATHS.has(igProfileMatch[1].toLowerCase())) {
     const cleanUser = igProfileMatch[1].toLowerCase();
@@ -613,13 +632,52 @@ export function detectMediaUrl(
       const fbPath = parsedFb.pathname.replace(/\/+$/, '');
       const fbPathLower = fbPath.toLowerCase();
 
-      // Reject photos, stories, and lives in V1
+      // 5.0 TEST STORIES BEFORE REELS! (/stories/..., /story.php?story_fbid=..., /share/s/...)
+      const fbStoriesMatch = fbPath.match(/^\/stories\/([^/?#]+)(?:\/([^/?#]+))?/i);
+      if (fbStoriesMatch) {
+        const storyId = fbStoriesMatch[2] || fbStoriesMatch[1];
+        return {
+          isValid: true,
+          platform: 'facebook',
+          mediaType: 'story',
+          badgeLabel: 'Facebook Story',
+          identifier: storyId,
+          normalizedUrl: urlWithProtocol,
+        };
+      }
+
+      if (fbPathLower === '/story.php') {
+        const storyFbid = (parsedFb.searchParams.get('story_fbid') || '').trim();
+        if (storyFbid) {
+          return {
+            isValid: true,
+            platform: 'facebook',
+            mediaType: 'story',
+            badgeLabel: 'Facebook Story',
+            identifier: storyFbid,
+            normalizedUrl: urlWithProtocol,
+          };
+        }
+      }
+
+      const fbShareStoryMatch = fbPath.match(/^\/share\/s\/([A-Za-z0-9_-]{3,60})$/i);
+      if (fbShareStoryMatch) {
+        return {
+          isValid: true,
+          platform: 'facebook',
+          mediaType: 'story',
+          badgeLabel: 'Facebook Story',
+          identifier: fbShareStoryMatch[1],
+          normalizedUrl: `https://www.facebook.com/share/s/${fbShareStoryMatch[1]}/`,
+        };
+      }
+
+      // Reject photos and lives
       if (
         fbPathLower.startsWith('/photo') ||
         fbPathLower.startsWith('/photos') ||
         fbPathLower.includes('/photos/') ||
         fbPathLower.startsWith('/stories') ||
-        fbPathLower.includes('/stories/') ||
         fbPathLower.includes('/live/') ||
         fbPathLower.endsWith('/live')
       ) {
@@ -663,7 +721,7 @@ export function detectMediaUrl(
       }
 
       // 5c. /reel/{id} or /reels/{id}
-      const fbReelMatch = fbPath.match(/^\/reels?\/(\d{5,30})$/i);
+      const fbReelMatch = fbPath.match(/^\/reels?\/([0-9A-Za-z_-]{5,45})$/i);
       if (fbReelMatch) {
         return {
           isValid: true,

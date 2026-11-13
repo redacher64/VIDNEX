@@ -95,6 +95,14 @@ const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_users_login ON users(login)`,
   `CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, created_at INTEGER NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS blog_articles (id TEXT PRIMARY KEY, category TEXT NOT NULL, tool_route TEXT, secondary_tool_route TEXT, status TEXT NOT NULL DEFAULT 'draft', previous_status TEXT DEFAULT 'draft', trashed_at INTEGER, created_by TEXT NOT NULL, updated_by TEXT NOT NULL, published_at TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_articles_status ON blog_articles(status)`,
+  `CREATE TABLE IF NOT EXISTS blog_translations (id INTEGER PRIMARY KEY AUTOINCREMENT, article_id TEXT NOT NULL, locale TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL DEFAULT '', excerpt TEXT NOT NULL DEFAULT '', meta_title TEXT NOT NULL DEFAULT '', meta_description TEXT NOT NULL DEFAULT '', primary_keyword TEXT NOT NULL DEFAULT '', secondary_keywords TEXT NOT NULL DEFAULT '[]', search_intent TEXT NOT NULL DEFAULT '', reading_time_minutes INTEGER NOT NULL DEFAULT 5, quick_answer TEXT, key_takeaways TEXT NOT NULL DEFAULT '[]', introduction TEXT NOT NULL DEFAULT '[]', table_of_contents TEXT NOT NULL DEFAULT '[]', content_sections TEXT NOT NULL DEFAULT '[]', faq TEXT NOT NULL DEFAULT '[]', cta_title TEXT, cta_description TEXT, cta_button_label TEXT, internal_links TEXT NOT NULL DEFAULT '[]', sources TEXT NOT NULL DEFAULT '[]', body_markdown TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'draft', updated_by TEXT NOT NULL DEFAULT 'admin', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, UNIQUE(article_id, locale), UNIQUE(locale, slug))`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_translations_article_id ON blog_translations(article_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_translations_locale_slug ON blog_translations(locale, slug)`,
+  `CREATE TABLE IF NOT EXISTS blog_revisions (id INTEGER PRIMARY KEY AUTOINCREMENT, article_id TEXT NOT NULL, locale TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL DEFAULT '', meta_title TEXT NOT NULL DEFAULT '', meta_description TEXT NOT NULL DEFAULT '', body_markdown TEXT NOT NULL DEFAULT '', snapshot_json TEXT NOT NULL DEFAULT '{}', status TEXT NOT NULL DEFAULT 'draft', edited_by TEXT NOT NULL, created_at INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_revisions_article_locale_created ON blog_revisions(article_id, locale, created_at DESC, id DESC)`,
+  `CREATE TABLE IF NOT EXISTS blog_redirects (id INTEGER PRIMARY KEY AUTOINCREMENT, locale TEXT NOT NULL, old_slug TEXT NOT NULL, new_slug TEXT NOT NULL, article_id TEXT NOT NULL, status_code INTEGER NOT NULL DEFAULT 301, created_at INTEGER NOT NULL, UNIQUE(locale, old_slug))`,
 ];
 
 async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boolean> {
@@ -307,10 +315,84 @@ export function createMemoryD1Database(): D1Database {
     created_at: number;
   }
 
+  interface BlogArticleRow {
+    id: string;
+    category: string;
+    tool_route: string | null;
+    secondary_tool_route: string | null;
+    status: string;
+    previous_status: string | null;
+    trashed_at: number | null;
+    created_by: string;
+    updated_by: string;
+    published_at: string | null;
+    created_at: number;
+    updated_at: number;
+  }
+
+  interface BlogTranslationRow {
+    id: number;
+    article_id: string;
+    locale: string;
+    slug: string;
+    title: string;
+    excerpt: string;
+    meta_title: string;
+    meta_description: string;
+    primary_keyword: string;
+    secondary_keywords: string;
+    search_intent: string;
+    reading_time_minutes: number;
+    quick_answer: string | null;
+    key_takeaways: string;
+    introduction: string;
+    table_of_contents: string;
+    content_sections: string;
+    faq: string;
+    cta_title: string | null;
+    cta_description: string | null;
+    cta_button_label: string | null;
+    internal_links: string;
+    sources: string;
+    body_markdown: string;
+    status: string;
+    updated_by: string;
+    created_at: number;
+    updated_at: number;
+  }
+
+  interface BlogRevisionRow {
+    id: number;
+    article_id: string;
+    locale: string;
+    slug: string;
+    title: string;
+    meta_title: string;
+    meta_description: string;
+    body_markdown: string;
+    snapshot_json: string;
+    status: string;
+    edited_by: string;
+    created_at: number;
+  }
+
+  interface BlogRedirectRow {
+    id: number;
+    locale: string;
+    old_slug: string;
+    new_slug: string;
+    article_id: string;
+    status_code: number;
+    created_at: number;
+  }
+
   let logSeq = 1;
   let blockSeq = 1;
   let userSeq = 1;
   let auditSeq = 1;
+  let blogTrSeq = 1;
+  let blogRevSeq = 1;
+  let blogRedirSeq = 1;
   let writeCount = 0;
   let requestLogs: RequestLogRow[] = [];
   const dailyMetrics = new Map<string, DailyMetricRow>();
@@ -393,6 +475,10 @@ export function createMemoryD1Database(): D1Database {
   const loginAttempts = new Map<string, LoginAttemptRow>();
   let users: UserRow[] = [];
   let auditLogs: AuditLogRow[] = [];
+  let blogArticles: BlogArticleRow[] = [];
+  let blogTranslations: BlogTranslationRow[] = [];
+  let blogRevisions: BlogRevisionRow[] = [];
+  let blogRedirects: BlogRedirectRow[] = [];
 
   function buildStatement(sql: string, boundValues: unknown[] = []): D1PreparedStatement {
     const normalized = sql.replace(/\s+/g, ' ').trim();
@@ -811,6 +897,391 @@ export function createMemoryD1Database(): D1Database {
         return [...auditLogs]
           .sort((a, b) => b.created_at - a.created_at || b.id - a.id)
           .slice(0, limit);
+      }
+
+      // 10. BLOG_ARTICLES
+      if (lower.startsWith('delete from blog_articles where status =')) {
+        const cutoff = Number(boundValues[0] || 0);
+        const expiredIds = new Set(
+          blogArticles
+            .filter(
+              (a) =>
+                a.status === 'trashed' &&
+                a.trashed_at !== null &&
+                a.trashed_at < cutoff
+            )
+            .map((a) => a.id)
+        );
+        if (expiredIds.size > 0) {
+          blogArticles = blogArticles.filter((a) => !expiredIds.has(a.id));
+          blogTranslations = blogTranslations.filter(
+            (t) => !expiredIds.has(t.article_id)
+          );
+          blogRevisions = blogRevisions.filter(
+            (r) => !expiredIds.has(r.article_id)
+          );
+        }
+        return [];
+      }
+      if (lower.startsWith('select') && lower.includes('from blog_articles')) {
+        if (lower.includes('where id =')) {
+          const id = String(boundValues[0] || '');
+          const found = blogArticles.find((a) => a.id === id);
+          return found ? [{ ...found }] : [];
+        }
+        return [...blogArticles].sort((a, b) => b.updated_at - a.updated_at);
+      }
+      if (lower.startsWith('insert into blog_articles')) {
+        const id = String(boundValues[0] || '');
+        if (blogArticles.some((a) => a.id === id)) {
+          throw new Error('UNIQUE constraint failed: blog_articles.id');
+        }
+        const row: BlogArticleRow = {
+          id,
+          category: String(boundValues[1] || 'tutorials'),
+          tool_route: boundValues[2] != null ? String(boundValues[2]) : null,
+          secondary_tool_route:
+            boundValues[3] != null ? String(boundValues[3]) : null,
+          status: String(boundValues[4] || 'draft'),
+          previous_status:
+            boundValues[5] != null ? String(boundValues[5]) : 'draft',
+          trashed_at: boundValues[6] != null ? Number(boundValues[6]) : null,
+          created_by: String(boundValues[7] || 'admin'),
+          updated_by: String(boundValues[8] || 'admin'),
+          published_at: boundValues[9] != null ? String(boundValues[9]) : null,
+          created_at: Number(boundValues[10] || Date.now()),
+          updated_at: Number(boundValues[11] || Date.now()),
+        };
+        blogArticles.push(row);
+        return [{ ...row }];
+      }
+      if (lower.startsWith('update blog_articles set')) {
+        const id = String(boundValues[boundValues.length - 1] || '');
+        const idx = blogArticles.findIndex((a) => a.id === id);
+        if (idx === -1) return [];
+        const current = { ...blogArticles[idx] };
+        if (lower.includes('set category = ?')) {
+          current.category = String(boundValues[0] || current.category);
+          current.tool_route =
+            boundValues[1] != null ? String(boundValues[1]) : null;
+          current.secondary_tool_route =
+            boundValues[2] != null ? String(boundValues[2]) : null;
+          current.status = String(boundValues[3] || current.status);
+          current.previous_status =
+            boundValues[4] != null ? String(boundValues[4]) : current.previous_status;
+          current.trashed_at =
+            boundValues[5] != null ? Number(boundValues[5]) : null;
+          current.updated_by = String(boundValues[6] || current.updated_by);
+          current.published_at =
+            boundValues[7] != null ? String(boundValues[7]) : null;
+          current.updated_at = Number(boundValues[8] || Date.now());
+        } else if (lower.includes('set status = ?, previous_status = ?, trashed_at = ?, updated_by = ?, published_at = ?, updated_at = ?')) {
+          current.status = String(boundValues[0] || current.status);
+          current.previous_status =
+            boundValues[1] != null ? String(boundValues[1]) : current.previous_status;
+          current.trashed_at =
+            boundValues[2] != null ? Number(boundValues[2]) : null;
+          current.updated_by = String(boundValues[3] || current.updated_by);
+          current.published_at =
+            boundValues[4] != null ? String(boundValues[4]) : null;
+          current.updated_at = Number(boundValues[5] || Date.now());
+        }
+        blogArticles[idx] = current;
+        return [];
+      }
+
+      // 11. BLOG_TRANSLATIONS
+      if (lower.startsWith('select') && lower.includes('from blog_translations')) {
+        if (lower.includes('where article_id = ? and locale = ?')) {
+          const artId = String(boundValues[0] || '');
+          const loc = String(boundValues[1] || '');
+          const found = blogTranslations.find(
+            (t) => t.article_id === artId && t.locale === loc
+          );
+          return found ? [{ ...found }] : [];
+        }
+        if (lower.includes('where locale = ? and slug = ?')) {
+          const loc = String(boundValues[0] || '');
+          const slug = String(boundValues[1] || '').toLowerCase();
+          const found = blogTranslations.find(
+            (t) => t.locale === loc && t.slug.toLowerCase() === slug
+          );
+          return found ? [{ ...found }] : [];
+        }
+        if (lower.includes('where locale = ?')) {
+          const loc = String(boundValues[0] || '');
+          return blogTranslations
+            .filter((t) => t.locale === loc)
+            .map((t) => ({ ...t }));
+        }
+        if (lower.includes('where article_id = ?')) {
+          const artId = String(boundValues[0] || '');
+          return blogTranslations
+            .filter((t) => t.article_id === artId)
+            .sort((a, b) => a.locale.localeCompare(b.locale))
+            .map((t) => ({ ...t }));
+        }
+        return [...blogTranslations]
+          .sort((a, b) => b.updated_at - a.updated_at)
+          .map((t) => ({ ...t }));
+      }
+      if (lower.startsWith('insert into blog_translations')) {
+        const article_id = String(boundValues[0] || '');
+        const locale = String(boundValues[1] || '');
+        const slug = String(boundValues[2] || '');
+        if (
+          blogTranslations.some(
+            (t) => t.article_id === article_id && t.locale === locale
+          )
+        ) {
+          throw new Error(
+            'UNIQUE constraint failed: blog_translations.article_id, blog_translations.locale'
+          );
+        }
+        if (
+          blogTranslations.some(
+            (t) =>
+              t.locale === locale && t.slug.toLowerCase() === slug.toLowerCase()
+          )
+        ) {
+          throw new Error(
+            'UNIQUE constraint failed: blog_translations.locale, blog_translations.slug'
+          );
+        }
+        const row: BlogTranslationRow = {
+          id: blogTrSeq++,
+          article_id,
+          locale,
+          slug,
+          title: String(boundValues[3] || ''),
+          excerpt: String(boundValues[4] || ''),
+          meta_title: String(boundValues[5] || ''),
+          meta_description: String(boundValues[6] || ''),
+          primary_keyword: String(boundValues[7] || ''),
+          secondary_keywords: String(boundValues[8] || '[]'),
+          search_intent: String(boundValues[9] || ''),
+          reading_time_minutes: Number(boundValues[10] || 5),
+          quick_answer:
+            boundValues[11] != null ? String(boundValues[11]) : null,
+          key_takeaways: String(boundValues[12] || '[]'),
+          introduction: String(boundValues[13] || '[]'),
+          table_of_contents: String(boundValues[14] || '[]'),
+          content_sections: String(boundValues[15] || '[]'),
+          faq: String(boundValues[16] || '[]'),
+          cta_title: boundValues[17] != null ? String(boundValues[17]) : null,
+          cta_description:
+            boundValues[18] != null ? String(boundValues[18]) : null,
+          cta_button_label:
+            boundValues[19] != null ? String(boundValues[19]) : null,
+          internal_links: String(boundValues[20] || '[]'),
+          sources: String(boundValues[21] || '[]'),
+          body_markdown: String(boundValues[22] || ''),
+          status: String(boundValues[23] || 'draft'),
+          updated_by: String(boundValues[24] || 'admin'),
+          created_at: Number(boundValues[25] || Date.now()),
+          updated_at: Number(boundValues[26] || Date.now()),
+        };
+        blogTranslations.push(row);
+        return [{ ...row }];
+      }
+      if (lower.startsWith('update blog_translations set')) {
+        if (lower.includes('set status = ?, updated_by = ?, updated_at = ? where article_id = ? and locale = ?')) {
+          const status = String(boundValues[0] || 'draft');
+          const updated_by = String(boundValues[1] || 'admin');
+          const updated_at = Number(boundValues[2] || Date.now());
+          const artId = String(boundValues[3] || '');
+          const loc = String(boundValues[4] || '');
+          blogTranslations = blogTranslations.map((t) =>
+            t.article_id === artId && t.locale === loc
+              ? { ...t, status, updated_by, updated_at }
+              : t
+          );
+          return [];
+        }
+        if (lower.includes('set status = ?, updated_by = ?, updated_at = ? where article_id = ?')) {
+          const status = String(boundValues[0] || 'draft');
+          const updated_by = String(boundValues[1] || 'admin');
+          const updated_at = Number(boundValues[2] || Date.now());
+          const artId = String(boundValues[3] || '');
+          blogTranslations = blogTranslations.map((t) =>
+            t.article_id === artId ? { ...t, status, updated_by, updated_at } : t
+          );
+          return [];
+        }
+        const artId = String(boundValues[24] || '');
+        const loc = String(boundValues[25] || '');
+        const idx = blogTranslations.findIndex(
+          (t) => t.article_id === artId && t.locale === loc
+        );
+        if (idx === -1) return [];
+        const nextSlug = String(boundValues[0] || '');
+        if (
+          blogTranslations.some(
+            (t, i) =>
+              i !== idx &&
+              t.locale === loc &&
+              t.slug.toLowerCase() === nextSlug.toLowerCase()
+          )
+        ) {
+          throw new Error(
+            'UNIQUE constraint failed: blog_translations.locale, blog_translations.slug'
+          );
+        }
+        blogTranslations[idx] = {
+          ...blogTranslations[idx],
+          slug: nextSlug,
+          title: String(boundValues[1] || ''),
+          excerpt: String(boundValues[2] || ''),
+          meta_title: String(boundValues[3] || ''),
+          meta_description: String(boundValues[4] || ''),
+          primary_keyword: String(boundValues[5] || ''),
+          secondary_keywords: String(boundValues[6] || '[]'),
+          search_intent: String(boundValues[7] || ''),
+          reading_time_minutes: Number(boundValues[8] || 5),
+          quick_answer:
+            boundValues[9] != null ? String(boundValues[9]) : null,
+          key_takeaways: String(boundValues[10] || '[]'),
+          introduction: String(boundValues[11] || '[]'),
+          table_of_contents: String(boundValues[12] || '[]'),
+          content_sections: String(boundValues[13] || '[]'),
+          faq: String(boundValues[14] || '[]'),
+          cta_title: boundValues[15] != null ? String(boundValues[15]) : null,
+          cta_description:
+            boundValues[16] != null ? String(boundValues[16]) : null,
+          cta_button_label:
+            boundValues[17] != null ? String(boundValues[17]) : null,
+          internal_links: String(boundValues[18] || '[]'),
+          sources: String(boundValues[19] || '[]'),
+          body_markdown: String(boundValues[20] || ''),
+          status: String(boundValues[21] || blogTranslations[idx].status),
+          updated_by: String(boundValues[22] || 'admin'),
+          updated_at: Number(boundValues[23] || Date.now()),
+        };
+        return [];
+      }
+
+      // 12. BLOG_REVISIONS (10 dernières versions par traduction)
+      if (lower.startsWith('insert into blog_revisions')) {
+        const row: BlogRevisionRow = {
+          id: blogRevSeq++,
+          article_id: String(boundValues[0] || ''),
+          locale: String(boundValues[1] || ''),
+          slug: String(boundValues[2] || ''),
+          title: String(boundValues[3] || ''),
+          meta_title: String(boundValues[4] || ''),
+          meta_description: String(boundValues[5] || ''),
+          body_markdown: String(boundValues[6] || ''),
+          snapshot_json: String(boundValues[7] || '{}'),
+          status: String(boundValues[8] || 'draft'),
+          edited_by: String(boundValues[9] || 'admin'),
+          created_at: Number(boundValues[10] || Date.now()),
+        };
+        blogRevisions.push(row);
+        return [{ ...row }];
+      }
+      if (lower.startsWith('delete from blog_revisions where article_id = ? and locale = ?')) {
+        const artId = String(boundValues[0] || '');
+        const loc = String(boundValues[1] || '');
+        const matching = blogRevisions
+          .filter((r) => r.article_id === artId && r.locale === loc)
+          .sort((a, b) => b.created_at - a.created_at || b.id - a.id);
+        const keepIds = new Set(matching.slice(0, 10).map((r) => r.id));
+        blogRevisions = blogRevisions.filter(
+          (r) =>
+            r.article_id !== artId ||
+            r.locale !== loc ||
+            keepIds.has(r.id)
+        );
+        return [];
+      }
+      if (lower.startsWith('select') && lower.includes('from blog_revisions')) {
+        if (lower.includes('where id = ?')) {
+          const revId = Number(boundValues[0]);
+          const found = blogRevisions.find((r) => r.id === revId);
+          return found ? [{ ...found }] : [];
+        }
+        if (lower.includes('where article_id = ? and locale = ?')) {
+          const artId = String(boundValues[0] || '');
+          const loc = String(boundValues[1] || '');
+          return blogRevisions
+            .filter((r) => r.article_id === artId && r.locale === loc)
+            .sort((a, b) => b.created_at - a.created_at || b.id - a.id)
+            .slice(0, 10)
+            .map((r) => ({ ...r }));
+        }
+        if (lower.includes('where article_id = ?')) {
+          const artId = String(boundValues[0] || '');
+          return blogRevisions
+            .filter((r) => r.article_id === artId)
+            .sort((a, b) => b.created_at - a.created_at || b.id - a.id)
+            .map((r) => ({ ...r }));
+        }
+        return [...blogRevisions].sort(
+          (a, b) => b.created_at - a.created_at || b.id - a.id
+        );
+      }
+
+      // 13. BLOG_REDIRECTS
+      if (lower.startsWith('insert into blog_redirects')) {
+        const locale = String(boundValues[0] || '');
+        const old_slug = String(boundValues[1] || '');
+        const new_slug = String(boundValues[2] || '');
+        const article_id = String(boundValues[3] || '');
+        const created_at = Number(boundValues[4] || Date.now());
+        const existingIdx = blogRedirects.findIndex(
+          (r) => r.locale === locale && r.old_slug === old_slug
+        );
+        if (existingIdx !== -1) {
+          blogRedirects[existingIdx] = {
+            ...blogRedirects[existingIdx],
+            new_slug,
+            article_id,
+            created_at,
+          };
+        } else {
+          blogRedirects.push({
+            id: blogRedirSeq++,
+            locale,
+            old_slug,
+            new_slug,
+            article_id,
+            status_code: 301,
+            created_at,
+          });
+        }
+        return [];
+      }
+      if (lower.startsWith('update blog_redirects set new_slug = ? where locale = ? and new_slug = ?')) {
+        const nextSlug = String(boundValues[0] || '');
+        const locale = String(boundValues[1] || '');
+        const prevTarget = String(boundValues[2] || '');
+        blogRedirects = blogRedirects.map((r) =>
+          r.locale === locale && r.new_slug === prevTarget
+            ? { ...r, new_slug: nextSlug }
+            : r
+        );
+        return [];
+      }
+      if (lower.startsWith('delete from blog_redirects where locale = ? and old_slug = ?')) {
+        const locale = String(boundValues[0] || '');
+        const old_slug = String(boundValues[1] || '');
+        blogRedirects = blogRedirects.filter(
+          (r) => !(r.locale === locale && r.old_slug === old_slug)
+        );
+        return [];
+      }
+      if (lower.startsWith('select') && lower.includes('from blog_redirects')) {
+        if (lower.includes('where locale = ? and old_slug = ?')) {
+          const locale = String(boundValues[0] || '');
+          const old_slug = String(boundValues[1] || '');
+          const found = blogRedirects.find(
+            (r) => r.locale === locale && r.old_slug === old_slug
+          );
+          return found ? [{ ...found }] : [];
+        }
+        return [...blogRedirects].sort(
+          (a, b) => b.created_at - a.created_at || b.id - a.id
+        );
       }
 
       return [];

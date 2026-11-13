@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Ce lien n’est pas reconnu. Collez un lien public provenant de TikTok, Instagram, X (Twitter), Facebook ou un profil LinkedIn (/in/...).",
       "NOT_FOUND": "Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      "IG_STORY_LOGIN_REQUIRED": "Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.",
+      "FB_STORY_LOGIN_REQUIRED": "Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte.",
       "BLOCKED_BY_PLATFORM": "La plateforme bloque temporairement l'accès à ce contenu. Veuillez réessayer dans quelques instants.",
       "TIMEOUT": "La récupération de la vidéo a pris trop de temps. Vérifiez votre connexion et réessayez.",
       "NO_MEDIA": "Cette publication ne contient aucune vidéo ni image téléchargeable.",

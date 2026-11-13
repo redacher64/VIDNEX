@@ -585,8 +585,16 @@ export async function isRequestAdminAuthenticated(
   return principal !== null;
 }
 
+export const BLOG_PERMISSIONS: readonly AssignablePermission[] = [
+  'blog.write',
+  'blog.edit_all',
+  'blog.delete',
+  'blog.publish',
+];
+
 export type DeclaredPermission =
   | AssignablePermission
+  | readonly AssignablePermission[]
   | 'owner'
   | 'authenticated'
   | null
@@ -678,7 +686,22 @@ export async function requirePermission(
     };
   }
 
-  if (!principal.permissions.includes(perm)) {
+  if (Array.isArray(perm)) {
+    const allowedList = perm as readonly AssignablePermission[];
+    if (
+      allowedList.length === 0 ||
+      !allowedList.some((p) => principal.permissions.includes(p))
+    ) {
+      return {
+        ok: false,
+        status: 403,
+        response: buildJsonErrorResponse(403, 'FORBIDDEN', 'Accès refusé.'),
+      };
+    }
+    return { ok: true, principal };
+  }
+
+  if (!principal.permissions.includes(perm as AssignablePermission)) {
     return {
       ok: false,
       status: 403,
@@ -715,6 +738,12 @@ export function resolveAdminRoutePermission(
   }
   if (pathname === '/api/admin/activity' && m === 'GET') {
     return { perm: 'activity.view' };
+  }
+  if (pathname === '/api/admin/blog') {
+    if (m === 'DELETE') {
+      return { perm: 'blog.delete' };
+    }
+    return { perm: BLOG_PERMISSIONS };
   }
   // Toutes les autres routes (/api/admin/health POST, /api/admin/settings, /api/admin/blocklist,
   // /api/admin/users, ou toute route sans droit déclaré) sont réservées au propriétaire.

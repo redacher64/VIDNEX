@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Nicht unterstützter Link. Bitte füge eine öffentliche URL von TikTok, Instagram, X, Facebook oder einem LinkedIn-Profil (/in/...) ein.",
       "NOT_FOUND": "Der angeforderte Beitrag wurde nicht gefunden oder auf der Quellplattform gelöscht.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Dieser Inhalt ist privat oder erfordert eine Anmeldung. VIDNEX unterstützt ausschließlich öffentliche Beiträge.",
+      "IG_STORY_LOGIN_REQUIRED": "Instagram-Stories erfordern eine Anmeldung: Sie können ohne Konto nicht heruntergeladen werden.",
+      "FB_STORY_LOGIN_REQUIRED": "Facebook-Stories erfordern eine Anmeldung: Sie können ohne Konto nicht heruntergeladen werden.",
       "BLOCKED_BY_PLATFORM": "Die Quellplattform hat den Zugriff auf diesen Beitrag vorübergehend verweigert. Bitte versuchen Sie es in Kürze erneut.",
       "TIMEOUT": "Das Laden des Videos hat zu lange gedauert. Bitte prüfen Sie den Link und versuchen Sie es erneut.",
       "NO_MEDIA": "In diesem Beitrag wurde kein herunterladbares Video oder Bild gefunden.",

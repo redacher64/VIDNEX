@@ -376,15 +376,25 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
 async function queryAuthenticatedInstagramApiV1(
   shortcodeOrId: string,
   auth: ParsedInstagramAuth,
-  isStory = false
+  isStory = false,
+  isHighlight = false,
+  customFetch?: typeof fetch
 ): Promise<ExtractResponse | null> {
   if (!auth.hasSession) return null;
 
-  const mediaId = /^\d+$/.test(shortcodeOrId)
-    ? shortcodeOrId
-    : isStory
+  const trimmed = shortcodeOrId.trim().replace(/^@/, '');
+  const parts = trimmed.split('/').filter(Boolean);
+  const directNumericId = /^\d+$/.test(trimmed)
+    ? trimmed
+    : isStory && parts.length >= 2 && /^\d+$/.test(parts[1])
+    ? parts[1]
+    : null;
+
+  const mediaId = directNumericId
+    ? directNumericId
+    : isStory || isHighlight
     ? null
-    : shortcodeToMediaId(shortcodeOrId);
+    : shortcodeToMediaId(trimmed);
 
   const headers: Record<string, string> = {
     'User-Agent': BROWSER_USER_AGENT,
@@ -398,30 +408,57 @@ async function queryAuthenticatedInstagramApiV1(
     Accept: 'application/json, text/plain, */*',
   };
 
+  if (isHighlight && directNumericId) {
+    try {
+      const hlKey = `highlight:${directNumericId}`;
+      const hlRes = await fetchWithContext(
+        `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(hlKey)}`,
+        { headers, timeoutMs: 7500 },
+        customFetch
+      );
+      if (hlRes.response.ok) {
+        const hlJson: any = await hlRes.response.json().catch(() => null);
+        const hlItems: any[] =
+          hlJson?.reels?.[hlKey]?.items ||
+          hlJson?.reels_media?.[0]?.items ||
+          [];
+        if (hlItems.length > 0) {
+          const parsed = parseMediaNode(hlItems[hlItems.length - 1], directNumericId);
+          if (parsed) return parsed;
+        }
+      }
+    } catch {
+      // Continuer vers media info si disponible
+    }
+  }
+
   if (mediaId) {
     try {
       const infoRes = await fetchWithContext(
         `https://www.instagram.com/api/v1/media/${mediaId}/info/`,
-        { headers, timeoutMs: 7500 }
+        { headers, timeoutMs: 7500 },
+        customFetch
       );
       if (infoRes.response.ok) {
         const json: any = await infoRes.response.json().catch(() => null);
         const item = json?.items?.[0];
-        const parsed = parseMediaNode(item, shortcodeOrId);
+        const parsed = parseMediaNode(item, mediaId);
         if (parsed) return parsed;
       }
     } catch {
-      // Continuer vers GraphQL
+      // Continuer vers reels_media par utilisateur si story
     }
   }
 
-  // Si c'est une Story par nom d'utilisateur (ex: `stories/username`)
-  if (isStory && !/^\d+$/.test(shortcodeOrId)) {
-    const cleanUser = shortcodeOrId.replace(/^@/, '').split('/')[0];
+  // Si c'est une Story par nom d'utilisateur (ex: `username` ou `username/123456789`)
+  if (isStory && !isHighlight && parts.length >= 1 && !/^\d+$/.test(parts[0])) {
+    const cleanUser = parts[0];
+    const targetStoryId = parts.length >= 2 && /^\d+$/.test(parts[1]) ? parts[1] : null;
     try {
       const profileRes = await fetchWithContext(
         `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(cleanUser)}`,
-        { headers, timeoutMs: 7500 }
+        { headers, timeoutMs: 7500 },
+        customFetch
       );
       if (profileRes.response.ok) {
         const pJson: any = await profileRes.response.json().catch(() => null);
@@ -429,7 +466,8 @@ async function queryAuthenticatedInstagramApiV1(
         if (userId) {
           const reelsRes = await fetchWithContext(
             `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(String(userId))}`,
-            { headers, timeoutMs: 7500 }
+            { headers, timeoutMs: 7500 },
+            customFetch
           );
           if (reelsRes.response.ok) {
             const rJson: any = await reelsRes.response.json().catch(() => null);
@@ -438,8 +476,15 @@ async function queryAuthenticatedInstagramApiV1(
               rJson?.reels_media?.[0]?.items ||
               [];
             if (reelItems.length > 0) {
-              const latestStory = reelItems[reelItems.length - 1];
-              const parsed = parseMediaNode(latestStory, cleanUser);
+              const matchedStory = targetStoryId
+                ? reelItems.find(
+                    (it: any) =>
+                      String(it?.pk || '') === targetStoryId ||
+                      String(it?.id || '').startsWith(`${targetStoryId}_`) ||
+                      String(it?.id || '') === targetStoryId
+                  ) || reelItems[reelItems.length - 1]
+                : reelItems[reelItems.length - 1];
+              const parsed = parseMediaNode(matchedStory, cleanUser);
               if (parsed) return parsed;
             }
           }
@@ -1714,10 +1759,13 @@ export async function extractInstagramProfile(
   };
 }
 
+export const IG_STORY_LOGIN_REQUIRED_MESSAGE =
+  'Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.';
+
 export async function extractInstagram(
   identifier: string,
   env?: InstagramEnv,
-  kind: 'post' | 'profile' | 'story' = 'post',
+  kind: 'post' | 'reel' | 'profile' | 'story' | 'highlight' = 'post',
   customFetch?: typeof fetch,
   allowThirdPartyOverride?: boolean
 ): Promise<ExtractResponse> {
@@ -1734,13 +1782,72 @@ export async function extractInstagram(
   const shortcode = identifier.trim();
 
   // ===========================================================================
-  // NIVEAU 0 : API REST Authentifiée (`/api/v1/media/{mediaId}/info/` & Stories)
+  // STORIES & HIGHLIGHTS : N'utiliser JAMAIS le moteur Reels/Post sans session
+  // ===========================================================================
+  if (kind === 'story' || kind === 'highlight') {
+    const contentKind = kind === 'highlight' ? 'highlight' : 'story';
+    const engineFn = kind === 'highlight' ? 'instagram.highlight' : 'instagram.story';
+    const hasIgSessionId = Boolean(env?.IG_SESSION_ID && String(env.IG_SESSION_ID).trim()) && auth.hasSession;
+
+    if (!hasIgSessionId) {
+      return {
+        ok: false,
+        platform: 'instagram',
+        stage: 'direct',
+        engineStage: 'story_auth_required',
+        httpStatus: 403,
+        contentKind,
+        engineFn,
+        error: {
+          code: 'PRIVATE_OR_LOGIN_REQUIRED',
+          message: IG_STORY_LOGIN_REQUIRED_MESSAGE,
+        },
+      };
+    }
+
+    const storyResult = await queryAuthenticatedInstagramApiV1(
+      shortcode,
+      auth,
+      true,
+      kind === 'highlight',
+      customFetch
+    );
+    if (storyResult) {
+      return {
+        ...storyResult,
+        stage: 'direct',
+        engineStage: 'direct',
+        httpStatus: 200,
+        contentKind,
+        engineFn,
+      };
+    }
+
+    return {
+      ok: false,
+      platform: 'instagram',
+      stage: 'direct',
+      engineStage: 'direct',
+      httpStatus: 403,
+      contentKind,
+      engineFn,
+      error: {
+        code: 'PRIVATE_OR_LOGIN_REQUIRED',
+        message: IG_STORY_LOGIN_REQUIRED_MESSAGE,
+      },
+    };
+  }
+
+  // ===========================================================================
+  // NIVEAU 0 : API REST Authentifiée (`/api/v1/media/{mediaId}/info/`)
   // ===========================================================================
   if (auth.hasSession) {
     const apiV1Result = await queryAuthenticatedInstagramApiV1(
       shortcode,
       auth,
-      kind === 'story'
+      false,
+      false,
+      customFetch
     );
     if (apiV1Result) {
       return {
@@ -1754,15 +1861,13 @@ export async function extractInstagram(
   // ===========================================================================
   // NIVEAU 1 : GraphQL Public / Authentifié POST API (`/graphql/query`)
   // ===========================================================================
-  if (kind !== 'story') {
-    const graphqlResult = await queryInstagramGraphQL(shortcode, auth);
-    if (graphqlResult) {
-      return {
-        ...graphqlResult,
-        stage: 'direct',
-        engineStage: 'direct',
-      };
-    }
+  const graphqlResult = await queryInstagramGraphQL(shortcode, auth);
+  if (graphqlResult) {
+    return {
+      ...graphqlResult,
+      stage: 'direct',
+      engineStage: 'direct',
+    };
   }
 
   // ===========================================================================
@@ -1770,38 +1875,36 @@ export async function extractInstagram(
   // ===========================================================================
   let staticImageFallback: ExtractResponse | null = null;
 
-  if (kind !== 'story') {
-    const embedResult = await extractViaInstagramEmbedAndOg(shortcode, auth);
-    if (embedResult.notFound) {
-      return {
-        ok: false,
-        platform: 'instagram',
-        stage: 'direct',
-        engineStage: 'embed',
-        httpStatus: 404,
-        error: {
-          code: 'NOT_FOUND',
-          message:
-            'Cette publication Instagram est introuvable ou a été supprimée.',
-        },
-      };
-    }
-    if (embedResult.videoOrCarousel) {
-      return {
-        ...embedResult.videoOrCarousel,
-        stage: 'direct',
-        engineStage: 'embed',
-        httpStatus: 200,
-      };
-    }
-    staticImageFallback = embedResult.staticImageFallback;
+  const embedResult = await extractViaInstagramEmbedAndOg(shortcode, auth);
+  if (embedResult.notFound) {
+    return {
+      ok: false,
+      platform: 'instagram',
+      stage: 'direct',
+      engineStage: 'embed',
+      httpStatus: 404,
+      error: {
+        code: 'NOT_FOUND',
+        message:
+          'Cette publication Instagram est introuvable ou a été supprimée.',
+      },
+    };
   }
+  if (embedResult.videoOrCarousel) {
+    return {
+      ...embedResult.videoOrCarousel,
+      stage: 'direct',
+      engineStage: 'embed',
+      httpStatus: 200,
+    };
+  }
+  staticImageFallback = embedResult.staticImageFallback;
 
   // ===========================================================================
   // NIVEAU 3 : Fallback Passerelles Publiques Gratuites Sans Clé (Anti-WAF)
   // Uniquement exécuté si allow_third_party est activé
   // ===========================================================================
-  if (kind !== 'story' && allowThirdParty) {
+  if (allowThirdParty) {
     const fallbackResult = await extractViaPublicFreeFallbacks(shortcode);
     if (fallbackResult) {
       return {
@@ -1827,7 +1930,7 @@ export async function extractInstagram(
     ok: false,
     platform: 'instagram',
     stage: 'direct',
-    engineStage: kind === 'story' ? 'direct' : 'embed',
+    engineStage: 'embed',
     httpStatus: 403,
     error: {
       code: 'PRIVATE_OR_LOGIN_REQUIRED',

@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Tautan tidak didukung. Masukkan URL publik dari TikTok, Instagram, X, Facebook, atau profil LinkedIn (/in/...).",
       "NOT_FOUND": "Postingan yang diminta tidak ditemukan atau telah dihapus dari platform asal.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Konten ini bersifat pribadi atau memerlukan login. VIDNEX hanya memproses postingan publik.",
+      "IG_STORY_LOGIN_REQUIRED": "Story Instagram memerlukan login: tidak dapat diunduh tanpa akun.",
+      "FB_STORY_LOGIN_REQUIRED": "Story Facebook memerlukan login: tidak dapat diunduh tanpa akun.",
       "BLOCKED_BY_PLATFORM": "Platform sumber menolak akses sementara ke postingan ini. Silakan coba lagi beberapa saat lagi.",
       "TIMEOUT": "Pengambilan video membutuhkan waktu terlalu lama. Periksa tautan dan coba lagi.",
       "NO_MEDIA": "Tidak ditemukan file video atau gambar yang dapat diunduh pada postingan ini.",

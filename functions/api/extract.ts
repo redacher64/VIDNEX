@@ -7,13 +7,18 @@
 
 import {
   detectUrl,
+  resolveAndDetectUrl,
   classifyUrlForLog,
   type SupportedPlatform,
 } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
-import { extractFacebook, resolveFacebookRedirect } from '../_lib/facebook.ts';
+import {
+  extractFacebook,
+  resolveFacebookRedirect,
+  FB_STORY_LOGIN_REQUIRED_MESSAGE,
+} from '../_lib/facebook.ts';
 import { extractLinkedIn } from '../_lib/linkedin.ts';
 import {
   createSuccessResponse,
@@ -246,6 +251,7 @@ async function handleExtract(
 
   if (detection.platform === 'facebook' && detection.isLoginRedirect) {
     const fbClass = classifyUrlForLog(targetUrl, 'facebook', detection.cleanUrl);
+    const isStoryLogin = detection.kind === 'story' || fbClass.contentKind === 'story';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -254,15 +260,17 @@ async function handleExtract(
         errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
         durationMs: Date.now() - startedAt,
         ipHash,
-        engineStage: 'detect_login_redirect',
+        engineStage: isStoryLogin ? 'story_auth_required' : 'detect_login_redirect',
         httpStatus: 403,
-        contentKind: fbClass.contentKind,
-        engineFn: fbClass.engineFn,
+        contentKind: isStoryLogin ? 'story' : fbClass.contentKind,
+        engineFn: isStoryLogin ? 'facebook.story' : fbClass.engineFn,
       })
     );
     return createErrorResponse(
       'PRIVATE_OR_LOGIN_REQUIRED',
-      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      isStoryLogin
+        ? FB_STORY_LOGIN_REQUIRED_MESSAGE
+        : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
       403
     );
   }
@@ -273,6 +281,14 @@ async function handleExtract(
       'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn (/in/{slug}).',
       400
     );
+  }
+
+  // Résolution des liens courts Instagram (/share/...) pour reclasser si redirection vers /stories/ ou /reel/
+  if (detection.platform === 'instagram' && detection.isShortLink) {
+    const resolvedIg = await resolveAndDetectUrl(detection.cleanUrl, 'instagram');
+    if (resolvedIg.isValid && resolvedIg.platform === 'instagram') {
+      detection = resolvedIg;
+    }
   }
 
   // Résolution des liens courts t.co (limite 3 redirections, timeout court), puis revalidation stricte
@@ -296,13 +312,18 @@ async function handleExtract(
     detection = revalidated;
   }
 
-  // Résolution des liens de partage Facebook (/share/v/, /share/r/, fb.watch) avec limite 4 sauts et anti-SSRF
+  // Résolution des liens de partage Facebook (/share/v/, /share/r/, /share/s/, fb.watch) avec limite 4 sauts et anti-SSRF
   if (detection.platform === 'facebook' && detection.isShortLink) {
     const resolvedFb = await resolveFacebookRedirect(detection.cleanUrl);
     if (!resolvedFb.ok || !resolvedFb.finalUrl) {
       const errCode = resolvedFb.errorCode || 'UNSUPPORTED_URL';
       const status = mapErrorCodeToHttpStatus(errCode);
-      const fbShortClass = classifyUrlForLog(targetUrl, 'facebook', detection.cleanUrl);
+      const fbShortClass = classifyUrlForLog(
+        targetUrl,
+        'facebook',
+        resolvedFb.finalUrl || detection.cleanUrl
+      );
+      const isRedirectedStory = fbShortClass.contentKind === 'story';
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
@@ -311,7 +332,7 @@ async function handleExtract(
           errorCode: errCode,
           durationMs: Date.now() - startedAt,
           ipHash,
-          engineStage: 'fb_redirect',
+          engineStage: isRedirectedStory ? 'story_auth_required' : 'fb_redirect',
           httpStatus: errCode === 'TIMEOUT' ? null : status,
           contentKind: fbShortClass.contentKind,
           engineFn: fbShortClass.engineFn,
@@ -328,6 +349,7 @@ async function handleExtract(
     const revalidatedFb = detectUrl(resolvedFb.finalUrl, 'facebook');
     if (revalidatedFb.isLoginRedirect) {
       const fbLoginClass = classifyUrlForLog(targetUrl, 'facebook', resolvedFb.finalUrl);
+      const isStoryLogin = revalidatedFb.kind === 'story' || fbLoginClass.contentKind === 'story';
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
@@ -336,15 +358,17 @@ async function handleExtract(
           errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
           durationMs: Date.now() - startedAt,
           ipHash,
-          engineStage: 'fb_redirect_login',
+          engineStage: isStoryLogin ? 'story_auth_required' : 'fb_redirect_login',
           httpStatus: 403,
-          contentKind: fbLoginClass.contentKind,
-          engineFn: fbLoginClass.engineFn,
+          contentKind: isStoryLogin ? 'story' : fbLoginClass.contentKind,
+          engineFn: isStoryLogin ? 'facebook.story' : fbLoginClass.engineFn,
         })
       );
       return createErrorResponse(
         'PRIVATE_OR_LOGIN_REQUIRED',
-        "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+        isStoryLogin
+          ? FB_STORY_LOGIN_REQUIRED_MESSAGE
+          : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
         403
       );
     }
@@ -427,6 +451,10 @@ async function handleExtract(
         ? 'profile'
         : detection.kind === 'story'
         ? 'story'
+        : detection.kind === 'highlight'
+        ? 'highlight'
+        : detection.kind === 'reel'
+        ? 'reel'
         : 'post',
       undefined,
       settings.allow_third_party

@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Desteklenmeyen bağlantı. Lütfen TikTok, Instagram, X, Facebook veya LinkedIn (/in/...) bağlantısı yapıştırın.",
       "NOT_FOUND": "İstenen gönderi bulunamadı veya kaynak platformdan silinmiş.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Bu içerik gizli veya oturum açmayı gerektiriyor. VIDNEX yalnızca herkese açık gönderileri indirir.",
+      "IG_STORY_LOGIN_REQUIRED": "Instagram hikayeleri giriş gerektirir: hesap olmadan indirilemez.",
+      "FB_STORY_LOGIN_REQUIRED": "Facebook hikayeleri giriş gerektirir: hesap olmadan indirilemez.",
       "BLOCKED_BY_PLATFORM": "Kaynak platform bu gönderiye erişimi geçici olarak reddetti. Lütfen biraz sonra tekrar deneyin.",
       "TIMEOUT": "Videonun alınması çok uzun sürdü. Bağlantıyı kontrol edip tekrar deneyin.",
       "NO_MEDIA": "Bu gönderide indirilebilir bir video veya görsel bulunamadı.",

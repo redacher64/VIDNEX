@@ -116,6 +116,8 @@
       "UNSUPPORTED_URL": "Link não suportado. Cole um URL público do TikTok, Instagram, X, Facebook ou um perfil do LinkedIn (/in/...).",
       "NOT_FOUND": "A publicação solicitada não foi encontrada ou foi removida da plataforma de origem.",
       "PRIVATE_OR_LOGIN_REQUIRED": "Este conteúdo é privado ou exige login. O VIDNEX processa apenas publicações públicas.",
+      "IG_STORY_LOGIN_REQUIRED": "Os stories do Instagram exigem login: não podem ser baixados sem uma conta.",
+      "FB_STORY_LOGIN_REQUIRED": "Os stories do Facebook exigem login: não podem ser baixados sem uma conta.",
       "BLOCKED_BY_PLATFORM": "A plataforma de origem recusou temporariamente o acesso a esta publicação. Tente novamente em instantes.",
       "TIMEOUT": "O download demorou muito para responder. Verifique o link e tente novamente.",
       "NO_MEDIA": "Nenhum vídeo ou imagem baixável foi encontrado nesta publicação.",

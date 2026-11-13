@@ -94,6 +94,8 @@ export interface ErrorMessagesDictionary {
   UNSUPPORTED_URL: string;
   NOT_FOUND: string;
   PRIVATE_OR_LOGIN_REQUIRED: string;
+  IG_STORY_LOGIN_REQUIRED?: string;
+  FB_STORY_LOGIN_REQUIRED?: string;
   BLOCKED_BY_PLATFORM: string;
   TIMEOUT: string;
   NO_MEDIA: string;

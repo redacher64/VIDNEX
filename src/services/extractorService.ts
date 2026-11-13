@@ -315,11 +315,101 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
 };
 
+export const STORY_ERROR_MESSAGES: Record<
+  LanguageCode,
+  {
+    instagram: string;
+    facebook: string;
+  }
+> = {
+  fr: {
+    instagram:
+      'Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.',
+    facebook:
+      'Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte.',
+  },
+  en: {
+    instagram:
+      'Instagram stories require a login: they cannot be downloaded without an account.',
+    facebook:
+      'Facebook stories require a login: they cannot be downloaded without an account.',
+  },
+  ar: {
+    instagram:
+      'قصص إنستغرام تتطلب تسجيل الدخول: لا يمكن تنزيلها بدون حساب.',
+    facebook:
+      'قصص فيسبوك تتطلب تسجيل الدخول: لا يمكن تنزيلها بدون حساب.',
+  },
+  es: {
+    instagram:
+      'Las historias de Instagram requieren iniciar sesión: no se pueden descargar sin una cuenta.',
+    facebook:
+      'Las historias de Facebook requieren iniciar sesión: no se pueden descargar sin una cuenta.',
+  },
+  pt: {
+    instagram:
+      'Os stories do Instagram exigem login: não podem ser baixados sem uma conta.',
+    facebook:
+      'Os stories do Facebook exigem login: não podem ser baixados sem uma conta.',
+  },
+  de: {
+    instagram:
+      'Instagram-Stories erfordern eine Anmeldung: Sie können ohne Konto nicht heruntergeladen werden.',
+    facebook:
+      'Facebook-Stories erfordern eine Anmeldung: Sie können ohne Konto nicht heruntergeladen werden.',
+  },
+  tr: {
+    instagram:
+      'Instagram hikayeleri giriş gerektirir: hesap olmadan indirilemez.',
+    facebook:
+      'Facebook hikayeleri giriş gerektirir: hesap olmadan indirilemez.',
+  },
+  id: {
+    instagram:
+      'Story Instagram memerlukan login: tidak dapat diunduh tanpa akun.',
+    facebook:
+      'Story Facebook memerlukan login: tidak dapat diunduh tanpa akun.',
+  },
+  it: {
+    instagram:
+      'Le storie di Instagram richiedono l\'accesso: non possono essere scaricate senza un account.',
+    facebook:
+      'Le storie di Facebook richiedono l\'accesso: non possono essere scaricate senza un account.',
+  },
+  ru: {
+    instagram:
+      'Истории Instagram требуют входа в аккаунт: их нельзя скачать без авторизации.',
+    facebook:
+      'Истории Facebook требуют входа в аккаунт: их нельзя скачать без авторизации.',
+  },
+};
+
 export function getLocalizedErrorMessage(
   code: string,
   language: LanguageCode = 'fr',
-  options?: { isProfile?: boolean; platform?: PlatformId | null }
+  options?: {
+    isProfile?: boolean;
+    isStory?: boolean;
+    platform?: PlatformId | null;
+    serverMessage?: string;
+  }
 ): string {
+  const storyDict = STORY_ERROR_MESSAGES[language] || STORY_ERROR_MESSAGES.fr;
+  const serverMsg = (options?.serverMessage || '').toLowerCase();
+  const isStoryContext =
+    options?.isStory ||
+    code === 'IG_STORY_LOGIN_REQUIRED' ||
+    code === 'FB_STORY_LOGIN_REQUIRED' ||
+    serverMsg.includes('stories instagram') ||
+    serverMsg.includes('stories facebook');
+
+  if (isStoryContext && (code === 'PRIVATE_OR_LOGIN_REQUIRED' || code === 'IG_STORY_LOGIN_REQUIRED' || code === 'FB_STORY_LOGIN_REQUIRED')) {
+    if (options?.platform === 'facebook' || code === 'FB_STORY_LOGIN_REQUIRED' || serverMsg.includes('stories facebook')) {
+      return storyDict.facebook;
+    }
+    return storyDict.instagram;
+  }
+
   const isLinkedIn = options?.platform === 'linkedin';
   const profileDict = isLinkedIn
     ? LINKEDIN_ERROR_MESSAGES[language] || LINKEDIN_ERROR_MESSAGES.fr
@@ -406,7 +496,10 @@ export async function extractMediaFromUrl(
     const localized = getLocalizedErrorMessage(errCode, language, {
       isProfile:
         detected.mediaType === 'profile' || detected.platform === 'linkedin',
+      isStory:
+        detected.mediaType === 'story' || detected.mediaType === 'highlight',
       platform: detected.platform,
+      serverMessage: data?.error?.message,
     });
     throw new Error(localized);
   }

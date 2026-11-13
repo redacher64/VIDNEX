@@ -105,12 +105,68 @@ export function extractValidFbCdnUrl(rawCandidate: string | undefined | null): s
   }
 }
 
+export const FB_STORY_LOGIN_REQUIRED_MESSAGE =
+  'Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte.';
+
 export interface FacebookRedirectResolution {
   ok: boolean;
   finalUrl?: string;
   errorCode?: ErrorCode;
   errorMessage?: string;
   rawStatus?: number;
+}
+
+/**
+ * Vérifie si une URL correspond à une story Facebook (`/stories/...`, `/story.php?story_fbid=...`, `/share/s/...`)
+ * ou à une redirection `/login?next=` menant à une story.
+ */
+export function isFacebookStoryUrl(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl);
+    const p = u.pathname.toLowerCase();
+    if (
+      /^\/stories\/[^/?#]+/i.test(p) ||
+      p === '/stories' ||
+      p === '/stories/' ||
+      ((p === '/story.php' || p === '/permalink.php') && u.searchParams.has('story_fbid')) ||
+      /^\/share\/s\/[^/?#]+/i.test(p)
+    ) {
+      return true;
+    }
+    const nextParam = u.searchParams.get('next');
+    if (nextParam) {
+      const nextUrl = new URL(nextParam, 'https://www.facebook.com');
+      const nextPath = nextUrl.pathname.toLowerCase();
+      if (
+        /^\/stories\/[^/?#]+/i.test(nextPath) ||
+        nextPath === '/stories' ||
+        nextPath === '/stories/' ||
+        ((nextPath === '/story.php' || nextPath === '/permalink.php') &&
+          nextUrl.searchParams.has('story_fbid')) ||
+        /^\/share\/s\/[^/?#]+/i.test(nextPath)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function extractStoryUrlFromLoginRedirect(rawUrl: string): string | null {
+  try {
+    const u = new URL(rawUrl);
+    const nextParam = u.searchParams.get('next');
+    if (!nextParam) return null;
+    const nextUrl = new URL(nextParam, 'https://www.facebook.com');
+    if (isFacebookStoryUrl(nextUrl.toString())) {
+      return nextUrl.toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -172,13 +228,26 @@ export async function resolveFacebookRedirect(
 
     if (isFacebookLoginOrCheckpointUrl(parsed.toString())) {
       const isCheckpoint = parsed.pathname.toLowerCase().includes('checkpoint');
+      const storyTarget = extractStoryUrlFromLoginRedirect(parsed.toString());
       return {
         ok: false,
+        finalUrl: storyTarget || parsed.toString(),
         errorCode: isCheckpoint ? 'BLOCKED_BY_PLATFORM' : 'PRIVATE_OR_LOGIN_REQUIRED',
         errorMessage: isCheckpoint
           ? 'Facebook a renvoyé un contrôle de sécurité (checkpoint/captcha).'
+          : storyTarget
+          ? FB_STORY_LOGIN_REQUIRED_MESSAGE
           : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
       };
+    }
+
+    // Si on a déjà atteint une URL de story (/stories/... ou /story.php?story_fbid=...), on la renvoie immédiatement pour reclassement
+    if (
+      hop > 0 &&
+      isFacebookStoryUrl(parsed.toString()) &&
+      !/^\/share\/s\//i.test(parsed.pathname)
+    ) {
+      return { ok: true, finalUrl: parsed.toString() };
     }
 
     if (hop === maxRedirects) {
@@ -217,12 +286,26 @@ export async function resolveFacebookRedirect(
         }
         if (isFacebookLoginOrCheckpointUrl(nextUrl.toString())) {
           const isCheckpoint = nextUrl.pathname.toLowerCase().includes('checkpoint');
+          const storyTarget = extractStoryUrlFromLoginRedirect(nextUrl.toString());
           return {
             ok: false,
+            finalUrl: storyTarget || nextUrl.toString(),
             errorCode: isCheckpoint ? 'BLOCKED_BY_PLATFORM' : 'PRIVATE_OR_LOGIN_REQUIRED',
             errorMessage: isCheckpoint
               ? 'Facebook a renvoyé un contrôle de sécurité (checkpoint).'
+              : storyTarget
+              ? FB_STORY_LOGIN_REQUIRED_MESSAGE
               : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+            rawStatus: response.status,
+          };
+        }
+        if (
+          isFacebookStoryUrl(nextUrl.toString()) &&
+          !/^\/share\/s\//i.test(nextUrl.pathname)
+        ) {
+          return {
+            ok: true,
+            finalUrl: nextUrl.toString(),
             rawStatus: response.status,
           };
         }
@@ -236,7 +319,9 @@ export async function resolveFacebookRedirect(
         const isShortPath =
           hostLower === 'fb.watch' ||
           parsed.pathname.startsWith('/share/v/') ||
-          parsed.pathname.startsWith('/share/r/');
+          parsed.pathname.startsWith('/share/r/') ||
+          parsed.pathname.startsWith('/share/s/') ||
+          parsed.pathname.startsWith('/share/');
         if (isShortPath) {
           const html = await response.text().catch(() => '');
           const refreshMatch =
@@ -652,6 +737,22 @@ export async function extractFacebook(
   cleanUrl: string,
   videoId?: string
 ): Promise<ExtractResponse> {
+  // STORIES FACEBOOK : Ne jamais utiliser le moteur Reels ou Vidéo ni tenter de contourner le mur de connexion
+  if (isFacebookStoryUrl(cleanUrl)) {
+    return {
+      ...fail(
+        'PRIVATE_OR_LOGIN_REQUIRED',
+        FB_STORY_LOGIN_REQUIRED_MESSAGE,
+        {
+          engineStage: 'story_auth_required',
+          httpStatus: 403,
+          engineFn: 'facebook.story',
+        }
+      ),
+      contentKind: 'story',
+    };
+  }
+
   const cleanId = (videoId || '').replace(/[^0-9A-Za-z_-]/g, '');
   const isReel = /\/(?:reel|reels|share\/r)\//i.test(cleanUrl);
   const engineFn = isReel ? 'facebook.reel' : 'facebook.video';

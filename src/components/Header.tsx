@@ -235,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label={navStrings.languageLabel}
               className={
                 langMenuOpen
-                  ? 'absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 max-h-[70dvh] overflow-y-auto bg-white/98 dark:bg-[#1c140e] backdrop-blur-xl rounded-2xl border border-orange-200/90 dark:border-orange-900/70 shadow-orange-glow p-1.5 z-50'
+                  ? 'absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 max-h-[70dvh] overflow-y-auto bg-white dark:bg-[#1c140e] rounded-2xl border border-orange-200 dark:border-orange-900/80 shadow-2xl shadow-orange-950/15 dark:shadow-black/60 p-1.5 z-50'
                   : 'sr-only'
               }
             >

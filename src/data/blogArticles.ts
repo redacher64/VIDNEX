@@ -57,6 +57,11 @@ export interface BlogContentSection {
   heading: string;
   paragraphs: string[];
   bullets?: string[];
+  table?: {
+    headers: string[];
+    rows: string[][];
+  };
+  proTip?: string;
   technicalCallout?: {
     label: string;
     text: string;
@@ -103,7 +108,7 @@ export interface BlogFeaturedIllustration {
 }
 
 export interface BlogArticleTranslation {
-  locale: BlogLocale;
+  locale: BlogLocale | 'ar';
   localizedSlug: string;
   translationStatus: 'published' | 'draft';
   title: string;
@@ -114,10 +119,15 @@ export interface BlogArticleTranslation {
   secondaryKeywords: string[];
   searchIntent: string;
   readingTimeMinutes: number;
+  quickAnswer?: string;
+  keyTakeaways?: string[];
   introduction: string[];
   tableOfContents: BlogTocItem[];
   content: BlogContentSection[];
   faq: BlogFaqItem[];
+  ctaTitle?: string;
+  ctaDescription?: string;
+  ctaButtonLabel?: string;
   internalLinks: BlogInternalLink[];
   sources: BlogExternalSource[];
 }
@@ -128,13 +138,17 @@ export interface BlogArticle {
   featured?: boolean;
   category: BlogCategoryKey;
   primaryPlatform?: PlatformPageKey;
+  primaryToolRoute?: string;
+  secondaryToolRoute?: string;
   author: BlogAuthor;
   featuredImage: BlogFeaturedIllustration;
   publishedAt: string;
   updatedAt: string;
   relatedArticleIds: string[];
-  translations: Partial<Record<BlogLocale, BlogArticleTranslation>>;
+  translations: Partial<Record<BlogLocale | 'ar', BlogArticleTranslation>>;
 }
+
+export type BlogArticleRecord = BlogArticle;
 
 export interface BlogHubSeoMeta {
   locale: BlogLocale;
@@ -2868,8 +2882,8 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
   },
 
   // ============================================================================
-  // ARTICLE 8 — Can You Download a TikTok Without Watermark?
-  // Translations: en
+  // ARTICLE 8 — How to Save Public TikTok Videos Without a Watermark on Any Device
+  // Translations: en (published), fr (published), ar (draft)
   // ============================================================================
   {
     id: 'save-public-tiktok-videos-without-watermark-guide',
@@ -2877,13 +2891,15 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
     featured: false,
     category: 'tiktok-guides',
     primaryPlatform: 'tiktok',
+    primaryToolRoute: '/en/tiktok-video-downloader',
+    secondaryToolRoute: '/en/instagram-video-downloader',
     author: BLOG_AUTHORS.editorialTeam,
     publishedAt: '2026-03-07',
-    updatedAt: '2026-03-24',
+    updatedAt: '2026-11-12',
     relatedArticleIds: [
-      'troubleshooting-expired-blocked-social-media-links',
-      'why-is-downloaded-video-low-quality',
       'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
+      'why-is-downloaded-video-low-quality',
+      'troubleshooting-expired-blocked-social-media-links',
     ],
     featuredImage: {
       diagramType: 'tiktok-watermark-layers',
@@ -2905,117 +2921,266 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         locale: 'en',
         localizedSlug: 'save-public-tiktok-videos-without-watermark-guide',
         translationStatus: 'published',
-        title: 'Can You Download a TikTok Without Watermark?',
-        excerpt:
-          'Understand how TikTok generates two separate video streams (`playAddr` vs `downloadAddr`), why cropping blurs videos, and the copyright rules you must respect.',
-        metaTitle: 'Can You Download a TikTok Without Watermark? How It Works',
+        title: 'How to Save Public TikTok Videos Without a Watermark on Any Device',
+        metaTitle: 'Save TikTok Video Without Watermark: Complete Guide',
         metaDescription:
-          'Learn how TikTok stores clean playback streams versus watermarked exports, why blurring tools ruin video quality, and how to save public TikTok MP4s.',
-        primaryKeyword: 'download tiktok without watermark',
+          'Learn how to save a public TikTok video without a watermark in MP4 on iPhone, Android, or PC. Clear steps, native creator tricks, and troubleshooting.',
+        excerpt:
+          'Need a clean copy of a public TikTok clip without the bouncing username logo? Learn how watermarks work, how to save public MP4 files on iPhone, Android, and desktop, and how to handle common link or quality issues.',
+        quickAnswer:
+          'To save a public TikTok video without a watermark, open the post in TikTok, tap Share, and select Copy Link. Paste that URL into a web-based tool like the VIDNEX TikTok Video Downloader in your browser, then choose the watermark-free MP4 option (when available) to save the file directly to your phone or computer without installing an app or logging in.',
+        keyTakeaways: [
+          "TikTok's native Save video button automatically embeds a bouncing username watermark and ending card onto downloaded clips.",
+          'Copying the public post link and processing it through a browser tool lets you save the clean MP4 stream when a watermark-free version is available.',
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; you can move them to your Camera Roll in two taps.',
+          'Creators backing up their own content can avoid watermarks natively by saving drafts or adjusting post options, or by fetching their old public posts via link.',
+          'Only public TikTok posts can be processed; private accounts, deleted clips, and restricted videos cannot be accessed, and creator copyright always applies.',
+        ],
+        primaryKeyword: 'save tiktok video without watermark',
         secondaryKeywords: [
-          'how no watermark tiktok download works',
-          'save clean tiktok video mp4',
-          'tiktok playaddr vs downloadaddr',
-          'remove watermark own tiktok video',
+          'download tiktok without watermark',
+          'save tiktok to camera roll no logo',
+          'download own tiktok without watermark',
+          'public tiktok mp4 downloader',
         ],
         searchIntent:
-          'Explain the technical mechanism behind clean TikTok video streams and responsible copyright usage.',
-        readingTimeMinutes: 6,
+          'Informational and transactional: users want step-by-step instructions to save public TikTok videos as clean MP4 files without the bouncing username overlay on mobile or desktop, plus troubleshooting for iOS storage and missing download buttons.',
+        readingTimeMinutes: 8,
         introduction: [
-          'When you tap "Save video" inside the TikTok mobile app, the saved MP4 includes a bouncing TikTok logo and the creator’s `@username` overlay, followed by a full-screen end card. Yet when you watch that exact same video inside a web browser, the bouncing watermark isn’t baked into the video frames—it is rendered dynamically by the web player UI.',
-          'Here is the technical explanation of how TikTok stores clean playback streams alongside watermarked exports, why "watermark blurring" apps ruin video sharpness, and the intellectual property rules every user must follow.',
+          'To save a public TikTok video without a watermark, open the post in TikTok, tap Share, and select Copy Link. Paste that URL into a web-based tool like the VIDNEX TikTok Video Downloader in your browser, then choose the watermark-free MP4 option (when available) to save the file directly to your phone or computer without installing an app or logging in.',
+          "TikTok's native Save video button automatically embeds a bouncing username watermark and ending card onto downloaded clips.",
+          'Copying the public post link and processing it through a browser tool lets you save the clean MP4 stream when a watermark-free version is available.',
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; you can move them to your Camera Roll in two taps.',
+          'Creators backing up their own content can avoid watermarks natively by saving drafts or adjusting post options, or by fetching their old public posts via link.',
+          'Only public TikTok posts can be processed; private accounts, deleted clips, and restricted videos cannot be accessed, and creator copyright always applies.',
         ],
         tableOfContents: [
           {
-            id: 'playaddr-vs-downloadaddr-streams',
-            heading: '1. The Technical Secret: `playAddr` vs `downloadAddr` on TikTok CDN',
+            id: 'why-tiktok-adds-watermarks',
+            heading: 'Why TikTok Adds a Bouncing Watermark to Saved Videos',
           },
           {
-            id: 'why-cropping-and-blurring-apps-ruin-quality',
-            heading: '2. Why Watermark-Blurring Apps Degrade Video Quality',
+            id: 'step-by-step-save-without-watermark',
+            heading: 'How to Save a Public TikTok Video Without a Watermark Online',
           },
           {
-            id: 'when-watermarks-are-baked-in-at-upload',
-            heading: '3. Why Some Videos Still Show a Watermark Even on the Clean Stream',
+            id: 'saving-on-iphone-android-pc',
+            heading: 'Where Downloaded Videos Go on iPhone, Android, and Desktop',
           },
           {
-            id: 'copyright-and-creator-attribution',
-            heading: '4. Responsible Use: Backing Up Your Own Clips & Respecting Creators',
+            id: 'how-to-save-your-own-tiktoks',
+            heading: 'How to Save Your Own TikTok Videos Without the Logo',
+          },
+          {
+            id: 'beyond-video-slideshows-audio-avatars',
+            heading: 'Saving TikTok Photo Slideshows, Audio Tracks, and Profile Pictures',
+          },
+          {
+            id: 'video-quality-and-compression-myths',
+            heading: 'Does Removing the Watermark Affect Video Resolution?',
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving TikTok Videos',
+          },
+          {
+            id: 'privacy-limits-and-creator-rights',
+            heading: 'Privacy Boundaries, Tool Limits, and Respecting Creator Rights',
           },
         ],
         content: [
           {
-            id: 'playaddr-vs-downloadaddr-streams',
-            heading: '1. The Technical Secret: `playAddr` vs `downloadAddr` on TikTok CDN',
+            id: 'why-tiktok-adds-watermarks',
+            heading: 'Why TikTok Adds a Bouncing Watermark to Saved Videos',
             paragraphs: [
-              'When a video is published on TikTok, the platform’s backend generates two distinct sets of MP4 URLs inside the item metadata:',
+              'When you tap the built-in Save video button inside the TikTok app, the platform does not simply hand over the raw video file that the creator uploaded. Instead, TikTok generates a stamped export copy. This file includes the TikTok logo, the creator\'s @username floating from side to side, and a full-screen outro card at the end of the clip.',
+              'This overlay serves a clear purpose: attribution. When clips are shared in group chats or across the web, viewers immediately see who made the original video and where it came from. However, that moving stamp becomes an obstacle in several legitimate everyday situations. Content creators often lose the original camera files on their phones and want to recover clean archival copies of their own old posts. Video editors studying transitions, educators archiving public references for offline classroom playback, or social media managers repurposing their brand\'s own vertical clips for other platforms like [Instagram Reels](https://vidnex.space/en/instagram-video-downloader) all need an unobstructed frame.',
+              'Attempting to remove the logo after the fact by cropping the edges of the video or applying a blur box rarely works well. Because the TikTok watermark jumps between the upper-left and lower-right corners halfway through playback, cropping cuts off captions, facial expressions, and visual details. The cleanest approach is not editing the logo out of a stamped file, but retrieving the clean public MP4 stream when it is available.',
             ],
-            bullets: [
-              '`video.downloadAddr`: A transcode specifically generated for the in-app "Save video" button, with the creator’s handle and TikTok logo permanently burned into the pixels.',
-              '`video.playAddr`: The clean source stream used by the TikTok web player and mobile feed so the app can overlay interactive buttons without obstructing the video.',
-            ],
-            technicalCallout: {
-              label: 'Stream Architecture',
-              text: 'Online extractors like VIDNEX do not "erase" or "blur" pixels. Instead, they retrieve the public `playAddr` stream directly from the CDN, preserving 100% of the native frame geometry.',
+            table: {
+              headers: [
+                'Method',
+                'Watermark Status',
+                'Visual Quality',
+                'Best Use Case',
+              ],
+              rows: [
+                [
+                  "TikTok In-App 'Save Video' Button",
+                  'Includes bouncing logo & end screen',
+                  'Standard re-encoded MP4',
+                  'Quick sharing in private chats with visible creator credit',
+                ],
+                [
+                  'Screen Recording & Cropping',
+                  'Logo cropped out, UI icons often visible',
+                  'Reduced resolution & frame drops',
+                  'Not recommended due to heavy quality loss',
+                ],
+                [
+                  'Native Creator Pre-Post Save',
+                  'No watermark',
+                  'Original device recording quality',
+                  'Saving your own newly recorded video before publishing',
+                ],
+                [
+                  'Browser Link Downloader (VIDNEX)',
+                  'No watermark (when available)',
+                  'Original public stream resolution',
+                  'Archiving public TikTok videos, slideshows, or audio on any device',
+                ],
+              ],
             },
           },
           {
-            id: 'why-cropping-and-blurring-apps-ruin-quality',
-            heading: '2. Why Watermark-Blurring Apps Degrade Video Quality',
+            id: 'step-by-step-save-without-watermark',
+            heading: 'How to Save a Public TikTok Video Without a Watermark Online',
             paragraphs: [
-              'Desktop or mobile editing tools that claim to "remove watermarks from an already-saved video" work by either cropping 15% of the frame edges or applying a Gaussian blur patch over the bouncing logo. Because TikTok’s watermark jumps between the top-left and bottom-right corners mid-video, blurring leaves unsightly smudges and triggers a full re-encode.',
-              'Fetching the clean playback stream directly from the original post URL avoids both pixel interpolation and re-compression.',
+              'Using a browser-based tool is the most straightforward way to save a clean MP4 file because it works identically across operating systems and does not require installing third-party apps or browser extensions. You also never have to connect your TikTok account or type in a password.',
+              'Follow these steps using the [VIDNEX TikTok Video Downloader](https://vidnex.space/en/tiktok-video-downloader) to save a public video:',
+            ],
+            bullets: [
+              '1. Open the TikTok app or the TikTok website and navigate to the public video you want to save.',
+              '2. Tap the Share button (the curved arrow icon on the right side of the screen on mobile, or below the video on desktop).',
+              '3. Select Copy link from the sharing menu. Wait for the brief confirmation banner showing the link is copied to your clipboard.',
+              '4. Open your web browser and go to the VIDNEX TikTok Video Downloader page.',
+              '5. Paste the copied link into the text field at the top of the page and start the fetch process.',
+              '6. Review the available formats and select the MP4 video option without a watermark (when available) to save the file to your device.',
+            ],
+            proTip:
+              'You do not need to clean up the link before pasting. Whether TikTok gives you a shortened mobile link (starting with vm.tiktok.com or vt.tiktok.com) or a long desktop URL with query parameters, the tool resolves the public address automatically.',
+          },
+          {
+            id: 'saving-on-iphone-android-pc',
+            heading: 'Where Downloaded Videos Go on iPhone, Android, and Desktop',
+            paragraphs: [
+              'One of the most common points of confusion happens right after clicking the download button: the file finishes downloading, yet it does not show up where you expect it. Different operating systems handle browser downloads differently, especially on mobile devices.',
+              'On an iPhone or iPad (iOS and iPadOS), Safari and other mobile browsers do not place web downloads directly into your Photos app (Camera Roll). Instead, Apple routes browser downloads into the built-in Files app to keep web files separate from your personal camera photos. Once the download completes in Safari, tap the blue download arrow icon in the address bar, select Downloads, and tap the video file to open it. From there, tap the Share icon in the bottom corner and tap Save Video. The MP4 will immediately appear in your Photos app under Recents.',
+              'On Android phones and tablets, Chrome and most default browsers save the MP4 file directly into your system Downloads folder. Most Android gallery apps—including Google Photos and Samsung Gallery—automatically scan the Downloads folder and display the video inside a Downloads album within seconds. If you do not see it right away, open the Files by Google app (or My Files) and check the Downloads tab.',
+              'On Windows, macOS, and Chromebook computers, your browser saves the MP4 directly into your default Downloads directory, unless you have configured Chrome, Firefox, Edge, or Safari to ask for a destination folder before each save. Because the file uses the standard MP4 container, it plays natively in QuickTime, Windows Media Player, VLC, and video editing software without file conversion.',
             ],
           },
           {
-            id: 'when-watermarks-are-baked-in-at-upload',
-            heading: '3. Why Some Videos Still Show a Watermark Even on the Clean Stream',
+            id: 'how-to-save-your-own-tiktoks',
+            heading: 'How to Save Your Own TikTok Videos Without the Logo',
             paragraphs: [
-              'If you download a clean `playAddr` stream and still see a watermark or a CapCut template badge, that means the watermark was **already burned into the video file before the creator uploaded it** (for example, someone downloaded a watermarked TikTok and re-uploaded it to a second account). No stream extractor can remove graphics that were part of the creator’s original uploaded file.',
+              "Many people searching for a watermark-free download are actually creators trying to get their own content back. Maybe you edited a clip using TikTok's built-in text tools and voice effects, posted it, and now want to cross-post that exact edit elsewhere—or perhaps you bought a new phone and lost your local camera roll backups.",
+              "If you are creating a brand-new video inside the TikTok app, check your post settings before hitting publish. On the final Post screen, tap More options and look for the setting that allows saving your video to your device without a watermark. Keep in mind that if you save a video while it is still an unpublished Draft by using screen recording, TikTok's interface buttons will clutter the screen.",
+              'What if the video was published months or years ago? If you simply open your own profile and tap Save video from the share menu, TikTok often still stamps the file with your username. Instead, treat your published post like any other public video: tap Share, choose Copy link, and run the link through the [VIDNEX TikTok Video Downloader](https://vidnex.space/en/tiktok-video-downloader). As long as your account and that specific post are set to public, you can recover the clean MP4 stream without having to re-edit your work from scratch.',
             ],
           },
           {
-            id: 'copyright-and-creator-attribution',
-            heading: '4. Responsible Use: Backing Up Your Own Clips & Respecting Creators',
+            id: 'beyond-video-slideshows-audio-avatars',
+            heading: 'Saving TikTok Photo Slideshows, Audio Tracks, and Profile Pictures',
             paragraphs: [
-              'Clean stream downloads are ideal for creators who edited a video inside the TikTok camera app, lost their local phone draft, and need an unwatermarked backup of their own published work for cross-posting or portfolio archiving.',
-              'Never re-upload another creator’s content as your own. Always obtain permission from the rights holder and credit the original author when referencing public media.',
+              "Not every post on TikTok is a standard single-stream video anymore. Creators frequently publish multi-image carousels (Photo Mode slideshows) paired with background music. When you try to save these inside the app, TikTok either saves individual images with watermarks in the corner or blocks the save option depending on the creator's settings.",
+              'With VIDNEX, pasting a link to a public TikTok photo post lets you save public photos and slideshows cleanly. You can also save a public TikTok profile picture if you need a reference of a public avatar.',
+              'Sometimes you only care about the sound—such as a public voiceover, an original comedy skit, or a backing track for offline listening. Instead of downloading the entire video file and stripping the audio in an editing program, you can choose the audio option (MP3 or M4A) directly when processing the link. If you want to understand which audio format works best for your device or editing workflow, read our [guide comparing TikTok MP3 and M4A audio tracks](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
+            ],
+          },
+          {
+            id: 'video-quality-and-compression-myths',
+            heading: 'Does Removing the Watermark Affect Video Resolution?',
+            paragraphs: [
+              "A common misconception is that watermark-free downloaders use artificial intelligence or blurring filters to 'erase' the logo from the pixels of the video. Tools that actually blur or paint over watermarks leave behind a smudged rectangle where the username used to be, which degrades visual clarity.",
+              "When you save a public TikTok video without a watermark through a link processor, no pixel blurring takes place. The tool simply requests the clean public MP4 version hosted on the platform's delivery servers when that stream is available. Because the video is not being re-compressed or cropped by a third-party editor, it retains the resolution of that public stream.",
+              'However, if you save a video and notice that it still looks blocky, blurry, or pixelated, the cause usually lies in how the video was originally uploaded or compressed by the platform upon publishing. Uploading over a weak cellular connection, exporting at non-standard frame rates, or applying heavy in-app filters can cause TikTok to compress the source file aggressively. For a full breakdown of resolution limits and compression behavior, check our article on [why a downloaded video might look low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+            ],
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving TikTok Videos',
+            paragraphs: [
+              'Even with a valid link, you may occasionally run into errors or unexpected behavior. Because social platforms update their systems and privacy controls regularly, no online tool can promise permanent uninterrupted availability. Here is how to diagnose and solve the most frequent issues:',
+            ],
+            bullets: [
+              "The link fails to load or says 'Video unavailable': Check whether the creator's account is set to Private, or if the video is restricted to Friends Only. VIDNEX only processes strictly public posts. If you cannot view the video in an incognito browser window without logging in, the tool cannot access it either.",
+              'Shortened link expired or redirected: Mobile share links (like vm.tiktok.com) can occasionally fail if copied incompletely or if the post was recently deleted. Open the video again, copy a fresh link, or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              "Video plays in the browser tab instead of downloading: On some older browser configurations, clicking the download button opens a black video player screen. If this happens, press and hold on the video (on mobile) or right-click the video (on desktop) and select 'Save video as' or 'Download Linked File'.",
+              "Downloaded video has no sound: Check two things first—make sure your phone's physical silent switch is off, and check whether the audio was muted on TikTok itself due to a copyright claim on the original post. If TikTok muted the audio on the public post, the saved file will also be silent.",
+              "The Native 'Save Video' button is missing in TikTok: Creators can disable downloads in their privacy settings (Settings and privacy > Privacy > Downloads). While this hides the button inside the TikTok app, remember to respect the creator's intent and rights.",
+            ],
+          },
+          {
+            id: 'privacy-limits-and-creator-rights',
+            heading: 'Privacy Boundaries, Tool Limits, and Respecting Creator Rights',
+            paragraphs: [
+              'Before saving any media from social platforms, it is important to understand both the technical boundaries of VIDNEX and your ethical and legal responsibilities as a user.',
+              'First, be clear on what VIDNEX does and does not do: it works exclusively with public content from supported platforms (TikTok public videos, audio, photos/slideshows, and profile pictures; Instagram public Reels, posts, carousels, and profile photos; X public videos, GIFs, and photos; Facebook public videos and Reels; and LinkedIn public profile photos). It never accesses private accounts, friends-only posts, or login-protected content, and it does not support YouTube or Snapchat. Furthermore, because social media platforms frequently modify their architecture and may block automated requests at any time, no web tool can guarantee permanent availability.',
+              "Second, having the technical ability to save a clean MP4 file does not transfer copyright ownership to you. Removing a watermark does not make someone else's creative work free to claim as your own. Under TikTok's Intellectual Property Policy and international copyright laws, the original creator owns their video and audio expression. Always save public content only for personal offline viewing, archiving your own creations, or authorized uses where you have explicit permission from the creator and always provide proper credit.",
             ],
           },
         ],
         faq: [
           {
-            question: 'Does downloading without watermark reduce the video resolution?',
+            question: 'Do I need to create an account or log in with TikTok to save a video?',
             answer:
-              'No. In fact, the clean playback stream (`playAddr`) often has a higher bitrate and sharper visual quality than the re-encoded `downloadAddr` watermark export.',
+              'No. You never need to create an account, register an email address, or log into your TikTok profile on VIDNEX. All you need is the direct URL to a public TikTok post.',
           },
           {
-            question: 'How can I save my own TikTok draft without posting it publicly?',
+            question: 'Can I save a video from a private TikTok account if I follow them?',
             answer:
-              'Inside the TikTok editing screen before posting, tap the preview expand icon and use native screen recording, or publish the clip and extract the clean public stream.',
+              'No. Even if you are an approved follower of a private account on your phone, VIDNEX cannot access private content. The tool operates without login credentials and can only process posts that are publicly visible to everyone.',
+          },
+          {
+            question: 'Why does my iPhone save the TikTok video to Files instead of my Camera Roll?',
+            answer:
+              'Apple designed Safari on iOS and iPadOS to place all web downloads into the Downloads folder inside the Files app. To move the video to your Camera Roll, open the Files app, tap the video, tap the Share icon in the lower-left corner, and select Save Video.',
+          },
+          {
+            question: 'Can I download just the audio or music from a TikTok video?',
+            answer:
+              'Yes. When you paste a public TikTok video link into VIDNEX, you can choose to save the audio track in MP3 or M4A format instead of downloading the full MP4 video file.',
+          },
+          {
+            question: 'What happens when I paste a link to a TikTok photo slideshow?',
+            answer:
+              'VIDNEX supports public TikTok photos and slideshows in addition to standard videos. Pasting a public photo-mode link allows you to save the public visual media without the corner watermark.',
+          },
+          {
+            question: "Is it legal to repost someone else's TikTok video if there is no watermark?",
+            answer:
+              "No. Reposting another creator's video without their permission violates copyright laws and platform terms of service, whether or not a watermark is visible. You should only repost your own content or videos for which you have obtained clear permission from the copyright holder.",
+          },
+          {
+            question: 'Does VIDNEX work for YouTube Shorts or Snapchat Spotlight videos?',
+            answer:
+              'No. VIDNEX only supports public media from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures. It does not support YouTube or Snapchat.',
           },
         ],
+        ctaTitle: 'Ready to Save a Clean Public TikTok Video?',
+        ctaDescription:
+          'Paste any public TikTok link to save the MP4 video without a watermark (when available), extract audio in MP3 or M4A, or grab public slideshow photos—free and with no account required.',
+        ctaButtonLabel: 'Open TikTok Video Downloader',
         internalLinks: [
           {
-            label: 'VIDNEX TikTok Downloader (No Watermark & Audio)',
+            label: 'Open TikTok Video Downloader',
             description:
-              'Save public TikTok videos in clean HD MP4 or download the original audio track.',
+              'Paste any public TikTok link to save the MP4 video without a watermark (when available), extract audio in MP3 or M4A, or grab public slideshow photos—free and with no account required.',
             targetType: 'platform',
             platformKey: 'tiktok',
-          },
-          {
-            label: 'Why Is My TikTok Video Not Downloading? 7 Causes and Fixes',
-            description:
-              'Troubleshoot private accounts, short links, and expired CDN tokens.',
-            targetType: 'blog_article',
-            targetArticleId: 'troubleshooting-expired-blocked-social-media-links',
           },
         ],
         sources: [
           {
-            title: 'TikTok Intellectual Property & Copyright Policy',
-            publisher: 'TikTok Legal',
-            url: 'https://www.tiktok.com/legal/page/global/copyright-policy/en',
+            title: 'Manage video downloads and privacy settings',
+            publisher: 'TikTok Support',
+            url: 'https://support.tiktok.com/en/account-and-privacy/account-privacy-settings/video-downloads',
+          },
+          {
+            title: 'How to share posts and copy links on TikTok',
+            publisher: 'TikTok Support',
+            url: 'https://support.tiktok.com/en/using-tiktok/exploring-videos/sharing',
+          },
+          {
+            title: 'Intellectual Property and Copyright Policy',
+            publisher: 'TikTok Support',
+            url: 'https://support.tiktok.com/en/safety-hc/account-and-user-safety/intellectual-property',
+          },
+          {
+            title: 'Where to find Safari downloads on your iPhone or iPad',
+            publisher: 'Apple Support',
+            url: 'https://support.apple.com/en-us/102440',
           },
         ],
       },
@@ -3023,102 +3188,533 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         locale: 'fr',
         localizedSlug: 'enregistrer-videos-tiktok-publiques-sans-filigrane-guide',
         translationStatus: 'published',
-        title: 'Peut-on télécharger une vidéo TikTok publique sans filigrane ?',
-        excerpt:
-          'Comprenez comment TikTok distingue le flux de lecture web propre (playAddr) du flux d’exportation filigrané (downloadAddr) et les règles de droit d’auteur.',
-        metaTitle: 'Télécharger un TikTok sans filigrane : fonctionnement',
+        title: 'Comment enregistrer une vidéo TikTok publique sans filigrane (Mobile et PC)',
+        metaTitle: 'Enregistrer une vidéo TikTok sans filigrane : Guide complet',
         metaDescription:
-          'Découvrez comment TikTok sépare le flux de lecture web sans filigrane (playAddr) de l’exportation mobile et comment sauvegarder vos vidéos publiques en MP4.',
-        primaryKeyword: 'telecharger tiktok sans filigrane',
+          'Apprenez comment enregistrer une vidéo TikTok publique sans filigrane en MP4 sur iPhone, Android ou PC. Étapes claires, astuces créateurs et dépannage.',
+        excerpt:
+          "Vous souhaitez récupérer une vidéo TikTok publique en MP4 sans le logo mobile ni l'écran de fin ? Découvrez la méthode étape par étape sur iPhone, Android et ordinateur, ainsi que les solutions aux erreurs courantes.",
+        quickAnswer:
+          "Pour enregistrer une vidéo TikTok publique sans filigrane, ouvrez la publication dans TikTok, appuyez sur Partager puis sur Copier le lien. Collez ensuite cette adresse dans l'outil en ligne VIDNEX depuis votre navigateur web et choisissez le téléchargement MP4 sans filigrane (lorsqu'il est disponible) pour sauvegarder le fichier sur votre téléphone ou ordinateur, sans compte ni installation.",
+        keyTakeaways: [
+          "Le bouton « Enregistrer la vidéo » intégré à TikTok incruste automatiquement le logo animé, le nom d'utilisateur et un écran de fin sur le fichier.",
+          'Copier le lien d\'une publication publique permet de récupérer le flux vidéo MP4 sans filigrane via un navigateur web quand cette version est disponible.',
+          "Sur iPhone et iPad, Safari place les téléchargements dans l'application Fichiers : deux gestes suffisent pour transférer la vidéo vers votre application Photos.",
+          'Les créateurs peuvent sauvegarder leurs propres vidéos sans logo au moment de la publication ou récupérer leurs anciens contenus publics via leur lien.',
+          "Seuls les contenus publics sont accessibles : les comptes privés sont exclus et le respect du droit d'auteur des créateurs reste obligatoire.",
+        ],
+        primaryKeyword: 'enregistrer une vidéo tiktok sans filigrane',
         secondaryKeywords: [
-          'comment fonctionne tiktok sans filigrane',
-          'sauvegarder video tiktok propre mp4',
-          'flux playaddr vs downloadaddr',
+          'télécharger vidéo tiktok sans logo',
+          'enregistrer tiktok sans filigrane iphone',
+          'comment enlever le filigrane tiktok',
+          'sauvegarder vidéo tiktok mp4',
         ],
         searchIntent:
-          'Expliquer le mécanisme technique des flux TikTok sans filigrane et le respect du droit d’auteur.',
-        readingTimeMinutes: 5,
+          "Informationnelle et pratique : l'internaute cherche comment obtenir un fichier MP4 propre à partir d'une vidéo TikTok publique sur iPhone, Android ou PC, comment retrouver le fichier dans sa galerie et comment résoudre les erreurs de lien.",
+        readingTimeMinutes: 8,
         introduction: [
-          'Lorsque vous utilisez le bouton « Enregistrer la vidéo » dans l’application mobile TikTok, le fichier MP4 généré comporte le logo TikTok animé ainsi que le nom d’utilisateur du créateur. Pourtant, lors de la lecture sur un navigateur web, ce filigrane n’est pas incrusté dans les pixels de la vidéo : il est superposé par l’interface du lecteur.',
-          'Voici comment l’infrastructure de TikTok sépare le flux de lecture propre (`playAddr`) du flux d’exportation (`downloadAddr`), pourquoi les outils de floutage dégradent l’image, et les règles de propriété intellectuelle à respecter.',
+          "Pour enregistrer une vidéo TikTok publique sans filigrane, ouvrez la publication dans TikTok, appuyez sur Partager puis sur Copier le lien. Collez ensuite cette adresse dans l'outil en ligne VIDNEX depuis votre navigateur web et choisissez le téléchargement MP4 sans filigrane (lorsqu'il est disponible) pour sauvegarder le fichier sur votre téléphone ou ordinateur, sans compte ni installation.",
+          "Le bouton « Enregistrer la vidéo » intégré à TikTok incruste automatiquement le logo animé, le nom d'utilisateur et un écran de fin sur le fichier.",
+          'Copier le lien d\'une publication publique permet de récupérer le flux vidéo MP4 sans filigrane via un navigateur web quand cette version est disponible.',
+          "Sur iPhone et iPad, Safari place les téléchargements dans l'application Fichiers : deux gestes suffisent pour transférer la vidéo vers votre application Photos.",
+          'Les créateurs peuvent sauvegarder leurs propres vidéos sans logo au moment de la publication ou récupérer leurs anciens contenus publics via leur lien.',
+          "Seuls les contenus publics sont accessibles : les comptes privés sont exclus et le respect du droit d'auteur des créateurs reste obligatoire.",
         ],
         tableOfContents: [
           {
-            id: 'flux-playaddr-vs-downloadaddr',
-            heading: '1. La différence technique entre `playAddr` et `downloadAddr`',
+            id: 'pourquoi-tiktok-ajoute-un-filigrane',
+            heading: 'Pourquoi TikTok ajoute-t-il un filigrane mobile sur les vidéos enregistrées ?',
           },
           {
-            id: 'pourquoi-floutage-degrade-qualite',
-            heading: '2. Pourquoi les applications de floutage ruinent la netteté',
+            id: 'etapes-enregistrer-sans-filigrane',
+            heading: 'Comment enregistrer une vidéo TikTok publique sans filigrane étape par étape',
           },
           {
-            id: 'filigrane-incruste-au-montage',
-            heading: '3. Pourquoi certaines vidéos conservent un logo malgré tout',
+            id: 'retrouver-video-iphone-android-pc',
+            heading: 'Où trouver la vidéo téléchargée sur iPhone, Android et ordinateur ?',
           },
           {
-            id: 'droit-auteur-et-sauvegarde',
-            heading: '4. Sauvegarder ses propres créations et respecter les auteurs',
+            id: 'recuperer-ses-propres-videos-createur',
+            heading: 'Comment récupérer ses propres vidéos TikTok sans le logo ?',
+          },
+          {
+            id: 'diaporamas-photos-audio-et-profil',
+            heading: "Enregistrer aussi les diaporamas photo, l'audio MP3/M4A et la photo de profil",
+          },
+          {
+            id: 'qualite-video-et-compression',
+            heading: 'La suppression du filigrane dégrade-t-elle la qualité de la vidéo ?',
+          },
+          {
+            id: 'problemes-frequents-et-solutions',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement',
+          },
+          {
+            id: 'limites-confidentialite-et-droits-auteur',
+            heading: "Limites de l'outil, contenus publics et respect du droit d'auteur",
           },
         ],
         content: [
           {
-            id: 'flux-playaddr-vs-downloadaddr',
-            heading: '1. La différence technique entre `playAddr` et `downloadAddr`',
+            id: 'pourquoi-tiktok-ajoute-un-filigrane',
+            heading: 'Pourquoi TikTok ajoute-t-il un filigrane mobile sur les vidéos enregistrées ?',
             paragraphs: [
-              'Lorsqu’une vidéo publique est mise en ligne sur TikTok, les serveurs génèrent deux pistes MP4 distinctes : `downloadAddr` (destinée au bouton d’enregistrement de l’application avec filigrane incrusté) et `playAddr` (le flux vidéo source propre diffusé au lecteur web).',
-              'VIDNEX ne modifie ni ne recadre l’image : l’outil récupère directement le flux public `playAddr` tel qu’il est hébergé sur le CDN.',
+              "Lorsque vous utilisez l'option native « Enregistrer la vidéo » directement dans l'application TikTok, la plateforme ne vous transmet pas le fichier brut envoyé par le créateur. Elle génère une copie ré-encodée sur laquelle sont incrustés le logo TikTok, l'identifiant @utilisateur qui rebondit d'un bord à l'autre de l'image, ainsi qu'une séquence finale plein écran.",
+              "Ce marquage visuel répond à une logique d'attribution : quand une vidéo circule sur WhatsApp, par message ou sur le web, tout le monde identifie immédiatement son auteur d'origine. Pourtant, ce logo animé pose vite problème dans de nombreux cas légitimes. Un créateur qui a changé de téléphone ou vidé sa galerie souhaite souvent récupérer ses propres montages propres pour ses archives ou pour les adapter sur d'autres réseaux comme les [Reels Instagram](https://vidnex.space/en/instagram-video-downloader). De même, un enseignant ou un monteur qui conserve une vidéo publique pour la consulter hors connexion préfère une image nette, sans texte superposé sur les sous-titres.",
+              "Chercher à masquer ce filigrane après coup en recadrant l'image (zoom dans la vidéo) ou en appliquant un flou donne de mauvais résultats : comme le logo change de position en cours de lecture, le recadrage coupe une partie importante du cadre et dégrade la netteté. La méthode propre consiste à récupérer directement le fichier MP4 public sans filigrane lorsqu'il est disponible.",
+            ],
+            table: {
+              headers: [
+                "Méthode d'enregistrement",
+                'Présence du filigrane',
+                "Qualité de l'image",
+                'Usage recommandé',
+              ],
+              rows: [
+                [
+                  'Bouton natif « Enregistrer la vidéo » TikTok',
+                  'Oui (logo mobile + écran de fin)',
+                  'Standard (fichier ré-encodé)',
+                  "Partage rapide à des proches avec mention visible de l'auteur",
+                ],
+                [
+                  "Enregistrement d'écran et recadrage",
+                  'Coupé au montage (icônes parfois visibles)',
+                  'Baisse nette de définition',
+                  'À éviter : perte de qualité et cadrage tronqué',
+                ],
+                [
+                  'Option créateur avant publication',
+                  'Sans filigrane',
+                  'Qualité originale du téléphone',
+                  'Sauvegarder sa propre vidéo au moment de la publier',
+                ],
+                [
+                  'Outil web par lien (VIDNEX)',
+                  'Sans filigrane (quand disponible)',
+                  "Résolution du flux public d'origine",
+                  'Archiver une vidéo publique, un diaporama ou un audio sur tout appareil',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'etapes-enregistrer-sans-filigrane',
+            heading: 'Comment enregistrer une vidéo TikTok publique sans filigrane étape par étape',
+            paragraphs: [
+              "Passer par un outil dans votre navigateur web présente l'avantage de fonctionner de la même manière sur un smartphone, une tablette ou un ordinateur, sans avoir à installer d'application tierce ni d'extension. Aucune connexion à votre compte TikTok n'est demandée.",
+              'Voici la marche à suivre avec le [téléchargeur de vidéos TikTok VIDNEX](https://vidnex.space/en/tiktok-video-downloader) :',
+            ],
+            bullets: [
+              "1. Ouvrez l'application TikTok ou le site web TikTok et affichez la vidéo publique que vous souhaitez conserver.",
+              "2. Appuyez sur le bouton Partager (l'icône en forme de flèche incurvée située à droite de l'écran sur mobile).",
+              "3. Appuyez sur Copier le lien dans les options de partage. Un message confirme que l'adresse est copiée dans votre presse-papiers.",
+              "4. Ouvrez votre navigateur habituel (Safari, Chrome, Firefox, Edge) et rendez-vous sur la page de l'outil TikTok de VIDNEX.",
+              "5. Collez le lien dans le champ prévu à cet effet, puis lancez l'analyse du lien.",
+              "6. Sélectionnez l'option permettant de télécharger la vidéo en MP4 sans filigrane (lorsqu'elle est disponible) pour enregistrer le fichier sur votre appareil.",
+            ],
+            proTip:
+              "Inutile de modifier le lien avant de le coller : qu'il s'agisse d'un lien court issu de l'application mobile (vm.tiktok.com) ou d'une URL complète copiée depuis un ordinateur, l'outil reconnaît automatiquement les deux formats.",
+          },
+          {
+            id: 'retrouver-video-iphone-android-pc',
+            heading: 'Où trouver la vidéo téléchargée sur iPhone, Android et ordinateur ?',
+            paragraphs: [
+              "Une question revient systématiquement chez les utilisateurs mobiles : « J'ai téléchargé la vidéo, mais elle n'apparaît pas dans ma galerie Photos ». Ce comportement dépend de la façon dont votre système d'exploitation gère les fichiers issus du navigateur.",
+              "Sur iPhone et iPad (iOS et iPadOS), Safari n'enregistre jamais les vidéos téléchargées sur le web directement dans l'application Photos (la pellicule). Apple les place dans le dossier Téléchargements de l'application native Fichiers. Pour la transférer dans vos Photos : touchez la petite flèche bleue de téléchargement dans la barre d'adresse de Safari (ou ouvrez l'app Fichiers > Téléchargements), touchez la vidéo MP4 pour l'ouvrir, appuyez sur l'icône Partager en bas à gauche, puis sélectionnez « Enregistrer la vidéo ». Elle sera immédiatement visible dans votre pellicule Photos.",
+              "Sur Android (Samsung, Xiaomi, Pixel, etc.), votre navigateur Chrome ou Samsung Internet place le fichier MP4 dans le dossier Téléchargements (Downloads) de la mémoire interne. La plupart des applications Galerie et Google Photos indexent automatiquement ce dossier dans un album dédié aux téléchargements. Si le fichier n'apparaît pas tout de suite, ouvrez l'application « Fichiers » ou « Mes fichiers » de votre téléphone et consultez l'onglet Téléchargements.",
+              'Sur un ordinateur Windows ou Mac, le fichier MP4 rejoint directement votre répertoire habituel « Téléchargements », prêt à être lu avec QuickTime, VLC ou le lecteur multimédia Windows.',
             ],
           },
           {
-            id: 'pourquoi-floutage-degrade-qualite',
-            heading: '2. Pourquoi les applications de floutage ruinent la netteté',
+            id: 'recuperer-ses-propres-videos-createur',
+            heading: 'Comment récupérer ses propres vidéos TikTok sans le logo ?',
             paragraphs: [
-              'Les logiciels qui promettent d’effacer un filigrane sur un fichier déjà enregistré appliquent un flou gaussien ou rogant les bords de l’image, ce qui entraîne un ré-encodage destructeur. L’extraction directe du flux de lecture évite toute recompression.',
+              "De nombreux créateurs montent leurs vidéos directement dans l'application TikTok pour profiter des outils de texte, des transitions ou du doublage vocal, puis réalisent après publication qu'ils n'ont pas de copie vierge sur leur téléphone.",
+              "Lorsque vous préparez une nouvelle publication sur TikTok, vous pouvez anticiper ce besoin : sur l'écran final avant de publier, appuyez sur « Plus d'options » et vérifiez le réglage permettant d'enregistrer vos vidéos sur votre appareil sans filigrane. Évitez en revanche d'enregistrer l'écran pendant que votre vidéo est encore dans les Brouillons, car les boutons de l'interface resteraient visibles sur l'image.",
+              "Si votre vidéo est déjà en ligne depuis plusieurs semaines ou plusieurs mois et que vous avez perdu le fichier d'origine, passer par le bouton « Enregistrer la vidéo » sur votre propre profil ajoute souvent le filigrane malgré tout. Il vous suffit alors de vérifier que la publication est bien en mode public, de copier son lien via le menu Partager et de le coller dans le [téléchargeur TikTok VIDNEX](https://vidnex.space/en/tiktok-video-downloader) pour retrouver le fichier MP4 propre.",
             ],
           },
           {
-            id: 'filigrane-incruste-au-montage',
-            heading: '3. Pourquoi certaines vidéos conservent un logo malgré tout',
+            id: 'diaporamas-photos-audio-et-profil',
+            heading: "Enregistrer aussi les diaporamas photo, l'audio MP3/M4A et la photo de profil",
             paragraphs: [
-              'Si un logo reste visible sur le flux `playAddr`, cela signifie qu’il faisait déjà partie du fichier vidéo envoyé par le créateur avant même sa publication sur TikTok.',
+              "TikTok ne se limite plus aux vidéos classiques : le format carrousel (diaporama photo accompagné d'une musique) est très répandu. Lorsque vous sauvegardez ces publications depuis l'application, chaque image reçoit un filigrane dans l'angle.",
+              "En collant le lien d'une publication publique dans VIDNEX, vous pouvez enregistrer les photos et diaporamas publics de manière propre, ainsi que la photo de profil publique d'un compte TikTok.",
+              "Par ailleurs, si seule la bande-son d'une vidéo publique vous intéresse — par exemple pour réécouter un extrait parlé ou un son original hors ligne — vous n'avez pas besoin de télécharger toute la vidéo MP4. L'outil propose d'extraire directement la piste audio au format MP3 ou M4A. Pour savoir quel format privilégier selon votre appareil, consultez notre [comparatif des pistes audio TikTok MP3 et M4A](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).",
             ],
           },
           {
-            id: 'droit-auteur-et-sauvegarde',
-            heading: '4. Sauvegarder ses propres créations et respecter les auteurs',
+            id: 'qualite-video-et-compression',
+            heading: 'La suppression du filigrane dégrade-t-elle la qualité de la vidéo ?',
             paragraphs: [
-              'Cette fonctionnalité est idéale pour les créateurs souhaitant récupérer une copie propre de leurs propres vidéos publiques. Ne republiez jamais l’œuvre d’un tiers sans son autorisation explicite.',
+              "On pense parfois que les outils en ligne « effacent » le logo TikTok en floutant une zone de l'image. C'est le cas des logiciels de retouche qui masquent un filigrane déjà incrusté, ce qui laisse une trace floue très visible à l'écran.",
+              "Un téléchargeur par lien fonctionne différemment : il ne retouche pas les pixels de l'image, mais récupère la version publique du fichier MP4 sans filigrane hébergée par la plateforme lorsque celle-ci est disponible. Il n'y a donc ni recadrage ni floutage ajouté par l'outil.",
+              "Si vous constatez malgré tout que la vidéo enregistrée manque de netteté ou présente des pixels visibles, cela provient généralement de la compression appliquée lors de la mise en ligne initiale sur TikTok (connexion mobile instable lors de l'envoi, basse lumière ou filtres lourds). Nous détaillons ces mécanismes techniques dans notre guide expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+            ],
+          },
+          {
+            id: 'problemes-frequents-et-solutions',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement',
+            paragraphs: [
+              "Il arrive qu'un lien ne fonctionne pas du premier coup ou que le téléchargement se comporte différemment selon votre navigateur. Les plateformes modifiant régulièrement leur fonctionnement, aucun service ne peut garantir une disponibilité permanente. Voici comment résoudre les blocages les plus courants :",
+            ],
+            bullets: [
+              "Message d'erreur « Vidéo introuvable » ou lien refusé : Vérifiez que le compte TikTok n'est pas privé et que la vidéo n'est pas limitée aux abonnés (« Amis uniquement »). VIDNEX traite exclusivement les contenus publics. Si la vidéo ne s'ouvre pas dans un onglet de navigation privée sans connexion, elle ne pourra pas être récupérée.",
+              'Lien court expiré ou incomplet : Si un lien copié depuis un message tiers ne répond plus, retournez sur la publication dans TikTok et copiez à nouveau le lien via le bouton Partager. Consultez aussi notre article dédié au [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'La vidéo se lance dans un onglet au lieu de se télécharger : Sur certains navigateurs, le clic ouvre un lecteur vidéo sur fond noir. Sur mobile, maintenez votre doigt appuyé sur la vidéo et choisissez « Télécharger le fichier lié » ou « Enregistrer la vidéo » ; sur ordinateur, faites un clic droit puis « Enregistrer la vidéo sous… ».',
+              "Absence de son sur le fichier MP4 : Vérifiez d'abord que le mode silencieux de votre téléphone est désactivé. Vérifiez ensuite sur TikTok si le son de la vidéo originale n'a pas été coupé par la plateforme pour des raisons de droits musicaux.",
+              "Le bouton « Enregistrer la vidéo » n'existe pas dans l'app TikTok : L'auteur a désactivé l'option de téléchargement dans ses paramètres de confidentialité (Profil > Menu ☰ > Paramètres et confidentialité > Confidentialité > Téléchargements). Respectez toujours le choix du créateur.",
+            ],
+          },
+          {
+            id: 'limites-confidentialite-et-droits-auteur',
+            heading: "Limites de l'outil, contenus publics et respect du droit d'auteur",
+            paragraphs: [
+              "Utiliser un outil d'enregistrement en ligne implique de connaître ses limites techniques ainsi que les règles de propriété intellectuelle.",
+              "Sur le plan technique, VIDNEX fonctionne uniquement pour les médias publics des plateformes prises en charge : TikTok (vidéos publiques en MP4 sans filigrane quand disponible, audio MP3/M4A, photos/diaporamas publics, photo de profil), Instagram (Reels, publications, carrousels et photos de profil publics), X/Twitter (vidéos, GIF en MP4 et photos de tweets publics), Facebook (vidéos et Reels publics HD/SD) et LinkedIn (photo de profil publique uniquement). Aucun compte privé n'est accessible, aucune inscription n'est requise, et YouTube comme Snapchat ne sont pas pris en charge. De plus, les plateformes peuvent restreindre ou bloquer l'accès à tout moment.",
+              "Sur le plan légal et éthique, obtenir un fichier vidéo sans filigrane ne vous cède aucun droit sur l'œuvre. Conformément aux règles de propriété intellectuelle de TikTok et au droit d'auteur, chaque vidéo et création sonore appartient à son auteur. N'utilisez jamais un fichier sans filigrane pour republier le travail d'autrui sous votre nom : réservez vos téléchargements à la sauvegarde de vos propres créations, au visionnage personnel hors ligne ou aux usages pour lesquels vous disposez de l'accord explicite du créateur.",
             ],
           },
         ],
         faq: [
           {
-            question: 'Le téléchargement sans filigrane réduit-il la qualité vidéo ?',
+            question: 'Faut-il créer un compte ou se connecter à TikTok pour utiliser VIDNEX ?',
             answer:
-              'Non, le flux de lecture web (playAddr) conserve la résolution et le débit binaire d’origine sans perte liée à l’incrustation du logo.',
+              "Non. Vous n'avez besoin ni de créer un compte sur VIDNEX, ni de renseigner vos identifiants TikTok. Seul le lien public de la publication est nécessaire.",
+          },
+          {
+            question: "Puis-je télécharger une vidéo issue d'un compte TikTok privé si je suis abonné ?",
+            answer:
+              'Non. VIDNEX ne traite aucun contenu privé, même si vous suivez le compte sur votre application personnelle. Seules les publications accessibles publiquement sans connexion peuvent être prises en charge.',
+          },
+          {
+            question: 'Pourquoi ma vidéo téléchargée sur iPhone va-t-elle dans « Fichiers » et pas dans « Photos » ?',
+            answer:
+              "C'est le fonctionnement normal de Safari sur iOS : les téléchargements web arrivent dans le dossier Téléchargements de l'application Fichiers. Ouvrez l'app Fichiers, touchez la vidéo, appuyez sur le bouton Partager en bas à gauche et choisissez « Enregistrer la vidéo » pour l'ajouter à votre galerie Photos.",
+          },
+          {
+            question: "Est-il possible d'extraire uniquement le son d'un TikTok en MP3 ou M4A ?",
+            answer:
+              "Oui. Après avoir collé le lien d'une vidéo TikTok publique dans VIDNEX, vous pouvez choisir de télécharger uniquement la piste audio au format MP3 ou M4A.",
+          },
+          {
+            question: 'Comment enregistrer un carrousel photo (diaporama) TikTok sans filigrane ?',
+            answer:
+              "Copiez le lien de la publication photo publique sur TikTok et collez-le dans l'outil VIDNEX : les photos et diaporamas publics sont pris en charge au même titre que les vidéos.",
+          },
+          {
+            question: "Ai-je le droit de republier la vidéo d'un autre créateur sur Instagram ou ailleurs ?",
+            answer:
+              "Non, pas sans son autorisation explicite. Le fait qu'une vidéo ne comporte plus de filigrane ne supprime pas le droit d'auteur du créateur original. Demandez toujours la permission avant toute réutilisation et créditez l'auteur.",
+          },
+          {
+            question: 'Est-ce que VIDNEX permet aussi de télécharger des vidéos YouTube ou Snapchat ?',
+            answer:
+              'Non. VIDNEX prend uniquement en charge les médias publics de TikTok, Instagram, X (Twitter), Facebook, ainsi que la photo de profil publique LinkedIn. YouTube et Snapchat ne sont pas pris en charge.',
           },
         ],
+        ctaTitle: 'Enregistrez votre vidéo TikTok publique sans filigrane',
+        ctaDescription:
+          "Collez un lien TikTok public pour obtenir la vidéo en MP4 sans filigrane (quand disponible), extraire l'audio MP3/M4A ou sauvegarder un diaporama photo public — gratuitement et sans compte.",
+        ctaButtonLabel: "Accéder à l'outil TikTok VIDNEX",
         internalLinks: [
           {
-            label: 'Téléchargeur Vidéo & Audio TikTok VIDNEX',
+            label: "Accéder à l'outil TikTok VIDNEX",
             description:
-              'Enregistrez vos vidéos TikTok publiques en MP4 HD sans filigrane ou extrayez le son.',
+              "Collez un lien TikTok public pour obtenir la vidéo en MP4 sans filigrane (quand disponible), extraire l'audio MP3/M4A ou sauvegarder un diaporama photo public — gratuitement et sans compte.",
             targetType: 'platform',
             platformKey: 'tiktok',
-          },
-          {
-            label: 'Pourquoi ma vidéo TikTok ne se télécharge pas ? 7 causes et solutions',
-            description:
-              'Résolvez les erreurs de liens courts, comptes privés et jetons CDN expirés.',
-            targetType: 'blog_article',
-            targetArticleId: 'troubleshooting-expired-blocked-social-media-links',
           },
         ],
         sources: [
           {
-            title: 'TikTok Intellectual Property & Copyright Policy',
-            publisher: 'TikTok Legal',
-            url: 'https://www.tiktok.com/legal/page/global/copyright-policy/en',
+            title: 'Gérer les téléchargements de vidéos et la confidentialité',
+            publisher: "Centre d'aide TikTok",
+            url: 'https://support.tiktok.com/en/account-and-privacy/account-privacy-settings/video-downloads',
+          },
+          {
+            title: 'Comment partager des publications et copier un lien',
+            publisher: "Centre d'aide TikTok",
+            url: 'https://support.tiktok.com/en/using-tiktok/exploring-videos/sharing',
+          },
+          {
+            title: "Propriété intellectuelle et droits d'auteur",
+            publisher: "Centre d'aide TikTok",
+            url: 'https://support.tiktok.com/en/safety-hc/account-and-user-safety/intellectual-property',
+          },
+          {
+            title: 'Où trouver des téléchargements sur votre iPhone ou iPad',
+            publisher: 'Assistance Apple',
+            url: 'https://support.apple.com/fr-lu/102440',
+          },
+        ],
+      },
+      ar: {
+        locale: 'ar',
+        localizedSlug: 'tanzil-video-tiktok-bidun-alama-maiya-dalil',
+        translationStatus: 'draft',
+        title: 'كيفية تنزيل فيديو تيك توك عام بدون علامة مائية على الهاتف والكمبيوتر',
+        metaTitle: 'تنزيل فيديو تيك توك بدون علامة مائية: دليل عملي شامل',
+        metaDescription:
+          'تعرف على طريقة تنزيل فيديو تيك توك عام بدون علامة مائية بصيغة MP4 للآيفون والأندرويد والكمبيوتر بخطوات واضحة مع حلول مشاكل الروابط والجودة.',
+        excerpt:
+          'هل تبحث عن طريقة لحفظ مقطع تيك توك عام بصيغة MP4 بدون الشعار المتحرك أو شاشة النهاية؟ إليك الخطوات الدقيقة للآيفون والأندرويد والكمبيوتر وكيفية حل المشكلات الشائعة.',
+        quickAnswer:
+          'لتنزيل فيديو تيك توك عام بدون علامة مائية، افتح المقطع في تطبيق تيك توك، واضغط على زر المشاركة ثم اختر نسخ الرابط. بعد ذلك، الصق الرابط في أداة تنزيل تيك توك على موقع VIDNEX عبر متصفحك، واختر صيغة الفيديو MP4 بدون علامة مائية (عند توفرها) لحفظ الملف مباشرة على جهازك دون الحاجة إلى حساب أو تثبيت تطبيقات.',
+        keyTakeaways: [
+          'زر «حفظ الفيديو» الداخلي في تطبيق تيك توك يضيف تلقائياً شعار المنصة المتحرك واسم المستخدم وشاشة ختامية للمقطع.',
+          'نسخ رابط المنشور العام ومعالجته عبر المتصفح يتيح لك حفظ ملف الفيديو بصيغة MP4 بدون علامة مائية عندما تكون هذه النسخة متاحة.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري الفيديوهات داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور في خطوتين.',
+          'يمكن لصناع المحتوى حفظ مقاطعهم الخاصة بدون شعار عند النشر من إعدادات التطبيق، أو استرجاع فيديوهاتهم العامة القديمة عبر الرابط.',
+          'الأداة تعمل مع المحتوى العام فقط ولا تدعم الحسابات الخاصة، ويجب دائماً احترام حقوق الملكية الفكرية لصناع المحتوى.',
+        ],
+        primaryKeyword: 'تنزيل فيديو تيك توك بدون علامة مائية',
+        secondaryKeywords: [
+          'حفظ مقاطع تيك توك بدون شعار',
+          'تحميل تيك توك بدون حقوق للايفون',
+          'تنزيل فيديوهات تيك توك MP4',
+          'حفظ فيديو تيك توك بدون يوزر',
+        ],
+        searchIntent:
+          'بحث معلوماتي وعملي: يبحث المستخدم عن طريقة مباشرة لحفظ مقاطع تيك توك العامة بصيغة MP4 بدون شعار متحرك على الآيفون أو الأندرويد أو الكمبيوتر، مع معرفة مكان حفظ الملف وحل مشاكل الروابط.',
+        readingTimeMinutes: 8,
+        introduction: [
+          'لتنزيل فيديو تيك توك عام بدون علامة مائية، افتح المقطع في تطبيق تيك توك، واضغط على زر المشاركة ثم اختر نسخ الرابط. بعد ذلك، الصق الرابط في أداة تنزيل تيك توك على موقع VIDNEX عبر متصفحك، واختر صيغة الفيديو MP4 بدون علامة مائية (عند توفرها) لحفظ الملف مباشرة على جهازك دون الحاجة إلى حساب أو تثبيت تطبيقات.',
+          'زر «حفظ الفيديو» الداخلي في تطبيق تيك توك يضيف تلقائياً شعار المنصة المتحرك واسم المستخدم وشاشة ختامية للمقطع.',
+          'نسخ رابط المنشور العام ومعالجته عبر المتصفح يتيح لك حفظ ملف الفيديو بصيغة MP4 بدون علامة مائية عندما تكون هذه النسخة متاحة.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري الفيديوهات داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور في خطوتين.',
+          'يمكن لصناع المحتوى حفظ مقاطعهم الخاصة بدون شعار عند النشر من إعدادات التطبيق، أو استرجاع فيديوهاتهم العامة القديمة عبر الرابط.',
+          'الأداة تعمل مع المحتوى العام فقط ولا تدعم الحسابات الخاصة، ويجب دائماً احترام حقوق الملكية الفكرية لصناع المحتوى.',
+        ],
+        tableOfContents: [
+          {
+            id: 'limadha-yudif-tiktok-alama-maiya',
+            heading: 'لماذا يضيف تيك توك علامة مائية متحركة عند حفظ الفيديو؟',
+          },
+          {
+            id: 'khatwat-tanzil-video-tiktok-bidun-shiar',
+            heading: 'خطوات تنزيل فيديو تيك توك عام بدون علامة مائية عبر المتصفح',
+          },
+          {
+            id: 'ayna-tuhfaz-alfidyوهات-iphone-android-pc',
+            heading: 'أين تُحفظ الفيديوهات بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+          },
+          {
+            id: 'kayfa-tahfaz-fidyوهاتك-alkhasa',
+            heading: 'كيف تحفظ فيديوهاتك الخاصة من تيك توك بدون شعار؟',
+          },
+          {
+            id: 'tanzil-suwar-tiktok-wal-sawt',
+            heading: 'حفظ عروض الصور (السلايد شو) والمقاطع الصوتية وصورة الحساب',
+          },
+          {
+            id: 'jawdat-alfيديو-وازالة-العلامة',
+            heading: 'هل تؤثر إزالة العلامة المائية على جودة الفيديو ودقته؟',
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل مقاطع تيك توك',
+          },
+          {
+            id: 'hudud-alada-wa-huquq-almulkiya',
+            heading: 'حدود الأداة، المحتوى العام، واحترام حقوق صناع المحتوى',
+          },
+        ],
+        content: [
+          {
+            id: 'limadha-yudif-tiktok-alama-maiya',
+            heading: 'لماذا يضيف تيك توك علامة مائية متحركة عند حفظ الفيديو؟',
+            paragraphs: [
+              'عندما تضغط على خيار «حفظ الفيديو» المدمج داخل تطبيق تيك توك، لا يمنحك التطبيق ملف الفيديو الأصلي كما رفعه صانع المحتوى، بل ينشئ نسخة جديدة مدمجة بشعار تيك توك واسم حساب الناشر الذي يتحرك بين زوايا الشاشة، بالإضافة إلى بطاقة ختامية في نهاية المقطع.',
+              'الهدف من هذا الشعار هو حفظ حقوق النسب؛ فعندما تتم مشاركة المقطع في تطبيقات المراسلة، يعرف المشاهدون مصدر الفيديو وصاحبه الأصلي. لكن هذه العلامة المتحركة قد تعيق الاستخدامات المشروعة في حالات كثيرة: كأن يفقد صانع المحتوى ملفاته الأصلية من هاتفه ويرغب في استعادة نسخ نظيفة من فيديوهاته القديمة لأرشفتها أو إعادة نشرها على منصات أخرى مثل [ريلز إنستغرام](https://vidnex.space/en/instagram-video-downloader)، أو عندما يحتاج معلم أو محرر فيديو إلى حفظ مقطع عام للرجوع إليه دون اتصال بالإنترنت دون أن يغطي الشعار النصوص التوضيحية.',
+              'محاولة إزالة الشعار لاحقاً عن طريق قص أطراف الفيديو أو وضع تمويه ضبابي فوق الاسم غالباً ما تشوه الصورة، لأن العلامة المائية تنتقل من الأعلى إلى الأسفل أثناء التشغيل. الحل الأدق هو جلب ملف الفيديو العام بصيغة MP4 بدون علامة مائية من الأساس عندما يكون متاحاً.',
+            ],
+            table: {
+              headers: [
+                'طريقة الحفظ',
+                'حالة العلامة المائية',
+                'جودة الصورة',
+                'الاستخدام الأنسب',
+              ],
+              rows: [
+                [
+                  'زر «حفظ الفيديو» داخل تطبيق تيك توك',
+                  'يحتوي على شعار متحرك وشاشة نهاية',
+                  'جودة قياسية بعد إعادة الترميز',
+                  'المشاركة السريعة مع الأصدقاء مع إظهار اسم صاحب المقطع',
+                ],
+                [
+                  'تسجيل الشاشة وقص الأطراف',
+                  'يختفي الشعار مع اقتطاع جزء من الكادر',
+                  'انخفاض ملحوظ في الدقة والإطارات',
+                  'غير مستحسن بسبب ضياع تفاصيل الصورة',
+                ],
+                [
+                  'إعدادات الحفظ لصانع المحتوى قبل النشر',
+                  'بدون علامة مائية',
+                  'الجودة الأصلية لكاميرا الهاتف',
+                  'حفظ فيديوهاتك الخاصة الجديدة أثناء نشرها',
+                ],
+                [
+                  'أداة المتصفح عبر الرابط (VIDNEX)',
+                  'بدون علامة مائية (عند التوفر)',
+                  'دقة البث العام الأصلية',
+                  'حفظ الفيديوهات العامة أو الصور أو الصوت على أي جهاز',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'khatwat-tanzil-video-tiktok-bidun-shiar',
+            heading: 'خطوات تنزيل فيديو تيك توك عام بدون علامة مائية عبر المتصفح',
+            paragraphs: [
+              'استخدام أداة تعتمد على متصفح الويب يوفر عليك تثبيت تطبيقات إضافية تستهلك مساحة الهاتف، كما أنه يعمل بنفس الطريقة على الهواتف الذكية والأجهزة اللوحية وأجهزة الكمبيوتر دون الحاجة إلى تسجيل الدخول أو ربط حسابك.',
+              'اتبع هذه الخطوات المرتبة لحفظ المقطع عبر [أداة تنزيل فيديو تيك توك من VIDNEX](https://vidnex.space/en/tiktok-video-downloader):',
+            ],
+            bullets: [
+              '1. افتح تطبيق تيك توك أو موقع المنصة وانتقل إلى الفيديو العام الذي تريد حفظه.',
+              '2. اضغط على زر المشاركة (أيقونة السهم الموجودة على جانب الشاشة في الهاتف).',
+              '3. اختر «نسخ الرابط» من قائمة المشاركة وانتظر ظهور إشعار تأكيد النسخ.',
+              '4. افتح متصفح الإنترنت لديك (مثل سفاري أو كروم) وانتقل إلى صفحة أداة تيك توك على موقع VIDNEX.',
+              '5. الصق الرابط المنسوخ في حقل الإدخال المخصص ثم ابدأ عملية المعالجة.',
+              '6. اختر تنزيل الفيديو بصيغة MP4 بدون علامة مائية (عند توفره) ليتم حفظ الملف مباشرة على جهازك.',
+            ],
+            proTip:
+              'لا داعي لتعديل الرابط قبل لصقه؛ سواء كان رابطاً مختصراً من تطبيق الهاتف أو رابطاً طويلاً من متصفح الكمبيوتر، تتعرف الأداة على الرابط العام تلقائياً.',
+          },
+          {
+            id: 'ayna-tuhfaz-alfidyوهات-iphone-android-pc',
+            heading: 'أين تُحفظ الفيديوهات بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+            paragraphs: [
+              'من أكثر الأسئلة شيوعاً بعد انتهاء التحميل: «تم تنزيل الملف، لكنني لا أجده في الاستوديو أو ألبوم الصور». يختلف مكان الحفظ الافتراضي باختلاف نظام التشغيل.',
+              'على أجهزة آيفون وآيباد، لا يضع متصفح سفاري الملفات المحملة من الإنترنت مباشرة داخل تطبيق «الصور» (ألبوم الكاميرا)، بل يحفظها داخل تطبيق «الملفات» المدمج في النظام. لنقل الفيديو إلى ألبوم الصور: اضغط على أيقونة سهم التنزيلات الأزرق بجانب شريط العنوان في سفاري (أو افتح تطبيق الملفات ثم مجلد التنزيلات)، واضغط على ملف الفيديو لفتحه، ثم اضغط على زر المشاركة في الزاوية السفلية واختر «حفظ الفيديو». سيظهر المقطع فوراً داخل تطبيق الصور.',
+              'على هواتف أندرويد، يقوم متصفح كروم أو متصفح الهاتف الافتراضي بحفظ ملف MP4 مباشرة في مجلد «التنزيلات» (Downloads). أغلب تطبيقات المعرض والاستوديو في أندرويد تعرض هذا المجلد تلقائياً ضمن الألبومات، وإذا لم يظهر على الفور يمكنك فتح تطبيق «ملفاتي» والدخول إلى قسم التنزيلات.',
+              'على أجهزة الكمبيوتر (ويندوز أو ماك)، يُحفظ ملف الفيديو بصيغة MP4 مباشرة داخل مجلد التنزيلات الافتراضي لمتصفحك، ويمكن تشغيله فوراً على أي مشغل وسائط قياسي.',
+            ],
+          },
+          {
+            id: 'kayfa-tahfaz-fidyوهاتك-alkhasa',
+            heading: 'كيف تحفظ فيديوهاتك الخاصة من تيك توك بدون شعار؟',
+            paragraphs: [
+              'كثير من الباحثين عن إزالة العلامة المائية هم في الواقع صناع محتوى يريدون استرجاع مقاطعهم الخاصة التي صمموها داخل تيك توك باستخدام المؤثرات الصوتية والنصوص المدمجة في التطبيق.',
+              'إذا كنت تقوم بتصوير وتحرير فيديو جديد داخل تيك توك، يمكنك تفعيل خيار حفظ الفيديو على جهازك بدون علامة مائية من قسم «خيارات إضافية» في شاشة النشر النهائية قبل الضغط على زر النشر. وتجنب الاعتماد على تسجيل الشاشة أثناء وجود الفيديو في «المسودات» لأن أزرار الواجهة ستظهر فوق الصورة.',
+              'أما إذا كان الفيديو منشوراً بالفعل في حسابك منذ فترة وفقدت النسخة الأصلية من هاتفك، فإن الضغط على «حفظ الفيديو» من داخل ملفك الشخصي قد يضيف الشعار أيضاً. في هذه الحالة، طالما أن حسابك والمقطع متاحان للعامة، انسخ رابط الفيديو الخاص بك واستخدم [أداة تنزيل تيك توك على VIDNEX](https://vidnex.space/en/tiktok-video-downloader) لاستعادة نسخة MP4 النظيفة.',
+            ],
+          },
+          {
+            id: 'tanzil-suwar-tiktok-wal-sawt',
+            heading: 'حفظ عروض الصور (السلايد شو) والمقاطع الصوتية وصورة الحساب',
+            paragraphs: [
+              'لم يعد المحتوى على تيك توك يقتصر على الفيديو فقط؛ إذ تنتشر منشورات الصور المتعددة (عروض الشرائح المصحوبة بموسيقى). عند حفظ هذه الصور من داخل التطبيق، يظهر شعار تيك توك في زاوية كل صورة.',
+              'يتيح لك موقع VIDNEX عند لصق رابط منشور عام حفظ الصور وعروض الشرائح العامة من تيك توك، كما يدعم حفظ صورة الملف الشخصي العامة لأي حساب عام.',
+              'وإذا كنت ترغب في الاحتفاظ بالصوت فقط — مثل تعليق صوتي عام أو مقطع صوتي للاستماع إليه دون إنترنت — يمكنك اختيار تنزيل الصوت بصيغة MP3 أو M4A مباشرة بدلاً من تحميل الفيديو بالكامل. ولمعرفة الفروق التقنية بين الصيغتين وأيهما أنسب لهاتفك، يمكنك قراءة [دليل مقارنة صيغ الصوت MP3 و M4A في تيك توك](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
+            ],
+          },
+          {
+            id: 'jawdat-alfيديو-وازالة-العلامة',
+            heading: 'هل تؤثر إزالة العلامة المائية على جودة الفيديو ودقته؟',
+            paragraphs: [
+              'يعتقد البعض أن أدوات التحميل تقوم بتمويه الشعار أو طمسه رقمياً فوق الفيديو، وهي طريقة تستخدمها بعض برامج المونتاج وتترك بقعة ضبابية مشوهة في مكان الاسم.',
+              'في المقابل، عند حفظ فيديو عام عبر الرابط، لا يتم التعديل على بكسلات الصورة أو قص أبعادها، بل يتم جلب نسخة ملف MP4 العامة الخالية من الشعار عندما تكون متاحة على الخوادم. لذلك يحتفظ المقطع بدقته الأصلية المتاحة في البث العام.',
+              'ومع ذلك، إذا لاحظت أن الفيديو المحمل يبدو غير واضح أو منخفض الدقة، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي على المنصة أو ضعف اتصال الإنترنت وقت النشر. يمكنك الاطلاع على الأسباب التفصيلية في مقالنا حول [أسباب انخفاض جودة الفيديو بعد تنزيله](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+            ],
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل مقاطع تيك توك',
+            paragraphs: [
+              'قد تواجه أحياناً رسالة خطأ عند محاولة معالجة الرابط. وبما أن منصات التواصل الاجتماعي تحدث أنظمتها باستمرار وقد تحجب الطلبات في أي وقت، فلا يمكن لأي أداة ضمان عملها بشكل دائم دون انقطاع. إليك أبرز المشكلات وكيفية التعامل معها:',
+            ],
+            bullets: [
+              'رسالة «الفيديو غير متاح» أو فشل قراءة الرابط: تأكد من أن الحساب ليس خاصاً (Private) وأن المقطع غير مخصص للأصدقاء فقط. أداة VIDNEX تتعامل حصرياً مع المنشورات العامة، فإذا كان الفيديو لا يفتح في متصفح خفي بدون تسجيل دخول، فلن تتمكن الأداة من الوصول إليه.',
+              'انتهاء صلاحية الرابط المختصر: الروابط المنسوخة قديماً قد تتوقف عن العمل إذا تغيرت حالة المنشور أو تم حذفه. افتح تيك توك وانسخ رابطاً جديداً، أو راجع دليلنا حول [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'الفيديو يعمل داخل المتصفح بدلاً من التنزيل: في بعض المتصفحات، يؤدي الضغط على زر التحميل إلى فتح مشغل فيديو. في هذه الحالة، اضغط مطولاً على الفيديو في الهاتف (أو بزر الفأرة الأيمن على الكمبيوتر) واختر «حفظ الفيديو» أو «تنزيل الملف المرتبط».',
+              'الفيديو المحمل يعمل بدون صوت: تحقق أولاً من زر الصامت في هاتفك، ثم تأكد من أن الصوت الأصلي على تيك توك لم يتم كتمه من قِبل المنصة بسبب قيود حقوق الموسيقى.',
+              'غياب زر «حفظ الفيديو» داخل تطبيق تيك توك: يتيح تيك توك لصناع المحتوى إيقاف ميزة التنزيل من إعدادات الخصوصية (الملف الشخصي > القائمة ☰ > الإعدادات والخصوصية > الخصوصية > التنزيلات). احترم دائماً رغبة صانع المحتوى وحقوقه.',
+            ],
+          },
+          {
+            id: 'hudud-alada-wa-huquq-almulkiya',
+            heading: 'حدود الأداة، المحتوى العام، واحترام حقوق صناع المحتوى',
+            paragraphs: [
+              'من الضروري معرفة النطاق الدقيق لما يقدمه موقع VIDNEX والالتزام بضوابط الملكية الفكرية عند التعامل مع أي محتوى على الإنترنت.',
+              'من الناحية التقنية، يدعم VIDNEX حفظ الوسائط العامة فقط من المنصات المحددة: تيك توك (فيديو عام بصيغة MP4 بدون علامة مائية عند توفره، صوت بصيغة MP3 أو M4A، صور وعروض شرائح عامة، وصورة الملف الشخصي)، وإنستغرام (الريلز والمنشورات والألبومات وصورة الحساب العامة)، ومنصة إكس تويتر سابقاً (الفيديوهات والصور المتحركة GIF كملفات MP4 والصور من التغريدات العامة)، وفيسبوك (الفيديوهات والريلز العامة بجودة HD أو SD)، ولينكد إن (صورة الملف الشخصي العامة فقط). الموقع لا يتطلب إنشاء حساب، ولا يصل أبداً إلى المحتوى الخاص، ولا يدعم يوتيوب أو سناب شات، كما لا يقدم أي وعودبتوفر الخدمة بشكل دائم نظراً لأن المنصات قد تفرض قيوداً تقنية في أي وقت.',
+              'من الناحية القانونية والأخلاقية، فإن حفظ ملف فيديو بدون علامة مائية لا يمنحك ملكية هذا العمل. وفقاً لسياسات حقوق الملكية الفكرية في تيك توك وقوانين حقوق النشر، يظل المقطع ملكاً لصاحبه الأصلي. استخدم الملفات المحملة لأغراضك الشخصية كالمشاهدة دون اتصال أو حفظ أعمالك الخاصة، ولا تقم بإعادة نشر محتوى الآخرين دون إذن صريح من صاحبه مع ذكر المصدر.',
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'هل أحتاج إلى تسجيل الدخول بحساب تيك توك لاستخدام موقع VIDNEX؟',
+            answer:
+              'لا، لا يطلب منك موقع VIDNEX إنشاء حساب أو إدخال بيانات دخولك في تيك توك. كل ما تحتاجه هو رابط الفيديو العام فقط.',
+          },
+          {
+            question: 'هل يمكنني تنزيل فيديو من حساب تيك توك خاص إذا كنت من متابعيه؟',
+            answer:
+              'لا. الأداة لا تعمل مع الحسابات الخاصة أو المقاطع المخصصة للأصدقاء فقط، حتى لو كنت تتابع الحساب على هاتفك، لأنها تعالج الروابط العامة المتاحة للجميع فقط.',
+          },
+          {
+            question: 'لماذا لا يظهر الفيديو في ألبوم الصور على الآيفون بعد تنزيله؟',
+            answer:
+              'لأن متصفح سفاري في نظام iOS يحفظ التنزيلات داخل تطبيق «الملفات» افتراضياً. افتح تطبيق الملفات، وادخل إلى مجلد التنزيلات، وافتح الفيديو ثم اضغط على أيقونة المشاركة واختر «حفظ الفيديو» لينتقل إلى تطبيق الصور.',
+          },
+          {
+            question: 'هل يمكنني استخراج الصوت أو الموسيقى فقط من فيديو تيك توك؟',
+            answer:
+              'نعم، بعد لصق رابط الفيديو العام في أداة VIDNEX، يمكنك اختيار تنزيل المسار الصوتي فقط بصيغة MP3 أو M4A دون الحاجة إلى تحميل ملف الفيديو.',
+          },
+          {
+            question: 'هل يدعم الموقع حفظ ألبومات الصور (السلايد شو) من تيك توك؟',
+            answer:
+              'نعم، يدعم VIDNEX حفظ الصور وعروض الشرائح العامة المنشورة على تيك توك بالإضافة إلى مقاطع الفيديو والصوت وصورة الحساب العامة.',
+          },
+          {
+            question: 'هل يحق لي إعادة نشر فيديو شخص آخر بعد حفظه بدون علامة مائية؟',
+            answer:
+              'لا، إزالة العلامة المائية لا تلغي حقوق الملكية الفكرية لصانع المحتوى الأصلي. لا يجوز إعادة نشر مقاطع الآخرين كأنها ملكك، ويجب دائماً الحصول على إذن صريح من صاحب العمل.',
+          },
+          {
+            question: 'هل يمكن استخدام VIDNEX لتنزيل مقاطع يوتيوب شورتس أو سناب شات؟',
+            answer:
+              'لا، الموقع لا يدعم يوتيوب ولا سناب شات. يقتصر عمله على المحتوى العام من تيك توك وإنستغرام وإكس وفيسبوك وصورة الملف الشخصي العامة في لينكد إن.',
+          },
+        ],
+        ctaTitle: 'هل تريد حفظ فيديو تيك توك عام بدون علامة مائية؟',
+        ctaDescription:
+          'الصق رابط أي منشور تيك توك عام لتنزيل الفيديو بصيغة MP4 بدون علامة مائية (عند توفره)، أو استخراج الصوت بصيغة MP3 وM4A، أو حفظ الصور العامة مجاناً وبدون حساب.',
+        ctaButtonLabel: 'افتح أداة تنزيل تيك توك',
+        internalLinks: [
+          {
+            label: 'افتح أداة تنزيل تيك توك',
+            description:
+              'الصق رابط أي منشور تيك توك عام لتنزيل الفيديو بصيغة MP4 بدون علامة مائية (عند توفره)، أو استخراج الصوت بصيغة MP3 وM4A، أو حفظ الصور العامة مجاناً وبدون حساب.',
+            targetType: 'platform',
+            platformKey: 'tiktok',
+          },
+        ],
+        sources: [
+          {
+            title: 'إدارة تنزيلات الفيديو وإعدادات الخصوصية',
+            publisher: 'مركز مساعدة تيك توك',
+            url: 'https://support.tiktok.com/en/account-and-privacy/account-privacy-settings/video-downloads',
+          },
+          {
+            title: 'كيفية مشاركة المنشورات ونسخ الروابط',
+            publisher: 'مركز مساعدة تيك توك',
+            url: 'https://support.tiktok.com/en/using-tiktok/exploring-videos/sharing',
+          },
+          {
+            title: 'سياسة حقوق الملكية الفكرية وحقوق النشر',
+            publisher: 'مركز مساعدة تيك توك',
+            url: 'https://support.tiktok.com/en/safety-hc/account-and-user-safety/intellectual-property',
+          },
+          {
+            title: 'العثور على الملفات المحملة من سفاري على آيفون وآيباد',
+            publisher: 'دعم آبل',
+            url: 'https://support.apple.com/en-us/102440',
           },
         ],
       },

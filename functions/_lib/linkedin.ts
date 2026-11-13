@@ -25,13 +25,15 @@ function errorResponse(
   platform: 'linkedin',
   code: ErrorCode,
   message: string,
-  meta?: { engineStage?: string; httpStatus?: number | null }
+  meta?: { engineStage?: string; httpStatus?: number | null; engineFn?: string }
 ): ExtractResponse {
   return {
     ok: false,
     platform,
-    engineStage: meta?.engineStage,
-    httpStatus: meta?.httpStatus ?? undefined,
+    engineStage: meta?.engineStage ?? 'direct',
+    httpStatus: meta?.httpStatus !== undefined ? meta.httpStatus : null,
+    engineFn: meta?.engineFn ?? 'linkedin.profile',
+    contentKind: 'profile',
     error: {
       code,
       message,
@@ -210,7 +212,7 @@ export function parseLinkedInProfileHtml(
       'linkedin',
       'BLOCKED_BY_PLATFORM',
       'LinkedIn bloque temporairement la demande (réponse vide). Réessayez dans quelques minutes.',
-      { engineStage: 'linkedin_empty_body', httpStatus }
+      { engineStage: 'direct', httpStatus, engineFn: 'linkedin.profile' }
     );
   }
 
@@ -224,14 +226,14 @@ export function parseLinkedInProfileHtml(
         'linkedin',
         'BLOCKED_BY_PLATFORM',
         'LinkedIn bloque temporairement l’accès public (mur de connexion).',
-        { engineStage: 'linkedin_authwall_html', httpStatus }
+        { engineStage: 'authwall', httpStatus, engineFn: 'linkedin.profile' }
       );
     }
     return errorResponse(
       'linkedin',
       'PRIVATE_OR_LOGIN_REQUIRED',
       'Ce profil LinkedIn n’est pas public ou ne possède pas de photo de profil publique.',
-      { engineStage: 'linkedin_no_photo', httpStatus }
+      { engineStage: 'direct', httpStatus, engineFn: 'linkedin.profile' }
     );
   }
 
@@ -240,11 +242,11 @@ export function parseLinkedInProfileHtml(
       'linkedin',
       'PRIVATE_OR_LOGIN_REQUIRED',
       'Ce profil LinkedIn n’est pas public ou sa photo de profil est absente.',
-      { engineStage: 'linkedin_ghost_or_private_photo', httpStatus }
+      { engineStage: 'direct', httpStatus, engineFn: 'linkedin.profile' }
     );
   }
 
-  const engineStage = ogImage ? 'linkedin_og_image' : 'linkedin_jsonld_image';
+  const engineStage = ogImage ? 'og_image' : 'jsonld';
 
   return {
     ok: true,
@@ -268,6 +270,8 @@ export function parseLinkedInProfileHtml(
     ],
     engineStage,
     httpStatus,
+    engineFn: 'linkedin.profile',
+    contentKind: 'profile',
   };
 }
 
@@ -276,7 +280,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
   const initialUrl = `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`;
   const startTimeMs = Date.now();
 
-  let lastBlockedStage = 'linkedin_no_response';
+  let lastBlockedStage = 'direct';
   let lastHttpStatus: number | null = null;
   let sawTimeout = false;
 
@@ -328,7 +332,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
           const location = res.headers.get('location') || '';
           if (!location || isLoginOrAuthwallRedirect(location)) {
             redirectedToAuthwall = true;
-            lastBlockedStage = 'linkedin_redirect_authwall';
+            lastBlockedStage = 'authwall';
             lastHttpStatus = res.status;
             break;
           }
@@ -338,7 +342,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
             nextUrl = new URL(location, currentUrl);
           } catch {
             redirectedToAuthwall = true;
-            lastBlockedStage = 'linkedin_redirect_invalid';
+            lastBlockedStage = 'redirect';
             lastHttpStatus = res.status;
             break;
           }
@@ -349,7 +353,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
             !nextUrl.pathname.toLowerCase().startsWith('/in/')
           ) {
             redirectedToAuthwall = true;
-            lastBlockedStage = 'linkedin_redirect_blocked';
+            lastBlockedStage = 'redirect';
             lastHttpStatus = res.status;
             break;
           }
@@ -372,7 +376,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
           'linkedin',
           'NOT_FOUND',
           'Ce profil LinkedIn est introuvable (404).',
-          { engineStage: 'linkedin_http_404', httpStatus: status }
+          { engineStage: 'direct', httpStatus: status, engineFn: 'linkedin.profile' }
         );
       }
 
@@ -383,12 +387,12 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
         status === 429 ||
         status >= 500
       ) {
-        lastBlockedStage = `linkedin_http_${status}`;
+        lastBlockedStage = 'direct';
         continue;
       }
 
       if (status < 200 || status >= 300) {
-        lastBlockedStage = `linkedin_http_${status}`;
+        lastBlockedStage = 'direct';
         continue;
       }
 
@@ -398,7 +402,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
         return parsed;
       }
 
-      lastBlockedStage = parsed.engineStage || 'linkedin_blocked_html';
+      lastBlockedStage = parsed.engineStage || 'direct';
     } catch (err) {
       const isAbort =
         err instanceof Error &&
@@ -407,9 +411,9 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
           /abort|timeout/i.test(err.message));
       if (isAbort) {
         sawTimeout = true;
-        lastBlockedStage = 'linkedin_timeout';
+        lastBlockedStage = 'direct';
       } else {
-        lastBlockedStage = 'linkedin_fetch_error';
+        lastBlockedStage = 'direct';
       }
     } finally {
       clearTimeout(timer);
@@ -421,7 +425,7 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
       'linkedin',
       'TIMEOUT',
       'La récupération du profil LinkedIn a dépassé le délai de 8 secondes.',
-      { engineStage: 'linkedin_timeout', httpStatus: null }
+      { engineStage: 'direct', httpStatus: null, engineFn: 'linkedin.profile' }
     );
   }
 
@@ -431,6 +435,6 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
     lastHttpStatus
       ? `LinkedIn bloque temporairement la demande depuis ce réseau (statut ${lastHttpStatus}).`
       : 'LinkedIn bloque temporairement la demande (mur de connexion).',
-    { engineStage: lastBlockedStage, httpStatus: lastHttpStatus }
+    { engineStage: lastBlockedStage, httpStatus: lastHttpStatus, engineFn: 'linkedin.profile' }
   );
 }

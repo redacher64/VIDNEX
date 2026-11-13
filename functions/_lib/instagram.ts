@@ -1777,7 +1777,8 @@ export async function extractInstagram(
         ok: false,
         platform: 'instagram',
         stage: 'direct',
-        engineStage: 'direct',
+        engineStage: 'embed',
+        httpStatus: 404,
         error: {
           code: 'NOT_FOUND',
           message:
@@ -1789,7 +1790,8 @@ export async function extractInstagram(
       return {
         ...embedResult.videoOrCarousel,
         stage: 'direct',
-        engineStage: 'direct',
+        engineStage: 'embed',
+        httpStatus: 200,
       };
     }
     staticImageFallback = embedResult.staticImageFallback;
@@ -1806,6 +1808,7 @@ export async function extractInstagram(
         ...fallbackResult,
         stage: 'tiers',
         engineStage: 'tiers',
+        httpStatus: 200,
       };
     }
   }
@@ -1815,7 +1818,8 @@ export async function extractInstagram(
     return {
       ...staticImageFallback,
       stage: 'direct',
-      engineStage: 'direct',
+      engineStage: 'embed',
+      httpStatus: 200,
     };
   }
 
@@ -1823,7 +1827,8 @@ export async function extractInstagram(
     ok: false,
     platform: 'instagram',
     stage: 'direct',
-    engineStage: 'direct',
+    engineStage: kind === 'story' ? 'direct' : 'embed',
+    httpStatus: 403,
     error: {
       code: 'PRIVATE_OR_LOGIN_REQUIRED',
       message:

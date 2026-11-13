@@ -43,6 +43,8 @@ export interface ExtractionLogEvent {
   stage?: 'direct' | 'tiers' | null;
   engineStage?: string | null;
   httpStatus?: number | null;
+  contentKind?: string | null;
+  engineFn?: string | null;
   ts?: number;
 }
 
@@ -71,7 +73,7 @@ function sanitizeStageLabel(raw?: string | null): string | null {
   if (!raw) return null;
   const cleaned = String(raw)
     .replace(/https?:\/\/\S+/gi, '')
-    .replace(/[^a-zA-Z0-9_+:-]/g, '')
+    .replace(/[^a-zA-Z0-9_+.:\-]/g, '')
     .slice(0, 64);
   return cleaned || null;
 }
@@ -222,7 +224,7 @@ function isTrackedEnginePlatform(
 /**
  * Enregistre une requête d'extraction :
  * - Compteurs agrégés dans `daily_metrics` (`extract_started` + `extract_success` (+ `extract_success_direct`/`extract_success_tiers`) ou `extract_error`).
- * - Journal détaillé dans `request_log` UNIQUEMENT pour les erreurs (sans aucun identifiant personnel ni URL).
+ * - Journal détaillé dans `request_log` UNIQUEMENT pour les erreurs (IP hachée salée tronquée à 12 car., sans URL).
  * - Suivi des échecs consécutifs dans `engine_status` et alerte webhook à 5 échecs consécutifs / retour à la normale.
  */
 export async function logExtractionEvent(
@@ -238,9 +240,16 @@ export async function logExtractionEvent(
     event.status === 'success' ? null : event.errorCode || 'UNKNOWN_ERROR';
   const engineStage = sanitizeStageLabel(event.engineStage || event.stage);
   const httpStatus =
-    typeof event.httpStatus === 'number' && Number.isFinite(event.httpStatus)
+    errorCode === 'TIMEOUT'
+      ? null
+      : typeof event.httpStatus === 'number' && Number.isFinite(event.httpStatus)
       ? Math.round(event.httpStatus)
       : null;
+  const contentKind = sanitizeStageLabel(event.contentKind);
+  const engineFn = sanitizeStageLabel(event.engineFn);
+  const truncatedIpHash = event.ipHash
+    ? String(event.ipHash).trim().slice(0, 12)
+    : '';
 
   try {
     // 1. Compteurs journaliers agrégés (1 écriture multi-lignes D1)
@@ -261,13 +270,13 @@ export async function logExtractionEvent(
 
     await incrementDailyMetrics(env, event.platform, metricEvents, ts);
 
-    // 2. Journal détaillé UNIQUEMENT en cas d'erreur, sans aucun identifiant personnel ni URL (ip_hash = '')
+    // 2. Journal détaillé UNIQUEMENT en cas d'erreur (IP hachée tronquée 12 hex, content_kind, engine_fn, sans URL)
     if (event.status === 'error') {
       try {
         await db
           .prepare(
-            `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           )
           .bind(
             ts,
@@ -275,19 +284,40 @@ export async function logExtractionEvent(
             'error',
             errorCode,
             durationMs,
-            '',
+            truncatedIpHash,
             engineStage,
-            httpStatus
+            httpStatus,
+            contentKind,
+            engineFn
           )
           .run();
       } catch {
-        await db
-          .prepare(
-            `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
-             VALUES (?, ?, ?, ?, ?, ?)`
-          )
-          .bind(ts, event.platform, 'error', errorCode, durationMs, '')
-          .run();
+        try {
+          await db
+            .prepare(
+              `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            )
+            .bind(
+              ts,
+              event.platform,
+              'error',
+              errorCode,
+              durationMs,
+              truncatedIpHash,
+              engineStage,
+              httpStatus
+            )
+            .run();
+        } catch {
+          await db
+            .prepare(
+              `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
+               VALUES (?, ?, ?, ?, ?, ?)`
+            )
+            .bind(ts, event.platform, 'error', errorCode, durationMs, truncatedIpHash)
+            .run();
+        }
       }
     }
 

@@ -83,7 +83,7 @@ const migratedEngineColumnsDbs = new WeakSet<object>();
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
   `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('allow_third_party', 'true'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
-  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER, content_kind TEXT, engine_fn TEXT)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
   `CREATE TABLE IF NOT EXISTS daily_metrics (day TEXT NOT NULL, platform TEXT NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, platform, event))`,
   `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT, consecutive_failures INTEGER NOT NULL DEFAULT 0, alert_sent INTEGER NOT NULL DEFAULT 0)`,
@@ -91,15 +91,26 @@ const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS blocklist (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, value TEXT NOT NULL, created_ts INTEGER NOT NULL, UNIQUE(type, value))`,
   `CREATE TABLE IF NOT EXISTS rate_limits (ip_hash TEXT NOT NULL, window INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (ip_hash, window))`,
   `CREATE TABLE IF NOT EXISTS login_attempts (ip_hash TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, window_start_ts INTEGER NOT NULL, blocked_until_ts INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, login TEXT NOT NULL UNIQUE COLLATE NOCASE, display_name TEXT NOT NULL, role_label TEXT NOT NULL DEFAULT 'Membre', password_hash TEXT NOT NULL, must_change_password INTEGER NOT NULL DEFAULT 1, active INTEGER NOT NULL DEFAULT 1, permissions TEXT NOT NULL DEFAULT '[]', session_version INTEGER NOT NULL DEFAULT 1, failed_attempts INTEGER NOT NULL DEFAULT 0, locked_until INTEGER, created_at INTEGER NOT NULL, last_login_at INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS idx_users_login ON users(login)`,
+  `CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, created_at INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC)`,
 ];
 
 async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boolean> {
   const msg = (err instanceof Error ? err.message : String(err || '')).toLowerCase();
-  if (msg.includes('no such column: engine_stage') || msg.includes('no such column: http_status')) {
+  if (
+    msg.includes('no such column: engine_stage') ||
+    msg.includes('no such column: http_status') ||
+    msg.includes('no such column: content_kind') ||
+    msg.includes('no such column: engine_fn')
+  ) {
     if (migratedColumnsDbs.has(rawDb)) return false;
     try {
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_stage TEXT').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN content_kind TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_fn TEXT').run().catch(() => {});
       migratedColumnsDbs.add(rawDb);
       return true;
     } catch {
@@ -237,6 +248,8 @@ export function createMemoryD1Database(): D1Database {
     ip_hash: string;
     engine_stage: string | null;
     http_status: number | null;
+    content_kind?: string | null;
+    engine_fn?: string | null;
   }
 
   interface DailyMetricRow {
@@ -270,8 +283,34 @@ export function createMemoryD1Database(): D1Database {
     blocked_until_ts: number | null;
   }
 
+  interface UserRow {
+    id: number;
+    login: string;
+    display_name: string;
+    role_label: string;
+    password_hash: string;
+    must_change_password: number;
+    active: number;
+    permissions: string;
+    session_version: number;
+    failed_attempts: number;
+    locked_until: number | null;
+    created_at: number;
+    last_login_at: number | null;
+  }
+
+  interface AuditLogRow {
+    id: number;
+    actor: string;
+    action: string;
+    target: string;
+    created_at: number;
+  }
+
   let logSeq = 1;
   let blockSeq = 1;
+  let userSeq = 1;
+  let auditSeq = 1;
   let writeCount = 0;
   let requestLogs: RequestLogRow[] = [];
   const dailyMetrics = new Map<string, DailyMetricRow>();
@@ -352,6 +391,8 @@ export function createMemoryD1Database(): D1Database {
   let blocklist: BlocklistRow[] = [];
   const rateLimits = new Map<string, { ip_hash: string; window: number; count: number }>();
   const loginAttempts = new Map<string, LoginAttemptRow>();
+  let users: UserRow[] = [];
+  let auditLogs: AuditLogRow[] = [];
 
   function buildStatement(sql: string, boundValues: unknown[] = []): D1PreparedStatement {
     const normalized = sql.replace(/\s+/g, ' ').trim();
@@ -569,6 +610,14 @@ export function createMemoryD1Database(): D1Database {
           boundValues[7] !== undefined && boundValues[7] !== null
             ? Number(boundValues[7])
             : null;
+        const content_kind =
+          boundValues[8] !== undefined && boundValues[8] !== null
+            ? String(boundValues[8])
+            : null;
+        const engine_fn =
+          boundValues[9] !== undefined && boundValues[9] !== null
+            ? String(boundValues[9])
+            : null;
         requestLogs.push({
           id: logSeq++,
           ts,
@@ -579,6 +628,8 @@ export function createMemoryD1Database(): D1Database {
           ip_hash,
           engine_stage,
           http_status,
+          content_kind,
+          engine_fn,
         });
         return [];
       }
@@ -587,20 +638,43 @@ export function createMemoryD1Database(): D1Database {
         requestLogs = requestLogs.filter((r) => r.ts >= cutoff);
         return [];
       }
-      if (lower.startsWith('select count(*) as total from request_log')) {
+      const filterRequestLogs = (bound: unknown[], hasLimitOffset: boolean): RequestLogRow[] => {
+        const filterArgs = hasLimitOffset ? bound.slice(0, -2) : bound;
+        let idx = 0;
+        let filtered = [...requestLogs];
         if (lower.includes('where ts >=')) {
-          const since = Number(boundValues[0] || 0);
-          return [{ total: requestLogs.filter((r) => r.ts >= since).length }];
+          const since = Number(filterArgs[idx++] || 0);
+          filtered = filtered.filter((r) => r.ts >= since);
         }
-        return [{ total: requestLogs.length }];
+        if (lower.includes('platform in (?, ?)')) {
+          const p1 = String(filterArgs[idx++] || '').toLowerCase();
+          const p2 = String(filterArgs[idx++] || '').toLowerCase();
+          filtered = filtered.filter(
+            (r) => r.platform.toLowerCase() === p1 || r.platform.toLowerCase() === p2
+          );
+        } else if (lower.includes('platform = ?')) {
+          const p = String(filterArgs[idx++] || '').toLowerCase();
+          filtered = filtered.filter((r) => r.platform.toLowerCase() === p);
+        }
+        if (lower.includes('error_code = ?')) {
+          const ec = String(filterArgs[idx++] || '').toUpperCase();
+          filtered = filtered.filter((r) => (r.error_code || '').toUpperCase() === ec);
+        }
+        return filtered;
+      };
+      if (lower.startsWith('select count(*) as total from request_log')) {
+        const filtered = filterRequestLogs(boundValues, false);
+        return [{ total: filtered.length }];
       }
       if (
         lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash from request_log') ||
-        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status from request_log')
+        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status from request_log') ||
+        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn from request_log')
       ) {
-        const limit = Number(boundValues[0] || 25);
-        const offset = Number(boundValues[1] || 0);
-        const sorted = [...requestLogs].sort((a, b) => b.ts - a.ts || b.id - a.id);
+        const limit = Number(boundValues[boundValues.length - 2] || 25);
+        const offset = Number(boundValues[boundValues.length - 1] || 0);
+        const filtered = filterRequestLogs(boundValues, true);
+        const sorted = filtered.sort((a, b) => b.ts - a.ts || b.id - a.id);
         return sorted.slice(offset, offset + limit);
       }
       if (lower.startsWith('select ts, platform, status, error_code, duration_ms from request_log where ts >=')) {
@@ -608,6 +682,135 @@ export function createMemoryD1Database(): D1Database {
         return requestLogs
           .filter((r) => r.ts >= since)
           .sort((a, b) => a.ts - b.ts);
+      }
+
+      // 8. USERS
+      if (lower.includes('from users')) {
+        if (lower.startsWith('select') && lower.includes('where login =')) {
+          const targetLogin = String(boundValues[0] || '').trim().toLowerCase();
+          const found = users.find((u) => u.login.toLowerCase() === targetLogin);
+          return found ? [{ ...found }] : [];
+        }
+        if (lower.startsWith('select') && lower.includes('where id =')) {
+          const targetId = Number(boundValues[0]);
+          const found = users.find((u) => u.id === targetId);
+          return found ? [{ ...found }] : [];
+        }
+        if (lower.startsWith('select')) {
+          const includeHash = lower.includes('password_hash');
+          return [...users]
+            .sort((a, b) => b.created_at - a.created_at || b.id - a.id)
+            .map((u) => {
+              if (includeHash) return { ...u };
+              const { password_hash: _unused, ...safeUser } = u;
+              return safeUser;
+            });
+        }
+      }
+      if (lower.startsWith('insert into users')) {
+        const login = String(boundValues[0] || '').trim();
+        const display_name = String(boundValues[1] || '').trim();
+        const role_label = String(boundValues[2] || 'Membre').trim();
+        const password_hash = String(boundValues[3] || '');
+        const must_change_password = Number(boundValues[4] ?? 1);
+        const active = Number(boundValues[5] ?? 1);
+        const permissions = String(boundValues[6] || '[]');
+        const created_at = Number(boundValues[7] || Date.now());
+
+        if (users.some((u) => u.login.toLowerCase() === login.toLowerCase())) {
+          throw new Error('UNIQUE constraint failed: users.login');
+        }
+
+        const newRow: UserRow = {
+          id: userSeq++,
+          login,
+          display_name,
+          role_label,
+          password_hash,
+          must_change_password,
+          active,
+          permissions,
+          session_version: 1,
+          failed_attempts: 0,
+          locked_until: null,
+          created_at,
+          last_login_at: null,
+        };
+        users.push(newRow);
+        return [{ id: newRow.id }];
+      }
+      if (lower.startsWith('update users set')) {
+        const targetId = Number(boundValues[boundValues.length - 1]);
+        const idx = users.findIndex((u) => u.id === targetId);
+        if (idx === -1) return [];
+        const current = { ...users[idx] };
+
+        if (lower.includes('set failed_attempts = 0, locked_until = null, last_login_at =')) {
+          current.failed_attempts = 0;
+          current.locked_until = null;
+          current.last_login_at = Number(boundValues[0] || Date.now());
+        } else if (lower.includes('set failed_attempts = ?, locked_until = ?')) {
+          current.failed_attempts = Number(boundValues[0] || 0);
+          current.locked_until =
+            boundValues[1] !== null && boundValues[1] !== undefined
+              ? Number(boundValues[1])
+              : null;
+        } else if (lower.includes('set display_name = ?, role_label = ?, permissions = ?')) {
+          current.display_name = String(boundValues[0] || current.display_name);
+          current.role_label = String(boundValues[1] || current.role_label);
+          current.permissions = String(boundValues[2] || '[]');
+          if (lower.includes('session_version = session_version + 1')) {
+            current.session_version += 1;
+          }
+        } else if (lower.includes('set permissions = ?')) {
+          current.permissions = String(boundValues[0] || '[]');
+          if (lower.includes('session_version = session_version + 1')) {
+            current.session_version += 1;
+          }
+        } else if (lower.includes('set password_hash = ?, must_change_password = ?')) {
+          current.password_hash = String(boundValues[0] || current.password_hash);
+          current.must_change_password = Number(boundValues[1] ?? 0);
+          if (lower.includes('session_version = session_version + 1')) {
+            current.session_version += 1;
+          }
+          current.failed_attempts = 0;
+          current.locked_until = null;
+        } else if (lower.includes('set active = ?')) {
+          current.active = Number(boundValues[0] ?? 1);
+          if (lower.includes('session_version = session_version + 1')) {
+            current.session_version += 1;
+          }
+        }
+
+        users[idx] = current;
+        return [];
+      }
+      if (lower.startsWith('delete from users where id =')) {
+        const targetId = Number(boundValues[0]);
+        users = users.filter((u) => u.id !== targetId);
+        return [];
+      }
+
+      // 9. AUDIT_LOG
+      if (lower.startsWith('insert into audit_log')) {
+        const actor = String(boundValues[0] || '');
+        const action = String(boundValues[1] || '');
+        const target = String(boundValues[2] || '');
+        const created_at = Number(boundValues[3] || Date.now());
+        auditLogs.push({
+          id: auditSeq++,
+          actor,
+          action,
+          target,
+          created_at,
+        });
+        return [];
+      }
+      if (lower.startsWith('select') && lower.includes('from audit_log')) {
+        const limit = boundValues.length > 0 ? Number(boundValues[0] || 100) : 100;
+        return [...auditLogs]
+          .sort((a, b) => b.created_at - a.created_at || b.id - a.id)
+          .slice(0, limit);
       }
 
       return [];
@@ -659,3 +862,4 @@ export function createMemoryD1Database(): D1Database {
     },
   };
 }
+

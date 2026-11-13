@@ -36,10 +36,17 @@ const FB_NAVIGATION_HEADERS: Record<string, string> = {
   'Upgrade-Insecure-Requests': '1',
 };
 
-function fail(code: ErrorCode, message: string): ExtractResponse {
+function fail(
+  code: ErrorCode,
+  message: string,
+  meta?: { engineStage?: string; httpStatus?: number | null; engineFn?: string }
+): ExtractResponse {
   return {
     ok: false,
     platform: 'facebook',
+    engineStage: meta?.engineStage,
+    httpStatus: meta?.httpStatus !== undefined ? meta.httpStatus : null,
+    engineFn: meta?.engineFn,
     error: { code, message },
   };
 }
@@ -646,6 +653,8 @@ export async function extractFacebook(
   videoId?: string
 ): Promise<ExtractResponse> {
   const cleanId = (videoId || '').replace(/[^0-9A-Za-z_-]/g, '');
+  const isReel = /\/(?:reel|reels|share\/r)\//i.test(cleanUrl);
+  const engineFn = isReel ? 'facebook.reel' : 'facebook.video';
 
   // Niveau 1 : Page desktop principale (www.facebook.com)
   const level1Urls: string[] = [cleanUrl];
@@ -658,18 +667,23 @@ export async function extractFacebook(
 
   let sawLoginWall = false;
   let sawNotFound = false;
+  let lastStage: 'direct' | 'mobile' | 'embed' = 'direct';
+  let lastHttpStatus: number | null = null;
 
   for (const candidateUrl of level1Urls) {
     try {
+      lastStage = 'direct';
       const page = await fetchFacebookPageWithSafeRedirects(
         candidateUrl,
         FACEBOOK_TIMEOUT_MS
       );
+      lastHttpStatus = page.status;
 
       if (page.checkpointRedirect || page.status === 403 || page.status === 429) {
         return fail(
           'BLOCKED_BY_PLATFORM',
-          `Facebook a temporairement bloqué ou limité la requête (HTTP ${page.status}).`
+          `Facebook a temporairement bloqué ou limité la requête (HTTP ${page.status}).`,
+          { engineStage: 'direct', httpStatus: page.status, engineFn }
         );
       }
 
@@ -686,25 +700,40 @@ export async function extractFacebook(
       if (page.status >= 200 && page.status < 300 && page.html) {
         const parsed = parseFacebookHtmlPayload(page.html, cleanId, page.finalUrl);
         if (parsed.ok && parsed.items && parsed.items.length > 0) {
-          return parsed;
+          return {
+            ...parsed,
+            engineStage: 'direct',
+            httpStatus: page.status,
+            engineFn,
+          };
         }
         if (parsed.error?.code === 'NOT_FOUND') {
           sawNotFound = true;
         } else if (parsed.error?.code === 'PRIVATE_OR_LOGIN_REQUIRED') {
           sawLoginWall = true;
         } else if (parsed.error?.code === 'BLOCKED_BY_PLATFORM') {
-          return parsed;
+          return {
+            ...parsed,
+            engineStage: 'direct',
+            httpStatus: page.status,
+            engineFn,
+          };
         }
       }
     } catch (err) {
       if (isTimeoutError(err)) {
         return fail(
           'TIMEOUT',
-          'Le délai de 8 secondes a été dépassé lors de la connexion à Facebook.'
+          'Le délai de 8 secondes a été dépassé lors de la connexion à Facebook.',
+          { engineStage: 'direct', httpStatus: null, engineFn }
         );
       }
       if (err instanceof Error && err.message.startsWith('FORBIDDEN_HOST:')) {
-        return fail('UNSUPPORTED_URL', 'Redirection vers un domaine externe refusée.');
+        return fail('UNSUPPORTED_URL', 'Redirection vers un domaine externe refusée.', {
+          engineStage: 'direct',
+          httpStatus: lastHttpStatus,
+          engineFn,
+        });
       }
     }
   }
@@ -729,16 +758,22 @@ export async function extractFacebook(
   }
 
   for (const mobileOrPluginUrl of level2Urls) {
+    const stageName: 'mobile' | 'embed' = mobileOrPluginUrl.includes('/plugins/video.php')
+      ? 'embed'
+      : 'mobile';
     try {
+      lastStage = stageName;
       const page = await fetchFacebookPageWithSafeRedirects(
         mobileOrPluginUrl,
         FACEBOOK_TIMEOUT_MS
       );
+      lastHttpStatus = page.status;
 
       if (page.checkpointRedirect || page.status === 403 || page.status === 429) {
         return fail(
           'BLOCKED_BY_PLATFORM',
-          `Facebook a limité l'accès sur la version mobile (HTTP ${page.status}).`
+          `Facebook a limité l'accès sur la version mobile (HTTP ${page.status}).`,
+          { engineStage: stageName, httpStatus: page.status, engineFn }
         );
       }
 
@@ -755,7 +790,12 @@ export async function extractFacebook(
       if (page.status >= 200 && page.status < 300 && page.html) {
         const parsed = parseFacebookHtmlPayload(page.html, cleanId, page.finalUrl);
         if (parsed.ok && parsed.items && parsed.items.length > 0) {
-          return parsed;
+          return {
+            ...parsed,
+            engineStage: stageName,
+            httpStatus: page.status,
+            engineFn,
+          };
         }
         if (parsed.error?.code === 'NOT_FOUND') {
           sawNotFound = true;
@@ -767,27 +807,45 @@ export async function extractFacebook(
       if (isTimeoutError(err)) {
         return fail(
           'TIMEOUT',
-          'Le délai de 8 secondes a été dépassé sur la version mobile de Facebook.'
+          'Le délai de 8 secondes a été dépassé sur la version mobile de Facebook.',
+          { engineStage: stageName, httpStatus: null, engineFn }
         );
       }
     }
   }
 
   if (sawNotFound && !sawLoginWall) {
-    return fail('NOT_FOUND', 'Cette vidéo Facebook est introuvable ou a été supprimée.');
+    return fail('NOT_FOUND', 'Cette vidéo Facebook est introuvable ou a été supprimée.', {
+      engineStage: lastStage,
+      httpStatus: lastHttpStatus ?? 404,
+      engineFn,
+    });
   }
 
   if (sawLoginWall) {
     // Si watch/?v={id} ET plugins/video.php indiquent "Discover Popular Videos" / "may no longer exist",
     // mais que /{page}/videos/{id} redirige vers /login, c'est une vidéo supprimée/inexistante si sawNotFound est aussi vrai
     if (sawNotFound) {
-      return fail('NOT_FOUND', 'Cette vidéo Facebook est introuvable ou a été supprimée.');
+      return fail('NOT_FOUND', 'Cette vidéo Facebook est introuvable ou a été supprimée.', {
+        engineStage: lastStage,
+        httpStatus: lastHttpStatus ?? 404,
+        engineFn,
+      });
     }
     return fail(
       'PRIVATE_OR_LOGIN_REQUIRED',
-      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées."
+      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      {
+        engineStage: lastStage,
+        httpStatus: lastHttpStatus,
+        engineFn,
+      }
     );
   }
 
-  return fail('NO_MEDIA', 'Aucune vidéo publique trouvée à cette adresse Facebook.');
+  return fail('NO_MEDIA', 'Aucune vidéo publique trouvée à cette adresse Facebook.', {
+    engineStage: lastStage,
+    httpStatus: lastHttpStatus,
+    engineFn,
+  });
 }

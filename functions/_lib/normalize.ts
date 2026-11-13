@@ -49,7 +49,9 @@ export interface ExtractResponse {
   items?: ExtractMediaItem[];
   stage?: 'direct' | 'tiers';
   engineStage?: string;
-  httpStatus?: number;
+  httpStatus?: number | null;
+  contentKind?: string;
+  engineFn?: string;
   error?: {
     code: ErrorCode;
     message: string;
@@ -90,9 +92,10 @@ export function createSuccessResponse(
   data: Omit<ExtractResponse, 'ok'>,
   extraHeaders?: Record<string, string>
 ): Response {
+  const { engineStage: _es, httpStatus: _hs, contentKind: _ck, engineFn: _ef, cookie: _ck2, ...publicData } = data;
   const body: ExtractResponse = {
     ok: true,
-    ...data,
+    ...publicData,
   };
   return new Response(JSON.stringify(body), {
     status: 200,

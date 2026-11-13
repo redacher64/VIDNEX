@@ -1,7 +1,10 @@
 import { SITE_URL } from '../src/config/site.ts';
 import { resolveBlogRedirectPath } from '../src/i18n/config.ts';
 import { type AdminEnv } from './_lib/db.ts';
-import { isRequestAdminAuthenticated } from './_lib/auth.ts';
+import {
+  requirePermission,
+  resolveAdminRoutePermission,
+} from './_lib/auth.ts';
 
 export interface MiddlewareContext {
   request: Request;
@@ -47,7 +50,8 @@ export function isPreviewHostRequiringNoindex(
 /**
  * Cloudflare Pages / Worker Middleware:
  * - Redirects /en/blog and /en/blog/{slug} (plus legacy blog slugs) with HTTP 301 to /blog and /blog/{slug}.
- * - Protects all /api/admin/* routes (except /api/admin/login and OPTIONS) by verifying the signed HMAC session cookie.
+ * - Protects all /api/admin/* routes (except /api/admin/login and OPTIONS) by verifying the signed HMAC session cookie,
+ *   re-reading D1 user permissions/session_version, and enforcing `requirePermission` with default = deny (owner only).
  * - Adds X-Robots-Tag: noindex, nofollow on /admin, /api/*, and .pages.dev / .workers.dev preview domains.
  * - Passes all other public routes through with zero overhead.
  */
@@ -73,30 +77,18 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
   const isAnyApi = pathname === '/api' || pathname.startsWith('/api/');
   const isPreviewHost = isPreviewHostRequiringNoindex(url.hostname, SITE_URL);
 
-  // Enforce authentication on /api/admin/* (except /api/admin/login and preflight OPTIONS)
+  // Enforce authentication and RBAC permissions on /api/admin/* (except /api/admin/login and preflight OPTIONS)
   if (
     isAdminApi &&
     pathname !== '/api/admin/login' &&
     request.method !== 'OPTIONS'
   ) {
-    const isAuthenticated = await isRequestAdminAuthenticated(request, env);
-    if (!isAuthenticated) {
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          errorCode: 'UNAUTHORIZED',
-          message:
-            'Session administrateur invalide ou expirée. Veuillez vous reconnecter.',
-        }),
-        {
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'no-store',
-            'X-Robots-Tag': 'noindex, nofollow',
-          },
-        }
-      );
+    const routePerm = resolveAdminRoutePermission(pathname, request.method);
+    const authResult = await requirePermission(request, env, routePerm.perm, {
+      allowMustChangePassword: routePerm.allowMustChangePassword,
+    });
+    if (!authResult.ok) {
+      return authResult.response;
     }
   }
 

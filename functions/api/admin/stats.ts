@@ -1,4 +1,5 @@
 import { type AdminEnv, getDb } from '../../_lib/db.ts';
+import { requirePermission } from '../../_lib/auth.ts';
 import { formatUtcDay, purgeOldLogs } from '../../_lib/logger.ts';
 
 export interface PagesContext {
@@ -57,6 +58,9 @@ function createEmptyPlatformStats() {
 
 export async function onRequestGet(context: PagesContext): Promise<Response> {
   const env = context.env || {};
+  const auth = await requirePermission(context.request, env, 'dashboard.view');
+  if (!auth.ok) return auth.response;
+
   const db = getDb(env);
 
   const nowMs = Date.now();

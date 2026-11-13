@@ -162,16 +162,16 @@ export const Controls: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-xl font-bold text-white">
+          <h2 className="font-display text-xl font-bold text-admin-text">
             Contrôles Opérationnels & Sécurité
           </h2>
-          <p className="text-xs text-orange-200/65 font-mono">
+          <p className="text-xs text-admin-text-muted font-mono">
             Modifications appliquées en temps réel sur /api/extract, /api/download et /api/public-config
           </p>
         </div>
         {statusMessage && (
-          <div className="px-3.5 py-2 rounded-xl bg-emerald-950/60 border border-emerald-700/60 text-emerald-200 text-xs font-mono flex items-center gap-2">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200 text-xs font-mono flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>{statusMessage}</span>
           </div>
         )}
@@ -180,15 +180,15 @@ export const Controls: React.FC = () => {
       {/* Interrupteurs globaux */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Maintenance */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <AlertOctagon className="w-4 h-4 text-amber-400" />
-              <h3 className="font-display text-sm font-bold text-white">
+              <AlertOctagon className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Mode Maintenance Global
               </h3>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Suspend toutes les extractions (/api/extract renvoie MAINTENANCE · 503) et affiche une bannière sur le site.
             </p>
           </div>
@@ -201,11 +201,13 @@ export const Controls: React.FC = () => {
               persistSettings({ ...settings, maintenance: !settings.maintenance })
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
-              settings.maintenance ? 'bg-amber-500' : 'bg-[#120c08] border border-orange-900/80'
+              settings.maintenance
+                ? 'bg-amber-600 dark:bg-amber-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.maintenance ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -213,15 +215,15 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* AdSense */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-orange-400" />
-              <h3 className="font-display text-sm font-bold text-white">
+              <Sliders className="w-4 h-4 text-admin-accent" />
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Monétisation Google AdSense
               </h3>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Active ou masque instantanément les emplacements publicitaires via adsenseService.ts.
             </p>
           </div>
@@ -234,11 +236,13 @@ export const Controls: React.FC = () => {
               persistSettings({ ...settings, ads_enabled: !settings.ads_enabled })
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
-              settings.ads_enabled ? 'bg-emerald-500' : 'bg-[#120c08] border border-orange-900/80'
+              settings.ads_enabled
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.ads_enabled ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -293,23 +297,23 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* TikTok Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm font-bold text-white">
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur TikTok
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                   settings.platform_tiktok
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.platform_tiktok ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Désactive uniquement TikTok (renvoie PLATFORM_DISABLED et grise TikTok côté public).
             </p>
           </div>
@@ -326,12 +330,12 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_tiktok
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.platform_tiktok ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -339,23 +343,23 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Instagram Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm font-bold text-white">
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur Instagram
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                   settings.platform_instagram
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.platform_instagram ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Désactive uniquement Instagram (renvoie PLATFORM_DISABLED et grise Instagram côté public).
             </p>
           </div>
@@ -372,12 +376,12 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_instagram
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.platform_instagram ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -385,23 +389,23 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* X (Twitter) Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm font-bold text-white">
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur X (Twitter)
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                   settings.platform_x !== false
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.platform_x !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Désactive uniquement X (Twitter) (renvoie PLATFORM_DISABLED et grise X (Twitter) côté public).
             </p>
           </div>
@@ -418,12 +422,12 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_x !== false
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.platform_x !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -431,23 +435,23 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Facebook Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm font-bold text-white">
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur Facebook
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                   settings.platform_facebook !== false
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.platform_facebook !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Désactive uniquement Facebook (renvoie PLATFORM_DISABLED et grise Facebook côté public).
             </p>
           </div>
@@ -464,12 +468,12 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_facebook !== false
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.platform_facebook !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -477,23 +481,23 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* LinkedIn Toggle */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm font-bold text-white">
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur LinkedIn (Photo de profil)
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                   settings.platform_linkedin !== false
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.platform_linkedin !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Active ou désactive l’extraction de la photo de profil publique LinkedIn (/in/&#123;slug&#125;).
             </p>
           </div>
@@ -510,12 +514,12 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_linkedin !== false
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
             }`}
           >
             <span
-              className={`block w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
                 settings.platform_linkedin !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -524,13 +528,13 @@ export const Controls: React.FC = () => {
       </div>
 
       {/* Limite de requêtes / minute (Extractions & Téléchargements) */}
-      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
+      <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="font-display text-sm font-bold text-white">
+            <h3 className="font-display text-sm font-bold text-admin-text">
               Limite d’extractions par IP (`rate_limit_per_min`)
             </h3>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Nombre maximum d’appels `/api/extract` par minute et par IP hachée avant renvoi de 429 + Retry-After.
             </p>
           </div>
@@ -547,22 +551,22 @@ export const Controls: React.FC = () => {
                   rate_limit_per_min: Math.max(1, parseInt(e.target.value || '1', 10)),
                 })
               }
-              className="w-24 px-3 py-2 rounded-xl bg-[#120c08] border border-orange-900/70 text-sm text-white font-mono text-center"
+              className="w-24 px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
             />
-            <span className="text-xs font-mono text-orange-200/70">req / min</span>
+            <span className="text-xs font-mono text-admin-text-secondary">req / min</span>
           </div>
         </div>
 
-        <div className="border-t border-orange-950/80 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="border-t border-admin-border pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="font-display text-sm font-bold text-white">
+            <h3 className="font-display text-sm font-bold text-admin-text">
               Limite de téléchargements par IP (`download_limit_per_min`)
             </h3>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Nombre maximum de fichiers `/api/download` par minute et par IP hachée (1 comptage par fichier/min, requêtes Range comprises).
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <input
               type="number"
               min={1}
@@ -575,14 +579,14 @@ export const Controls: React.FC = () => {
                   download_limit_per_min: Math.max(1, parseInt(e.target.value || '1', 10)),
                 })
               }
-              className="w-24 px-3 py-2 rounded-xl bg-[#120c08] border border-orange-900/70 text-sm text-white font-mono text-center"
+              className="w-24 px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
             />
-            <span className="text-xs font-mono text-orange-200/70">fichiers / min</span>
+            <span className="text-xs font-mono text-admin-text-secondary">fichiers / min</span>
             <button
               type="button"
               disabled={saving}
               onClick={() => persistSettings(settings)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-display font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] text-white font-display font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Enregistrer</span>
@@ -592,10 +596,10 @@ export const Controls: React.FC = () => {
       </div>
 
       {/* Liste de blocage (Blocklist D1) */}
-      <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 space-y-4">
+      <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">
         <div className="flex items-center gap-2">
-          <ShieldBan className="w-4 h-4 text-red-400" />
-          <h3 className="font-display text-sm font-bold text-white">
+          <ShieldBan className="w-4 h-4 text-red-700 dark:text-red-400" />
+          <h3 className="font-display text-sm font-bold text-admin-text">
             Liste de blocage (IP hachée, Domaine ou URL)
           </h3>
         </div>
@@ -604,7 +608,7 @@ export const Controls: React.FC = () => {
           <select
             value={blockType}
             onChange={(e) => setBlockType(e.target.value as 'ip_hash' | 'domain' | 'url')}
-            className="px-3.5 py-2.5 rounded-xl bg-[#120c08] border border-orange-900/70 text-xs text-white font-mono"
+            className="px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
           >
             <option value="domain">Domaine (ex: example.com)</option>
             <option value="url">URL ou fragment d’URL</option>
@@ -616,12 +620,12 @@ export const Controls: React.FC = () => {
             value={blockValue}
             onChange={(e) => setBlockValue(e.target.value)}
             placeholder="Valeur à bloquer…"
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#120c08] border border-orange-900/70 text-xs text-white placeholder-orange-200/35 font-mono"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder-admin-text-muted/70 font-mono focus:outline-none focus:border-orange-600"
           />
 
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Bloquer</span>
@@ -629,26 +633,26 @@ export const Controls: React.FC = () => {
         </form>
 
         {blocklist.length === 0 ? (
-          <p className="text-xs font-mono text-orange-200/50 py-3 text-center">
+          <p className="text-xs font-mono text-admin-text-muted py-3 text-center">
             Aucune règle de blocage active dans D1.
           </p>
         ) : (
-          <div className="divide-y divide-orange-950/60 border border-orange-950/80 rounded-xl overflow-hidden bg-[#120c08]">
+          <div className="divide-y divide-admin-border border border-admin-border rounded-xl overflow-hidden bg-admin-muted">
             {blocklist.map((item) => (
               <div
                 key={item.id}
                 className="px-4 py-2.5 flex items-center justify-between gap-3 text-xs font-mono"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="px-2 py-0.5 rounded bg-red-950/70 border border-red-800/60 text-red-300 uppercase text-[10px] shrink-0">
+                  <span className="px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/70 border border-red-300 dark:border-red-800/60 text-red-900 dark:text-red-300 font-semibold uppercase text-[10px] shrink-0">
                     {item.type}
                   </span>
-                  <span className="text-orange-100 truncate">{item.value}</span>
+                  <span className="text-admin-text truncate">{item.value}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleDeleteBlocklist(item.id)}
-                  className="text-red-400 hover:text-red-300 p-1 shrink-0 cursor-pointer"
+                  className="text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1 shrink-0 cursor-pointer"
                   title="Supprimer cette règle"
                 >
                   <Trash2 className="w-4 h-4" />

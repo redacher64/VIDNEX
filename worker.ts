@@ -29,6 +29,15 @@ import {
   onRequestDelete as adminBlocklistDelete,
 } from './functions/api/admin/blocklist.ts';
 import { onRequestGet as adminActivityGet } from './functions/api/admin/activity.ts';
+import {
+  onRequestGet as adminUsersGet,
+  onRequestPost as adminUsersPost,
+  onRequestDelete as adminUsersDelete,
+} from './functions/api/admin/users.ts';
+import {
+  onRequestGet as adminAccountGet,
+  onRequestPost as adminAccountPost,
+} from './functions/api/admin/account.ts';
 import { onRequest as adminMiddleware } from './functions/_middleware.ts';
 import type { ExecutionContextLike } from './functions/_lib/db.ts';
 
@@ -114,6 +123,19 @@ async function routeInner(
 
   if (pathname === '/api/admin/activity') {
     if (request.method === 'GET') return adminActivityGet({ request, env });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/admin/users') {
+    if (request.method === 'GET') return adminUsersGet({ request, env });
+    if (request.method === 'POST') return adminUsersPost({ request, env });
+    if (request.method === 'DELETE') return adminUsersDelete({ request, env });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/admin/account') {
+    if (request.method === 'GET') return adminAccountGet({ request, env });
+    if (request.method === 'POST') return adminAccountPost({ request, env });
     return new Response('Method Not Allowed', { status: 405 });
   }
 

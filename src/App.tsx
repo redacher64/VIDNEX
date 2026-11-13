@@ -162,6 +162,7 @@ export function App({ initialPath }: AppProps = {}) {
   }, [isAdmin]);
 
   useEffect(() => {
+    if (isAdmin) return;
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
@@ -175,7 +176,7 @@ export function App({ initialPath }: AppProps = {}) {
     } catch {
       // ignore
     }
-  }, [theme]);
+  }, [theme, isAdmin]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -380,7 +381,7 @@ export function App({ initialPath }: AppProps = {}) {
         <SeoSchemaInjector pageKey="admin" language="fr" />
         <Suspense
           fallback={
-            <div className="min-h-[100dvh] flex items-center justify-center bg-[#140e0a] text-orange-200 font-mono text-xs">
+            <div className="min-h-[100dvh] flex items-center justify-center bg-admin-bg text-admin-text-muted font-mono text-xs">
               Chargement du panneau d’administration…
             </div>
           }

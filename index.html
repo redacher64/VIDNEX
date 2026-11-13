@@ -6,6 +6,27 @@
     <script>
       (function () {
         try {
+          var path = window.location.pathname || '';
+          var search = window.location.search || '';
+          if (path === '/admin' || path.indexOf('/admin/') === 0 || search.indexOf('admin=1') !== -1) {
+            var savedAdminTheme = null;
+            try {
+              savedAdminTheme = window.localStorage.getItem('vidnex_admin_theme');
+            } catch (_e) {}
+            var initialAdminTheme =
+              savedAdminTheme === 'dark' || savedAdminTheme === 'light'
+                ? savedAdminTheme
+                : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+            var rootEl = document.documentElement;
+            rootEl.classList.remove('light', 'dark');
+            rootEl.classList.add(initialAdminTheme);
+            rootEl.setAttribute('data-admin-theme', initialAdminTheme);
+          }
+        } catch (_themeErr) {}
+
+        try {
           var currentFetch =
             typeof window.fetch === 'function'
               ? window.fetch.bind(window)

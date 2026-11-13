@@ -105,8 +105,9 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 |  - daily_metrics : compteurs agrégés par jour, plateforme et événement            |
 |                    (extract_started, extract_success, extract_error,              |
 |                     download_started, download_success) — 0 identifiant personnel |
-|  - request_log   : détail UNIQUEMENT pour les erreurs (error_code, engine_stage,  |
-|                    http_status, duration_ms) — 0 identifiant personnel            |
+|  - request_log   : détail UNIQUEMENT pour les erreurs (content_kind, engine_fn,   |
+|                    engine_stage, http_status, error_code, duration_ms, ip_hash    |
+|                    salée tronquée 30j) — aucune URL ni IP en clair stockée        |
 |  - engine_status : santé des 6 moteurs + consecutive_failures + alert_sent        |
 |                    -> 5 échecs consécutifs : 1 alerte via ALERT_WEBHOOK_URL       |
 |                    -> succès suivant : 1 alerte de retour à la normale            |
@@ -170,7 +171,8 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   ├── 0001_init.sql            # Tables initiales (request_log, settings, rate_limits, blocklist, engine_status, login_attempts)
 │   ├── 0002_add_engine_stage_http_status.sql # Ajout de engine_stage, http_status et test_url_instagram_profile
 │   ├── 0003_add_linkedin.sql    # Ajout de platform_linkedin, test_url_linkedin et engine_status linkedin
-│   └── 0004_metrics_and_alerts.sql # Ajout de daily_metrics, download_limit_per_min, consecutive_failures et alert_sent
+│   ├── 0004_metrics_and_alerts.sql # Ajout de daily_metrics, download_limit_per_min, consecutive_failures et alert_sent
+│   └── 0005_activity_content_kind_engine_fn.sql # Ajout non destructif de content_kind et engine_fn à request_log
 │
 ├── public/                      # Fichiers statiques copiés à la racine de dist/
 │   ├── _headers                 # En-têtes Cloudflare Pages (CSP, HSTS, X-Frame-Options, cache long pour assets)
@@ -467,29 +469,50 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 
 ---
 
-## 7. Panneau d'administration (`/admin`)
+## 7. Panneau d'administration (`/admin`) & Comptes à droits (RBAC)
 
-### 7.1 Authentification et sécurité (`functions/_lib/auth.ts`)
-- **Mot de passe en temps constant** : Lors du `POST /api/admin/login`, le mot de passe soumis est comparé à `env.ADMIN_PASSWORD` en hachant les deux valeurs en `SHA-256` (32 octets fixes) puis en effectuant un `XOR` bit-à-bit (`constantTimeEqual`) pour empêcher toute attaque temporelle (*timing attack*).
+### 7.1 Authentification, Comptes par personne et Sécurité (`functions/_lib/auth.ts`)
+- **Compte propriétaire principal (`ADMIN_PASSWORD`)** :
+  - Identifiant : `admin` (ou `owner` / `proprietaire`).
+  - Le mot de passe soumis est comparé à `env.ADMIN_PASSWORD` en temps constant (condensats `SHA-256` + `XOR` bit-à-bit via `constantTimeEqual`).
+  - Conserve **tous les droits** de manière permanente et ne peut ni se désactiver ni se supprimer lui-même.
+- **Comptes par personne sans service tiers (table D1 `users`)** :
+  - Hachage des mots de passe via WebCrypto **`PBKDF2-SHA256`** avec un **sel aléatoire de 128 bits (16 octets)** et **100 000 itérations** (le plus grand nombre d'itérations supporté par Cloudflare Workers), stocké sous la forme `pbkdf2_sha256$100000$<saltHex>$<hashHex>`.
+  - Aucun mot de passe n'est jamais journalisé, renvoyé par l'API ou stocké en clair.
+  - **Création et mot de passe temporaire** : Le propriétaire crée un compte depuis l'onglet **« Utilisateurs »** (`display_name`, `login`, `role_label`, modèle de rôle ou cases à cocher). Un mot de passe temporaire de **16 caractères** est généré (ou saisi) et **affiché une seule fois** avec un bouton **« Copier »**.
+  - **Changement obligatoire à la première connexion (`must_change_password = 1`)** : Dès la première connexion (ou après une réinitialisation par le propriétaire), un écran obligatoire impose de choisir un nouveau mot de passe personnel (**12 caractères minimum**, **différent du mot de passe temporaire**) avant tout accès (`403 MUST_CHANGE_PASSWORD` sur toutes les autres routes tant qu'il n'est pas changé).
+- **Contrôle d'accès serveur centralisé (`requirePermission(perm)`)** :
+  - Appliqué à **chaque** route `/api/admin/*` (dans `functions/_middleware.ts` et dans chaque handler).
+  - **Politique « défaut = refus »** : toute route sans droit assignable explicitement déclaré est réservée au propriétaire (`403` propre `{ ok: false, errorCode: 'FORBIDDEN', message: 'Accès refusé.' }` sans détail interne).
+  - **Relecture en base à chaque requête** : Pour chaque requête d'un compte `users`, `getAuthenticatedPrincipal` relit `active`, `permissions`, `must_change_password` et `session_version` dans D1.
+  - **Invalidation immédiate de session (`session_version`)** : Désactiver un compte, réinitialiser son mot de passe ou modifier ses droits incrémente `session_version` dans D1 et invalide immédiatement tout cookie de session existant pour ce compte (`401`).
+- **Droits assignables et domaines réservés au propriétaire** :
+  - **7 droits assignables** : `dashboard.view`, `health.view`, `activity.view`, `blog.write`, `blog.edit_all`, `blog.delete`, `blog.publish` (les droits `blog.*` sont déjà enregistrés en base ; l'entrée de menu Blog n'apparaîtra que lorsque le module blog existera).
+  - **Modèles rapides** :
+    - **« Rédacteur blog »** : `blog.write`
+    - **« Éditeur blog »** : `blog.write`, `blog.edit_all`, `blog.delete`
+    - **« Observateur »** : `dashboard.view`, `health.view`, `activity.view`
+  - **Réservés au propriétaire et NON assignables** : `controls`, `users`, `settings`, `services tiers`, `secrets`, `audit_log` (ainsi que les tests actifs `POST /api/admin/health`).
 - **Cookie de session signé `HMAC-SHA256`** :
   - Nom du cookie : `vidnex_admin_session`.
-  - Format du jeton : `admin.{expTs}.{nonce}.{signatureHmacSha256}` signé avec `env.SESSION_SECRET`.
-  - Durée de vie : **12 heures** (`Max-Age=43200`).
-  - Attributs de sécurité : `HttpOnly; Secure; SameSite=Strict; Path=/`.
-- **Protection anti-brute-force (`login_attempts`)** : Après **5 tentatives échouées** en moins de 15 minutes depuis la même IP hachée, la connexion est verrouillée pendant **15 minutes** (`HTTP 429` avec en-tête `Retry-After`). Une connexion réussie purge immédiatement le compteur.
-- **Protection anti-CSRF (`verifyCsrfAndJson`)** : Toutes les requêtes mutatives (`POST`, `PUT`, `DELETE`) sur `/api/admin/*` exigent `Content-Type: application/json` et vérifient que l'en-tête `Origin` correspond exactement à l'hôte du serveur.
+  - Format : `admin.{expTs}.{nonce}.{sig}` (propriétaire) ou `u2.{userId}.{sessionVersion}.{expTs}.{nonce}.{sig}` (utilisateur D1), signé avec `env.SESSION_SECRET`.
+  - Durée de vie : **12 heures** (`Max-Age=43200`), drapeaux `HttpOnly; Secure; SameSite=Strict; Path=/`.
+- **Protection anti-brute-force par IP ET par identifiant (`login_attempts` + `users.failed_attempts`)** : Après **5 tentatives échouées** en moins de 15 minutes sur une même IP hachée ou un même identifiant, la connexion est verrouillée pendant **15 minutes** (`HTTP 429` + `Retry-After`). Message d'erreur générique : `"Identifiant ou mot de passe incorrect."`.
+- **Protection anti-CSRF (`verifyCsrfAndJson`)** : Toutes les requêtes mutatives (`POST`, `PUT`, `DELETE`) sur `/api/admin/*` exigent `Content-Type: application/json` et vérifient l'en-tête `Origin`.
 
-### 7.2 Schéma des 7 tables Cloudflare D1 (`migrations/`)
+### 7.2 Schéma des 9 tables Cloudflare D1 (`migrations/`)
 
 | Table D1 | Clé primaire | Colonnes principales | Rôle |
 | :--- | :--- | :--- | :--- |
 | **`daily_metrics`** | `(day, platform, event)` | `day`, `platform`, `event`, `count` | Compteurs journaliers agrégés sans identifiant personnel (`extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`). |
-| **`request_log`** | `id` (AUTOINCREMENT) | `ts`, `platform`, `status`, `error_code`, `engine_stage`, `http_status`, `duration_ms`, `ip_hash` | Journal détaillé **uniquement pour les erreurs** (`ip_hash` vide, aucun identifiant personnel, rétention glissante de 30 jours). |
+| **`request_log`** | `id` (AUTOINCREMENT) | `ts`, `platform`, `status`, `content_kind`, `engine_fn`, `engine_stage`, `http_status`, `error_code`, `duration_ms`, `ip_hash` | Journal détaillé **uniquement pour les erreurs** (`content_kind` et `engine_fn` classés depuis le motif du lien sans stocker l'URL, `http_status` vide uniquement en cas de timeout, `ip_hash` salée tronquée à 12 caractères conservée 30 jours, anciennes lignes = `—`). |
 | **`settings`** | `key` (TEXT) | `key`, `value` | Paramètres dynamiques du site (`maintenance`, `platform_*`, `rate_limit_per_min`, `download_limit_per_min`, `ads_enabled`, `test_url_*`). |
 | **`rate_limits`** | `(ip_hash, window)` | `ip_hash`, `window`, `count` | Compteur de requêtes par IP hachée et par minute (`/api/extract` et `dl:` pour `/api/download`). |
 | **`blocklist`** | `id` (AUTOINCREMENT) | `type` (`ip_hash` \| `domain` \| `url`), `value`, `created_ts` | Liste noire administrable en direct. |
 | **`engine_status`** | `platform` (TEXT) | `platform`, `last_success_ts`, `last_test_ts`, `last_test_ok`, `last_error_code`, `consecutive_failures`, `alert_sent` | État de santé en temps réel des 6 moteurs et suivi des pannes consécutives pour les alertes `ALERT_WEBHOOK_URL`. |
-| **`login_attempts`** | `ip_hash` (TEXT) | `ip_hash`, `count`, `window_start_ts`, `blocked_until_ts` | Suivi des échecs de connexion `/admin` pour le blocage anti-brute-force. |
+| **`login_attempts`** | `ip_hash` (TEXT) | `ip_hash`, `count`, `window_start_ts`, `blocked_until_ts` | Suivi des échecs de connexion `/admin` (par IP hachée et par identifiant haché `login:...`) pour le blocage anti-brute-force de 15 min. |
+| **`users`** | `id` (AUTOINCREMENT) | `login`, `display_name`, `role_label`, `password_hash`, `must_change_password`, `active`, `permissions`, `session_version`, `failed_attempts`, `locked_until`, `created_at`, `last_login_at` | Comptes utilisateurs `/admin` à droits par personne (PBKDF2-SHA256 100 000 itérations). |
+| **`audit_log`** | `id` (AUTOINCREMENT) | `actor`, `action`, `target`, `created_at` | Journal d'audit des connexions réussies/échouées, créations de compte, changements de droits, réinitialisations, désactivations et suppressions. |
 
 ### 7.3 Réglages système (`settings`)
 
@@ -512,11 +535,13 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 | `test_url_linkedin` | `''` | URL de profil public LinkedIn (`https://www.linkedin.com/in/...`) utilisée pour le test de santé. |
 
 ### 7.4 Pages de l'interface `/admin` (`src/pages/admin/`)
-1. **`Login.tsx`** : Formulaire d'authentification administrateur avec affichage du nombre d'essais restants et du compte à rebours en cas de blocage anti-brute-force.
-2. **`Dashboard.tsx` (`/api/admin/stats`)** : Cartes de synthèse (aujourd'hui, 7j, 30j), **entonnoir extraction -> téléchargement** (`extract_started` -> `extract_success` -> `download_started` -> `download_success`), taux de réussite et téléchargements par plateforme, historique quotidien sur 30 jours et répartition des codes d'erreur.
-3. **`Health.tsx` (`/api/admin/health`)** : État en temps réel des **6 moteurs** (`tiktok`, `instagram`, `instagram_profile`, `x`, `facebook`, `linkedin`), dernier succès, dernière erreur, champ de configuration de l'URL de test et bouton **« Tester maintenant »**.
-4. **`Controls.tsx` (`/api/admin/settings` & `/api/admin/blocklist`)** : Interrupteurs instantanés pour le mode maintenance, l'activation individuelle des 5 plateformes, l'activation des publicités, les limites `rate_limit_per_min` et `download_limit_per_min`, et le gestionnaire de la `blocklist` (`ip_hash`, `domain`, `url`).
-5. **`Activity.tsx` (`/api/admin/activity`)** : Journal paginé des erreurs d'extraction (`error_code`, `engine_stage`, `http_status`, `duration_ms`) sans aucun identifiant personnel.
+1. **`Login.tsx`** : Connexion par **identifiant + mot de passe**, message d'erreur générique, bascule mode clair/sombre et redirection vers la première section autorisée.
+2. **`Dashboard.tsx` (`/api/admin/stats` — droit `dashboard.view`)** : Cartes de synthèse (aujourd'hui, 7j, 30j), **entonnoir extraction -> téléchargement**, taux de réussite par plateforme, historique quotidien sur 30 jours et répartition des codes d'erreur.
+3. **`Health.tsx` (`/api/admin/health` — droit `health.view` en lecture seule, tests réservés au propriétaire)** : État en temps réel des **6 moteurs** (`tiktok`, `instagram`, `instagram_profile`, `x`, `facebook`, `linkedin`). Les comptes non-propriétaires voient l'état sans aucun bouton de modification ni de test.
+4. **`Controls.tsx` (`/api/admin/settings` & `/api/admin/blocklist` — réservé au propriétaire)** : Interrupteurs pour le mode maintenance, les 5 plateformes, les publicités, les limites de débit et la `blocklist`.
+5. **`Activity.tsx` (`/api/admin/activity` — droit `activity.view`)** : Journal paginé des erreurs d'extraction (Date, Plateforme, Type, Fonction, Niveau, HTTP, Code erreur, Durée, IP), filtres et copie JSON.
+6. **`Users.tsx` (`/api/admin/users` — réservé au propriétaire)** : Liste des utilisateurs, création avec modèles (« Rédacteur blog », « Éditeur blog », « Observateur ») ou cases à cocher, mot de passe temporaire de 16 caractères affiché une seule fois avec bouton Copier, modification des droits, réinitialisation du mot de passe, désactivation/réactivation, suppression avec confirmation et journal d'audit (`audit_log`).
+7. **`Account.tsx` (`/api/admin/account` — tous les comptes connectés)** : Écran obligatoire de changement de mot de passe à la première connexion (`must_change_password`) et onglet **« Mon compte »** permettant de changer son mot de passe (12 caractères min.) et de se déconnecter.
 
 ---
 
@@ -541,7 +566,7 @@ Copiez le `database_id` généré par cette commande et vérifiez qu'il correspo
 ```
 *(Si vous utilisez un projet Cloudflare Pages connecté à GitHub, vérifiez également dans **Workers & Pages > Votre projet > Settings > Bindings** que le binding D1 nommé `DB` pointe vers `vidnex-db`).*
 
-### 8.2 Appliquer les migrations SQL (0001 à 0004)
+### 8.2 Appliquer les migrations SQL (0001 à 0006)
 - **En local** (pour tester avec Wrangler en local) :
   ```bash
   npx wrangler d1 migrations apply vidnex-db --local

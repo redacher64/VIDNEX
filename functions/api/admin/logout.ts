@@ -1,5 +1,9 @@
 import { type AdminEnv } from '../../_lib/db.ts';
-import { buildLogoutSetCookieHeader, verifyCsrfAndJson } from '../../_lib/auth.ts';
+import {
+  buildLogoutSetCookieHeader,
+  requirePermission,
+  verifyCsrfAndJson,
+} from '../../_lib/auth.ts';
 
 export interface PagesContext {
   request: Request;
@@ -7,7 +11,11 @@ export interface PagesContext {
 }
 
 export async function onRequestPost(context: PagesContext): Promise<Response> {
-  const { request } = context;
+  const { request, env = {} } = context;
+  const auth = await requirePermission(request, env, 'authenticated', {
+    allowMustChangePassword: true,
+  });
+  if (!auth.ok) return auth.response;
 
   const csrf = verifyCsrfAndJson(request);
   if (!csrf.ok) {

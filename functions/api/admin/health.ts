@@ -1,5 +1,5 @@
 import { type AdminEnv, getDb, getRawClientIp, hashIpAddress } from '../../_lib/db.ts';
-import { verifyCsrfAndJson } from '../../_lib/auth.ts';
+import { requirePermission, verifyCsrfAndJson } from '../../_lib/auth.ts';
 import { detectUrl } from '../../_lib/detect.ts';
 import { extractTikTok } from '../../_lib/tiktok.ts';
 import { extractInstagram } from '../../_lib/instagram.ts';
@@ -22,6 +22,9 @@ export interface PagesContext {
 
 export async function onRequestGet(context: PagesContext): Promise<Response> {
   const env = context.env || {};
+  const auth = await requirePermission(context.request, env, 'health.view');
+  if (!auth.ok) return auth.response;
+
   const db = getDb(env);
   const settings = await getSystemSettings(env);
 
@@ -135,6 +138,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
 
 export async function onRequestPost(context: PagesContext): Promise<Response> {
   const { request, env = {} } = context;
+  const auth = await requirePermission(request, env, 'owner');
+  if (!auth.ok) return auth.response;
 
   const csrf = verifyCsrfAndJson(request);
   if (!csrf.ok) {

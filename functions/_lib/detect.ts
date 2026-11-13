@@ -720,3 +720,292 @@ export function detectUrl(
     cleanUrl: trimmed,
   };
 }
+
+export type LogContentKind =
+  | 'video'
+  | 'reel'
+  | 'photo'
+  | 'carousel'
+  | 'profile'
+  | 'story'
+  | 'audio'
+  | 'short_link';
+
+export interface UrlLogClassification {
+  platform: SupportedPlatform;
+  contentKind: LogContentKind;
+  engineFn: string;
+}
+
+/**
+ * Classe le type de contenu (`content_kind`) et la fonction moteur (`engine_fn`)
+ * directement depuis le motif du lien, SANS jamais stocker l'URL et même si l'extraction échoue.
+ */
+export function classifyUrlForLog(
+  rawInput: string,
+  preferredPlatform: SupportedPlatform = 'instagram',
+  resolvedUrl?: string
+): UrlLogClassification {
+  const trimmed = (rawInput || '').trim();
+  const effectiveInput = (resolvedUrl || trimmed).trim();
+
+  if (!trimmed) {
+    return {
+      platform: preferredPlatform,
+      contentKind: preferredPlatform === 'linkedin' ? 'profile' : 'video',
+      engineFn: `${preferredPlatform}.validate`,
+    };
+  }
+
+  if (/^@[A-Za-z0-9._-]{1,35}$/.test(trimmed)) {
+    const plat: SupportedPlatform =
+      preferredPlatform === 'tiktok'
+        ? 'tiktok'
+        : preferredPlatform === 'linkedin'
+        ? 'linkedin'
+        : 'instagram';
+    return {
+      platform: plat,
+      contentKind: 'profile',
+      engineFn: `${plat}.profile`,
+    };
+  }
+
+  const parseSafe = (u: string): URL | null => {
+    try {
+      const withProto = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+      return new URL(withProto);
+    } catch {
+      return null;
+    }
+  };
+
+  const origParsed = parseSafe(trimmed);
+  const effParsed = parseSafe(effectiveInput) || origParsed;
+
+  if (!origParsed || !effParsed) {
+    return {
+      platform: preferredPlatform,
+      contentKind: preferredPlatform === 'linkedin' ? 'profile' : 'video',
+      engineFn: `${preferredPlatform}.validate`,
+    };
+  }
+
+  const origHost = origParsed.hostname.toLowerCase().replace(/^www\./, '');
+  const origPath = origParsed.pathname.toLowerCase();
+  const host = effParsed.hostname.toLowerCase().replace(/^www\./, '');
+  const path = effParsed.pathname.toLowerCase();
+
+  // Détection de la plateforme d'après l'hôte (même si l'URL est invalide ou non supportée)
+  let platform: SupportedPlatform = preferredPlatform;
+  if (
+    host.includes('tiktok.com') ||
+    origHost.includes('tiktok.com')
+  ) {
+    platform = 'tiktok';
+  } else if (
+    host.includes('instagram.com') ||
+    host === 'instagr.am' ||
+    origHost.includes('instagram.com') ||
+    origHost === 'instagr.am'
+  ) {
+    platform = 'instagram';
+  } else if (
+    host === 'x.com' ||
+    host.endsWith('.x.com') ||
+    host.includes('twitter.com') ||
+    host === 't.co' ||
+    host.includes('fxtwitter') ||
+    host.includes('vxtwitter') ||
+    host.includes('fixupx') ||
+    origHost === 't.co'
+  ) {
+    platform = 'x';
+  } else if (
+    isAllowedFacebookHost(effParsed.hostname) ||
+    isAllowedFacebookHost(origParsed.hostname) ||
+    host.includes('facebook.com') ||
+    host.includes('fb.watch') ||
+    host.includes('fb.com')
+  ) {
+    platform = 'facebook';
+  } else if (
+    host.includes('linkedin.com') ||
+    host === 'lnkd.in' ||
+    origHost.includes('linkedin.com') ||
+    origHost === 'lnkd.in'
+  ) {
+    platform = 'linkedin';
+  }
+
+  const isOrigShortLink =
+    origHost === 'vm.tiktok.com' ||
+    origHost === 'vt.tiktok.com' ||
+    origPath.startsWith('/t/') ||
+    origHost === 't.co' ||
+    origHost === 'fb.watch' ||
+    origPath.startsWith('/share/v/') ||
+    origPath.startsWith('/share/r/') ||
+    origHost === 'lnkd.in' ||
+    origHost === 'instagr.am';
+
+  // 1. TIKTOK
+  if (platform === 'tiktok') {
+    if (path.includes('/photo/')) {
+      return {
+        platform: 'tiktok',
+        contentKind: isOrigShortLink ? 'short_link' : 'photo',
+        engineFn: 'tiktok.photo',
+      };
+    }
+    if (path.includes('/music/') || path.includes('/audio/')) {
+      return {
+        platform: 'tiktok',
+        contentKind: 'audio',
+        engineFn: 'tiktok.audio',
+      };
+    }
+    if (/^\/@[a-z0-9._-]+\/?$/.test(path)) {
+      return {
+        platform: 'tiktok',
+        contentKind: 'profile',
+        engineFn: 'tiktok.profile',
+      };
+    }
+    if (isOrigShortLink) {
+      return {
+        platform: 'tiktok',
+        contentKind: 'short_link',
+        engineFn: 'tiktok.video',
+      };
+    }
+    return {
+      platform: 'tiktok',
+      contentKind: 'video',
+      engineFn: 'tiktok.video',
+    };
+  }
+
+  // 2. INSTAGRAM
+  if (platform === 'instagram') {
+    if (path.startsWith('/stories/') || path.includes('/stories/')) {
+      return {
+        platform: 'instagram',
+        contentKind: 'story',
+        engineFn: 'instagram.story',
+      };
+    }
+    if (path.includes('/reels/audio/') || path.startsWith('/audio/')) {
+      return {
+        platform: 'instagram',
+        contentKind: 'audio',
+        engineFn: 'instagram.audio',
+      };
+    }
+    if (
+      /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(path) ||
+      /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(origPath)
+    ) {
+      return {
+        platform: 'instagram',
+        contentKind: isOrigShortLink ? 'short_link' : 'reel',
+        engineFn: 'instagram.reel',
+      };
+    }
+    if (/^\/(?:[a-z0-9._]{1,30}\/)?p\//.test(path)) {
+      return {
+        platform: 'instagram',
+        contentKind: isOrigShortLink ? 'short_link' : 'carousel',
+        engineFn: 'instagram.carousel',
+      };
+    }
+    const segs = path.split('/').filter(Boolean);
+    if (segs.length === 1 && !RESERVED_IG_SEGMENTS.has(segs[0])) {
+      return {
+        platform: 'instagram',
+        contentKind: 'profile',
+        engineFn: 'instagram.profile',
+      };
+    }
+    return {
+      platform: 'instagram',
+      contentKind: isOrigShortLink ? 'short_link' : 'carousel',
+      engineFn: 'instagram.carousel',
+    };
+  }
+
+  // 3. X (TWITTER)
+  if (platform === 'x') {
+    const unresolvedTco = host === 't.co';
+    if (unresolvedTco) {
+      return {
+        platform: 'x',
+        contentKind: 'short_link',
+        engineFn: 'x.tco',
+      };
+    }
+    if (path.includes('/photo/')) {
+      return {
+        platform: 'x',
+        contentKind: isOrigShortLink ? 'short_link' : 'photo',
+        engineFn: 'x.syndication',
+      };
+    }
+    if (path.includes('/status/')) {
+      return {
+        platform: 'x',
+        contentKind: isOrigShortLink ? 'short_link' : 'video',
+        engineFn: 'x.syndication',
+      };
+    }
+    return {
+      platform: 'x',
+      contentKind: isOrigShortLink ? 'short_link' : 'video',
+      engineFn: 'x.syndication',
+    };
+  }
+
+  // 4. FACEBOOK
+  if (platform === 'facebook') {
+    if (
+      path.startsWith('/reel/') ||
+      path.startsWith('/reels/') ||
+      origPath.startsWith('/reel/') ||
+      origPath.startsWith('/reels/') ||
+      origPath.startsWith('/share/r/')
+    ) {
+      return {
+        platform: 'facebook',
+        contentKind: isOrigShortLink ? 'short_link' : 'reel',
+        engineFn: 'facebook.reel',
+      };
+    }
+    if (path.startsWith('/photo') || path.startsWith('/photos/')) {
+      return {
+        platform: 'facebook',
+        contentKind: 'photo',
+        engineFn: 'facebook.video',
+      };
+    }
+    if (path.startsWith('/stories/')) {
+      return {
+        platform: 'facebook',
+        contentKind: 'story',
+        engineFn: 'facebook.video',
+      };
+    }
+    return {
+      platform: 'facebook',
+      contentKind: isOrigShortLink ? 'short_link' : 'video',
+      engineFn: 'facebook.video',
+    };
+  }
+
+  // 5. LINKEDIN
+  return {
+    platform: 'linkedin',
+    contentKind: isOrigShortLink ? 'short_link' : 'profile',
+    engineFn: 'linkedin.profile',
+  };
+}
+

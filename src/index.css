@@ -7,6 +7,36 @@
     --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Tahoma', sans-serif;
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Tahoma', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    /* Admin Light Theme Tokens (WCAG AA compliant, warm VIDNEX identity) */
+    --admin-bg: #fffaf5;
+    --admin-surface: #ffffff;
+    --admin-surface-muted: #faf3ec;
+    --admin-surface-hover: #f5e9dc;
+    --admin-border: #e2cbb8;
+    --admin-border-strong: #c49e85;
+    --admin-text: #1c1008;
+    --admin-text-secondary: #4a2f1d;
+    --admin-text-muted: #6b4730;
+    --admin-accent: #c2410c;
+    --admin-accent-bg: #ffedd5;
+    --admin-accent-border: #fdba74;
+  }
+
+  .dark {
+    /* Admin Dark Theme Tokens (WCAG AA compliant, warm VIDNEX identity) */
+    --admin-bg: #140e0a;
+    --admin-surface: #1c140e;
+    --admin-surface-muted: #120c08;
+    --admin-surface-hover: #2a1d14;
+    --admin-border: #4d2c19;
+    --admin-border-strong: #7c4324;
+    --admin-text: #fffaf5;
+    --admin-text-secondary: #fed7aa;
+    --admin-text-muted: #fdba74;
+    --admin-accent: #fb923c;
+    --admin-accent-bg: #431407;
+    --admin-accent-border: #9a3412;
   }
 
   html,

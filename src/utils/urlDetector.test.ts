@@ -1995,7 +1995,10 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(notFoundLog);
     assert.ok(notFoundLog.engine_stage.includes('+'));
     assert.equal(notFoundLog.http_status, 404);
-    assert.equal(notFoundLog.ip_hash, '');
+    assert.equal(notFoundLog.content_kind, 'profile');
+    assert.equal(notFoundLog.engine_fn, 'instagram.profile');
+    assert.equal(notFoundLog.ip_hash.length, 12);
+    assert.notEqual(notFoundLog.ip_hash_short, 'anonyme');
 
     const statsGetRes = await worker.fetch(
       new Request('https://vidnex.space/api/admin/stats', {
@@ -2392,21 +2395,22 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'ru',
     ]);
 
-    // 1. Existing 75 core routes remain untouched; blog routes add 2 hubs (/blog, /fr/blog) + 9 published article pages (5 EN + 4 FR) = 11 routes -> 86 total
+    // 1. Existing 75 core routes remain untouched; blog routes add 2 hubs (/blog, /fr/blog) + 11 published article pages (6 EN + 5 FR) = 13 routes -> 88 total
     assert.equal(getAllPublicRoutes().length, 75);
     const blogRoutes = getAllBlogPublicRoutes();
-    assert.equal(blogRoutes.length, 11);
-    assert.equal(getAllIndexableRoutes().length, 86);
+    assert.equal(blogRoutes.length, 13);
+    assert.equal(getAllIndexableRoutes().length, 88);
 
-    // 2. Only the 5 specified English articles are published at /blog/{slug}; es and de have 0 published articles
+    // 2. Only the 6 specified English articles are published at /blog/{slug}; es and de have 0 published articles
     const enArticles = getPublishedArticlesForLocale('en');
-    assert.equal(enArticles.length, 5);
+    assert.equal(enArticles.length, 6);
     const expectedEnIds = [
       'troubleshooting-expired-blocked-social-media-links',
       'instagram-reels-carousels-resolution-compression-guide',
       'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
       'why-is-downloaded-video-low-quality',
       'save-public-tiktok-videos-without-watermark-guide',
+      'download-public-instagram-reels-carousels-guide',
     ];
     assert.deepEqual(
       enArticles.map((a) => a.article.id),
@@ -2414,7 +2418,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(getPublishedArticlesForLocale('es').length, 0);
     assert.equal(getPublishedArticlesForLocale('de').length, 0);
-    assert.equal(getPublishedArticlesForLocale('fr').length, 4);
+    assert.equal(getPublishedArticlesForLocale('fr').length, 5);
 
     // 3. English default blog hub (/blog) is 200; /en/blog and /en/blog/{slug} are 301 redirects (no longer 200 aliases)
     const resBlogEn = resolveRouteFromPathname('/blog');

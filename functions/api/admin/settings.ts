@@ -1,5 +1,5 @@
 import { type AdminEnv } from '../../_lib/db.ts';
-import { verifyCsrfAndJson } from '../../_lib/auth.ts';
+import { requirePermission, verifyCsrfAndJson } from '../../_lib/auth.ts';
 import { getSystemSettings, updateSystemSettings, type SystemSettings } from '../../_lib/settings.ts';
 
 export interface PagesContext {
@@ -8,7 +8,11 @@ export interface PagesContext {
 }
 
 export async function onRequestGet(context: PagesContext): Promise<Response> {
-  const settings = await getSystemSettings(context.env || {});
+  const env = context.env || {};
+  const auth = await requirePermission(context.request, env, 'owner');
+  if (!auth.ok) return auth.response;
+
+  const settings = await getSystemSettings(env);
   return new Response(
     JSON.stringify({
       ok: true,
@@ -23,6 +27,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
 
 export async function onRequestPost(context: PagesContext): Promise<Response> {
   const { request, env = {} } = context;
+  const auth = await requirePermission(request, env, 'owner');
+  if (!auth.ok) return auth.response;
 
   const csrf = verifyCsrfAndJson(request);
   if (!csrf.ok) {

@@ -5,7 +5,11 @@
  * tout en garantissant que l'extraction publique continue si D1 est indisponible.
  */
 
-import { detectUrl, type SupportedPlatform } from '../_lib/detect.ts';
+import {
+  detectUrl,
+  classifyUrlForLog,
+  type SupportedPlatform,
+} from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
@@ -178,19 +182,23 @@ async function handleExtract(
     }
   }
 
+  const initialClass = classifyUrlForLog(targetUrl, preferredPlatform);
+
   // Vérification 2 : Liste de blocage (IP hachée, domaine ou URL)
   const isBlocked = await isRequestBlocked(env, ipHash, targetUrl);
   if (isBlocked) {
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
-        platform: preferredPlatform,
+        platform: initialClass.platform,
         status: 'error',
         errorCode: 'BLOCKED',
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'blocklist',
         httpStatus: 403,
+        contentKind: initialClass.contentKind,
+        engineFn: initialClass.engineFn,
       })
     );
     return createErrorResponse(
@@ -206,13 +214,15 @@ async function handleExtract(
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
-        platform: preferredPlatform,
+        platform: initialClass.platform,
         status: 'error',
         errorCode: 'RATE_LIMITED',
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'rate_limit',
         httpStatus: 429,
+        contentKind: initialClass.contentKind,
+        engineFn: initialClass.engineFn,
       })
     );
     return createErrorResponse(
@@ -235,6 +245,7 @@ async function handleExtract(
   let detection = detectUrl(targetUrl, preferredPlatform);
 
   if (detection.platform === 'facebook' && detection.isLoginRedirect) {
+    const fbClass = classifyUrlForLog(targetUrl, 'facebook', detection.cleanUrl);
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -245,6 +256,8 @@ async function handleExtract(
         ipHash,
         engineStage: 'detect_login_redirect',
         httpStatus: 403,
+        contentKind: fbClass.contentKind,
+        engineFn: fbClass.engineFn,
       })
     );
     return createErrorResponse(
@@ -289,6 +302,7 @@ async function handleExtract(
     if (!resolvedFb.ok || !resolvedFb.finalUrl) {
       const errCode = resolvedFb.errorCode || 'UNSUPPORTED_URL';
       const status = mapErrorCodeToHttpStatus(errCode);
+      const fbShortClass = classifyUrlForLog(targetUrl, 'facebook', detection.cleanUrl);
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
@@ -298,7 +312,9 @@ async function handleExtract(
           durationMs: Date.now() - startedAt,
           ipHash,
           engineStage: 'fb_redirect',
-          httpStatus: status,
+          httpStatus: errCode === 'TIMEOUT' ? null : status,
+          contentKind: fbShortClass.contentKind,
+          engineFn: fbShortClass.engineFn,
         })
       );
       return createErrorResponse(
@@ -311,6 +327,7 @@ async function handleExtract(
 
     const revalidatedFb = detectUrl(resolvedFb.finalUrl, 'facebook');
     if (revalidatedFb.isLoginRedirect) {
+      const fbLoginClass = classifyUrlForLog(targetUrl, 'facebook', resolvedFb.finalUrl);
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
@@ -321,6 +338,8 @@ async function handleExtract(
           ipHash,
           engineStage: 'fb_redirect_login',
           httpStatus: 403,
+          contentKind: fbLoginClass.contentKind,
+          engineFn: fbLoginClass.engineFn,
         })
       );
       return createErrorResponse(
@@ -339,6 +358,12 @@ async function handleExtract(
     }
     detection = revalidatedFb;
   }
+
+  const resolvedClass = classifyUrlForLog(
+    targetUrl,
+    detection.platform || preferredPlatform,
+    detection.cleanUrl
+  );
 
   // Vérification 4 : Plateforme désactivée dans l'admin
   if (
@@ -368,6 +393,8 @@ async function handleExtract(
         ipHash,
         engineStage: 'platform_disabled',
         httpStatus: 403,
+        contentKind: resolvedClass.contentKind,
+        engineFn: resolvedClass.engineFn,
       })
     );
     return createErrorResponse(
@@ -428,10 +455,18 @@ async function handleExtract(
     : isLinkedInProfile
     ? 'linkedin_profile'
     : `${detection.platform}_${detection.kind || 'media'}`;
+  const contentKind = result.contentKind || resolvedClass.contentKind;
+  const engineFn = result.engineFn || resolvedClass.engineFn;
 
   if (!result.ok || result.error) {
     const errCode = result.error?.code || 'BLOCKED_BY_PLATFORM';
     const mappedStatus = mapErrorCodeToHttpStatus(errCode);
+    const loggedHttpStatus =
+      errCode === 'TIMEOUT'
+        ? null
+        : result.httpStatus !== undefined
+        ? result.httpStatus
+        : mappedStatus;
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -442,7 +477,9 @@ async function handleExtract(
         ipHash,
         stage: result.stage ?? null,
         engineStage: result.engineStage || result.stage || defaultStage,
-        httpStatus: result.httpStatus ?? mappedStatus,
+        httpStatus: loggedHttpStatus,
+        contentKind,
+        engineFn,
       })
     );
     return createErrorResponse(
@@ -464,6 +501,8 @@ async function handleExtract(
       stage: result.stage ?? null,
       engineStage: result.engineStage || result.stage || defaultStage,
       httpStatus: result.httpStatus ?? 200,
+      contentKind,
+      engineFn,
     })
   );
 

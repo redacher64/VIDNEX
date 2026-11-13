@@ -109,10 +109,17 @@ export async function resolveTcoShortLink(
   return null;
 }
 
-function fail(code: ErrorCode, message: string): ExtractResponse {
+function fail(
+  code: ErrorCode,
+  message: string,
+  meta?: { engineStage?: string; httpStatus?: number | null; engineFn?: string }
+): ExtractResponse {
   return {
     ok: false,
     platform: 'x',
+    engineStage: meta?.engineStage ?? 'syndication',
+    httpStatus: meta?.httpStatus !== undefined ? meta.httpStatus : null,
+    engineFn: meta?.engineFn ?? 'x.syndication',
     error: { code, message },
   };
 }
@@ -225,12 +232,15 @@ export function parseMp4Variants(
  */
 export function parseSyndicationTweetPayload(
   data: Record<string, any> | null,
-  tweetId: string
+  tweetId: string,
+  httpStatus = 200
 ): ExtractResponse {
+  const meta = { engineStage: 'syndication', httpStatus, engineFn: 'x.syndication' };
   if (!data || typeof data !== 'object') {
     return fail(
       'BLOCKED_BY_PLATFORM',
-      'Réponse vide ou invalide reçue depuis le service de syndication X.'
+      'Réponse vide ou invalide reçue depuis le service de syndication X.',
+      meta
     );
   }
 
@@ -252,18 +262,20 @@ export function parseSyndicationTweetPayload(
     ) {
       return fail(
         'PRIVATE_OR_LOGIN_REQUIRED',
-        'Ce tweet contient un média sensible ou restreint par l’âge qui nécessite une connexion sur X.'
+        'Ce tweet contient un média sensible ou restreint par l’âge qui nécessite une connexion sur X.',
+        meta
       );
     }
     return fail(
       'PRIVATE_OR_LOGIN_REQUIRED',
-      'Ce tweet provient d’un compte privé, protégé ou restreint sur X.'
+      'Ce tweet provient d’un compte privé, protégé ou restreint sur X.',
+      meta
     );
   }
 
   // Objet vide `{}` => Tweet introuvable / supprimé
   if (!data.__typename && !data.id_str && !data.text && !data.user) {
-    return fail('NOT_FOUND', 'Ce tweet est introuvable ou a été supprimé.');
+    return fail('NOT_FOUND', 'Ce tweet est introuvable ou a été supprimé.', meta);
   }
 
   const username = String(data.user?.screen_name || 'x_user').replace(/^@/, '');
@@ -285,10 +297,11 @@ export function parseSyndicationTweetPayload(
     if (data.possibly_sensitive === true) {
       return fail(
         'PRIVATE_OR_LOGIN_REQUIRED',
-        'Ce tweet contient un média sensible ou restreint par l’âge qui ne peut pas être extrait sans session X.'
+        'Ce tweet contient un média sensible ou restreint par l’âge qui ne peut pas être extrait sans session X.',
+        meta
       );
     }
-    return fail('NO_MEDIA', 'Ce tweet ne contient ni vidéo ni image.');
+    return fail('NO_MEDIA', 'Ce tweet ne contient ni vidéo ni image.', meta);
   }
 
   // Vérification de disponibilité des médias (ex: DMCA / indisponible / sensible bloqué)
@@ -300,7 +313,8 @@ export function parseSyndicationTweetPayload(
   if (availableMedia.length === 0) {
     return fail(
       'PRIVATE_OR_LOGIN_REQUIRED',
-      'Le média de ce tweet est restreint, sensible ou indisponible publiquement.'
+      'Le média de ce tweet est restreint, sensible ou indisponible publiquement.',
+      meta
     );
   }
 
@@ -354,7 +368,7 @@ export function parseSyndicationTweetPayload(
     }
 
     if (carouselItems.length === 0) {
-      return fail('NO_MEDIA', 'Ce tweet ne contient ni vidéo ni image téléchargeable.');
+      return fail('NO_MEDIA', 'Ce tweet ne contient ni vidéo ni image téléchargeable.', meta);
     }
 
     return {
@@ -362,6 +376,9 @@ export function parseSyndicationTweetPayload(
       platform: 'x',
       type: 'carousel',
       title,
+      engineStage: 'syndication',
+      httpStatus,
+      engineFn: 'x.syndication',
       author,
       thumbnail: carouselItems[0].thumbnail || carouselItems[0].url,
       items: carouselItems,
@@ -392,10 +409,11 @@ export function parseSyndicationTweetPayload(
       if (data.possibly_sensitive) {
         return fail(
           'PRIVATE_OR_LOGIN_REQUIRED',
-          'Cette vidéo X est restreinte par l’âge ou marquée comme contenu sensible.'
+          'Cette vidéo X est restreinte par l’âge ou marquée comme contenu sensible.',
+          meta
         );
       }
-      return fail('NO_MEDIA', 'Aucune variante vidéo MP4 trouvée dans ce tweet.');
+      return fail('NO_MEDIA', 'Aucune variante vidéo MP4 trouvée dans ce tweet.', meta);
     }
 
     const duration = formatDurationMillis(
@@ -418,6 +436,9 @@ export function parseSyndicationTweetPayload(
       type: 'video',
       title,
       duration,
+      engineStage: 'syndication',
+      httpStatus,
+      engineFn: 'x.syndication',
       author,
       thumbnail: mediaThumb,
       items: videoItems,
@@ -431,6 +452,9 @@ export function parseSyndicationTweetPayload(
       platform: 'x',
       type: 'image',
       title,
+      engineStage: 'syndication',
+      httpStatus,
+      engineFn: 'x.syndication',
       author,
       thumbnail: mediaThumb,
       items: [
@@ -447,7 +471,7 @@ export function parseSyndicationTweetPayload(
     };
   }
 
-  return fail('NO_MEDIA', `Ce tweet (${tweetId}) ne contient ni vidéo ni image.`);
+  return fail('NO_MEDIA', `Ce tweet (${tweetId}) ne contient ni vidéo ni image.`, meta);
 }
 
 /**
@@ -456,7 +480,11 @@ export function parseSyndicationTweetPayload(
 export async function extractX(tweetId: string): Promise<ExtractResponse> {
   const cleanId = String(tweetId || '').trim();
   if (!/^\d+$/.test(cleanId)) {
-    return fail('UNSUPPORTED_URL', 'Identifiant de tweet X invalide.');
+    return fail('UNSUPPORTED_URL', 'Identifiant de tweet X invalide.', {
+      engineStage: 'validate',
+      httpStatus: null,
+      engineFn: 'x.syndication',
+    });
   }
 
   const token = computeSyndicationToken(cleanId);
@@ -484,44 +512,51 @@ export async function extractX(tweetId: string): Promise<ExtractResponse> {
     if (isTimeoutError(err)) {
       return fail(
         'TIMEOUT',
-        'Le délai de 8 secondes a été dépassé lors de la connexion à X (Twitter).'
+        'Le délai de 8 secondes a été dépassé lors de la connexion à X (Twitter).',
+        { engineStage: 'syndication', httpStatus: null, engineFn: 'x.syndication' }
       );
     }
     return fail(
       'BLOCKED_BY_PLATFORM',
-      'Impossible de joindre le serveur de syndication X (Twitter).'
+      'Impossible de joindre le serveur de syndication X (Twitter).',
+      { engineStage: 'syndication', httpStatus: null, engineFn: 'x.syndication' }
     );
   }
 
-  if (response.status === 404) {
-    return fail('NOT_FOUND', 'Tweet introuvable ou supprimé sur X (Twitter).');
+  const status = response.status;
+  const meta = { engineStage: 'syndication', httpStatus: status, engineFn: 'x.syndication' };
+
+  if (status === 404) {
+    return fail('NOT_FOUND', 'Tweet introuvable ou supprimé sur X (Twitter).', meta);
   }
 
-  if (response.status === 429 || response.status === 403 || response.status === 401) {
+  if (status === 429 || status === 403 || status === 401) {
     return fail(
       'BLOCKED_BY_PLATFORM',
-      'X (Twitter) a temporairement limité les requêtes publiques. Veuillez réessayer dans quelques instants.'
+      'X (Twitter) a temporairement limité les requêtes publiques. Veuillez réessayer dans quelques instants.',
+      meta
     );
   }
 
   if (!response.ok) {
     return fail(
       'BLOCKED_BY_PLATFORM',
-      `Erreur inattendue de X (HTTP ${response.status}).`
+      `Erreur inattendue de X (HTTP ${status}).`,
+      meta
     );
   }
 
   const rawText = await response.text().catch(() => '');
   if (!rawText || !rawText.trim()) {
-    return fail('BLOCKED_BY_PLATFORM', 'X (Twitter) a renvoyé une réponse vide.');
+    return fail('BLOCKED_BY_PLATFORM', 'X (Twitter) a renvoyé une réponse vide.', meta);
   }
 
   let data: Record<string, any> | null = null;
   try {
     data = JSON.parse(rawText);
   } catch {
-    return fail('BLOCKED_BY_PLATFORM', 'Réponse JSON invalide reçue depuis X.');
+    return fail('BLOCKED_BY_PLATFORM', 'Réponse JSON invalide reçue depuis X.', meta);
   }
 
-  return parseSyndicationTweetPayload(data, cleanId);
+  return parseSyndicationTweetPayload(data, cleanId, status);
 }

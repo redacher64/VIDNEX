@@ -105,6 +105,59 @@ const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS blog_redirects (id INTEGER PRIMARY KEY AUTOINCREMENT, locale TEXT NOT NULL, old_slug TEXT NOT NULL, new_slug TEXT NOT NULL, article_id TEXT NOT NULL, status_code INTEGER NOT NULL DEFAULT 301, created_at INTEGER NOT NULL, UNIQUE(locale, old_slug))`,
 ];
 
+/**
+ * Initialise le schéma D1 complet (tables, index, insertions de configuration par défaut)
+ * et applique les migrations incrémentales. Idempotent.
+ */
+export async function ensureD1Schema(rawDb?: D1Database | null): Promise<void> {
+  if (!rawDb || typeof rawDb.prepare !== 'function') {
+    return;
+  }
+  if (!bootstrappedDbs.has(rawDb)) {
+    try {
+      if (typeof rawDb.batch === 'function') {
+        await rawDb.batch(D1_BOOTSTRAP_STATEMENTS.map((sql) => rawDb.prepare(sql)));
+      } else {
+        for (const sql of D1_BOOTSTRAP_STATEMENTS) {
+          await rawDb.prepare(sql).run();
+        }
+      }
+      bootstrappedDbs.add(rawDb);
+    } catch {
+      for (const sql of D1_BOOTSTRAP_STATEMENTS) {
+        try {
+          await rawDb.prepare(sql).run();
+        } catch {
+          // ignore si existe déjà
+        }
+      }
+      bootstrappedDbs.add(rawDb);
+    }
+  }
+
+  if (!migratedColumnsDbs.has(rawDb)) {
+    try {
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_stage TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN content_kind TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_fn TEXT').run().catch(() => {});
+      migratedColumnsDbs.add(rawDb);
+    } catch {
+      // Ignorer
+    }
+  }
+
+  if (!migratedEngineColumnsDbs.has(rawDb)) {
+    try {
+      await rawDb.prepare('ALTER TABLE engine_status ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE engine_status ADD COLUMN alert_sent INTEGER NOT NULL DEFAULT 0').run().catch(() => {});
+      migratedEngineColumnsDbs.add(rawDb);
+    } catch {
+      // Ignorer
+    }
+  }
+}
+
 async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boolean> {
   const msg = (err instanceof Error ? err.message : String(err || '')).toLowerCase();
   if (

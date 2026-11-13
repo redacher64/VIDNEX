@@ -1,17 +1,18 @@
-import { BLOG_ARTICLES, type BlogCategoryId } from '../../../src/data/blogArticles.ts';
-import type {
-  BlogContentSection,
-  BlogFaqItem,
-  BlogInternalLink,
-  BlogSourceLink,
-  BlogTocItem,
-  Locale,
-} from '../../../src/i18n/config.ts';
+import {
+  BLOG_ARTICLES,
+  type BlogCategoryId,
+  type BlogContentSection,
+  type BlogFaqItem,
+  type BlogInternalLink,
+  type BlogTocItem,
+} from '../../../src/data/blogArticles.ts';
+import type { Locale } from '../../../src/i18n/config.ts';
 import {
   parseRestrictedBlogMarkdown,
   sectionsToRestrictedMarkdown,
   validateBlogTranslationInput,
   type BlogValidationIssue,
+  type BlogValidationWarning,
 } from '../../../src/utils/blogValidation.ts';
 import {
   BLOG_PERMISSIONS,
@@ -26,6 +27,14 @@ import {
   type AdminEnv,
   type D1Database,
 } from '../../_lib/db.ts';
+
+export interface BlogSourceLink {
+  label: string;
+  url: string;
+  publisher?: string;
+  rel?: string;
+  target?: string;
+}
 
 export const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 export const MAX_REVISIONS_PER_TRANSLATION = 10;
@@ -356,7 +365,7 @@ interface NormalizedTranslationPayload {
   sources: BlogSourceLink[];
   bodyMarkdown: string;
   status: BlogStatus;
-  warnings: BlogValidationIssue[];
+  warnings: BlogValidationWarning[];
 }
 
 /**
@@ -374,7 +383,7 @@ async function validateAndNormalizeTranslation(
   | {
       ok: false;
       errors: BlogValidationIssue[];
-      warnings: BlogValidationIssue[];
+      warnings: BlogValidationWarning[];
     }
 > {
   const locale = String(rawLocale || rawInput.locale || '')
@@ -441,14 +450,14 @@ async function validateAndNormalizeTranslation(
           Record<string, unknown>
         >
       )
-        .map((item) => {
+        .map((item): BlogInternalLink | null => {
           if (!item || typeof item !== 'object') return null;
           const label = String(item.label || '').trim();
           const route = String(item.route || '').trim();
           if (!label || !route) return null;
           return {
             label,
-            route: route as BlogInternalLink['route'],
+            route,
             description: item.description
               ? String(item.description).trim()
               : undefined,
@@ -506,15 +515,13 @@ async function validateAndNormalizeTranslation(
     metaTitle,
     metaDescription,
     bodyMarkdown,
-    quickAnswer: quickAnswer ?? undefined,
-    keyTakeaways,
-    introduction,
     faq,
-    sources,
+    sources: sources.map((s) => ({ title: s.label, url: s.url, publisher: s.publisher || '' })),
+    internalLinks,
     existingSlugsInLocale,
   });
 
-  if (!validation.valid || !validation.parsedBody) {
+  if (!validation.valid || !validation.parsedMarkdown) {
     return {
       ok: false,
       errors: validation.errors,
@@ -531,7 +538,7 @@ async function validateAndNormalizeTranslation(
 
   const estimatedReadingTime =
     Number(rawInput.readingTimeMinutes ?? rawInput.reading_time_minutes) ||
-    Math.max(1, Math.ceil(validation.parsedBody.wordCount / 200));
+    Math.max(1, Math.ceil(validation.parsedMarkdown.wordCount / 200));
 
   return {
     ok: true,
@@ -549,8 +556,8 @@ async function validateAndNormalizeTranslation(
       quickAnswer,
       keyTakeaways,
       introduction,
-      tableOfContents: validation.parsedBody.tableOfContents,
-      sections: validation.parsedBody.sections,
+      tableOfContents: validation.parsedMarkdown.tableOfContents,
+      sections: validation.parsedMarkdown.content,
       faq,
       ctaTitle:
         rawInput.ctaTitle != null || rawInput.cta_title != null
@@ -1006,7 +1013,7 @@ export async function onRequestPost(context: {
           .bind(
             staticArticle.id,
             staticArticle.category,
-            staticArticle.toolRoute ?? null,
+            staticArticle.primaryToolRoute ?? null,
             staticArticle.secondaryToolRoute ?? null,
             principal.login,
             principal.login,
@@ -1021,6 +1028,7 @@ export async function onRequestPost(context: {
       }
 
       for (const [locale, tr] of Object.entries(staticArticle.translations)) {
+        if (!tr) continue;
         const existingTr = await db
           .prepare(
             `SELECT * FROM blog_translations WHERE article_id = ? AND locale = ?`
@@ -1032,7 +1040,7 @@ export async function onRequestPost(context: {
           .prepare(
             `SELECT * FROM blog_translations WHERE locale = ? AND slug = ?`
           )
-          .bind(locale, tr.slug)
+          .bind(locale, tr.localizedSlug)
           .first<D1BlogTranslationRow>();
 
         if (existingTr || existingSlug) {
@@ -1040,18 +1048,24 @@ export async function onRequestPost(context: {
           continue;
         }
 
-        const bodyMarkdown = sectionsToRestrictedMarkdown(tr.sections);
+        const bodyMarkdown = sectionsToRestrictedMarkdown(tr.content);
         const parsedMd = parseRestrictedBlogMarkdown(bodyMarkdown);
+        const hasErrors =
+          parsedMd.hasH1 ||
+          parsedMd.hasRawHtml ||
+          parsedMd.insecureExternalLinks.length > 0;
         const sections =
-          parsedMd.errors.length === 0 && parsedMd.sections.length > 0
-            ? parsedMd.sections
-            : tr.sections;
+          !hasErrors && parsedMd.content.length > 0
+            ? parsedMd.content
+            : tr.content;
         const toc =
-          parsedMd.errors.length === 0 && parsedMd.tableOfContents.length > 0
+          !hasErrors && parsedMd.tableOfContents.length > 0
             ? parsedMd.tableOfContents
             : tr.tableOfContents;
         const sanitizedSources = (tr.sources || []).map((s) => ({
-          ...s,
+          label: s.title,
+          url: s.url,
+          publisher: s.publisher,
           rel: 'noopener noreferrer',
           target: '_blank',
         }));
@@ -1069,7 +1083,7 @@ export async function onRequestPost(context: {
           .bind(
             staticArticle.id,
             locale,
-            tr.slug,
+            tr.localizedSlug,
             tr.title,
             tr.excerpt,
             tr.metaTitle,
@@ -1101,13 +1115,13 @@ export async function onRequestPost(context: {
           {
             articleId: staticArticle.id,
             locale,
-            slug: tr.slug,
+            slug: tr.localizedSlug,
             title: tr.title,
             metaTitle: tr.metaTitle,
             metaDescription: tr.metaDescription,
             bodyMarkdown,
             snapshot: {
-              slug: tr.slug,
+              slug: tr.localizedSlug,
               title: tr.title,
               excerpt: tr.excerpt,
               metaTitle: tr.metaTitle,
@@ -1240,7 +1254,7 @@ export async function onRequestPost(context: {
 
     const normalizedTranslations: NormalizedTranslationPayload[] = [];
     const allErrors: BlogValidationIssue[] = [];
-    const allWarnings: BlogValidationIssue[] = [];
+    const allWarnings: BlogValidationWarning[] = [];
 
     for (const [loc, trInput] of localeEntries) {
       if (
@@ -1451,7 +1465,7 @@ export async function onRequestPost(context: {
 
     const normalizedTranslations: NormalizedTranslationPayload[] = [];
     const allErrors: BlogValidationIssue[] = [];
-    const allWarnings: BlogValidationIssue[] = [];
+    const allWarnings: BlogValidationWarning[] = [];
 
     for (const [loc, trInput] of Object.entries(rawTranslations)) {
       if (

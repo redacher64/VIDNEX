@@ -23,11 +23,14 @@ export interface ParsedMarkdownLink {
 export interface RestrictedMarkdownResult {
   tableOfContents: BlogTocItem[];
   content: BlogContentSection[];
+  sections: BlogContentSection[];
   links: ParsedMarkdownLink[];
+  externalLinks: ParsedMarkdownLink[];
   wordCount: number;
   hasH1: boolean;
   hasRawHtml: boolean;
   insecureExternalLinks: string[];
+  errors: Array<{ code: string; message: string }>;
 }
 
 export interface BlogValidationIssue {
@@ -35,19 +38,28 @@ export interface BlogValidationIssue {
     | 'INVALID_SLUG_FORMAT'
     | 'SLUG_CONTAINS_YEAR'
     | 'DUPLICATE_SLUG_IN_LOCALE'
+    | 'SLUG_NOT_UNIQUE_IN_LOCALE'
     | 'MISSING_TITLE'
     | 'META_TITLE_EMPTY'
     | 'META_TITLE_TOO_LONG'
     | 'META_DESCRIPTION_OUT_OF_RANGE'
+    | 'META_DESCRIPTION_LENGTH_INVALID'
     | 'H1_IN_BODY'
+    | 'H1_FORBIDDEN_IN_BODY'
     | 'RAW_HTML_FORBIDDEN'
-    | 'INSECURE_EXTERNAL_LINK';
+    | 'INSECURE_EXTERNAL_LINK'
+    | 'EXTERNAL_LINK_MUST_BE_HTTPS';
   field: string;
   message: string;
 }
 
 export interface BlogValidationWarning {
-  code: 'SHORT_BODY_LENGTH' | 'MISSING_OR_SHORT_FAQ' | 'MISSING_SOURCES';
+  code:
+    | 'SHORT_BODY_LENGTH'
+    | 'SHORT_WORD_COUNT'
+    | 'MISSING_OR_SHORT_FAQ'
+    | 'MISSING_FAQ'
+    | 'MISSING_SOURCES';
   field: string;
   message: string;
 }
@@ -69,7 +81,8 @@ const RAW_HTML_TAG_REGEX =
  */
 export function containsRawHtml(input: string | undefined | null): boolean {
   if (!input) return false;
-  return RAW_HTML_TAG_REGEX.test(input);
+  const stripped = input.replace(/`[^`]*`/g, '');
+  return RAW_HTML_TAG_REGEX.test(stripped);
 }
 
 /**
@@ -242,7 +255,14 @@ export function parseRestrictedBlogMarkdown(
         title: subTitle,
         body: '',
       });
-      currentSubheadingIndex = sec.subheadings.length - 1;
+      if (!sec.subSections) {
+        sec.subSections = [];
+      }
+      sec.subSections.push({
+        heading: subTitle,
+        title: subTitle,
+      });
+      currentSubheadingIndex = sec.subSections.length - 1;
       i++;
       continue;
     }
@@ -272,6 +292,13 @@ export function parseRestrictedBlogMarkdown(
       if (text) {
         sec.technicalCallout = { label, text };
         sec.proTip = text;
+        if (
+          currentSubheadingIndex >= 0 &&
+          sec.subSections &&
+          sec.subSections[currentSubheadingIndex]
+        ) {
+          sec.subSections[currentSubheadingIndex].callout = text;
+        }
       }
       continue;
     }
@@ -300,6 +327,13 @@ export function parseRestrictedBlogMarkdown(
           text,
         };
         sec.proTip = text;
+        if (
+          currentSubheadingIndex >= 0 &&
+          sec.subSections &&
+          sec.subSections[currentSubheadingIndex]
+        ) {
+          sec.subSections[currentSubheadingIndex].callout = text;
+        }
       }
       continue;
     }
@@ -334,6 +368,13 @@ export function parseRestrictedBlogMarkdown(
         const rows = dataLines.map(parseRow);
         const sec = ensureSection();
         sec.table = { headers, rows };
+        if (
+          currentSubheadingIndex >= 0 &&
+          sec.subSections &&
+          sec.subSections[currentSubheadingIndex]
+        ) {
+          sec.subSections[currentSubheadingIndex].table = { headers, rows };
+        }
       }
       continue;
     }
@@ -404,14 +445,39 @@ export function parseRestrictedBlogMarkdown(
     .split(/\s+/)
     .filter(Boolean);
 
+  const errors: Array<{ code: string; message: string }> = [];
+  if (hasRawHtml) {
+    errors.push({
+      code: 'RAW_HTML_FORBIDDEN',
+      message: 'Le HTML brut est strictement interdit dans les articles.',
+    });
+  }
+  if (hasH1) {
+    errors.push({
+      code: 'H1_FORBIDDEN_IN_BODY',
+      message: 'Les titres H1 (# ...) sont interdits dans le corps de l’article : utilisez uniquement H2 (##) et H3 (###).',
+    });
+  }
+  if (insecureExternalLinks.length > 0) {
+    errors.push({
+      code: 'EXTERNAL_LINK_MUST_BE_HTTPS',
+      message: 'Les liens externes doivent obligatoirement utiliser le protocole chiffré HTTPS.',
+    });
+  }
+
+  const externalLinks = links.filter((l) => l.isExternal);
+
   return {
     tableOfContents,
     content: sections,
+    sections,
     links,
+    externalLinks,
     wordCount: plainWords.length,
     hasH1,
     hasRawHtml,
     insecureExternalLinks,
+    errors,
   };
 }
 
@@ -535,7 +601,7 @@ export function validateBlogTranslationInput(
     );
     if (slug && existingSet.has(slug.toLowerCase())) {
       errors.push({
-        code: 'DUPLICATE_SLUG_IN_LOCALE',
+        code: 'SLUG_NOT_UNIQUE_IN_LOCALE',
         field: 'slug',
         message: `Le slug "${slug}" est déjà utilisé pour la langue "${params.locale}".`,
       });
@@ -571,7 +637,7 @@ export function validateBlogTranslationInput(
   const metaDescLen = [...metaDescription].length;
   if (metaDescLen < 90 || metaDescLen > 150) {
     errors.push({
-      code: 'META_DESCRIPTION_OUT_OF_RANGE',
+      code: 'META_DESCRIPTION_LENGTH_INVALID',
       field: 'metaDescription',
       message: `La metaDescription doit compter entre 90 et 150 caractères (actuellement ${metaDescLen}).`,
     });
@@ -582,7 +648,7 @@ export function validateBlogTranslationInput(
 
   if (parsedMarkdown.hasH1) {
     errors.push({
-      code: 'H1_IN_BODY',
+      code: 'H1_FORBIDDEN_IN_BODY',
       field: 'body_markdown',
       message:
         'Les titres H1 (# ...) sont interdits dans le corps de l’article : utilisez uniquement H2 (##) et H3 (###).',
@@ -616,7 +682,7 @@ export function validateBlogTranslationInput(
     insecureSources.length > 0
   ) {
     errors.push({
-      code: 'INSECURE_EXTERNAL_LINK',
+      code: 'EXTERNAL_LINK_MUST_BE_HTTPS',
       field: 'body_markdown',
       message:
         'Tous les liens externes doivent utiliser exclusivement le protocole sécurisé https://.',
@@ -626,7 +692,7 @@ export function validateBlogTranslationInput(
   // 6. Avertissements non bloquants (longueur, FAQ, sources)
   if (parsedMarkdown.wordCount < 250) {
     warnings.push({
-      code: 'SHORT_BODY_LENGTH',
+      code: 'SHORT_WORD_COUNT',
       field: 'body_markdown',
       message: `Contenu court (${parsedMarkdown.wordCount} mots). Il est recommandé de rédiger au moins 250 mots.`,
     });
@@ -634,7 +700,7 @@ export function validateBlogTranslationInput(
 
   if (faq.length === 0) {
     warnings.push({
-      code: 'MISSING_OR_SHORT_FAQ',
+      code: 'MISSING_FAQ',
       field: 'faq',
       message:
         'Aucune question FAQ renseignée (avertissement non bloquant).',

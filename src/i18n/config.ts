@@ -18,6 +18,8 @@ export type SupportedLocale =
   | 'it'
   | 'ru';
 
+export type Locale = SupportedLocale;
+
 export type PlatformPageKey =
   | 'tiktok'
   | 'instagram'

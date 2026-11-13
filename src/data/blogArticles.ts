@@ -30,6 +30,8 @@ export type BlogCategoryKey =
   | 'privacy-safety'
   | 'tutorials';
 
+export type BlogCategoryId = BlogCategoryKey | 'comparisons' | 'audio' | 'news';
+
 export const BLOG_CATEGORY_KEYS: readonly BlogCategoryKey[] = [
   'tiktok-guides',
   'instagram-guides',
@@ -70,6 +72,16 @@ export interface BlogContentSection {
     title: string;
     body: string;
   }>;
+  subSections?: Array<{
+    heading?: string;
+    title?: string;
+    paragraphs?: string[];
+    table?: {
+      headers: string[];
+      rows: string[][];
+    };
+    callout?: string;
+  }>;
 }
 
 export interface BlogFaqItem {
@@ -79,10 +91,11 @@ export interface BlogFaqItem {
 
 export interface BlogInternalLink {
   label: string;
-  description: string;
-  targetType: 'home' | 'platform' | 'blog_article';
+  description?: string;
+  targetType?: 'home' | 'platform' | 'blog_article';
   platformKey?: PlatformPageKey;
   targetArticleId?: string;
+  route?: string;
 }
 
 export interface BlogExternalSource {
@@ -650,7 +663,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           'Identifiez rapidement pourquoi un lien TikTok échoue au téléchargement : compte privé, jeton CDN expiré, carrousel photo ou blocage du navigateur mobile.',
         metaTitle: 'Vidéo TikTok qui ne se télécharge pas : 7 solutions',
         metaDescription:
-          'Découvrez pourquoi une vidéo TikTok refuse de se télécharger et comment corriger les erreurs de lien court, de confidentialité ou de stockage sur mobile.',
+          'Découvrez pourquoi un TikTok refuse de se télécharger et comment corriger les erreurs de lien court, de confidentialité ou de stockage sur mobile.',
         primaryKeyword: 'video tiktok ne se telecharge pas',
         secondaryKeywords: [
           'probleme telechargement tiktok',
@@ -1110,7 +1123,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           'Understand why some Instagram Reels save as silent MP4 files—from MPEG-DASH split video/audio tracks to muted licensed music—and how to get full audio.',
         metaTitle: "Instagram Reel Downloaded Without Sound? Here's Why",
         metaDescription:
-          'Find out why your downloaded Instagram Reel has no sound. Learn how MPEG-DASH split tracks, copyright mutes, and AAC codecs affect Instagram MP4 files.',
+          'Find out why a downloaded Instagram Reel has no sound. Learn how MPEG-DASH split tracks, copyright mutes, and AAC codecs affect Instagram MP4 files.',
         primaryKeyword: 'instagram reel downloaded without sound',
         secondaryKeywords: [
           'instagram video no audio after download',
@@ -2737,7 +2750,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           'Blurry, pixelated MP4 downloads happen when you save a preview stream, a WhatsApp-forwarded copy, or a 360p fallback variant. Learn how to get maximum sharpness.',
         metaTitle: 'Why Is My Downloaded Video Low Quality? Bitrate & HD Guide',
         metaDescription:
-          'Find out why your downloaded video looks blurry or pixelated. Learn how social platform transcoding, bitrate ladders, and HD vs SD streams affect MP4 quality.',
+          'Find out why a downloaded video looks blurry or pixelated. Learn how platform transcoding, bitrate ladders, and HD vs SD streams affect MP4 quality.',
         primaryKeyword: 'why is downloaded video low quality',
         secondaryKeywords: [
           'downloaded video blurry fix',
@@ -3191,7 +3204,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         title: 'Comment enregistrer une vidéo TikTok publique sans filigrane (Mobile et PC)',
         metaTitle: 'Enregistrer une vidéo TikTok sans filigrane : Guide complet',
         metaDescription:
-          'Apprenez comment enregistrer une vidéo TikTok publique sans filigrane en MP4 sur iPhone, Android ou PC. Étapes claires, astuces créateurs et dépannage.',
+          'Comment enregistrer une vidéo TikTok publique sans filigrane en MP4 sur iPhone, Android ou PC. Étapes claires, astuces créateurs et dépannage.',
         excerpt:
           "Vous souhaitez récupérer une vidéo TikTok publique en MP4 sans le logo mobile ni l'écran de fin ? Découvrez la méthode étape par étape sur iPhone, Android et ordinateur, ainsi que les solutions aux erreurs courantes.",
         quickAnswer:
@@ -4384,7 +4397,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         title: 'Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son',
         metaTitle: 'Enregistrer un Reel ou carrousel Instagram avec le son',
         metaDescription:
-          'Découvrez comment enregistrer un Reel, un carrousel ou une photo de profil Instagram publique en MP4 avec le son sur iPhone, Android ou PC, sans compte.',
+          'Comment enregistrer un Reel, un carrousel ou une photo de profil Instagram publique en MP4 avec le son sur iPhone, Android ou PC, sans compte.',
         excerpt:
           "L'icône signet d'Instagram ne sauvegarde qu'un raccourci dans l'application, et le téléchargement natif est souvent désactivé ou marqué d'un logo. Voici comment enregistrer proprement les Reels et carrousels publics.",
         quickAnswer:

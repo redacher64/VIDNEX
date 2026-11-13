@@ -4087,6 +4087,804 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       },
     },
   },
+
+  // ============================================================================
+  // ARTICLE 11 — How to Save Public Instagram Reels, Carousels, and Posts with Sound
+  // Translations: en (published), fr (published), ar (draft)
+  // ============================================================================
+  {
+    id: 'download-public-instagram-reels-carousels-guide',
+    status: 'published',
+    featured: false,
+    category: 'instagram-guides',
+    primaryPlatform: 'instagram',
+    primaryToolRoute: '/en/instagram-reels-downloader',
+    secondaryToolRoute: '/en/tiktok-video-downloader',
+    author: BLOG_AUTHORS.editorialTeam,
+    publishedAt: '2026-11-13',
+    updatedAt: '2026-11-13',
+    relatedArticleIds: [
+      'instagram-reels-carousels-resolution-compression-guide',
+      'troubleshooting-expired-blocked-social-media-links',
+      'why-is-downloaded-video-low-quality',
+    ],
+    featuredImage: {
+      diagramType: 'instagram-audio-streams',
+      alt: {
+        en: 'How to Save Public Instagram Reels, Carousels, and Posts with Sound',
+        fr: 'Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son',
+        es: '',
+        de: '',
+      },
+      caption: {
+        en: '',
+        fr: '',
+        es: '',
+        de: '',
+      },
+    },
+    translations: {
+      en: {
+        locale: 'en',
+        localizedSlug: 'download-public-instagram-reels-carousels-guide',
+        translationStatus: 'published',
+        title: 'How to Save Public Instagram Reels, Carousels, and Posts with Sound',
+        metaTitle: 'Save Public Instagram Reels & Carousels with Sound (Guide)',
+        metaDescription:
+          'Learn how to save public Instagram Reels, posts, carousels, and profile photos on iPhone, Android, or PC without watermarks or login.',
+        excerpt:
+          "Instagram's built-in Bookmark button only saves posts inside the app, and its native download option adds a watermark or is often disabled. Here is how to save public Reels and carousels cleanly to your device.",
+        quickAnswer:
+          'To save a public Instagram Reel, post, or carousel to your device, open it in the Instagram app, tap the paper-plane Share icon, and select Copy link. Open a standard browser like Safari or Chrome, paste the URL into the VIDNEX Instagram Reels Downloader, and save the MP4 video with sound or the public carousel images directly to your phone or computer—no account or app installation required.',
+        keyTakeaways: [
+          'Tapping the ribbon Bookmark icon in Instagram only adds a post to an in-app collection; if the creator deletes or archives the post, it disappears.',
+          "When Instagram's native download button is available, it stamps the Instagram logo and creator username onto the clip and sometimes mutes licensed audio.",
+          "Always switch from Instagram's in-app browser to Safari, Chrome, or Firefox before downloading, because the in-app browser blocks file downloads.",
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; tap Share and Save Video to move them to your Camera Roll.',
+          'Only public Instagram Reels, posts, carousels, and profile pictures can be processed; private accounts are never accessible, and creator copyright applies.',
+        ],
+        primaryKeyword: 'download instagram reels with audio',
+        secondaryKeywords: [
+          'save instagram reels to camera roll',
+          'download instagram carousel posts',
+          'save instagram reel without watermark',
+          'public instagram video downloader',
+        ],
+        searchIntent:
+          "Informational and transactional: users want to save public Instagram Reels with audio and multi-slide carousels as clean files on iPhone, Android, or PC without logging in or getting blocked by Instagram's in-app browser.",
+        readingTimeMinutes: 8,
+        introduction: [
+          'To save a public Instagram Reel, post, or carousel to your device, open it in the Instagram app, tap the paper-plane Share icon, and select Copy link. Open a standard browser like Safari or Chrome, paste the URL into the VIDNEX Instagram Reels Downloader, and save the MP4 video with sound or the public carousel images directly to your phone or computer—no account or app installation required.',
+          'Tapping the ribbon Bookmark icon in Instagram only adds a post to an in-app collection; if the creator deletes or archives the post, it disappears.',
+          "When Instagram's native download button is available, it stamps the Instagram logo and creator username onto the clip and sometimes mutes licensed audio.",
+          "Always switch from Instagram's in-app browser to Safari, Chrome, or Firefox before downloading, because the in-app browser blocks file downloads.",
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; tap Share and Save Video to move them to your Camera Roll.',
+          'Only public Instagram Reels, posts, carousels, and profile pictures can be processed; private accounts are never accessible, and creator copyright applies.',
+        ],
+        tableOfContents: [
+          {
+            id: 'bookmarking-vs-saving-to-device',
+            heading: 'Why Saving Inside Instagram Is Different from Downloading to Your Device',
+          },
+          {
+            id: 'step-by-step-save-instagram-reels',
+            heading: 'How to Save Public Instagram Reels, Carousels, and Posts Step by Step',
+          },
+          {
+            id: 'finding-files-iphone-android-desktop',
+            heading: 'Where Saved Reels Go on iPhone, Android, and Computer',
+          },
+          {
+            id: 'carousels-and-profile-pictures',
+            heading: 'Saving Public Instagram Carousels and Profile Pictures',
+          },
+          {
+            id: 'quality-and-aspect-ratio-explained',
+            heading: 'What Video Quality Should You Expect from Saved Reels?',
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving Instagram Media',
+          },
+          {
+            id: 'scope-and-copyright-rules',
+            heading: 'Tool Boundaries and Respecting Creator Copyright',
+          },
+        ],
+        content: [
+          {
+            id: 'bookmarking-vs-saving-to-device',
+            heading: 'Why Saving Inside Instagram Is Different from Downloading to Your Device',
+            paragraphs: [
+              "Many Instagram users tap the ribbon-shaped Save icon beneath a Reel or carousel and assume the media is stored on their phone. In reality, that button only bookmarks the URL inside your account's Saved collections. If you lose internet access on a flight, or if the creator later deletes the post, archives it, or switches their profile to private, your bookmarked item vanishes immediately.",
+              "Instagram did introduce a native Download option on select public Reels, but it comes with notable limitations. First, creators can turn off downloads globally in their settings, and accounts for users under 18 have downloads disabled by default. Second, when the native button is active, Instagram stamps its logo and the creator's handle directly over the video frame. Finally, if a Reel uses certain commercial music tracks, the native download may save without audio.",
+              'Saving a public Reel or post through a browser-based tool solves these friction points when you need an offline backup of your own published content, want to study editing pacing frame by frame, or need to archive public references. Just like when you save clean clips with our [TikTok Video Downloader](https://vidnex.space/en/tiktok-video-downloader), processing a public link retrieves the clean MP4 stream with its synchronized audio track.',
+            ],
+            table: {
+              headers: [
+                'Method',
+                'Stores File Offline',
+                'Watermark Added',
+                'Works on Carousels & Posts',
+              ],
+              rows: [
+                [
+                  'Instagram Bookmark Icon',
+                  'No (in-app link only)',
+                  'N/A',
+                  'Yes, inside app only',
+                ],
+                [
+                  'Instagram Native Download Button',
+                  'Yes (when enabled by creator)',
+                  'Yes (Instagram logo & @handle)',
+                  'Reels only (not multi-photo carousels)',
+                ],
+                [
+                  'Phone Screen Recording',
+                  'Yes',
+                  'Overlays caption text, like & share icons',
+                  'Requires manual cropping and loses sharpness',
+                ],
+                [
+                  'VIDNEX Browser Tool',
+                  'Yes (MP4 / images on device)',
+                  'No watermark added',
+                  'Yes (public Reels, posts, carousels & profile photo)',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'step-by-step-save-instagram-reels',
+            heading: 'How to Save Public Instagram Reels, Carousels, and Posts Step by Step',
+            paragraphs: [
+              'Because browser tools run directly in Safari, Chrome, Edge, or Firefox, you never have to install unknown third-party apps or hand over your Instagram login credentials.',
+              'Follow these steps using the [VIDNEX Instagram Reels Downloader](https://vidnex.space/en/instagram-reels-downloader) to save any public post:',
+            ],
+            bullets: [
+              '1. Open the Instagram app (or instagram.com on desktop) and navigate to the public Reel, photo post, or multi-slide carousel you want to save.',
+              '2. Tap the paper-plane Share icon located below the post or along the right-hand sidebar of the Reel.',
+              '3. Tap Copy link from the bottom share menu. On a desktop browser, you can also copy the URL directly from the address bar.',
+              '4. Leave the Instagram app and open your standalone web browser (such as Safari on iPhone or Chrome on Android and PC).',
+              '5. Go to the VIDNEX Instagram Reels Downloader page, paste the copied link into the input field, and start the fetch.',
+              '6. Click the download button next to the MP4 video (with audio) or select the individual images from a public carousel to save them to your device.',
+            ],
+            proTip:
+              "Never open the downloader inside Instagram's built-in mini-browser (for example, by clicking a link in a bio or DM). Instagram's internal web view restricts file downloads. Always switch to Safari or Chrome first.",
+          },
+          {
+            id: 'finding-files-iphone-android-desktop',
+            heading: 'Where Saved Reels Go on iPhone, Android, and Computer',
+            paragraphs: [
+              "Once your browser finishes downloading the MP4 file, where it lands depends on your device's operating system.",
+              "On an iPhone and iPad (iOS / iPadOS), Safari stores all web downloads inside the built-in Files app rather than placing them straight into your Photos library. To move the Reel to your Camera Roll, tap the blue download arrow icon next to Safari's address bar (or open the Files app and select Downloads), tap the MP4 file to preview it, tap the Share icon in the lower-left corner, and choose Save Video. It will appear immediately in your Photos app.",
+              'On Android devices, Chrome and Samsung Internet save MP4 videos and carousel images straight to your internal Downloads folder. Gallery apps like Google Photos and Samsung Gallery automatically scan this folder and display the saved Reel in your Downloads album.',
+              'On Windows and Mac computers, the file goes directly into your default Downloads folder. Because Instagram delivers vertical Reels in standard H.264/AAC MP4 containers, the video opens smoothly in QuickTime, Windows Media Player, VLC, CapCut, Premiere Pro, and DaVinci Resolve.',
+            ],
+          },
+          {
+            id: 'carousels-and-profile-pictures',
+            heading: 'Saving Public Instagram Carousels and Profile Pictures',
+            paragraphs: [
+              'Instagram posts are frequently multi-slide carousels mixing still photography with short video clips. Screenshotting each slide lowers image sharpness and forces you to crop out the slide counter dots in the upper-right corner.',
+              'When you paste the link of a public Instagram carousel into VIDNEX, the tool detects the public media items inside that post so you can save each photo or video clip cleanly. Similarly, if you need to inspect or archive a public brand avatar or creator headshot, you can paste a public profile URL into the tool to save the public profile picture.',
+              'If you want to learn more about how Instagram scales dimensions and compresses multi-slide posts versus single Reels, read our deep dive on [Instagram Reels and carousels resolution and compression](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+            ],
+          },
+          {
+            id: 'quality-and-aspect-ratio-explained',
+            heading: 'What Video Quality Should You Expect from Saved Reels?',
+            paragraphs: [
+              "Instagram streams Reels at a standard vertical 9:16 aspect ratio, typically capped at 1080p Full HD (1080 × 1920 pixels) with AAC audio. When you save a public Reel through a link processor, you receive the MP4 file served by Instagram's content delivery network without added watermarks or secondary re-compression.",
+              "If a saved Reel looks softer or more pixelated than expected, the compression occurred when the creator originally uploaded the file—for instance, if 'Upload at highest quality' was turned off in their Instagram account settings or if the video was uploaded over a weak mobile signal. Check our guide on [why a downloaded video looks low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality) for a full explanation of bitrate and upload settings.",
+            ],
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving Instagram Media',
+            paragraphs: [
+              "Because Meta regularly updates Instagram's web endpoints and access controls, occasional errors can happen, and no online tool can guarantee uninterrupted availability. Use this checklist to solve the most common issues:",
+            ],
+            bullets: [
+              "Error message 'Post unavailable' or 'Private account': Confirm that the Instagram profile is set to Public. VIDNEX never accesses private profiles, Close Friends stories, or subscriber-only posts. If you cannot view the URL in an incognito browser tab while logged out, it cannot be saved.",
+              "Clicking download does nothing on iPhone: Check that you are not using Instagram's in-app browser. Tap the three dots or compass icon to open the page in Safari, then try again.",
+              "Link fails with tracking parameters attached: Instagram's mobile Share sheet sometimes appends '?igsh=...' tracking tags to the end of a URL. If a link stalls, try removing everything starting from the question mark '?' and paste the clean 'https://www.instagram.com/reel/CODE/' URL, or review our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Video opens in a browser player instead of saving: On desktop, right-click the playing video and choose 'Save video as...'. On mobile Safari, tap and hold the link or use the browser's Share menu to save the file.",
+              'Instagram Stories or Highlights links fail: VIDNEX supports public Instagram Reels, posts, carousels, and profile pictures—ephemeral 24-hour Stories are not supported.',
+            ],
+          },
+          {
+            id: 'scope-and-copyright-rules',
+            heading: 'Tool Boundaries and Respecting Creator Copyright',
+            paragraphs: [
+              'Before downloading any media, keep both technical boundaries and intellectual property laws in mind.',
+              'Technically, VIDNEX is a free web utility requiring no user account or login. It supports public content across five platforms: TikTok (public MP4 videos without watermark when available, MP3/M4A audio, public photos/slideshows, profile picture), Instagram (public Reels, posts, carousels, and profile photos), X/Twitter (public videos, GIFs as MP4, and tweet photos), Facebook (public HD/SD videos and Reels), and LinkedIn (public profile picture only). It never accesses private content, does not support YouTube or Snapchat, and cannot promise permanent availability if platforms block access.',
+              "Legally, under Instagram's Terms of Use and copyright law, creators retain full ownership of the videos, photos, and original audio they publish. Downloading a public Reel without a watermark does not grant permission to re-upload someone else's work to your own page or use it commercially. Only save public posts for personal offline viewing, archiving your own brand's content, or authorized reuse where you have obtained explicit permission and credit the creator.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'Do I need to log into my Instagram account to use VIDNEX?',
+            answer:
+              'No. VIDNEX never asks for your Instagram username, password, or session cookies. You only paste the public link to the Reel, post, or profile.',
+          },
+          {
+            question: 'Can I save a Reel from a private Instagram account that I follow?',
+            answer:
+              'No. Because VIDNEX operates without logging into any account, it can only access posts that are publicly visible to everyone on the web.',
+          },
+          {
+            question: 'Why does my saved Instagram Reel go to the Files app on iPhone instead of Photos?',
+            answer:
+              "Safari on iOS saves all downloaded files into the Downloads folder inside Apple's Files app. Open the Files app, tap the downloaded MP4, tap the Share button in the bottom-left corner, and tap Save Video to add it to your Photos app.",
+          },
+          {
+            question: 'Does the downloaded Instagram Reel include the original sound?',
+            answer:
+              'Yes. Public Reels are saved as standard MP4 files containing both the video stream and its synchronized audio track.',
+          },
+          {
+            question: 'Can I download all photos and videos from a public Instagram carousel?',
+            answer:
+              'Yes. Paste the public carousel post link into VIDNEX to access and save the individual public photos or video clips from that post.',
+          },
+          {
+            question: "Is it legal to repost another creator's Instagram Reel if I credit them?",
+            answer:
+              "Crediting a creator does not replace copyright permission. Under Instagram's Terms of Use and copyright laws, you must ask the original creator for permission before re-uploading their video or photos.",
+          },
+          {
+            question: 'Does VIDNEX support Instagram Stories, YouTube, or Snapchat?',
+            answer:
+              'No. For Instagram, VIDNEX supports public Reels, feed posts, carousels, and profile pictures. It does not support Stories, YouTube, or Snapchat.',
+          },
+        ],
+        ctaTitle: 'Save Any Public Instagram Reel or Carousel Now',
+        ctaDescription:
+          'Paste a public Instagram link to save Reels in MP4 with sound, download public carousel posts, or grab a public profile picture—free and with no account required.',
+        ctaButtonLabel: 'Open Instagram Reels Downloader',
+        internalLinks: [
+          {
+            label: 'Open Instagram Reels Downloader',
+            description:
+              'Paste a public Instagram link to save Reels in MP4 with sound, download public carousel posts, or grab a public profile picture—free and with no account required.',
+            targetType: 'platform',
+            platformKey: 'instagram',
+          },
+        ],
+        sources: [
+          {
+            title: 'Terms of Use',
+            publisher: 'Instagram Help Center',
+            url: 'https://help.instagram.com/581066165581870/',
+          },
+          {
+            title: 'Community Guidelines',
+            publisher: 'Instagram Help Center',
+            url: 'https://help.instagram.com/477434105621119',
+          },
+          {
+            title: 'Intellectual Property Reporting & Copyright',
+            publisher: 'Meta Help Center',
+            url: 'https://help.meta.com/requests/1523801815366035/',
+          },
+          {
+            title: 'Where to find downloads on your iPhone or iPad',
+            publisher: 'Apple Support',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+      fr: {
+        locale: 'fr',
+        localizedSlug: 'telecharger-reels-carrousels-instagram-publics-guide',
+        translationStatus: 'published',
+        title: 'Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son',
+        metaTitle: 'Enregistrer un Reel ou carrousel Instagram avec le son',
+        metaDescription:
+          'Découvrez comment enregistrer un Reel, un carrousel ou une photo de profil Instagram publique en MP4 avec le son sur iPhone, Android ou PC, sans compte.',
+        excerpt:
+          "L'icône signet d'Instagram ne sauvegarde qu'un raccourci dans l'application, et le téléchargement natif est souvent désactivé ou marqué d'un logo. Voici comment enregistrer proprement les Reels et carrousels publics.",
+        quickAnswer:
+          "Pour enregistrer un Reel, un carrousel ou une publication Instagram publique sur votre appareil, ouvrez le contenu dans Instagram, appuyez sur l'icône avion en papier (Partager) et choisissez Copier le lien. Ouvrez ensuite Safari ou Chrome, collez l'adresse dans l'outil Instagram de VIDNEX et téléchargez la vidéo MP4 avec le son ou les images du carrousel directement sur votre téléphone ou ordinateur, sans compte.",
+        keyTakeaways: [
+          "L'icône ruban « Enregistrer » dans Instagram ajoute seulement un favori dans l'application : si le créateur supprime ou archive son post, il disparaît.",
+          "Lorsqu'il est activé, le bouton de téléchargement natif d'Instagram appose le logo Instagram et le @pseudo sur la vidéo et coupe parfois les musiques sous licence.",
+          "Quittez toujours le navigateur intégré d'Instagram pour ouvrir Safari ou Chrome avant de télécharger, car Instagram bloque les téléchargements dans son navigateur interne.",
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'envoyer dans votre galerie Photos.",
+          "Seuls les contenus publics sont pris en charge : les comptes privés sont inaccessibles et le droit d'auteur des créateurs s'applique toujours.",
+        ],
+        primaryKeyword: 'télécharger un reel instagram avec le son',
+        secondaryKeywords: [
+          'enregistrer reel instagram sur iphone',
+          'télécharger carrousel instagram',
+          'sauvegarder vidéo instagram mp4',
+          'enregistrer reel instagram sans logo',
+        ],
+        searchIntent:
+          "Informationnelle et pratique : l'utilisateur souhaite enregistrer un Reel Instagram public avec le son ou un carrousel sur iPhone, Android ou PC sans installer d'application et sans rester bloqué dans le navigateur interne d'Instagram.",
+        readingTimeMinutes: 8,
+        introduction: [
+          "Pour enregistrer un Reel, un carrousel ou une publication Instagram publique sur votre appareil, ouvrez le contenu dans Instagram, appuyez sur l'icône avion en papier (Partager) et choisissez Copier le lien. Ouvrez ensuite Safari ou Chrome, collez l'adresse dans l'outil Instagram de VIDNEX et téléchargez la vidéo MP4 avec le son ou les images du carrousel directement sur votre téléphone ou ordinateur, sans compte.",
+          "L'icône ruban « Enregistrer » dans Instagram ajoute seulement un favori dans l'application : si le créateur supprime ou archive son post, il disparaît.",
+          "Lorsqu'il est activé, le bouton de téléchargement natif d'Instagram appose le logo Instagram et le @pseudo sur la vidéo et coupe parfois les musiques sous licence.",
+          "Quittez toujours le navigateur intégré d'Instagram pour ouvrir Safari ou Chrome avant de télécharger, car Instagram bloque les téléchargements dans son navigateur interne.",
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'envoyer dans votre galerie Photos.",
+          "Seuls les contenus publics sont pris en charge : les comptes privés sont inaccessibles et le droit d'auteur des créateurs s'applique toujours.",
+        ],
+        tableOfContents: [
+          {
+            id: 'signet-instagram-vs-enregistrement-appareil',
+            heading: "Pourquoi l'icône « Enregistrer » d'Instagram ne télécharge pas la vidéo sur votre téléphone",
+          },
+          {
+            id: 'etapes-telecharger-reel-carrousel-instagram',
+            heading: 'Comment enregistrer un Reel, un carrousel ou un post Instagram étape par étape',
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading: 'Où retrouver le Reel enregistré sur iPhone, Android et ordinateur ?',
+          },
+          {
+            id: 'enregistrer-carrousels-et-photo-profil',
+            heading: 'Enregistrer un carrousel multi-photos ou une photo de profil publique',
+          },
+          {
+            id: 'qualite-video-reels-instagram',
+            heading: "Quelle qualité vidéo attendre lors de l'enregistrement d'un Reel ?",
+          },
+          {
+            id: 'problemes-frequents-solutions-instagram',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement sur Instagram',
+          },
+          {
+            id: 'cadre-utilisation-et-droit-auteur',
+            heading: "Limites de l'outil et respect du droit d'auteur sur Instagram",
+          },
+        ],
+        content: [
+          {
+            id: 'signet-instagram-vs-enregistrement-appareil',
+            heading: "Pourquoi l'icône « Enregistrer » d'Instagram ne télécharge pas la vidéo sur votre téléphone",
+            paragraphs: [
+              "Beaucoup d'utilisateurs appuient sur l'icône en forme de ruban en bas à droite d'un Reel ou d'un carrousel en pensant sauvegarder le fichier dans la mémoire de leur téléphone. En pratique, cette fonction crée uniquement un signet dans vos collections privées sur les serveurs d'Instagram. Si vous prenez l'avion sans connexion ou si l'auteur décide d'archiver sa publication ou de passer son compte en privé, le contenu devient immédiatement inaccessible.",
+              "Instagram propose bien un bouton « Télécharger » natif sur certains Reels publics, mais son fonctionnement reste limité. D'une part, de nombreux créateurs désactivent cette option dans leurs réglages (et elle est bloquée par défaut pour les comptes de moins de 18 ans). D'autre part, lorsqu'il est disponible, le téléchargement natif incruste le logo Instagram et l'identifiant du compte par-dessus l'image, et supprime parfois la bande-son si le Reel utilise une piste musicale protégée.",
+              "Passer par un outil web via le lien public permet d'obtenir un fichier MP4 autonome avec son audio synchronisé, utile pour archiver vos propres créations publiées ou conserver une référence publique hors ligne. Comme pour nos [vidéos TikTok publiques sans filigrane](https://vidnex.space/telecharger-video-tiktok), aucune installation d'application n'est requise.",
+            ],
+            table: {
+              headers: [
+                'Méthode utilisée',
+                'Fichier stocké hors ligne',
+                'Filigrane incrusté',
+                'Compatible carrousels et posts',
+              ],
+              rows: [
+                [
+                  'Icône signet dans Instagram',
+                  'Non (raccourci en ligne uniquement)',
+                  'Non applicable',
+                  "Oui, uniquement dans l'app",
+                ],
+                [
+                  'Bouton natif « Télécharger » Instagram',
+                  "Oui (si autorisé par l'auteur)",
+                  'Oui (logo Instagram + @pseudo)',
+                  'Reels uniquement (pas les carrousels photo)',
+                ],
+                [
+                  "Capture vidéo de l'écran",
+                  'Oui',
+                  "Affiche les boutons J'aime, légende et interface",
+                  'Nécessite un recadrage manuel avec perte de netteté',
+                ],
+                [
+                  'Outil navigateur VIDNEX',
+                  "Oui (MP4 / images sur l'appareil)",
+                  'Aucun filigrane ajouté',
+                  'Oui (Reels, posts, carrousels et photo de profil publics)',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'etapes-telecharger-reel-carrousel-instagram',
+            heading: 'Comment enregistrer un Reel, un carrousel ou un post Instagram étape par étape',
+            paragraphs: [
+              "L'utilisation d'un outil directement dans Safari, Chrome ou Firefox évite d'installer des applications tierces douteuses et ne demande jamais vos identifiants Instagram.",
+              'Voici comment procéder avec le [téléchargeur de Reels Instagram VIDNEX](https://vidnex.space/telecharger-reel-instagram) :',
+            ],
+            bullets: [
+              "1. Ouvrez l'application Instagram (ou instagram.com sur ordinateur) et affichez le Reel, la photo ou le carrousel public que vous souhaitez conserver.",
+              "2. Appuyez sur l'icône avion en papier (Partager) située sous la publication ou sur le côté droit d'un Reel.",
+              "3. Sélectionnez « Copier le lien » dans le menu du bas. Sur ordinateur, vous pouvez copier directement l'adresse dans la barre d'URL du navigateur.",
+              '4. Quittez Instagram et ouvrez votre navigateur web habituel (Safari sur iPhone, Chrome sur Android ou ordinateur).',
+              "5. Accédez à l'outil Instagram de VIDNEX, collez le lien dans le champ prévu et lancez la récupération.",
+              '6. Cliquez sur le bouton de téléchargement correspondant au fichier MP4 (avec le son) ou aux images individuelles du carrousel public pour les enregistrer.',
+            ],
+            proTip:
+              "N'ouvrez jamais le site de téléchargement depuis le navigateur intégré d'Instagram (par exemple en cliquant sur un lien dans une bio ou un message privé). Le navigateur interne d'Instagram bloque le téléchargement de fichiers : passez toujours par Safari ou Chrome.",
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading: 'Où retrouver le Reel enregistré sur iPhone, Android et ordinateur ?',
+            paragraphs: [
+              "Une fois le téléchargement lancé dans le navigateur, l'emplacement du fichier dépend du système de votre appareil.",
+              "Sur iPhone et iPad (iOS / iPadOS), Safari place systématiquement les fichiers téléchargés sur le web dans l'application « Fichiers » plutôt que dans l'application « Photos ». Pour transférer le Reel vers votre pellicule : touchez la petite flèche bleue de téléchargement à côté de la barre d'adresse de Safari (ou ouvrez l'app Fichiers > Téléchargements), touchez le fichier MP4 pour l'ouvrir, appuyez sur l'icône Partager en bas à gauche, puis sélectionnez « Enregistrer la vidéo ». La vidéo apparaît aussitôt dans votre galerie Photos.",
+              'Sur Android, Chrome ou le navigateur Samsung enregistre la vidéo MP4 et les images directement dans le dossier « Téléchargements » (Downloads). Les applications Google Photos et Galerie affichent automatiquement ce dossier dans vos albums.',
+              "Sur Windows et Mac, le fichier rejoint votre répertoire « Téléchargements » habituel. Encodé au format standard MP4 (H.264/AAC), il s'ouvre immédiatement dans QuickTime, VLC, le lecteur Windows ou un logiciel de montage comme CapCut ou Premiere Pro.",
+            ],
+          },
+          {
+            id: 'enregistrer-carrousels-et-photo-profil',
+            heading: 'Enregistrer un carrousel multi-photos ou une photo de profil publique',
+            paragraphs: [
+              "Sur Instagram, les publications carrousels combinent souvent plusieurs photos et séquences vidéo dans un même post. Faire une capture d'écran de chaque diapositive dégrade la définition et laisse apparaître les points de navigation en haut à droite.",
+              "Lorsque vous collez le lien d'un carrousel Instagram public dans VIDNEX, l'outil détecte les différents éléments publics de la publication afin que vous puissiez enregistrer chaque photo ou vidéo séparément. De la même façon, vous pouvez coller l'URL d'un profil public pour récupérer sa photo de profil publique en pleine résolution disponible.",
+              'Pour mieux comprendre comment Instagram redimensionne et compresse les carrousels par rapport aux Reels verticaux, consultez notre [guide technique sur la résolution et la compression des Reels et carrousels Instagram](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+            ],
+          },
+          {
+            id: 'qualite-video-reels-instagram',
+            heading: "Quelle qualité vidéo attendre lors de l'enregistrement d'un Reel ?",
+            paragraphs: [
+              'Instagram diffuse les Reels au format vertical 9:16 jusqu\'à une définition Full HD 1080p (1080 × 1920 pixels) avec piste audio AAC. Lorsque vous enregistrez un Reel public via VIDNEX, vous récupérez le flux MP4 public diffusé par la plateforme sans ajout de filigrane ni recompression supplémentaire.',
+              "Si une vidéo enregistrée paraît malgré tout légèrement floue ou pixellisée, cette perte provient de la compression appliquée lors de sa mise en ligne initiale par le créateur (par exemple si l'option « Importation de haute qualité » n'était pas activée dans ses paramètres Instagram). Nous expliquons ces mécanismes dans notre article sur [les raisons pour lesquelles une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+            ],
+          },
+          {
+            id: 'problemes-frequents-solutions-instagram',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement sur Instagram',
+            paragraphs: [
+              "Les plateformes sociales modifient fréquemment leurs paramètres d'accès et aucun service web ne peut promettre une disponibilité permanente sans interruption. Voici comment résoudre les blocages les plus courants :",
+            ],
+            bullets: [
+              "Erreur « Publication introuvable » ou « Compte privé » : Vérifiez que le profil Instagram est bien public. VIDNEX ne traite jamais les comptes privés, les stories Amis proches ou les contenus réservés aux abonnés. Si le lien ne s'ouvre pas dans un onglet de navigation privée sans connexion, il ne peut pas être enregistré.",
+              "Le bouton de téléchargement ne réagit pas sur iPhone : Assurez-vous d'avoir ouvert la page dans Safari et non dans le navigateur intégré de l'application Instagram.",
+              "Le lien échoue à cause des paramètres de suivi : L'application mobile ajoute parfois des paramètres '?igsh=...' à la fin de l'URL. Supprimez tout ce qui suit le point d'interrogation '?' pour ne garder que 'https://www.instagram.com/reel/CODE/', ou consultez notre guide pour [dépanner les liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "La vidéo s'ouvre dans un lecteur au lieu de se télécharger : Sur ordinateur, faites un clic droit sur la vidéo et choisissez « Enregistrer la vidéo sous… ». Sur mobile, maintenez le doigt appuyé ou utilisez le bouton Partager du navigateur.",
+              'Les Stories Instagram ne fonctionnent pas : Pour Instagram, VIDNEX prend uniquement en charge les Reels, publications, carrousels et photos de profil publics ; les Stories éphémères de 24 heures ne sont pas prises en charge.',
+            ],
+          },
+          {
+            id: 'cadre-utilisation-et-droit-auteur',
+            heading: "Limites de l'outil et respect du droit d'auteur sur Instagram",
+            paragraphs: [
+              "Utiliser un outil d'enregistrement en ligne implique de connaître ses limites techniques et les règles de propriété intellectuelle.",
+              "Sur le plan technique, VIDNEX est un service gratuit sans inscription qui traite uniquement les contenus publics de cinq plateformes : TikTok (vidéos publiques MP4 sans filigrane quand disponible, audio MP3/M4A, photos/diaporamas publics, photo de profil), Instagram (Reels, publications, carrousels et photos de profil publics), X/Twitter (vidéos, GIF en MP4 et photos de tweets publics), Facebook (vidéos et Reels publics HD/SD) et LinkedIn (photo de profil publique uniquement). Aucun contenu privé n'est accessible, YouTube et Snapchat ne sont pas pris en charge, et la disponibilité peut varier selon les restrictions des plateformes.",
+              "Sur le plan juridique, conformément aux Conditions d'utilisation d'Instagram et au droit d'auteur, chaque créateur conserve l'intégralité des droits sur ses vidéos, photographies et bandes-son originales. Enregistrer un Reel sans filigrane ne vous autorise pas à le republier sur votre propre compte ni à l'exploiter commercialement. Limitez vos téléchargements au visionnage personnel hors ligne, à la sauvegarde de vos propres publications ou aux réutilisations expressément autorisées par l'auteur.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'Dois-je me connecter à mon compte Instagram pour utiliser VIDNEX ?',
+            answer:
+              'Non. VIDNEX ne demande jamais votre identifiant ni votre mot de passe Instagram. Il suffit de coller le lien public de la publication ou du Reel.',
+          },
+          {
+            question: "Puis-je enregistrer un Reel issu d'un compte Instagram privé auquel je suis abonné ?",
+            answer:
+              'Non. VIDNEX fonctionne sans connexion à un compte utilisateur et ne peut donc traiter que les publications accessibles publiquement à tout le monde.',
+          },
+          {
+            question: "Pourquoi mon Reel téléchargé sur iPhone va-t-il dans l'app Fichiers et non dans Photos ?",
+            answer:
+              "Sur iOS, Safari enregistre tous les téléchargements web dans le dossier Téléchargements de l'application Fichiers. Ouvrez Fichiers, touchez la vidéo MP4, appuyez sur l'icône Partager en bas à gauche puis choisissez « Enregistrer la vidéo » pour l'ajouter à vos Photos.",
+          },
+          {
+            question: "Le Reel enregistré conserve-t-il le son d'origine ?",
+            answer:
+              "Oui. Les Reels publics sont enregistrés au format MP4 standard avec l'image et la piste audio synchronisée.",
+          },
+          {
+            question: "Peut-on télécharger toutes les photos et vidéos d'un carrousel Instagram public ?",
+            answer:
+              "Oui. En collant le lien d'une publication carrousel publique dans VIDNEX, vous pouvez récupérer individuellement les photos et vidéos publiques qui composent le carrousel.",
+          },
+          {
+            question: "Est-il légal de republier le Reel d'un autre créateur en le mentionnant ?",
+            answer:
+              "Non, pas sans son accord préalable. Mentionner un compte ne remplace pas l'autorisation de l'auteur au titre du droit d'auteur et des conditions d'utilisation d'Instagram.",
+          },
+          {
+            question: 'VIDNEX permet-il de télécharger des Stories Instagram, YouTube ou Snapchat ?',
+            answer:
+              'Non. Sur Instagram, VIDNEX prend en charge les Reels, publications, carrousels et photos de profil publics. Les Stories, YouTube et Snapchat ne sont pas pris en charge.',
+          },
+        ],
+        ctaTitle: 'Enregistrez un Reel ou carrousel Instagram public en MP4',
+        ctaDescription:
+          'Collez un lien Instagram public pour télécharger un Reel avec le son, sauvegarder un carrousel ou récupérer une photo de profil publique — gratuitement et sans compte.',
+        ctaButtonLabel: "Ouvrir l'outil Instagram VIDNEX",
+        internalLinks: [
+          {
+            label: "Ouvrir l'outil Instagram VIDNEX",
+            description:
+              'Collez un lien Instagram public pour télécharger un Reel avec le son, sauvegarder un carrousel ou récupérer une photo de profil publique — gratuitement et sans compte.',
+            targetType: 'platform',
+            platformKey: 'instagram',
+          },
+        ],
+        sources: [
+          {
+            title: "Conditions d'utilisation",
+            publisher: "Centre d'aide Instagram",
+            url: 'https://help.instagram.com/581066165581870/',
+          },
+          {
+            title: 'Règles de la communauté',
+            publisher: "Centre d'aide Instagram",
+            url: 'https://help.instagram.com/477434105621119',
+          },
+          {
+            title: "Propriété intellectuelle et droits d'auteur",
+            publisher: "Centre d'aide Meta",
+            url: 'https://help.meta.com/requests/1523801815366035/',
+          },
+          {
+            title: 'Où trouver des téléchargements sur votre iPhone ou iPad',
+            publisher: 'Assistance Apple',
+            url: 'https://support.apple.com/fr-lu/102440',
+          },
+        ],
+      },
+      ar: {
+        locale: 'ar',
+        localizedSlug: 'tanzil-reels-carousel-instagram-ama-maa-alsawt-dalil',
+        translationStatus: 'draft',
+        title: 'كيفية تنزيل ريلز ومنشورات كاروسيل إنستغرام العامة مع الصوت بجودة عالية',
+        metaTitle: 'تنزيل ريلز وكاروسيل إنستغرام مع الصوت: دليل عملي شامل',
+        metaDescription:
+          'تعرف على طريقة تنزيل ريلز ومنشورات كاروسيل وصورة الملف الشخصي العامة من إنستغرام بصيغة MP4 مع الصوت على الآيفون والأندرويد والكمبيوتر بدون حساب.',
+        excerpt:
+          'زر الحفظ داخل تطبيق إنستغرام يحتفظ برابط المنشور داخل التطبيق فقط، بينما خيار التنزيل الرسمي غالباً ما يكون معطلاً أو يضيف شعاراً على الفيديو. إليك طريقة حفظ الريلز والكاروسيل العام على جهازك.',
+        quickAnswer:
+          'لتنزيل ريلز أو منشور كاروسيل عام من إنستغرام مع الصوت، افتح المنشور في تطبيق إنستغرام، واضغط على أيقونة المشاركة (الطائرة الورقية) ثم اختر نسخ الرابط. افتح متصفح سفاري أو كروم، والصق الرابط في أداة تنزيل ريلز إنستغرام على موقع VIDNEX لحفظ فيديو MP4 مع الصوت أو صور الكاروسيل العامة مباشرة على هاتفك أو كمبيوترك دون تسجيل دخول.',
+        keyTakeaways: [
+          'أيقونة الحفظ داخل تطبيق إنستغرام تضيف المنشور إلى قائمة المحفوظات في حسابك فقط؛ وإذا قام صاحب الحساب بحذفه أو أرشفته فسيختفي لديك أيضاً.',
+          'عند توفر زر التنزيل المدمج في إنستغرام، فإنه يضع شعار المنصة واسم الحساب فوق الفيديو وقد يكتم الصوت في المقاطع التي تحتوي على موسيقى مرخصة.',
+          'احرص دائماً على فتح أداة التنزيل في متصفح سفاري أو كروم الخارجي وليس داخل متصفح إنستغرام الداخلي الذي يمنع تنزيل الملفات.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تدعم المحتوى العام فقط ولا يمكنها الوصول إلى الحسابات الخاصة، ويجب دائماً احترام حقوق الملكية الفكرية لصناع المحتوى.',
+        ],
+        primaryKeyword: 'تنزيل ريلز انستقرام مع الصوت',
+        secondaryKeywords: [
+          'حفظ ريلز انستقرام للايفون',
+          'تحميل منشورات انستقرام كاروسيل',
+          'تنزيل فيديو انستقرام MP4',
+          'حفظ صورة بروفايل انستقرام',
+        ],
+        searchIntent:
+          'بحث معلوماتي وعملي: يبحث المستخدم عن طريقة لحفظ ريلز إنستغرام العام مع الصوت أو ألبومات الكاروسيل على الآيفون أو الأندرويد أو الكمبيوتر دون تسجيل دخول أو استخدام متصفح التطبيق الداخلي.',
+        readingTimeMinutes: 8,
+        introduction: [
+          'لتنزيل ريلز أو منشور كاروسيل عام من إنستغرام مع الصوت، افتح المنشور في تطبيق إنستغرام، واضغط على أيقونة المشاركة (الطائرة الورقية) ثم اختر نسخ الرابط. افتح متصفح سفاري أو كروم، والصق الرابط في أداة تنزيل ريلز إنستغرام على موقع VIDNEX لحفظ فيديو MP4 مع الصوت أو صور الكاروسيل العامة مباشرة على هاتفك أو كمبيوترك دون تسجيل دخول.',
+          'أيقونة الحفظ داخل تطبيق إنستغرام تضيف المنشور إلى قائمة المحفوظات في حسابك فقط؛ وإذا قام صاحب الحساب بحذفه أو أرشفته فسيختفي لديك أيضاً.',
+          'عند توفر زر التنزيل المدمج في إنستغرام، فإنه يضع شعار المنصة واسم الحساب فوق الفيديو وقد يكتم الصوت في المقاطع التي تحتوي على موسيقى مرخصة.',
+          'احرص دائماً على فتح أداة التنزيل في متصفح سفاري أو كروم الخارجي وليس داخل متصفح إنستغرام الداخلي الذي يمنع تنزيل الملفات.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تدعم المحتوى العام فقط ولا يمكنها الوصول إلى الحسابات الخاصة، ويجب دائماً احترام حقوق الملكية الفكرية لصناع المحتوى.',
+        ],
+        tableOfContents: [
+          {
+            id: 'alhifz-dakhil-instagram-muqabil-altanzil',
+            heading: 'لماذا يختلف زر الحفظ داخل إنستغرام عن تنزيل الفيديو على جهازك؟',
+          },
+          {
+            id: 'khatwat-tanzil-reels-carousel-instagram',
+            heading: 'خطوات تنزيل ريلز وكاروسيل ومنشورات إنستغرام العامة',
+          },
+          {
+            id: 'ayna-tuhfaz-almaqati-iphone-android-pc',
+            heading: 'أين تُحفظ مقاطع الريلز بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+          },
+          {
+            id: 'hifz-alkarousel-wasurat-alhisab',
+            heading: 'تنزيل ألبومات الكاروسيل وصورة الملف الشخصي العامة من إنستغرام',
+          },
+          {
+            id: 'jawdat-alfيديو-fi-reels',
+            heading: 'ما هي جودة الفيديو المتوقعة عند حفظ ريلز إنستغرام؟',
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-instagram',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل وسائط إنستغرام',
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-instagram',
+            heading: 'نطاق عمل الأداة واحترام حقوق الملكية الفكرية',
+          },
+        ],
+        content: [
+          {
+            id: 'alhifz-dakhil-instagram-muqabil-altanzil',
+            heading: 'لماذا يختلف زر الحفظ داخل إنستغرام عن تنزيل الفيديو على جهازك؟',
+            paragraphs: [
+              'يضغط كثير من مستخدمي إنستغرام على أيقونة الحفظ الموجودة أسفل الريلز أو الصور معتقدين أن المقطع تم تخزينه في ذاكرة الهاتف. في الواقع، هذه الميزة تحفظ رابط المنشور فقط داخل قسم العناصر المحفوظة في حسابك. إذا انقطع اتصالك بالإنترنت أثناء السفر أو قام صانع المحتوى بحذف المنشور أو تحويل حسابه إلى خاص، فلن تتمكن من مشاهدة المقطع مجدداً.',
+              'ورغم أن إنستغرام أضاف ميزة التنزيل المباشر لبعض مقاطع الريلز العامة، إلا أنها مقيدة بعدة شروط؛ إذ يمكن لأصحاب الحسابات إيقاف التنزيل من الإعدادات، كما أنها معطلة تلقائياً للحسابات دون سن الثامنة عشرة. وعندما يكون الزر متاحاً، يطبع التطبيق شعار إنستغرام واسم المستخدم فوق الفيديو، وأحياناً يحفظ الفيديو بدون صوت بسبب قيود حقوق الموسيقى.',
+              'لذلك فإن استخدام أداة ويب عبر الرابط العام يمنحك ملف MP4 مستقلاً بالصوت المتزامن لحفظ أعمالك الخاصة المنشورة أو الرجوع إلى المقاطع العامة دون اتصال بالإنترنت، تماماً كما هو الحال عند [حفظ فيديوهات تيك توك العامة بدون علامة مائية](https://vidnex.space/ar/tiktok-video-downloader).',
+            ],
+            table: {
+              headers: [
+                'طريقة الحفظ',
+                'تخزين الملف دون إنترنت',
+                'إضافة علامة مائية',
+                'دعم الكاروسيل والمنشورات',
+              ],
+              rows: [
+                [
+                  'أيقونة الحفظ داخل إنستغرام',
+                  'لا (رابط داخل التطبيق فقط)',
+                  'لا ينطبق',
+                  'نعم، داخل التطبيق فقط',
+                ],
+                [
+                  'زر التنزيل الرسمي في إنستغرام',
+                  'نعم (إذا سمح الناشر بذلك)',
+                  'نعم (شعار إنستغرام واسم الحساب)',
+                  'الريلز فقط (لا يشمل ألبومات الصور)',
+                ],
+                [
+                  'تسجيل شاشة الهاتف',
+                  'نعم',
+                  'يظهر أزرار الإعجاب والنصوص فوق الصورة',
+                  'يتطلب قصاً يدوياً ويقلل من حدة الصورة',
+                ],
+                [
+                  'أداة المتصفح VIDNEX',
+                  'نعم (ملف MP4 أو صور على الجهاز)',
+                  'لا يضيف أي شعار',
+                  'نعم (الريلز، المنشورات، الكاروسيل وصورة الحساب العامة)',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'khatwat-tanzil-reels-carousel-instagram',
+            heading: 'خطوات تنزيل ريلز وكاروسيل ومنشورات إنستغرام العامة',
+            paragraphs: [
+              'العمل عبر متصفح الإنترنت يغنيك عن تثبيت تطبيقات مجهولة على هاتفك ولا يتطلب منك إدخال بيانات حسابك في إنستغرام إطلاقاً.',
+              'اتبع الخطوات التالية عبر [أداة تنزيل ريلز إنستغرام من VIDNEX](https://vidnex.space/en/instagram-reels-downloader) لحفظ أي منشور عام:',
+            ],
+            bullets: [
+              '1. افتح تطبيق إنستغرام (أو موقع instagram.com على الكمبيوتر) وانتقل إلى الريلز أو المنشور أو ألبوم الكاروسيل العام الذي ترغب في حفظه.',
+              '2. اضغط على أيقونة المشاركة (الطائرة الورقية) أسفل المنشور أو على جانب شاشة الريلز.',
+              '3. اختر «نسخ الرابط» من القائمة السفلية. وعلى الكمبيوتر يمكنك نسخ الرابط مباشرة من شريط العنوان في المتصفح.',
+              '4. اخرج من تطبيق إنستغرام وافتح متصفحك المستقل (مثل سفاري على الآيفون أو كروم على الأندرويد والكمبيوتر).',
+              '5. توجه إلى صفحة أداة إنستغرام في موقع VIDNEX، والصق الرابط المنسوخ في الحقل المخصص ثم ابدأ المعالجة.',
+              '6. اضغط على زر التنزيل لحفظ فيديو MP4 مع الصوت أو تحميل الصور الفردية من ألبوم الكاروسيل العام مباشرة على جهازك.',
+            ],
+            proTip:
+              'تجنب فتح صفحة التنزيل داخل المتصفح المصغر المدمج في تطبيق إنستغرام (عند النقر على رابط في البايو أو الرسائل)؛ لأن متصفح إنستغرام الداخلي يمنع تنزيل الملفات. انتقل دائماً إلى سفاري أو كروم أولاً.',
+          },
+          {
+            id: 'ayna-tuhfaz-almaqati-iphone-android-pc',
+            heading: 'أين تُحفظ مقاطع الريلز بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+            paragraphs: [
+              'بمجرد اكتمال التنزيل في المتصفح، يعتمد مكان ظهور الملف على نظام تشغيل جهازك.',
+              'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري جميع الملفات المحملة من الويب داخل تطبيق «الملفات» المدمج بدلاً من وضعها مباشرة في تطبيق «الصور». لنقل الفيديو إلى ألبوم الكاميرا: اضغط على أيقونة سهم التنزيلات الأزرق بجانب شريط العنوان في سفاري (أو افتح تطبيق الملفات ثم مجلد التنزيلات)، وافتح ملف MP4، ثم اضغط على زر المشاركة في الزاوية السفلية واختر «حفظ الفيديو» ليظهر فوراً في تطبيق الصور.',
+              'على هواتف أندرويد، يقوم متصفح كروم أو متصفح سامسونج بحفظ فيديو MP4 والصور مباشرة في مجلد «التنزيلات» (Downloads) بالذاكرة الداخلية، وتعرضه تطبيقات المعرض وصور جوجل تلقائياً.',
+              'على أجهزة الكمبيوتر (ويندوز أو ماك)، ينتقل الملف مباشرة إلى مجلد التنزيلات الافتراضي، ويعمل بسلاسة على جميع مشغلات الفيديو وبرامج المونتاج دون الحاجة إلى تحويل الصيغة.',
+            ],
+          },
+          {
+            id: 'hifz-alkarousel-wasurat-alhisab',
+            heading: 'تنزيل ألبومات الكاروسيل وصورة الملف الشخصي العامة من إنستغرام',
+            paragraphs: [
+              'تجمع منشورات الكاروسيل في إنستغرام عدة صور ومقاطع فيديو في منشور واحد. أخذ لقطة شاشة لكل صورة يقلل من الدقة ويترك أرقام التمرير ظاهرة في زاوية الصورة.',
+              'عند لصق رابط منشور كاروسيل عام في موقع VIDNEX، تتعرف الأداة على الوسائط العامة داخل المنشور لتتمكن من حفظ كل صورة أو مقطع فيديو بجودته المتاحة. وبالمثل، يمكنك لصق رابط أي حساب عام لحفظ صورة الملف الشخصي العامة الخاصة به.',
+              'لمعرفة المزيد حول كيفية تعامل إنستغرام مع أبعاد وضغط الصور في الكاروسيل مقارنة بمقاطع الريلز، يمكنك قراءة [دليل دقة وضغط ريلز وكاروسيل إنستغرام](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+            ],
+          },
+          {
+            id: 'jawdat-alfيديو-fi-reels',
+            heading: 'ما هي جودة الفيديو المتوقعة عند حفظ ريلز إنستغرام؟',
+            paragraphs: [
+              'يعرض إنستغرام مقاطع الريلز بأبعاد عمودية قياسية 9:16 وتصل دقتها عادةً إلى 1080p Full HD مع صوت بصيغة AAC. عند حفظ ريلز عام عبر VIDNEX، تحصل على ملف MP4 العام المتوفر على خوادم المنصة دون إضافة علامات مائية أو إعادة ضغط إضافية.',
+              'وإذا بدا المقطع المحمل أقل وضوحاً من المتوقع، فغالباً ما يكون السبب هو ضغط الفيديو أثناء رفعه الأصلي من قِبل الناشر أو عدم تفعيل خيار «الرفع بأعلى جودة» في إعدادات حسابه. راجع مقالنا حول [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/blog/why-is-downloaded-video-low-quality) للتفاصيل التقنية الكاملة.',
+            ],
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-instagram',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل وسائط إنستغرام',
+            paragraphs: [
+              'تحدث منصات التواصل الاجتماعي أنظمتها باستمرار، ولا يمكن لأي أداة على الإنترنت ضمان عملها بشكل دائم دون انقطاع. إليك حلول أبرز المشكلات التي قد تواجهك:',
+            ],
+            bullets: [
+              'رسالة «المنشور غير متاح» أو «حساب خاص»: تأكد من أن حساب إنستغرام عام (Public). موقع VIDNEX لا يصل أبداً إلى الحسابات الخاصة أو قصص الأصدقاء المقربين أو المحتوى الحصري للمشتركين.',
+              'زر التنزيل لا يستجيب على الآيفون: تأكد من أنك تستخدم متصفح سفاري وليس المتصفح الداخلي لتطبيق إنستغرام.',
+              "فشل الرابط بسبب رموز التتبع الإضافية: يضيف تطبيق إنستغرام أحياناً رموز تتبع تبدأ بـ '?igsh=' في نهاية الرابط. احذف الجزء الذي يبدأ بعلامة الاستفهام '?' واترك الرابط الأساسي 'https://www.instagram.com/reel/CODE/'، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              'فتح الفيديو في مشغل داخل المتصفح بدلاً من الحفظ: على الكمبيوتر اضغط بزر الفأرة الأيمن واختر «حفظ الفيديو باسم»، وعلى الهاتف استخدم قائمة المشاركة في المتصفح لحفظ الملف.',
+              'عدم عمل روابط القصص (Stories): يدعم VIDNEX في إنستغرام الريلز والمنشورات والكاروسيل وصورة الحساب العامة فقط، ولا يدعم القصص المؤقتة التي تختفي خلال 24 ساعة.',
+            ],
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-instagram',
+            heading: 'نطاق عمل الأداة واحترام حقوق الملكية الفكرية',
+            paragraphs: [
+              'من المهم الالتزام بالحدود التقنية والقانونية عند حفظ أي محتوى من منصات التواصل.',
+              'تقنياً، VIDNEX أداة مجانية لا تتطلب إنشاء حساب أو تسجيل دخول، وتعمل حصرياً مع الوسائط العامة من خمس منصات: تيك توك (فيديو عام MP4 بدون علامة مائية عند توفره، صوت MP3/M4A، صور وعروض شرائح عامة، وصورة الملف الشخصي)، وإنستغرام (الريلز والمنشورات والكاروسيل وصورة الحساب العامة)، ومنصة إكس تويتر سابقاً (الفيديوهات والصور المتحركة GIF كملفات MP4 وصور التغريدات العامة)، وفيسبوك (الفيديوهات والريلز العامة بجودة HD/SD)، ولينكد إن (صورة الملف الشخصي العامة فقط). الموقع لا يتعامل مع المحتوى الخاص، ولا يدعم يوتيوب أو سناب شات، ولا يقدم ضماناً باستمرار الخدمة دون انقطاع في حال فرضت المنصات قيوداً تقنية.',
+              'قانونياً، وفقاً لشروط استخدام إنستغرام وقوانين حقوق النشر، يحتفظ صناع المحتوى بكامل حقوق ملكية مقاطع الفيديو والصور والأصوات الأصلية التي ينشرونها. حفظ ريلز عام لا يمنحك الحق في إعادة نشره على حسابك الشخصي أو استخدامه تجارياً دون إذن صريح من صاحبه الأصلي.',
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'هل أحتاج إلى تسجيل الدخول بحساب إنستغرام لاستخدام موقع VIDNEX؟',
+            answer:
+              'لا، لا يطلب منك موقع VIDNEX اسم المستخدم أو كلمة المرور لحسابك في إنستغرام. يكفي لصق الرابط العام للمنشور أو الريلز.',
+          },
+          {
+            question: 'هل يمكنني تنزيل ريلز من حساب إنستغرام خاص أتابعه؟',
+            answer:
+              'لا، لأن الموقع يعمل دون تسجيل دخول بأي حساب، فهو يعالج المنشورات المتاحة للعامة فقط ولا يصل إلى الحسابات الخاصة.',
+          },
+          {
+            question: 'لماذا يُحفظ فيديو الريلز في تطبيق «الملفات» على الآيفون بدلاً من ألبوم الصور؟',
+            answer:
+              'لأن متصفح سفاري في نظام iOS يوجه جميع التنزيلات إلى مجلد التنزيلات داخل تطبيق «الملفات». افتح تطبيق الملفات، واضغط على الفيديو ثم أيقونة المشاركة واختر «حفظ الفيديو» لنقله إلى ألبوم الصور.',
+          },
+          {
+            question: 'هل يتم حفظ الريلز مع الصوت الأصلي؟',
+            answer:
+              'نعم، تُحفظ مقاطع الريلز العامة بصيغة MP4 قياسية تجمع بين الفيديو ومسار الصوت المتزامن معه.',
+          },
+          {
+            question: 'هل يمكنني تنزيل جميع الصور والفيديوهات من ألبوم كاروسيل عام في إنستغرام؟',
+            answer:
+              'نعم، عند لصق رابط منشور كاروسيل عام في VIDNEX، يمكنك تنزيل الصور ومقاطع الفيديو العامة الموجودة داخل المنشور.',
+          },
+          {
+            question: 'هل يحق لي إعادة نشر ريلز لشخص آخر إذا ذكرت اسم حسابه؟',
+            answer:
+              'لا، الإشارة إلى صاحب الحساب لا تغني عن الحصول على إذن صريح منه وفقاً لشروط استخدام إنستغرام وقوانين حقوق الملكية الفكرية.',
+          },
+          {
+            question: 'هل يدعم VIDNEX تنزيل قصص إنستغرام (Stories) أو مقاطع يوتيوب وسناب شات؟',
+            answer:
+              'لا، في إنستغرام يدعم الموقع الريلز والمنشورات والكاروسيل وصورة الحساب العامة فقط، ولا يدعم القصص المؤقتة ولا منصتي يوتيوب وسناب شات.',
+          },
+        ],
+        ctaTitle: 'احفظ أي ريلز أو كاروسيل إنستغرام عام الآن',
+        ctaDescription:
+          'الصق رابط أي منشور إنستغرام عام لتنزيل الريلز بصيغة MP4 مع الصوت، أو حفظ ألبومات الكاروسيل، أو تحميل صورة الحساب العامة مجاناً وبدون حساب.',
+        ctaButtonLabel: 'افتح أداة تنزيل ريلز إنستغرام',
+        internalLinks: [
+          {
+            label: 'افتح أداة تنزيل ريلز إنستغرام',
+            description:
+              'الصق رابط أي منشور إنستغرام عام لتنزيل الريلز بصيغة MP4 مع الصوت، أو حفظ ألبومات الكاروسيل، أو تحميل صورة الحساب العامة مجاناً وبدون حساب.',
+            targetType: 'platform',
+            platformKey: 'instagram',
+          },
+        ],
+        sources: [
+          {
+            title: 'شروط الاستخدام',
+            publisher: 'مركز مساعدة إنستغرام',
+            url: 'https://help.instagram.com/581066165581870/',
+          },
+          {
+            title: 'إرشادات المجتمع',
+            publisher: 'مركز مساعدة إنستغرام',
+            url: 'https://help.instagram.com/477434105621119',
+          },
+          {
+            title: 'الإبلاغ عن انتهاكات حقوق الملكية الفكرية',
+            publisher: 'مركز مساعدة ميتا',
+            url: 'https://help.meta.com/requests/1523801815366035/',
+          },
+          {
+            title: 'العثور على الملفات المحملة من سفاري على آيفون وآيباد',
+            publisher: 'دعم آبل',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+    },
+  },
 ];
 
 // ============================================================================

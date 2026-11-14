@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   detectMediaUrl,
   DetectedUrlInfo,
+  formatDetectedContentBadge,
   isPlatformSupported,
   PlatformId,
   SAMPLE_LINKS,
@@ -15,6 +16,7 @@ import {
   type SupportedLocale,
 } from '../i18n/config.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { getLocalizedErrorMessage } from '../services/extractorService.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 import { AdSlot } from './AdSlot.tsx';
 import { ShareButton } from './ShareButton.tsx';
@@ -71,16 +73,19 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   const storyLabels = STORY_CHIP_LABELS[language] || STORY_CHIP_LABELS.fr;
   const pageContent =
     pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
-  const currentBadgeLabel =
-    selectedStoryChip === 'instagram-story'
-      ? storyLabels.igStory
-      : selectedStoryChip === 'facebook-story'
-      ? storyLabels.fbStory
-      : pageKey === 'home'
-      ? 'VIDNEX'
-      : bundle.platforms[pageKey].shortLabel;
 
   const detected = detectMediaUrl(urlInput, activePlatform);
+  const detectedTypeBadge = formatDetectedContentBadge(detected, language);
+
+  const currentBadgeLabel = detectedTypeBadge
+    ? detectedTypeBadge
+    : selectedStoryChip === 'instagram-story'
+    ? storyLabels.igStory
+    : selectedStoryChip === 'facebook-story'
+    ? storyLabels.fbStory
+    : pageKey === 'home'
+    ? 'VIDNEX'
+    : bundle.platforms[pageKey].shortLabel;
 
   useEffect(() => {
     if (window.innerWidth >= 768) {
@@ -136,6 +141,17 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
         const pastedDetected = detectMediaUrl(trimmed, activePlatform);
         if (pastedDetected.isComingSoon) {
           setValidationMessage(t.comingSoonNotice);
+        } else if (
+          pastedDetected.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
+          (pastedDetected.platform === 'facebook' &&
+            pastedDetected.mediaType === 'photo')
+        ) {
+          setValidationMessage(
+            getLocalizedErrorMessage('UNSUPPORTED_FB_PHOTO', language, {
+              platform: 'facebook',
+              mediaType: 'photo',
+            })
+          );
         } else if (pastedDetected.isValid) {
           onSubmitUrl(pastedDetected.normalizedUrl, pastedDetected);
         }
@@ -177,6 +193,19 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
       return;
     }
 
+    if (
+      detected.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
+      (detected.platform === 'facebook' && detected.mediaType === 'photo')
+    ) {
+      setValidationMessage(
+        getLocalizedErrorMessage('UNSUPPORTED_FB_PHOTO', language, {
+          platform: 'facebook',
+          mediaType: 'photo',
+        })
+      );
+      return;
+    }
+
     if (!detected.isValid) {
       setValidationMessage(t.errInvalidUrl);
       return;
@@ -187,6 +216,7 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   };
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const hasDetectedPlatform = Boolean(detected.platform);
 
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-b from-orange-50/70 via-[#fffaf5] to-[#fffaf5] dark:from-orange-950/20 dark:via-[#140e0a] dark:to-[#140e0a] pt-3 sm:pt-10 pb-5 sm:pb-10 border-b border-orange-200/40 dark:border-orange-900/30">
@@ -258,16 +288,10 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                   />
                 </span>
                 <span
-                  title={
-                    detected.badgeLabel
-                      ? detected.badgeLabel
-                      : currentBadgeLabel
-                  }
+                  title={currentBadgeLabel}
                   className="font-mono text-xs text-orange-900 dark:text-orange-100 font-semibold tracking-normal whitespace-nowrap truncate"
                 >
-                  {detected.badgeLabel
-                    ? detected.badgeLabel
-                    : currentBadgeLabel}
+                  {currentBadgeLabel}
                 </span>
               </div>
 
@@ -386,6 +410,20 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               </button>
             </div>
 
+            {detectedTypeBadge && (
+              <div
+                data-testid="detected-content-type"
+                aria-live="polite"
+                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-100/80 dark:bg-[#2a1b12] border border-orange-200/80 dark:border-orange-800/60 font-mono text-xs font-semibold text-orange-900 dark:text-orange-100"
+              >
+                <PlatformIcon
+                  platform={detected.platform || activePlatform}
+                  className="w-3.5 h-3.5 text-orange-600 dark:text-amber-400 shrink-0"
+                />
+                <span>{detectedTypeBadge}</span>
+              </div>
+            )}
+
             {validationMessage && (
               <p
                 role="alert"
@@ -410,25 +448,25 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
                     detected.platform === 'facebook' &&
                     detected.mediaType === 'story');
                 const isStoryChipActiveForPlatform =
-                  (pKey === 'instagram' &&
+                  !hasDetectedPlatform &&
+                  ((pKey === 'instagram' &&
                     selectedStoryChip === 'instagram-story') ||
-                  (pKey === 'facebook' &&
-                    selectedStoryChip === 'facebook-story');
-                const isSelected =
-                  (pageKey === pKey || detected.platform === pKey) &&
-                  !isDetectedStoryForPlatform &&
-                  !isStoryChipActiveForPlatform;
+                    (pKey === 'facebook' &&
+                      selectedStoryChip === 'facebook-story'));
+                const isSelected = hasDetectedPlatform
+                  ? detected.platform === pKey && !isDetectedStoryForPlatform
+                  : pageKey === pKey && !isStoryChipActiveForPlatform;
                 const href = getLocalizedPagePath(language, pKey);
 
-                const igStorySelected =
-                  selectedStoryChip === 'instagram-story' ||
-                  (detected.platform === 'instagram' &&
+                const igStorySelected = hasDetectedPlatform
+                  ? detected.platform === 'instagram' &&
                     (detected.mediaType === 'story' ||
-                      detected.mediaType === 'highlight'));
-                const fbStorySelected =
-                  selectedStoryChip === 'facebook-story' ||
-                  (detected.platform === 'facebook' &&
-                    detected.mediaType === 'story');
+                      detected.mediaType === 'highlight')
+                  : selectedStoryChip === 'instagram-story';
+                const fbStorySelected = hasDetectedPlatform
+                  ? detected.platform === 'facebook' &&
+                    detected.mediaType === 'story'
+                  : selectedStoryChip === 'facebook-story';
 
                 return (
                   <React.Fragment key={pKey}>

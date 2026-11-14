@@ -15,6 +15,7 @@ export type MediaType =
   | 'highlight'
   | 'profile'
   | 'video'
+  | 'photo'
   | 'slideshow'
   | 'short'
   | 'spotlight';
@@ -22,6 +23,7 @@ export type MediaType =
 export interface DetectedUrlInfo {
   isValid: boolean;
   isComingSoon?: boolean;
+  unsupportedReason?: 'FB_PHOTO_UNSUPPORTED';
   platform: PlatformId | null;
   mediaType: MediaType | null;
   badgeLabel: string;
@@ -502,17 +504,31 @@ export function detectMediaUrl(
     };
   }
 
-  const igReelMatch = urlWithProtocol.match(
-    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:reel|reels|tv)\/([A-Za-z0-9_-]+)/i
+  const igTvMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:([A-Za-z0-9._]{1,30})\/)?tv\/([A-Za-z0-9_-]+)/i
   );
-  if (igReelMatch) {
+  if (igTvMatch && (!igTvMatch[1] || igTvMatch[1].toLowerCase() !== 'stories')) {
+    return {
+      isValid: true,
+      platform: 'instagram',
+      mediaType: 'video',
+      badgeLabel: 'Instagram Video',
+      identifier: igTvMatch[2],
+      normalizedUrl: `https://www.instagram.com/tv/${igTvMatch[2]}/`,
+    };
+  }
+
+  const igReelMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/(?:([A-Za-z0-9._]{1,30})\/)?(?:reel|reels)\/([A-Za-z0-9_-]+)/i
+  );
+  if (igReelMatch && (!igReelMatch[1] || igReelMatch[1].toLowerCase() !== 'stories')) {
     return {
       isValid: true,
       platform: 'instagram',
       mediaType: 'reel',
       badgeLabel: 'Instagram Reel',
-      identifier: igReelMatch[1],
-      normalizedUrl: `https://www.instagram.com/p/${igReelMatch[1]}/`,
+      identifier: igReelMatch[2],
+      normalizedUrl: `https://www.instagram.com/p/${igReelMatch[2]}/`,
     };
   }
 
@@ -724,11 +740,33 @@ export function detectMediaUrl(
         };
       }
 
-      // Reject photos and lives
+      // 5.0b Facebook Photos (/photo, /photo/, /photo.php, /photos/, /{page}/photos/...) -> detected as Facebook Photo (unsupported, clear message)
       if (
-        fbPathLower.startsWith('/photo') ||
-        fbPathLower.startsWith('/photos') ||
+        fbPathLower === '/photo' ||
+        fbPathLower === '/photo.php' ||
+        fbPathLower.startsWith('/photo/') ||
+        fbPathLower.startsWith('/photos/') ||
+        fbPathLower === '/photos' ||
         fbPathLower.includes('/photos/') ||
+        fbPathLower.startsWith('/share/p/')
+      ) {
+        const photoFbid =
+          (parsedFb.searchParams.get('fbid') || '').trim() ||
+          fbPath.split('/').filter(Boolean).pop() ||
+          undefined;
+        return {
+          isValid: false,
+          unsupportedReason: 'FB_PHOTO_UNSUPPORTED',
+          platform: 'facebook',
+          mediaType: 'photo',
+          badgeLabel: 'Facebook Photo',
+          identifier: photoFbid,
+          normalizedUrl: urlWithProtocol,
+        };
+      }
+
+      // Reject empty /stories or lives
+      if (
         fbPathLower.startsWith('/stories') ||
         fbPathLower.includes('/live/') ||
         fbPathLower.endsWith('/live')
@@ -744,7 +782,7 @@ export function detectMediaUrl(
 
       // 5a. fb.watch/{code}
       if (fbHost === 'fb.watch' || fbHost === 'www.fb.watch') {
-        const watchShort = fbPath.match(/^\/([A-Za-z0-9_-]{3,40})$/);
+        const watchShort = fbPath.match(/^\/(?:v\/)?([A-Za-z0-9_-]{3,40})$/);
         if (watchShort) {
           return {
             isValid: true,
@@ -790,7 +828,7 @@ export function detectMediaUrl(
 
       // 5d. /watch/?v={id} or /watch?v={id} or /video.php?v={id}
       if (fbPathLower === '/watch' || fbPathLower === '/video.php') {
-        const vId = (parsedFb.searchParams.get('v') || '').trim();
+        const vId = (parsedFb.searchParams.get('v') || parsedFb.searchParams.get('id') || '').trim();
         if (/^\d{5,30}$/.test(vId)) {
           return {
             isValid: true,
@@ -806,18 +844,21 @@ export function detectMediaUrl(
         }
       }
 
-      // 5e. /{page}/videos/{id} or /{page}/videos/{titre}/{id}
-      const fbPageVideoMatch = fbPath.match(
-        /^\/([^/]+)\/videos\/(?:[^/]+\/)?(\d{5,30})$/i
-      );
+      // 5e. /{page}/videos/{id} or /{page}/videos/{titre}/{id} or /videos/{id}
+      const fbPageVideoMatch =
+        fbPath.match(/^\/([^/]+)\/videos\/(?:[^/]+\/)?(\d{5,30})$/i) ||
+        fbPath.match(/^\/videos\/(\d{5,30})$/i);
       if (fbPageVideoMatch) {
+        const isDirect = fbPageVideoMatch.length === 2;
+        const pageSegment = isDirect ? 'facebook' : fbPageVideoMatch[1];
+        const videoId = isDirect ? fbPageVideoMatch[1] : fbPageVideoMatch[2];
         return {
           isValid: true,
           platform: 'facebook',
           mediaType: 'video',
           badgeLabel: 'Facebook Video',
-          identifier: fbPageVideoMatch[2],
-          normalizedUrl: `https://www.facebook.com/${fbPageVideoMatch[1]}/videos/${fbPageVideoMatch[2]}/`,
+          identifier: videoId,
+          normalizedUrl: `https://www.facebook.com/${pageSegment}/videos/${videoId}/`,
         };
       }
     }
@@ -863,5 +904,154 @@ export function getDetectedUrlInfo(
   preferredPlatform: PlatformId = 'instagram'
 ): DetectedUrlInfo {
   return detectMediaUrl(rawInput, preferredPlatform);
+}
+
+const DETECTED_MEDIA_TYPE_LABELS: Record<
+  string,
+  Record<MediaType, string>
+> = {
+  fr: {
+    post: 'Publication',
+    reel: 'Reel',
+    video: 'Vidéo',
+    story: 'Story',
+    highlight: 'Highlight',
+    profile: 'Profil',
+    photo: 'Photo',
+    slideshow: 'Diaporama',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  en: {
+    post: 'Post',
+    reel: 'Reel',
+    video: 'Video',
+    story: 'Story',
+    highlight: 'Highlight',
+    profile: 'Profile',
+    photo: 'Photo',
+    slideshow: 'Slideshow',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  ar: {
+    post: 'منشور',
+    reel: 'ريلز',
+    video: 'فيديو',
+    story: 'قصة',
+    highlight: 'هايلات',
+    profile: 'ملف شخصي',
+    photo: 'صورة',
+    slideshow: 'عرض صور',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  es: {
+    post: 'Publicación',
+    reel: 'Reel',
+    video: 'Vídeo',
+    story: 'Historia',
+    highlight: 'Destacado',
+    profile: 'Perfil',
+    photo: 'Foto',
+    slideshow: 'Carrusel',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  pt: {
+    post: 'Publicação',
+    reel: 'Reel',
+    video: 'Vídeo',
+    story: 'Story',
+    highlight: 'Destaque',
+    profile: 'Perfil',
+    photo: 'Foto',
+    slideshow: 'Carrossel',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  de: {
+    post: 'Beitrag',
+    reel: 'Reel',
+    video: 'Video',
+    story: 'Story',
+    highlight: 'Highlight',
+    profile: 'Profil',
+    photo: 'Foto',
+    slideshow: 'Diashow',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  tr: {
+    post: 'Gönderi',
+    reel: 'Reels',
+    video: 'Video',
+    story: 'Hikaye',
+    highlight: 'Öne Çıkan',
+    profile: 'Profil',
+    photo: 'Fotoğraf',
+    slideshow: 'Slayt',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  id: {
+    post: 'Postingan',
+    reel: 'Reel',
+    video: 'Video',
+    story: 'Story',
+    highlight: 'Sorotan',
+    profile: 'Profil',
+    photo: 'Foto',
+    slideshow: 'Slideshow',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  it: {
+    post: 'Post',
+    reel: 'Reel',
+    video: 'Video',
+    story: 'Storia',
+    highlight: 'In evidenza',
+    profile: 'Profilo',
+    photo: 'Foto',
+    slideshow: 'Presentazione',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+  ru: {
+    post: 'Публикация',
+    reel: 'Reels',
+    video: 'Видео',
+    story: 'История',
+    highlight: 'Актуальное',
+    profile: 'Профиль',
+    photo: 'Фото',
+    slideshow: 'Слайд-шоу',
+    short: 'Short',
+    spotlight: 'Spotlight',
+  },
+};
+
+const PLATFORM_DISPLAY_NAMES: Record<PlatformId, string> = {
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  tiktok: 'TikTok',
+  x: 'X (Twitter)',
+  twitter: 'X (Twitter)',
+  linkedin: 'LinkedIn',
+  youtube: 'YouTube',
+  snapchat: 'Snapchat',
+};
+
+export function formatDetectedContentBadge(
+  detected: DetectedUrlInfo,
+  locale = 'fr'
+): string {
+  if (!detected.platform || !detected.mediaType) return '';
+  const platformName = PLATFORM_DISPLAY_NAMES[detected.platform] || detected.platform;
+  const langDict =
+    DETECTED_MEDIA_TYPE_LABELS[locale] || DETECTED_MEDIA_TYPE_LABELS.fr;
+  const typeLabel = langDict[detected.mediaType] || detected.mediaType;
+  return `${platformName} · ${typeLabel}`;
 }
 

@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectMediaUrl, isPlatformSupported } from './urlDetector.ts';
+import {
+  detectMediaUrl,
+  formatDetectedContentBadge,
+  isPlatformSupported,
+} from './urlDetector.ts';
 import { buildUncompressedZipBytes, crc32 } from './zipArchive.ts';
 import { getLocalizedErrorMessage } from '../services/extractorService.ts';
 import { detectUrl } from '../../functions/_lib/detect.ts';
@@ -13,7 +17,9 @@ import {
   resetD1RateLimitFallback,
 } from '../../functions/_lib/ratelimit.ts';
 import {
+  extractInstagram,
   parseInstagramCookies,
+  parseMediaNode,
   shortcodeToMediaId,
 } from '../../functions/_lib/instagram.ts';
 import {
@@ -549,7 +555,19 @@ describe('VIDNEX URL Detection & Security Suite', () => {
 
     assert.equal(
       getLocalizedErrorMessage('PRIVATE_OR_LOGIN_REQUIRED', 'fr'),
-      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées."
+      "Ce contenu n'est pas public ou nécessite une connexion. Seules les publications publiques peuvent être téléchargées."
+    );
+    assert.equal(
+      getLocalizedErrorMessage('instagram.PRIVATE_OR_LOGIN_REQUIRED', 'fr', {
+        mediaType: 'post',
+      }),
+      "Cette publication n'est pas publique ou Instagram demande une connexion. Seuls les contenus publics peuvent être téléchargés."
+    );
+    assert.equal(
+      getLocalizedErrorMessage('facebook.PRIVATE_OR_LOGIN_REQUIRED', 'fr', {
+        mediaType: 'video',
+      }),
+      "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seuls les contenus publics peuvent être téléchargés."
     );
     assert.ok(getLocalizedErrorMessage('MAINTENANCE', 'fr').includes('maintenance'));
     assert.ok(
@@ -4036,7 +4054,504 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       globalThis.fetch = origFetch;
     }
   });
+
+  it('CORRECTION CONFUSION PHOTOS/REELS & INSTAGRAM/FACEBOOK — (1) Matrice complète (plateforme, code, type) en 10 langues sans fuite de nom de plateforme, (2) Détection sur 16 URLs (IG p/reel/reels/tv/story/highlight/profil, FB reel/watch/videos/fb.watch/photo/photo.php/story, X, TikTok), et (3) Moteur Instagram /p/ photo, vidéo et carrousel d’après media_type', async () => {
+    const { SUPPORTED_LOCALES } = await import('../i18n/config.ts');
+    const { loadLocaleBundle } = await import('../i18n/localeLoader.ts');
+    for (const loc of SUPPORTED_LOCALES) {
+      await loadLocaleBundle(loc);
+    }
+
+    // -------------------------------------------------------------------
+    // 1. Test des 16 URLs : plateforme, type (mediaType / kind), badge « Plateforme · Type » et message
+    // -------------------------------------------------------------------
+    const urlCases: Array<{
+      url: string;
+      platform: 'instagram' | 'facebook' | 'x' | 'tiktok';
+      frontendType: string;
+      backendKind: string;
+      isValid: boolean;
+      expectedBadgeFr: string;
+      expectedBadgeEn: string;
+      unsupportedReason?: string;
+    }> = [
+      // Instagram (7 URLs)
+      {
+        url: 'https://www.instagram.com/p/DfpvJ5tl7g4/',
+        platform: 'instagram',
+        frontendType: 'post',
+        backendKind: 'post',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Publication',
+        expectedBadgeEn: 'Instagram · Post',
+      },
+      {
+        url: 'https://www.instagram.com/reel/C8x9kLmN2pQ/',
+        platform: 'instagram',
+        frontendType: 'reel',
+        backendKind: 'reel',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Reel',
+        expectedBadgeEn: 'Instagram · Reel',
+      },
+      {
+        url: 'https://www.instagram.com/reels/C8x9kLmN2pQ/',
+        platform: 'instagram',
+        frontendType: 'reel',
+        backendKind: 'reel',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Reel',
+        expectedBadgeEn: 'Instagram · Reel',
+      },
+      {
+        url: 'https://www.instagram.com/tv/C8x9kLmN2pQ/',
+        platform: 'instagram',
+        frontendType: 'video',
+        backendKind: 'video',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Vidéo',
+        expectedBadgeEn: 'Instagram · Video',
+      },
+      {
+        url: 'https://www.instagram.com/stories/natgeo/3123456789012345678/',
+        platform: 'instagram',
+        frontendType: 'story',
+        backendKind: 'story',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Story',
+        expectedBadgeEn: 'Instagram · Story',
+      },
+      {
+        url: 'https://www.instagram.com/stories/highlights/17895432109876543/',
+        platform: 'instagram',
+        frontendType: 'highlight',
+        backendKind: 'highlight',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Highlight',
+        expectedBadgeEn: 'Instagram · Highlight',
+      },
+      {
+        url: 'https://www.instagram.com/natgeo/',
+        platform: 'instagram',
+        frontendType: 'profile',
+        backendKind: 'profile',
+        isValid: true,
+        expectedBadgeFr: 'Instagram · Profil',
+        expectedBadgeEn: 'Instagram · Profile',
+      },
+      // Facebook (7 URLs)
+      {
+        url: 'https://www.facebook.com/reel/10153231379946729',
+        platform: 'facebook',
+        frontendType: 'reel',
+        backendKind: 'reel',
+        isValid: true,
+        expectedBadgeFr: 'Facebook · Reel',
+        expectedBadgeEn: 'Facebook · Reel',
+      },
+      {
+        url: 'https://www.facebook.com/watch/?v=10153231379946729',
+        platform: 'facebook',
+        frontendType: 'video',
+        backendKind: 'video',
+        isValid: true,
+        expectedBadgeFr: 'Facebook · Vidéo',
+        expectedBadgeEn: 'Facebook · Video',
+      },
+      {
+        url: 'https://www.facebook.com/facebook/videos/10153231379946729/',
+        platform: 'facebook',
+        frontendType: 'video',
+        backendKind: 'video',
+        isValid: true,
+        expectedBadgeFr: 'Facebook · Vidéo',
+        expectedBadgeEn: 'Facebook · Video',
+      },
+      {
+        url: 'https://fb.watch/v1d2e3o4/',
+        platform: 'facebook',
+        frontendType: 'video',
+        backendKind: 'video',
+        isValid: true,
+        expectedBadgeFr: 'Facebook · Vidéo',
+        expectedBadgeEn: 'Facebook · Video',
+      },
+      {
+        url: 'https://www.facebook.com/photo/?fbid=10153231379946729',
+        platform: 'facebook',
+        frontendType: 'photo',
+        backendKind: 'photo',
+        isValid: false,
+        expectedBadgeFr: 'Facebook · Photo',
+        expectedBadgeEn: 'Facebook · Photo',
+        unsupportedReason: 'FB_PHOTO_UNSUPPORTED',
+      },
+      {
+        url: 'https://www.facebook.com/photo.php?fbid=10153231379946729',
+        platform: 'facebook',
+        frontendType: 'photo',
+        backendKind: 'photo',
+        isValid: false,
+        expectedBadgeFr: 'Facebook · Photo',
+        expectedBadgeEn: 'Facebook · Photo',
+        unsupportedReason: 'FB_PHOTO_UNSUPPORTED',
+      },
+      {
+        url: 'https://www.facebook.com/stories/10153231379946729/',
+        platform: 'facebook',
+        frontendType: 'story',
+        backendKind: 'story',
+        isValid: true,
+        expectedBadgeFr: 'Facebook · Story',
+        expectedBadgeEn: 'Facebook · Story',
+      },
+      // X / Twitter (1 URL)
+      {
+        url: 'https://x.com/reactiive_/status/2040511285998313827',
+        platform: 'x',
+        frontendType: 'video',
+        backendKind: 'post',
+        isValid: true,
+        expectedBadgeFr: 'X (Twitter) · Vidéo',
+        expectedBadgeEn: 'X (Twitter) · Video',
+      },
+      // TikTok (2 URLs : vidéo + photo)
+      {
+        url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
+        platform: 'tiktok',
+        frontendType: 'video',
+        backendKind: 'video',
+        isValid: true,
+        expectedBadgeFr: 'TikTok · Vidéo',
+        expectedBadgeEn: 'TikTok · Video',
+      },
+      {
+        url: 'https://www.tiktok.com/@tiktok/photo/7106594312292453675',
+        platform: 'tiktok',
+        frontendType: 'slideshow',
+        backendKind: 'slideshow',
+        isValid: true,
+        expectedBadgeFr: 'TikTok · Diaporama',
+        expectedBadgeEn: 'TikTok · Slideshow',
+      },
+    ];
+
+    assert.ok(urlCases.length >= 12);
+
+    for (const tc of urlCases) {
+      const fDet = detectMediaUrl(tc.url);
+      assert.equal(fDet.platform, tc.platform, `Frontend platform mismatch for ${tc.url}`);
+      assert.equal(fDet.mediaType, tc.frontendType, `Frontend mediaType mismatch for ${tc.url}`);
+      assert.equal(fDet.isValid, tc.isValid, `Frontend isValid mismatch for ${tc.url}`);
+      assert.equal(
+        formatDetectedContentBadge(fDet, 'fr'),
+        tc.expectedBadgeFr,
+        `Badge FR mismatch for ${tc.url}`
+      );
+      assert.equal(
+        formatDetectedContentBadge(fDet, 'en'),
+        tc.expectedBadgeEn,
+        `Badge EN mismatch for ${tc.url}`
+      );
+
+      const bDet = detectUrl(tc.url);
+      assert.equal(bDet.platform, tc.platform, `Backend platform mismatch for ${tc.url}`);
+      assert.equal(bDet.kind, tc.backendKind, `Backend kind mismatch for ${tc.url}`);
+      assert.equal(bDet.isValid, tc.isValid, `Backend isValid mismatch for ${tc.url}`);
+
+      if (tc.unsupportedReason === 'FB_PHOTO_UNSUPPORTED') {
+        assert.equal(fDet.unsupportedReason, 'FB_PHOTO_UNSUPPORTED');
+        assert.equal(bDet.unsupportedReason, 'FB_PHOTO_UNSUPPORTED');
+        const msgFr = getLocalizedErrorMessage('UNSUPPORTED_FB_PHOTO', 'fr');
+        assert.ok(msgFr.includes('Facebook') && msgFr.includes('photos'));
+        assert.ok(!msgFr.includes('Instagram'));
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // 2. Chaque couple (plateforme, code) dans les 10 langues :
+    //    - Affiche le bon nom de plateforme
+    //    - N'affiche JAMAIS le nom d'une autre plateforme
+    //    - Le repli générique ne contient AUCUN nom de plateforme
+    //    - Le mot s'adapte au type de contenu (publication, Reel, story, profil, vidéo)
+    // -------------------------------------------------------------------
+    const platforms = ['instagram', 'facebook', 'tiktok', 'x', 'linkedin'] as const;
+    const errorCodes = [
+      'PRIVATE_OR_LOGIN_REQUIRED',
+      'NOT_FOUND',
+      'BLOCKED_BY_PLATFORM',
+      'TIMEOUT',
+      'NO_MEDIA',
+      'UNSUPPORTED_URL',
+      'PLATFORM_DISABLED',
+    ] as const;
+
+    const expectedPlatformTokens: Record<
+      (typeof platforms)[number],
+      Record<string, string[]>
+    > = {
+      instagram: {
+        default: ['Instagram'],
+        ar: ['إنستغرام', 'Instagram'],
+      },
+      facebook: {
+        default: ['Facebook'],
+        ar: ['فيسبوك', 'Facebook'],
+      },
+      tiktok: {
+        default: ['TikTok'],
+        ar: ['تيك توك', 'TikTok'],
+      },
+      x: {
+        default: ['X (Twitter)'],
+        ar: ['إكس (تويتر)', 'X (Twitter)'],
+      },
+      linkedin: {
+        default: ['LinkedIn'],
+        ar: ['لينكدإن', 'LinkedIn'],
+      },
+    };
+
+    for (const loc of SUPPORTED_LOCALES) {
+      for (const plat of platforms) {
+        for (const code of errorCodes) {
+          // Test both composite key `<platform>.<CODE>` and `{ platform }` option
+          const msgByComposite = getLocalizedErrorMessage(`${plat}.${code}`, loc, {
+            mediaType: 'post',
+          });
+          const msgByOption = getLocalizedErrorMessage(code, loc, {
+            platform: plat,
+            mediaType: 'post',
+          });
+          assert.equal(msgByComposite, msgByOption);
+
+          const allowedNames =
+            expectedPlatformTokens[plat][loc] || expectedPlatformTokens[plat].default;
+          assert.ok(
+            allowedNames.some((n) => msgByComposite.includes(n)),
+            `Expected ${plat}.${code} (${loc}) to include ${allowedNames.join(' or ')}, got: "${msgByComposite}"`
+          );
+
+          // Ensure NO other platform's name ever appears
+          for (const otherPlat of platforms) {
+            if (otherPlat === plat) continue;
+            const forbiddenNames = [
+              ...expectedPlatformTokens[otherPlat].default,
+              ...(expectedPlatformTokens[otherPlat][loc] || []),
+            ];
+            for (const forbidden of forbiddenNames) {
+              assert.ok(
+                !msgByComposite.includes(forbidden),
+                `Forbidden platform name "${forbidden}" (${otherPlat}) found in ${plat}.${code} (${loc}): "${msgByComposite}"`
+              );
+            }
+          }
+        }
+      }
+
+      // Generic fallback WITHOUT any platform name
+      for (const code of errorCodes) {
+        const genericMsg = getLocalizedErrorMessage(code, loc, {
+          platform: null,
+          mediaType: 'post',
+        });
+        for (const plat of platforms) {
+          const allNames = [
+            ...expectedPlatformTokens[plat].default,
+            ...(expectedPlatformTokens[plat][loc] || []),
+          ];
+          for (const name of allNames) {
+            assert.ok(
+              !genericMsg.includes(name),
+              `Generic fallback for ${code} (${loc}) must NOT contain platform name "${name}": "${genericMsg}"`
+            );
+          }
+        }
+      }
+    }
+
+    // Adaptation du mot au type de contenu (« publication », « Reel », « story », « profil », « vidéo »)
+    const igPostErrFr = getLocalizedErrorMessage(
+      'instagram.PRIVATE_OR_LOGIN_REQUIRED',
+      'fr',
+      { mediaType: 'post' }
+    );
+    const igReelErrFr = getLocalizedErrorMessage(
+      'instagram.PRIVATE_OR_LOGIN_REQUIRED',
+      'fr',
+      { mediaType: 'reel' }
+    );
+    const igStoryErrFr = getLocalizedErrorMessage(
+      'instagram.PRIVATE_OR_LOGIN_REQUIRED',
+      'fr',
+      { mediaType: 'story' }
+    );
+    const igStoryNotFoundFr = getLocalizedErrorMessage(
+      'instagram.NOT_FOUND',
+      'fr',
+      { mediaType: 'story' }
+    );
+    const igProfileErrFr = getLocalizedErrorMessage(
+      'instagram.PRIVATE_OR_LOGIN_REQUIRED',
+      'fr',
+      { mediaType: 'profile' }
+    );
+    const fbVideoErrFr = getLocalizedErrorMessage(
+      'facebook.PRIVATE_OR_LOGIN_REQUIRED',
+      'fr',
+      { mediaType: 'video' }
+    );
+
+    assert.ok(igPostErrFr.includes('Cette publication') && igPostErrFr.includes('Instagram'));
+    assert.ok(!igPostErrFr.includes('Facebook'));
+    assert.ok(igReelErrFr.includes('Ce Reel') && igReelErrFr.includes('Instagram'));
+    assert.ok(igStoryErrFr.includes('stories Instagram'));
+    assert.ok(igStoryNotFoundFr.includes('Cette story Instagram'));
+    assert.ok(igProfileErrFr.includes('Ce profil') && igProfileErrFr.includes('Instagram'));
+    assert.ok(fbVideoErrFr.includes('Cette vidéo') && fbVideoErrFr.includes('Facebook'));
+    assert.ok(!fbVideoErrFr.includes('Instagram'));
+
+    // -------------------------------------------------------------------
+    // 3. Moteur Instagram : /p/ détermine photo, vidéo ou carrousel d'après media_type (pas d'après l'URL)
+    //    et renvoie les photos comme items image (kind: 'image')
+    // -------------------------------------------------------------------
+    // 3a. Photo unique (media_type === 1 / GraphImage)
+    const parsedPhoto = parseMediaNode(
+      {
+        media_type: 1,
+        __typename: 'GraphImage',
+        display_url: 'https://scontent.cdninstagram.com/v/t51.2885-15/photo_1080.jpg',
+        original_width: 1080,
+        original_height: 1350,
+        caption: { text: 'Photo Instagram /p/' },
+        owner: { username: 'photouser', full_name: 'Photo User' },
+      },
+      'DfpvJ5tl7g4',
+      'post'
+    );
+    assert.ok(parsedPhoto);
+    assert.equal(parsedPhoto.type, 'image');
+    assert.equal(parsedPhoto.items.length, 1);
+    assert.equal(parsedPhoto.items[0].kind, 'image');
+    assert.equal(parsedPhoto.items[0].ext, 'jpg');
+
+    // 3b. Vidéo unique sur un lien /p/ (media_type === 2 / GraphVideo)
+    const parsedVideo = parseMediaNode(
+      {
+        media_type: 2,
+        __typename: 'GraphVideo',
+        video_url: 'https://scontent.cdninstagram.com/v/t50.2886-16/video_1080.mp4',
+        display_url: 'https://scontent.cdninstagram.com/v/t51.2885-15/thumb_1080.jpg',
+        original_width: 1080,
+        original_height: 1920,
+        owner: { username: 'videouser' },
+      },
+      'DfpvJ5tl7g4',
+      'post'
+    );
+    assert.ok(parsedVideo);
+    assert.equal(parsedVideo.type, 'video');
+    assert.equal(parsedVideo.items[0].kind, 'video');
+    assert.equal(parsedVideo.items[0].ext, 'mp4');
+
+    // 3c. Carrousel sur un lien /p/ (media_type === 8 / carousel_media)
+    const parsedCarousel = parseMediaNode(
+      {
+        media_type: 8,
+        carousel_media: [
+          {
+            id: 'slide1',
+            media_type: 1,
+            image_versions2: {
+              candidates: [
+                {
+                  url: 'https://scontent.cdninstagram.com/v/t51.2885-15/slide1.jpg',
+                  width: 1080,
+                  height: 1080,
+                },
+              ],
+            },
+          },
+          {
+            id: 'slide2',
+            media_type: 2,
+            video_versions: [
+              {
+                url: 'https://scontent.cdninstagram.com/v/t50.2886-16/slide2.mp4',
+                width: 1080,
+                height: 1920,
+              },
+            ],
+            image_versions2: {
+              candidates: [
+                {
+                  url: 'https://scontent.cdninstagram.com/v/t51.2885-15/slide2_thumb.jpg',
+                  width: 1080,
+                  height: 1920,
+                },
+              ],
+            },
+          },
+        ],
+        owner: { username: 'carouseluser' },
+      },
+      'DfpvJ5tl7g4',
+      'post'
+    );
+    assert.ok(parsedCarousel);
+    assert.equal(parsedCarousel.type, 'carousel');
+    assert.equal(parsedCarousel.items.length, 2);
+    assert.equal(parsedCarousel.items[0].kind, 'image');
+    assert.equal(parsedCarousel.items[1].kind, 'video');
+
+    // 3d. Extraction complète d'un lien /p/ photo même si l'embed contient "WatchOnInstagram" dans le footer
+    const origFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        if (u.includes('graphql')) {
+          return new Response(
+            JSON.stringify({
+              message: 'Please wait a few minutes before you try again.',
+              require_login: true,
+              status: 'fail',
+            }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        if (u.includes('/embed/captioned/')) {
+          return new Response(
+            `<html><body><img class="EmbeddedMediaImage" src="https://scontent.cdninstagram.com/v/t51.2885-15/single_post_photo.jpg" /><div class="WatchOnInstagram">View on Instagram</div></body></html>`,
+            { status: 200, headers: { 'Content-Type': 'text/html' } }
+          );
+        }
+        return new Response('Not found', { status: 404 });
+      };
+
+      const extractedPhotoPost = await extractInstagram(
+        'https://www.instagram.com/p/DfpvJ5tl7g4/',
+        'DfpvJ5tl7g4',
+        'post'
+      );
+      assert.equal(extractedPhotoPost.ok, true);
+      if (extractedPhotoPost.ok) {
+        assert.equal(extractedPhotoPost.platform, 'instagram');
+        assert.equal(extractedPhotoPost.type, 'image');
+        assert.equal(extractedPhotoPost.items.length, 1);
+        assert.equal(extractedPhotoPost.items[0].kind, 'image');
+        assert.equal(extractedPhotoPost.items[0].ext, 'jpg');
+      }
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });
+
 
 
 

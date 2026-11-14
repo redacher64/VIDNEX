@@ -115,7 +115,7 @@
     "errors": {
       "UNSUPPORTED_URL": "Ce lien n’est pas reconnu. Collez un lien public provenant de TikTok, Instagram, X (Twitter), Facebook ou un profil LinkedIn (/in/...).",
       "NOT_FOUND": "Contenu introuvable. La vidéo, le Reel, le tweet ou la publication a peut-être été supprimé.",
-      "PRIVATE_OR_LOGIN_REQUIRED": "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "Ce contenu n'est pas public ou nécessite une connexion. Seules les publications publiques peuvent être téléchargées.",
       "IG_STORY_LOGIN_REQUIRED": "Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.",
       "FB_STORY_LOGIN_REQUIRED": "Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte.",
       "BLOCKED_BY_PLATFORM": "La plateforme bloque temporairement l'accès à ce contenu. Veuillez réessayer dans quelques instants.",
@@ -299,7 +299,7 @@
       "metaDescription": "Téléchargez gratuitement des Reels Instagram, vidéos, photos de carrousel et photos de profil publiques en qualité originale MP4 et JPG sans compte.",
       "h1": "Télécharger un Reel ou Carrousel Instagram en qualité originale",
       "subtitle": "Enregistrez les Reels publics en MP4, sauvegardez les publications multi-photos en ZIP et consultez les photos de profil en taille réelle.",
-      "shortLabel": "Reels Instagram",
+      "shortLabel": "Instagram",
       "breadcrumbLabel": "Téléchargeur Instagram",
       "placeholder": "https://www.instagram.com/reel/C8x9kLmN2pQ/",
       "specs": [
@@ -449,7 +449,7 @@
       "metaDescription": "Téléchargez gratuitement des vidéos publiques Facebook, Reels et liens fb.watch en MP4 HD ou SD sur mobile et ordinateur, sans connexion à un compte.",
       "h1": "Télécharger une vidéo Facebook ou un Reel public en MP4",
       "subtitle": "Enregistrez les vidéos publiques Facebook Watch, les Reels et les liens de partage fb.watch en qualité HD ou SD sans compte.",
-      "shortLabel": "Vidéo Facebook",
+      "shortLabel": "Facebook",
       "breadcrumbLabel": "Téléchargeur Facebook",
       "placeholder": "https://www.facebook.com/facebook/videos/10153231379946729/",
       "specs": [

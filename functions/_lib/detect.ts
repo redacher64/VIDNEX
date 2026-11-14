@@ -11,6 +11,7 @@
 export type SupportedPlatform = 'tiktok' | 'instagram' | 'x' | 'facebook' | 'linkedin';
 export type ContentKind =
   | 'video'
+  | 'photo'
   | 'slideshow'
   | 'reel'
   | 'post'
@@ -31,6 +32,7 @@ export type LogContentKind =
 
 export interface DetectionResult {
   isValid: boolean;
+  unsupportedReason?: 'FB_PHOTO_UNSUPPORTED';
   platform: SupportedPlatform | null;
   kind: ContentKind | null;
   contentKind?: LogContentKind;
@@ -462,8 +464,25 @@ export function detectUrl(
       };
     }
 
-    // 1D. Reel / Reels / IGTV : /reel/{code} ou /reels/{code} ou /tv/{code}
-    const reelMatch = pathname.match(/^\/(?:reel|reels|tv)\/([A-Za-z0-9_-]{5,40})/i);
+    // 1D. IGTV / Vidéo : /tv/{code} ou /{username}/tv/{code}
+    const tvMatch = pathname.match(
+      /^\/(?:([A-Za-z0-9._]{1,30})\/)?tv\/([A-Za-z0-9_-]{5,40})/i
+    );
+    if (tvMatch && (!tvMatch[1] || tvMatch[1].toLowerCase() !== 'stories')) {
+      const shortcode = tvMatch[2];
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'video',
+        contentKind: 'video',
+        content_kind: 'video',
+        identifier: shortcode,
+        cleanUrl: `https://www.instagram.com/p/${shortcode}/`,
+      };
+    }
+
+    // 1D-bis. Reel / Reels : /reel/{code} ou /reels/{code}
+    const reelMatch = pathname.match(/^\/(?:reel|reels)\/([A-Za-z0-9_-]{5,40})/i);
     if (reelMatch) {
       const shortcode = reelMatch[1];
       return {
@@ -819,10 +838,36 @@ export function detectUrl(
       };
     }
 
-    // Rejeter explicitement les photos et lives avec UNSUPPORTED_URL
+    // Format 0D : Photos Facebook (/photo, /photo/, /photo.php, /photos/, /{page}/photos/...) -> kind: 'photo' (non pris en charge, message clair)
     if (
-      lowerPath.startsWith('/photo') ||
+      lowerPath === '/photo' ||
+      lowerPath === '/photo/' ||
+      lowerPath === '/photo.php' ||
+      lowerPath === '/photo.php/' ||
+      lowerPath.startsWith('/photo/') ||
       lowerPath.startsWith('/photos/') ||
+      lowerPath === '/photos' ||
+      lowerPath.includes('/photos/') ||
+      lowerPath.startsWith('/share/p/')
+    ) {
+      const photoFbid =
+        (parsed.searchParams.get('fbid') || '').trim() ||
+        pathname.split('/').filter(Boolean).pop() ||
+        undefined;
+      return {
+        isValid: false,
+        unsupportedReason: 'FB_PHOTO_UNSUPPORTED',
+        platform: 'facebook',
+        kind: 'photo',
+        contentKind: 'photo',
+        content_kind: 'photo',
+        identifier: photoFbid,
+        cleanUrl: stripTrackingParams(parsed.toString()),
+      };
+    }
+
+    // Rejeter explicitement les lives avec UNSUPPORTED_URL
+    if (
       lowerPath.includes('/live/') ||
       lowerPath.startsWith('/watch/live')
     ) {
@@ -1284,9 +1329,20 @@ export function classifyUrlForLog(
       };
     }
     if (
-      /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(path) ||
+      /^\/(?:[a-z0-9._]{1,30}\/)?tv\//.test(path) ||
       (!path.startsWith('/stories') &&
-        /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels|tv)\//.test(origPath))
+        /^\/(?:[a-z0-9._]{1,30}\/)?tv\//.test(origPath))
+    ) {
+      return {
+        platform: 'instagram',
+        contentKind: isOrigShortLink && !hasResolvedDifferentTarget ? 'short_link' : 'video',
+        engineFn: 'instagram.video',
+      };
+    }
+    if (
+      /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels)\//.test(path) ||
+      (!path.startsWith('/stories') &&
+        /^\/(?:[a-z0-9._]{1,30}\/)?(?:reel|reels)\//.test(origPath))
     ) {
       return {
         platform: 'instagram',

@@ -115,7 +115,7 @@
     "errors": {
       "UNSUPPORTED_URL": "Unsupported link. Please paste a public link from TikTok, Instagram, X (Twitter), Facebook, or a LinkedIn profile (/in/...).",
       "NOT_FOUND": "Media not found. The video, Reel, tweet, or post may have been deleted.",
-      "PRIVATE_OR_LOGIN_REQUIRED": "This video is not public or requires a login. Only public videos can be downloaded.",
+      "PRIVATE_OR_LOGIN_REQUIRED": "This content is not public or requires a login. Only public posts can be downloaded.",
       "IG_STORY_LOGIN_REQUIRED": "Instagram stories require a login: they cannot be downloaded without an account.",
       "FB_STORY_LOGIN_REQUIRED": "Facebook stories require a login: they cannot be downloaded without an account.",
       "BLOCKED_BY_PLATFORM": "The platform temporarily restricted access to this post. Please try again in a moment.",
@@ -299,7 +299,7 @@
       "metaDescription": "Download public Instagram Reels in original MP4 quality, batch-save multi-photo carousels as ZIP, and view full-size profile pictures online for free.",
       "h1": "Instagram Reels & Carousel Downloader (HD MP4)",
       "subtitle": "Save public Instagram Reels in clean MP4, extract multi-slide carousels, and view full-resolution profile pictures without logging in.",
-      "shortLabel": "Instagram Reels",
+      "shortLabel": "Instagram",
       "breadcrumbLabel": "Instagram Downloader",
       "placeholder": "https://www.instagram.com/reel/C8x9kLmN2pQ/",
       "specs": [
@@ -449,7 +449,7 @@
       "metaDescription": "Download public Facebook Watch videos, Reels, and fb.watch share links in HD or SD MP4 for free on mobile and desktop without logging into Facebook.",
       "h1": "Facebook Video & Reels Downloader (HD / SD MP4)",
       "subtitle": "Save public Facebook Watch videos, Reels, and fb.watch shortlinks in HD or SD MP4 without a Facebook account.",
-      "shortLabel": "Facebook Video",
+      "shortLabel": "Facebook",
       "breadcrumbLabel": "Facebook Downloader",
       "placeholder": "https://www.facebook.com/facebook/videos/10153231379946729/",
       "specs": [

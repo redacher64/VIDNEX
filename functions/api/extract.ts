@@ -275,6 +275,31 @@ async function handleExtract(
     );
   }
 
+  if (
+    detection.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
+    (detection.platform === 'facebook' && detection.kind === 'photo')
+  ) {
+    scheduleAsyncLog(
+      ctx,
+      logExtractionEvent(env, {
+        platform: 'facebook',
+        status: 'error',
+        errorCode: 'UNSUPPORTED_URL',
+        durationMs: Date.now() - startedAt,
+        ipHash,
+        engineStage: 'fb_photo_unsupported',
+        httpStatus: 400,
+        contentKind: 'photo',
+        engineFn: 'facebook.video',
+      })
+    );
+    return createErrorResponse(
+      'UNSUPPORTED_URL',
+      'Les photos Facebook ne sont pas prises en charge. Seules les vidéos publiques et les Reels Facebook peuvent être téléchargés.',
+      400
+    );
+  }
+
   if (!detection.isValid || !detection.platform) {
     return createErrorResponse(
       'UNSUPPORTED_URL',

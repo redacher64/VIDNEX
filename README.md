@@ -251,10 +251,12 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 - **Cas Stories & Highlights (`kind = 'story' | 'highlight'`)** :
   - Si `env.IG_SESSION_ID` est défini, interroge exclusivement le moteur story authentifié (`/api/v1/media/{mediaId}/info/` et `/api/v1/feed/reels_media/`).
   - Si `env.IG_SESSION_ID` est absent, renvoie immédiatement `PRIVATE_OR_LOGIN_REQUIRED` (`403`) avec le message explicite (« Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte. », traduit dans les 10 langues) et journalise `content_kind = "story"` ou `"highlight"` dans `request_log`.
-- **Cas Publications, Reels et Carrousels (`extractInstagram`)** :
+- **Cas Publications, Reels, IGTV et Carrousels (`extractInstagram`)** :
+  - Détection par type d'URL : `/p/` = `post` (publication : photo, vidéo ou carrousel), `/reel/` ou `/reels/` = `reel`, `/tv/` = `video`, `/stories/` = `story`, `/stories/highlights/` = `highlight`, `/{user}/` = `profile`.
+  - Une publication `/p/` ne passe jamais par un chemin « Reel seulement » : `parseMediaNode` et `extractViaInstagramEmbedAndOg` déterminent **photo** (`media_type === 1` / `GraphImage`), **vidéo** (`media_type === 2` / `GraphVideo`) ou **carrousel** (`media_type === 8` / `GraphSidecar` / `carousel_media`) exclusivement d'après les données renvoyées et renvoient les photos comme `items` de type `image` (`kind: 'image'`).
   - **Niveau 0 (Session authentifiée optionnelle)** : Si `IG_COOKIES` ou `IG_SESSION_ID` est configuré, convertit le `shortcode` en `media_id` numérique (`shortcodeToMediaId`) et interroge `https://www.instagram.com/api/v1/media/{mediaId}/info/`.
   - **Niveau 1 (GraphQL)** : Requêtes `POST` sur `https://www.instagram.com/graphql/query` et `https://www.instagram.com/api/graphql` avec les `doc_id` publics (`8845758582119845`, `10015901848480474`, `7950326061742207`).
-  - **Niveau 2 (Embed Captioned + OpenGraph)** : Analyse `https://www.instagram.com/p/{shortcode}/embed/captioned/` (`window.__additionalDataLoaded`, `contextJSON`, `video_url`, `display_url`), puis les balises meta OpenGraph de la page publique.
+  - **Niveau 2 (Embed Captioned + OpenGraph)** : Analyse `https://www.instagram.com/p/{shortcode}/embed/captioned/` (`window.__additionalDataLoaded`, `contextJSON`, `video_url`, `display_url`, `EmbeddedMediaImage`), puis les balises meta OpenGraph (`og:video` et `og:image` pour les publications `/p/`).
   - **Niveau 3 (Passerelles publiques sans clé)** : Repli sur `https://api.vxinstagram.com/p/{shortcode}` et `https://d.ddinstagram.com/p/{shortcode}` si l'IP Cloudflare est filtrée par Instagram.
 - **Cas Photo de Profil (`extractInstagramProfile` — `engineKey: instagram_profile`)** :
   - **Niveau 1 (`level1_web_profile_info`)** : Requête sans compte vers `GET /api/v1/users/web_profile_info/?username={username}` avec `X-IG-App-ID: 936619743392459` et `redirect: 'manual'`.
@@ -269,6 +271,7 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 - Filtre les flux `video/mp4` (ignore `.m3u8`), trie les variantes par `bitrate` décroissant et force `?name=orig` sur les photos.
 
 #### Facebook (`functions/_lib/facebook.ts`)
+- **Détection par type d'URL (`src/utils/urlDetector.ts` & `functions/_lib/detect.ts`)** : `/reel/` = `reel`, `/watch/`, `/videos/`, `fb.watch` = `video` ; `/photo/`, `/photo.php` = `photo` (non prise en charge, rejetée immédiatement avec un message explicite en 10 langues) ; `/stories/` = `story`.
 - **Détection prioritaire des Stories (`content_kind = "story"`)** : Les liens `/stories/...`, `/story.php?story_fbid=...`, `/share/s/...` et les liens courts (`fb.watch`, `/share/r/`, `/share/v/`) qui redirigent vers `/stories/` (ou `/login?next=/stories/...`) sont classés `story` **avant** les Reels et renvoient immédiatement `PRIVATE_OR_LOGIN_REQUIRED` (`403`) avec le message explicite (« Les stories Facebook exigent une connexion : elles ne peuvent pas être téléchargées sans compte. ») sans jamais appeler le moteur Reels ni contourner un mur de connexion.
 - **Résolution préalable des liens de partage** : Si l'URL est un lien court (`fb.watch/{code}`, `/share/v/{code}`, `/share/r/{code}`), `resolveFacebookRedirect` suit manuellement jusqu'à 4 redirections avec vérification anti-SSRF stricte à chaque saut (`isAllowedFacebookHost`) puis reclasse l'URL finale.
 - **Niveau 1 (Desktop)** : Récupère `https://www.facebook.com/...` et `https://www.facebook.com/watch/?v={id}` (timeout `8 s`), décode les séquences JSON/HTML échappées et extrait les flux `HD` (`browser_native_hd_url`, `playable_url_quality_hd`, `hd_src_no_ratelimit`, `hd_src`) et `SD` (`browser_native_sd_url`, `playable_url`, `sd_src_no_ratelimit`, `sd_src`, `og:video`).
@@ -282,11 +285,18 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 
 ---
 
-### 4.2 Codes d'erreur et statuts HTTP (`functions/_lib/normalize.ts`)
+### 4.2 Codes d'erreur, messages par (plateforme, code, type) et statuts HTTP (`functions/_lib/normalize.ts` & `src/services/extractorService.ts`)
+
+- **Puces & Indicateur de type sous le champ (`src/components/HeroOmnibox.tsx`)** :
+  - Les puces sont nommées « TikTok », « Instagram », « X (Twitter) », « Facebook », « LinkedIn ».
+  - Le moteur d'extraction est choisi **uniquement** d'après l'URL collée (jamais d'après la puce sélectionnée), la puce active suit automatiquement la plateforme de l'URL collée, et un badge sous le champ affiche le type détecté (`Instagram · Publication`, `Instagram · Reel`, `Instagram · Vidéo`, `Instagram · Story`, `Instagram · Highlight`, `Instagram · Profil`, `Facebook · Reel`, `Facebook · Vidéo`, `Facebook · Photo`, `Facebook · Story`, etc.).
+- **Messages d'erreur par `(plateforme, code)` et par type de contenu (`getLocalizedErrorMessage`)** :
+  - Une entrée dédiée par couple `(plateforme, code)` (ex. `instagram.PRIVATE_OR_LOGIN_REQUIRED`, `facebook.PRIVATE_OR_LOGIN_REQUIRED`, `x.NOT_FOUND`) dans les 10 langues, avec adaptation du nom au type de contenu détecté (« publication », « Reel », « story », « highlight », « profil », « photo », « vidéo »).
+  - Aucun message ne mentionne jamais le nom d'une autre plateforme, et le repli générique ne contient aucun nom de plateforme.
 
 | Code d'erreur (`ErrorCode`) | Statut HTTP (`ERROR_CODE_STATUS`) | Signification |
 | :--- | :---: | :--- |
-| `UNSUPPORTED_URL` | `400` | URL manquante, malformée, domaine non supporté ou format de lien non pris en charge (ex. page entreprise LinkedIn). |
+| `UNSUPPORTED_URL` | `400` | URL manquante, malformée, domaine non supporté ou format de lien non pris en charge (ex. photo Facebook `/photo/`, page entreprise LinkedIn). |
 | `PRIVATE_OR_LOGIN_REQUIRED` | `403` | Contenu privé, compte protégé, restriction d'âge ou photo de profil absente. |
 | `PLATFORM_DISABLED` | `403` | La plateforme cible a été temporairement désactivée par l'administrateur dans D1 (`settings`). |
 | `BLOCKED` | `403` | L'adresse IP hachée, le domaine ou l'URL figure dans la table `blocklist`. |

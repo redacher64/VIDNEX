@@ -34,6 +34,7 @@ export interface AdminUserProfile {
     | 'health'
     | 'controls'
     | 'activity'
+    | 'blog'
     | 'users'
     | 'account';
 }

@@ -49,10 +49,16 @@ const VALID_BLOG_STATUSES = new Set<BlogStatus>([
 ]);
 
 const VALID_CATEGORIES = new Set<BlogCategoryId>([
+  'tiktok-guides',
+  'instagram-guides',
+  'facebook-guides',
+  'x-twitter-guides',
+  'video-audio',
+  'troubleshooting',
+  'privacy-safety',
   'tutorials',
   'comparisons',
   'audio',
-  'troubleshooting',
   'news',
 ]);
 

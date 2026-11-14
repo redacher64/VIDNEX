@@ -12,12 +12,20 @@ import {
   Moon,
   Users as UsersIcon,
   UserCircle,
+  FileText,
 } from './AdminIcons';
 import { Login, type AdminUserProfile } from './Login';
 import { Dashboard } from './Dashboard';
 import { Health } from './Health';
 import { Controls } from './Controls';
 import { Activity } from './Activity';
+import { Blog } from './Blog';
+import {
+  BLOG_MODULE_ENABLED,
+  type AdminTab,
+  getFirstAuthorizedTabForUser,
+  isTabAuthorizedForUser,
+} from './blogAdminLogic';
 import { Users } from './Users';
 import { Account } from './Account';
 import {
@@ -27,19 +35,12 @@ import {
   resolveInitialAdminTheme,
 } from './adminTheme';
 
-export type AdminTab =
-  | 'dashboard'
-  | 'health'
-  | 'controls'
-  | 'activity'
-  | 'users'
-  | 'account';
-
-/**
- * Le module Blog n'est pas encore activé ; les droits `blog.*` sont déjà enregistrés
- * en base, mais l'entrée de menu Blog n'apparaîtra que lorsque le module existera.
- */
-export const BLOG_MODULE_ENABLED = false;
+export {
+  BLOG_MODULE_ENABLED,
+  type AdminTab,
+  getFirstAuthorizedTabForUser,
+  isTabAuthorizedForUser,
+};
 
 function getExplicitUrlTab(): AdminTab | null {
   if (typeof window === 'undefined') return null;
@@ -49,37 +50,13 @@ function getExplicitUrlTab(): AdminTab | null {
     tab === 'health' ||
     tab === 'controls' ||
     tab === 'activity' ||
+    tab === 'blog' ||
     tab === 'users' ||
     tab === 'account'
   ) {
     return tab;
   }
   return null;
-}
-
-export function isTabAuthorizedForUser(
-  tab: AdminTab,
-  user: AdminUserProfile | null
-): boolean {
-  if (!user) return false;
-  if (user.isOwner) return true;
-  if (tab === 'account') return true;
-  if (tab === 'controls' || tab === 'users') return false;
-  if (tab === 'dashboard') return user.permissions.includes('dashboard.view');
-  if (tab === 'health') return user.permissions.includes('health.view');
-  if (tab === 'activity') return user.permissions.includes('activity.view');
-  return false;
-}
-
-export function getFirstAuthorizedTabForUser(
-  user: AdminUserProfile | null
-): AdminTab {
-  if (!user) return 'dashboard';
-  if (user.isOwner) return 'dashboard';
-  if (user.permissions.includes('dashboard.view')) return 'dashboard';
-  if (user.permissions.includes('health.view')) return 'health';
-  if (user.permissions.includes('activity.view')) return 'activity';
-  return 'account';
 }
 
 export const AdminApp: React.FC = () => {
@@ -152,7 +129,7 @@ export const AdminApp: React.FC = () => {
 
   const applyAuthenticatedUser = (
     incomingUser: AdminUserProfile | null,
-    fromLoginAction = false
+    _fromLoginAction = false
   ) => {
     const resolvedUser: AdminUserProfile = incomingUser || {
       id: null,
@@ -176,7 +153,7 @@ export const AdminApp: React.FC = () => {
     setAuthenticated(true);
 
     const explicitUrlTab = getExplicitUrlTab();
-    if (explicitUrlTab && !fromLoginAction) {
+    if (explicitUrlTab && isTabAuthorizedForUser(explicitUrlTab, resolvedUser)) {
       setActiveTab(explicitUrlTab);
     } else {
       setActiveTab(
@@ -302,6 +279,12 @@ export const AdminApp: React.FC = () => {
       label: 'Activité',
       icon: <ListOrdered className="w-4 h-4" />,
       visible: isTabAuthorizedForUser('activity', user),
+    },
+    {
+      id: 'blog',
+      label: 'Blog',
+      icon: <FileText className="w-4 h-4" />,
+      visible: BLOG_MODULE_ENABLED && isTabAuthorizedForUser('blog', user),
     },
     {
       id: 'users',
@@ -449,6 +432,7 @@ export const AdminApp: React.FC = () => {
             {activeTab === 'health' && <Health readOnly={!user.isOwner} />}
             {activeTab === 'controls' && user.isOwner && <Controls />}
             {activeTab === 'activity' && <Activity />}
+            {activeTab === 'blog' && <Blog user={user} />}
             {activeTab === 'users' && user.isOwner && <Users />}
             {activeTab === 'account' && (
               <Account

@@ -1071,4 +1071,145 @@ test('Admin RBAC & Security: owner retains full access, first-login mandatory pa
   assert.equal(deactivatedLoginJson.message, 'Identifiant ou mot de passe incorrect.');
 });
 
+test('AdminApp Blog tab & BlogEditor: authorizes blog.* permissions, validates draft payloads, saves draft to D1, and filters by status', async () => {
+  const {
+    BLOG_MODULE_ENABLED,
+    isTabAuthorizedForUser,
+    getFirstAuthorizedTabForUser,
+    hasBlogPermission,
+    canWriteBlogArticle,
+    slugifyBlogIdentifier,
+    buildDraftCreatePayload,
+    buildUnifiedAdminBlogArticles,
+    filterAdminBlogArticles,
+  } = await import('../src/pages/admin/blogAdminLogic.ts');
+  const { ADMIN_COOKIE_NAME, createSignedSessionToken } = await import(
+    '../functions/_lib/auth.ts'
+  );
+  const {
+    onRequestPost: adminBlogPost,
+    onRequestGet: adminBlogGet,
+  } = await import('../functions/api/admin/blog.ts');
+
+  assert.equal(BLOG_MODULE_ENABLED, true);
+
+  const writerUser = {
+    id: 2,
+    login: 'writer',
+    displayName: 'Rédacteur',
+    roleLabel: 'Rédacteur blog',
+    isOwner: false,
+    permissions: ['blog.write' as const],
+    mustChangePassword: false,
+  };
+  const deleteOnlyUser = {
+    id: 4,
+    login: 'moderator',
+    displayName: 'Modérateur',
+    roleLabel: 'Modérateur',
+    isOwner: false,
+    permissions: ['blog.delete' as const],
+    mustChangePassword: false,
+  };
+  const observerUser = {
+    id: 3,
+    login: 'observer',
+    displayName: 'Observateur',
+    roleLabel: 'Observateur',
+    isOwner: false,
+    permissions: ['dashboard.view' as const],
+    mustChangePassword: false,
+  };
+
+  assert.equal(hasBlogPermission(writerUser), true);
+  assert.equal(canWriteBlogArticle(writerUser), true);
+  assert.equal(hasBlogPermission(deleteOnlyUser), true);
+  assert.equal(canWriteBlogArticle(deleteOnlyUser), false);
+  assert.equal(hasBlogPermission(observerUser), false);
+  assert.equal(canWriteBlogArticle(observerUser), false);
+  assert.equal(isTabAuthorizedForUser('blog', writerUser), true);
+  assert.equal(getFirstAuthorizedTabForUser(writerUser), 'blog');
+  assert.equal(isTabAuthorizedForUser('blog', observerUser), false);
+
+  assert.equal(
+    slugifyBlogIdentifier('Guide Vidéo TikTok 2026 : Qualité MP4 !'),
+    'guide-video-tiktok-qualite-mp4'
+  );
+
+  const built = buildDraftCreatePayload({
+    articleId: 'guide-video-tiktok-qualite-mp4',
+    category: 'tiktok-guides',
+    toolRoute: '/telecharger-video-tiktok',
+    locale: 'fr',
+    slug: 'guide-video-tiktok-qualite-mp4',
+    title: 'Guide Vidéo TikTok : Qualité MP4',
+    excerpt: 'Extrait technique sur la conservation du flux MP4 original.',
+    metaTitle: 'Guide Vidéo TikTok : Qualité MP4 Originale',
+    metaDescription:
+      'Découvrez comment vérifier le débit binaire et la résolution d’une vidéo TikTok publique pour enregistrer un fichier MP4 net sans perte.',
+    primaryKeyword: 'qualite mp4 tiktok',
+    bodyMarkdown:
+      '## Vérifier le conteneur MP4\n\nExpliquez comment analyser le flux vidéo H.264.\n\n- Contrôler la résolution 1080p\n- Vérifier la piste audio AAC',
+  });
+
+  assert.equal(built.valid, true, `Unexpected errors: ${JSON.stringify(built.errors)}`);
+  assert.equal(built.payload.status, 'draft');
+  assert.equal(built.payload.category, 'tiktok-guides');
+
+  const db = createMemoryD1Database();
+  const sessionSecret = 'test-blog-editor-hmac-secret-2026';
+  const env = {
+    DB: db,
+    ADMIN_PASSWORD: 'owner-pwd',
+    SESSION_SECRET: sessionSecret,
+  };
+  const ownerToken = await createSignedSessionToken(sessionSecret, Date.now(), {
+    type: 'owner',
+  });
+
+  const postRes = await adminBlogPost({
+    request: new Request('https://vidnex.space/api/admin/blog', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://vidnex.space',
+        Cookie: `${ADMIN_COOKIE_NAME}=${ownerToken}`,
+      },
+      body: JSON.stringify(built.payload),
+    }),
+    env,
+  });
+  assert.equal(postRes.status, 201);
+  const postJson: any = await postRes.json();
+  assert.equal(postJson.ok, true);
+  assert.equal(postJson.status, 'draft');
+
+  const getRes = await adminBlogGet({
+    request: new Request('https://vidnex.space/api/admin/blog', {
+      method: 'GET',
+      headers: { Cookie: `${ADMIN_COOKIE_NAME}=${ownerToken}` },
+    }),
+    env,
+  });
+  assert.equal(getRes.status, 200);
+  const getJson: any = await getRes.json();
+
+  const allArticles = buildUnifiedAdminBlogArticles(undefined, getJson.articles);
+  const publishedOnly = filterAdminBlogArticles(allArticles, {
+    statusFilter: 'published',
+  });
+  const draftsOnly = filterAdminBlogArticles(allArticles, {
+    statusFilter: 'draft',
+  });
+
+  assert.ok(publishedOnly.length > 0, 'Should include published articles');
+  assert.ok(
+    draftsOnly.some((a) => a.id === 'guide-video-tiktok-qualite-mp4' && a.inD1),
+    'Newly saved D1 draft article should appear in draft list'
+  );
+  assert.equal(publishedOnly.length + draftsOnly.length, allArticles.length);
+});
+
+
+
 

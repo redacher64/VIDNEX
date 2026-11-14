@@ -29,6 +29,22 @@ interface HeroOmniboxProps {
   language: SupportedLocale;
 }
 
+const STORY_CHIP_LABELS: Record<
+  SupportedLocale,
+  { igStory: string; fbStory: string }
+> = {
+  fr: { igStory: 'Story Instagram', fbStory: 'Story Facebook' },
+  en: { igStory: 'Instagram Story', fbStory: 'Facebook Story' },
+  ar: { igStory: 'ستوري إنستغرام', fbStory: 'ستوري فيسبوك' },
+  es: { igStory: 'Story Instagram', fbStory: 'Story Facebook' },
+  pt: { igStory: 'Story Instagram', fbStory: 'Story Facebook' },
+  de: { igStory: 'Instagram Story', fbStory: 'Facebook Story' },
+  tr: { igStory: 'Instagram Hikaye', fbStory: 'Facebook Hikaye' },
+  id: { igStory: 'Story Instagram', fbStory: 'Story Facebook' },
+  it: { igStory: 'Story Instagram', fbStory: 'Story Facebook' },
+  ru: { igStory: 'Сторис Instagram', fbStory: 'Сторис Facebook' },
+};
+
 export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   pageKey,
   activePlatform,
@@ -39,6 +55,9 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   language,
 }) => {
   const [urlInput, setUrlInput] = useState('');
+  const [selectedStoryChip, setSelectedStoryChip] = useState<
+    'instagram-story' | 'facebook-story' | null
+  >(null);
   const [clipboardFeedback, setClipboardFeedback] = useState<string | null>(
     null
   );
@@ -49,10 +68,17 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
 
   const bundle = getLocaleBundleSync(language);
   const t = bundle.ui.omnibox;
+  const storyLabels = STORY_CHIP_LABELS[language] || STORY_CHIP_LABELS.fr;
   const pageContent =
     pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
   const currentBadgeLabel =
-    pageKey === 'home' ? 'VIDNEX' : bundle.platforms[pageKey].shortLabel;
+    selectedStoryChip === 'instagram-story'
+      ? storyLabels.igStory
+      : selectedStoryChip === 'facebook-story'
+      ? storyLabels.fbStory
+      : pageKey === 'home'
+      ? 'VIDNEX'
+      : bundle.platforms[pageKey].shortLabel;
 
   const detected = detectMediaUrl(urlInput, activePlatform);
 
@@ -375,30 +401,106 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             {PLATFORM_PAGE_KEYS.filter((pKey) => isPlatformSupported(pKey)).map(
               (pKey) => {
                 const pInfo = bundle.platforms[pKey];
+                const isDetectedStoryForPlatform =
+                  (pKey === 'instagram' &&
+                    detected.platform === 'instagram' &&
+                    (detected.mediaType === 'story' ||
+                      detected.mediaType === 'highlight')) ||
+                  (pKey === 'facebook' &&
+                    detected.platform === 'facebook' &&
+                    detected.mediaType === 'story');
+                const isStoryChipActiveForPlatform =
+                  (pKey === 'instagram' &&
+                    selectedStoryChip === 'instagram-story') ||
+                  (pKey === 'facebook' &&
+                    selectedStoryChip === 'facebook-story');
                 const isSelected =
-                  pageKey === pKey || detected.platform === pKey;
+                  (pageKey === pKey || detected.platform === pKey) &&
+                  !isDetectedStoryForPlatform &&
+                  !isStoryChipActiveForPlatform;
                 const href = getLocalizedPagePath(language, pKey);
+
+                const igStorySelected =
+                  selectedStoryChip === 'instagram-story' ||
+                  (detected.platform === 'instagram' &&
+                    (detected.mediaType === 'story' ||
+                      detected.mediaType === 'highlight'));
+                const fbStorySelected =
+                  selectedStoryChip === 'facebook-story' ||
+                  (detected.platform === 'facebook' &&
+                    detected.mediaType === 'story');
+
                 return (
-                  <a
-                    key={pKey}
-                    href={href}
-                    data-testid={`chip-${pKey}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigatePage(pKey);
-                    }}
-                    className={`snap-start shrink-0 min-h-[44px] px-3 sm:px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
-                        : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
-                    }`}
-                  >
-                    <PlatformIcon
-                      platform={pKey}
-                      className="w-3.5 h-3.5 shrink-0"
-                    />
-                    <span>{pInfo.shortLabel}</span>
-                  </a>
+                  <React.Fragment key={pKey}>
+                    <a
+                      href={href}
+                      data-testid={`chip-${pKey}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedStoryChip(null);
+                        onNavigatePage(pKey);
+                      }}
+                      className={`snap-start shrink-0 min-h-[44px] px-3 sm:px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
+                          : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
+                      }`}
+                    >
+                      <PlatformIcon
+                        platform={pKey}
+                        className="w-3.5 h-3.5 shrink-0"
+                      />
+                      <span>{pInfo.shortLabel}</span>
+                    </a>
+
+                    {pKey === 'instagram' && (
+                      <a
+                        href={href}
+                        data-testid="chip-instagram-story"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedStoryChip('instagram-story');
+                          onNavigatePage('instagram');
+                          inputRef.current?.focus();
+                        }}
+                        className={`snap-start shrink-0 min-h-[44px] px-3 sm:px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
+                          igStorySelected
+                            ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
+                            : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
+                        }`}
+                      >
+                        <PlatformIcon
+                          platform="instagram"
+                          className="w-3.5 h-3.5 shrink-0"
+                        />
+                        <span>{storyLabels.igStory}</span>
+                      </a>
+                    )}
+
+                    {pKey === 'facebook' && (
+                      <a
+                        href={href}
+                        data-testid="chip-facebook-story"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedStoryChip('facebook-story');
+                          onNavigatePage('facebook');
+                          inputRef.current?.focus();
+                        }}
+                        className={`snap-start shrink-0 min-h-[44px] px-3 sm:px-3.5 py-2 rounded-xl font-mono text-xs transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5 ${
+                          fbStorySelected
+                            ? 'bg-orange-600 text-white font-bold border border-orange-600 shadow-orange-sm'
+                            : 'bg-white dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 text-orange-900 dark:text-orange-200/85 font-medium shadow-sm hover:border-orange-400 hover:shadow-orange-sm'
+                        }`}
+                      >
+                        <PlatformIcon
+                          platform="facebook"
+                          className="w-3.5 h-3.5 shrink-0"
+                        />
+                        <span>{storyLabels.fbStory}</span>
+                      </a>
+                    )}
+                  </React.Fragment>
                 );
               }
             )}

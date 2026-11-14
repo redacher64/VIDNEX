@@ -29,7 +29,7 @@ export const TEMP_PASSWORD_LENGTH = 16;
  * Les permissions `blog.*` sont déjà enregistrées en base ; l'entrée de menu Blog
  * n'apparaît que lorsque le module blog existera.
  */
-export const BLOG_MODULE_ENABLED = false;
+export const BLOG_MODULE_ENABLED = true;
 
 /**
  * Liste stricte des 7 droits assignables aux comptes utilisateurs.
@@ -755,12 +755,13 @@ export function resolveAdminRoutePermission(
  */
 export function getFirstAuthorizedTab(
   principal: Pick<AdminPrincipal, 'isOwner' | 'permissions'>
-): 'dashboard' | 'health' | 'controls' | 'activity' | 'users' | 'account' {
+): 'dashboard' | 'health' | 'controls' | 'activity' | 'blog' | 'users' | 'account' {
   if (principal.isOwner) return 'dashboard';
   const perms = principal.permissions || [];
   if (perms.includes('dashboard.view')) return 'dashboard';
   if (perms.includes('health.view')) return 'health';
   if (perms.includes('activity.view')) return 'activity';
+  if (BLOG_PERMISSIONS.some((p) => perms.includes(p))) return 'blog';
   return 'account';
 }
 

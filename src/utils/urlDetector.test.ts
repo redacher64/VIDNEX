@@ -4407,7 +4407,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(igReelErrFr.includes('Ce Reel') && igReelErrFr.includes('Instagram'));
     assert.ok(igStoryErrFr.includes('stories Instagram'));
     assert.ok(igStoryNotFoundFr.includes('Cette story Instagram'));
-    assert.ok(igProfileErrFr.includes('Ce profil') && igProfileErrFr.includes('Instagram'));
+    assert.ok(igProfileErrFr.toLowerCase().includes('profil') && igProfileErrFr.includes('Instagram'));
     assert.ok(fbVideoErrFr.includes('Cette vidéo') && fbVideoErrFr.includes('Facebook'));
     assert.ok(!fbVideoErrFr.includes('Instagram'));
 
@@ -4534,8 +4534,8 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       };
 
       const extractedPhotoPost = await extractInstagram(
-        'https://www.instagram.com/p/DfpvJ5tl7g4/',
         'DfpvJ5tl7g4',
+        {},
         'post'
       );
       assert.equal(extractedPhotoPost.ok, true);

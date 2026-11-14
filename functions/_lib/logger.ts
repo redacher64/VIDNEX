@@ -32,7 +32,9 @@ export type DailyMetricEvent =
   | 'extract_success_tiers'
   | 'extract_error'
   | 'download_started'
-  | 'download_success';
+  | 'download_success'
+  | 'selection_started'
+  | 'selection_download';
 
 export interface ExtractionLogEvent {
   platform: MetricPlatform;
@@ -45,6 +47,7 @@ export interface ExtractionLogEvent {
   httpStatus?: number | null;
   contentKind?: string | null;
   engineFn?: string | null;
+  isSelection?: boolean;
   ts?: number;
 }
 
@@ -266,6 +269,10 @@ export async function logExtractionEvent(
       metricEvents.push(
         stage === 'tiers' ? 'extract_success_tiers' : 'extract_success_direct'
       );
+    }
+
+    if (event.status === 'success' && event.isSelection) {
+      metricEvents.push('selection_started');
     }
 
     await incrementDailyMetrics(env, event.platform, metricEvents, ts);

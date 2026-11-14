@@ -190,6 +190,173 @@ function formatCount(count: unknown): string | undefined {
   return String(n);
 }
 
+function toIsoDateString(rawTs: unknown): string | undefined {
+  if (rawTs === null || rawTs === undefined || rawTs === '') return undefined;
+  if (typeof rawTs === 'number' && Number.isFinite(rawTs) && rawTs > 0) {
+    const ms = rawTs < 1e12 ? rawTs * 1000 : rawTs;
+    return new Date(ms).toISOString();
+  }
+  if (typeof rawTs === 'string') {
+    const trimmed = rawTs.trim();
+    if (/^\d+$/.test(trimmed)) {
+      const n = Number(trimmed);
+      if (Number.isFinite(n) && n > 0) {
+        const ms = n < 1e12 ? n * 1000 : n;
+        return new Date(ms).toISOString();
+      }
+    }
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+  return undefined;
+}
+
+function parseStoryNodeToItem(
+  node: any,
+  indexOneBased: number,
+  selected?: boolean
+): ExtractMediaItem | null {
+  if (!node || typeof node !== 'object') return null;
+  const vidUrl = node.video_url || node.video_versions?.[0]?.url;
+  const sdVidUrl = node.video_versions?.[1]?.url;
+  const imgUrl =
+    node.display_url ||
+    node.display_resources?.[node.display_resources.length - 1]?.src ||
+    node.image_versions2?.candidates?.[0]?.url ||
+    node.thumbnail_src;
+  const itemId = String(node.pk || node.id || '').split('_')[0] || undefined;
+  const width =
+    node.dimensions?.width ||
+    node.original_width ||
+    node.video_versions?.[0]?.width ||
+    node.image_versions2?.candidates?.[0]?.width ||
+    undefined;
+  const height =
+    node.dimensions?.height ||
+    node.original_height ||
+    node.video_versions?.[0]?.height ||
+    node.image_versions2?.candidates?.[0]?.height ||
+    undefined;
+  const date = toIsoDateString(
+    node.taken_at ?? node.taken_at_timestamp ?? node.device_timestamp
+  );
+
+  if (vidUrl) {
+    const cleanVid = cleanEscapedUrl(vidUrl);
+    const cleanThumb = imgUrl ? cleanEscapedUrl(imgUrl) : cleanVid;
+    return {
+      index: indexOneBased,
+      id: itemId,
+      ...(selected !== undefined ? { selected } : {}),
+      kind: 'video',
+      url: cleanVid,
+      backupUrl:
+        sdVidUrl && sdVidUrl !== vidUrl ? cleanEscapedUrl(sdVidUrl) : undefined,
+      thumbnail: cleanThumb,
+      quality: '1080p',
+      ext: 'mp4',
+      width,
+      height,
+      date,
+    };
+  }
+
+  if (imgUrl) {
+    const cleanImg = cleanEscapedUrl(imgUrl);
+    return {
+      index: indexOneBased,
+      id: itemId,
+      ...(selected !== undefined ? { selected } : {}),
+      kind: 'image',
+      url: cleanImg,
+      thumbnail: cleanImg,
+      quality: '1080p',
+      ext: 'jpg',
+      width,
+      height,
+      date,
+    };
+  }
+
+  return null;
+}
+
+function buildStoryOrHighlightReelResponse(
+  reelItems: any[],
+  fallbackIdentifier: string,
+  targetStoryId?: string | null,
+  customTitle?: string
+): ExtractResponse | null {
+  if (!Array.isArray(reelItems) || reelItems.length === 0) return null;
+
+  const firstOwner = reelItems[0]?.user || reelItems[0]?.owner || {};
+  const username = String(
+    firstOwner.username || fallbackIdentifier.split('/')[0] || 'instagram_user'
+  ).replace(/^@/, '');
+  const nickname = String(firstOwner.full_name || `@${username}`);
+  const avatarRaw =
+    firstOwner.profile_pic_url_hd ||
+    firstOwner.hd_profile_pic_url_info?.url ||
+    firstOwner.profile_pic_url;
+  const avatar = avatarRaw ? cleanEscapedUrl(String(avatarRaw)) : undefined;
+
+  const matchesTarget = (it: any): boolean => {
+    if (!targetStoryId) return false;
+    const pk = String(it?.pk || '');
+    const id = String(it?.id || '');
+    return (
+      pk === targetStoryId ||
+      id === targetStoryId ||
+      id.startsWith(`${targetStoryId}_`)
+    );
+  };
+
+  const hasExplicitMatch = Boolean(
+    targetStoryId && reelItems.some((it) => matchesTarget(it))
+  );
+
+  const items: ExtractMediaItem[] = [];
+  reelItems.forEach((rawNode, idx) => {
+    const isSelected = targetStoryId
+      ? hasExplicitMatch
+        ? matchesTarget(rawNode)
+        : idx === reelItems.length - 1
+      : true;
+    const built = parseStoryNodeToItem(rawNode, items.length + 1, isSelected);
+    if (built) {
+      items.push(built);
+    }
+  });
+
+  if (items.length === 0) return null;
+
+  const primaryItem = items.find((it) => it.selected) || items[0];
+
+  return {
+    ok: true,
+    platform: 'instagram',
+    type:
+      items.length > 1
+        ? 'carousel'
+        : primaryItem.kind === 'video'
+        ? 'video'
+        : 'image',
+    title: customTitle
+      ? String(customTitle).slice(0, 220)
+      : `Stories Instagram (@${username})`,
+    author: {
+      username,
+      nickname,
+      avatar,
+      verified: Boolean(firstOwner.is_verified),
+    },
+    thumbnail: primaryItem.thumbnail || primaryItem.url,
+    items,
+  };
+}
+
 /**
  * Normalise un objet `shortcode_media` / `xdt_shortcode_media` / `items[0]` d'Instagram
  */
@@ -216,6 +383,10 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
     media.caption?.text ||
     `Instagram (${shortcode})`;
   const duration = formatDuration(media.video_duration || media.duration);
+  const mediaDate = toIsoDateString(
+    media.taken_at ?? media.taken_at_timestamp ?? media.device_timestamp
+  );
+  const mediaId = String(media.pk || media.id || '').split('_')[0] || undefined;
 
   // 1. Carrousel multi-slides (`edge_sidecar_to_children` ou `carousel_media`)
   const sidecarEdges: any[] | undefined =
@@ -232,27 +403,55 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
         node.display_resources?.[node.display_resources.length - 1]?.src ||
         node.image_versions2?.candidates?.[0]?.url ||
         node.thumbnail_src;
+      const nodeId = String(node.pk || node.id || '').split('_')[0] || undefined;
+      const nodeDate =
+        toIsoDateString(
+          node.taken_at ?? node.taken_at_timestamp ?? node.device_timestamp
+        ) || mediaDate;
+      const nodeWidth =
+        node.dimensions?.width ||
+        node.original_width ||
+        node.video_versions?.[0]?.width ||
+        node.image_versions2?.candidates?.[0]?.width ||
+        media.dimensions?.width ||
+        media.original_width ||
+        undefined;
+      const nodeHeight =
+        node.dimensions?.height ||
+        node.original_height ||
+        node.video_versions?.[0]?.height ||
+        node.image_versions2?.candidates?.[0]?.height ||
+        media.dimensions?.height ||
+        media.original_height ||
+        undefined;
 
       if (vidUrl) {
+        const cleanVid = cleanEscapedUrl(vidUrl);
         items.push({
+          index: items.length + 1,
+          id: nodeId,
           kind: 'video',
-          url: cleanEscapedUrl(vidUrl),
-          thumbnail: imgUrl ? cleanEscapedUrl(imgUrl) : undefined,
+          url: cleanVid,
+          thumbnail: imgUrl ? cleanEscapedUrl(imgUrl) : cleanVid,
           quality: '1080p',
           ext: 'mp4',
-          width: node.dimensions?.width || node.original_width || undefined,
-          height: node.dimensions?.height || node.original_height || undefined,
+          width: nodeWidth,
+          height: nodeHeight,
+          date: nodeDate,
         });
       } else if (imgUrl) {
         const cleanImg = cleanEscapedUrl(imgUrl);
         items.push({
+          index: items.length + 1,
+          id: nodeId,
           kind: 'image',
           url: cleanImg,
           thumbnail: cleanImg,
           quality: '1080p',
           ext: 'jpg',
-          width: node.dimensions?.width || node.original_width || undefined,
-          height: node.dimensions?.height || node.original_height || undefined,
+          width: nodeWidth,
+          height: nodeHeight,
+          date: nodeDate,
         });
       }
     }
@@ -284,12 +483,26 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
     media.display_resources?.[media.display_resources.length - 1]?.src ||
     media.image_versions2?.candidates?.[0]?.url ||
     media.thumbnail_src;
+  const mediaWidth =
+    media.dimensions?.width ||
+    media.original_width ||
+    media.video_versions?.[0]?.width ||
+    media.image_versions2?.candidates?.[0]?.width ||
+    undefined;
+  const mediaHeight =
+    media.dimensions?.height ||
+    media.original_height ||
+    media.video_versions?.[0]?.height ||
+    media.image_versions2?.candidates?.[0]?.height ||
+    undefined;
 
   if (videoUrl) {
     const cleanVid = cleanEscapedUrl(videoUrl);
     const cleanCover = coverUrl ? cleanEscapedUrl(coverUrl) : cleanVid;
     const items: ExtractMediaItem[] = [
       {
+        index: 1,
+        id: mediaId,
         kind: 'video',
         url: cleanVid,
         backupUrl:
@@ -299,26 +512,34 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
         thumbnail: cleanCover,
         quality: '1080p',
         ext: 'mp4',
-        width: media.dimensions?.width || media.original_width || undefined,
-        height: media.dimensions?.height || media.original_height || undefined,
+        width: mediaWidth,
+        height: mediaHeight,
+        date: mediaDate,
       },
     ];
 
     if (sdVideoUrl && sdVideoUrl !== videoUrl) {
       items.push({
+        index: 2,
+        id: mediaId,
         kind: 'video',
         url: cleanEscapedUrl(sdVideoUrl),
         thumbnail: cleanCover,
         quality: '720p',
         ext: 'mp4',
+        width: media.video_versions?.[1]?.width || undefined,
+        height: media.video_versions?.[1]?.height || undefined,
+        date: mediaDate,
       });
     }
 
     items.push({
+      index: items.length + 1,
       kind: 'audio',
       url: cleanVid,
       quality: 'MP3',
       ext: 'mp3',
+      date: mediaDate,
     });
 
     return {
@@ -355,13 +576,16 @@ function parseMediaNode(media: any, shortcode: string): ExtractResponse | null {
       thumbnail: cleanImg,
       items: [
         {
+          index: 1,
+          id: mediaId,
           kind: 'image',
           url: cleanImg,
           thumbnail: cleanImg,
           quality: '1080p',
           ext: 'jpg',
-          width: media.dimensions?.width || media.original_width || undefined,
-          height: media.dimensions?.height || media.original_height || undefined,
+          width: mediaWidth,
+          height: mediaHeight,
+          date: mediaDate,
         },
       ],
     };
@@ -418,13 +642,16 @@ async function queryAuthenticatedInstagramApiV1(
       );
       if (hlRes.response.ok) {
         const hlJson: any = await hlRes.response.json().catch(() => null);
-        const hlItems: any[] =
-          hlJson?.reels?.[hlKey]?.items ||
-          hlJson?.reels_media?.[0]?.items ||
-          [];
+        const reelObj = hlJson?.reels?.[hlKey] || hlJson?.reels_media?.[0];
+        const hlItems: any[] = reelObj?.items || [];
         if (hlItems.length > 0) {
-          const parsed = parseMediaNode(hlItems[hlItems.length - 1], directNumericId);
-          if (parsed) return parsed;
+          const parsedHighlight = buildStoryOrHighlightReelResponse(
+            hlItems,
+            directNumericId,
+            null,
+            reelObj?.title
+          );
+          if (parsedHighlight) return parsedHighlight;
         }
       }
     } catch {
@@ -432,25 +659,8 @@ async function queryAuthenticatedInstagramApiV1(
     }
   }
 
-  if (mediaId) {
-    try {
-      const infoRes = await fetchWithContext(
-        `https://www.instagram.com/api/v1/media/${mediaId}/info/`,
-        { headers, timeoutMs: 7500 },
-        customFetch
-      );
-      if (infoRes.response.ok) {
-        const json: any = await infoRes.response.json().catch(() => null);
-        const item = json?.items?.[0];
-        const parsed = parseMediaNode(item, mediaId);
-        if (parsed) return parsed;
-      }
-    } catch {
-      // Continuer vers reels_media par utilisateur si story
-    }
-  }
-
-  // Si c'est une Story par nom d'utilisateur (ex: `username` ou `username/123456789`)
+  // Si c'est une Story par nom d'utilisateur (ex: `username` ou `username/123456789`),
+  // on tente d'abord de lister TOUTES les stories actives du compte et de présélectionner celle du lien.
   if (isStory && !isHighlight && parts.length >= 1 && !/^\d+$/.test(parts[0])) {
     const cleanUser = parts[0];
     const targetStoryId = parts.length >= 2 && /^\d+$/.test(parts[1]) ? parts[1] : null;
@@ -476,18 +686,37 @@ async function queryAuthenticatedInstagramApiV1(
               rJson?.reels_media?.[0]?.items ||
               [];
             if (reelItems.length > 0) {
-              const matchedStory = targetStoryId
-                ? reelItems.find(
-                    (it: any) =>
-                      String(it?.pk || '') === targetStoryId ||
-                      String(it?.id || '').startsWith(`${targetStoryId}_`) ||
-                      String(it?.id || '') === targetStoryId
-                  ) || reelItems[reelItems.length - 1]
-                : reelItems[reelItems.length - 1];
-              const parsed = parseMediaNode(matchedStory, cleanUser);
-              if (parsed) return parsed;
+              const parsedReel = buildStoryOrHighlightReelResponse(
+                reelItems,
+                cleanUser,
+                targetStoryId
+              );
+              if (parsedReel) return parsedReel;
             }
           }
+        }
+      }
+    } catch {
+      // Continuer vers /api/v1/media/{mediaId}/info/
+    }
+  }
+
+  if (mediaId) {
+    try {
+      const infoRes = await fetchWithContext(
+        `https://www.instagram.com/api/v1/media/${mediaId}/info/`,
+        { headers, timeoutMs: 7500 },
+        customFetch
+      );
+      if (infoRes.response.ok) {
+        const json: any = await infoRes.response.json().catch(() => null);
+        const item = json?.items?.[0];
+        const parsed = parseMediaNode(item, mediaId);
+        if (parsed) {
+          if (isStory && parsed.items && parsed.items.length > 0) {
+            parsed.items[0].selected = true;
+          }
+          return parsed;
         }
       }
     } catch {
@@ -872,17 +1101,26 @@ async function extractViaPublicFreeFallbacks(
           const title = String(data.text || `Instagram (@${username})`);
 
           if (data.media_extended.length > 1) {
+            const gatewayDate = toIsoDateString(data.date_epoch ?? data.date);
             const items: ExtractMediaItem[] = data.media_extended
               .filter((m: any) => m?.url)
-              .map((m: any) => ({
-                kind: m.type === 'video' ? ('video' as const) : ('image' as const),
-                url: cleanEscapedUrl(String(m.url)),
-                thumbnail: m.thumbnail_url
+              .map((m: any, idx: number) => {
+                const cleanMedia = cleanEscapedUrl(String(m.url));
+                const cleanThumb = m.thumbnail_url
                   ? cleanEscapedUrl(String(m.thumbnail_url))
-                  : undefined,
-                quality: '1080p',
-                ext: m.type === 'video' ? 'mp4' : 'jpg',
-              }));
+                  : cleanMedia;
+                return {
+                  index: idx + 1,
+                  kind: m.type === 'video' ? ('video' as const) : ('image' as const),
+                  url: cleanMedia,
+                  thumbnail: cleanThumb,
+                  quality: '1080p',
+                  ext: m.type === 'video' ? 'mp4' : 'jpg',
+                  width: Number(m.size?.width) || undefined,
+                  height: Number(m.size?.height) || undefined,
+                  date: gatewayDate,
+                };
+              });
 
             if (items.length > 0) {
               return {
@@ -921,12 +1159,15 @@ async function extractViaPublicFreeFallbacks(
               items: isVid
                 ? [
                     {
+                      index: 1,
                       kind: 'video',
                       url: mediaUrl,
+                      thumbnail: thumbUrl,
                       quality: '1080p',
                       ext: 'mp4',
                     },
                     {
+                      index: 2,
                       kind: 'audio',
                       url: mediaUrl,
                       quality: 'MP3',
@@ -935,8 +1176,10 @@ async function extractViaPublicFreeFallbacks(
                   ]
                 : [
                     {
+                      index: 1,
                       kind: 'image',
                       url: mediaUrl,
+                      thumbnail: thumbUrl,
                       quality: '1080p',
                       ext: 'jpg',
                     },
@@ -974,12 +1217,15 @@ async function extractViaPublicFreeFallbacks(
             thumbnail: cleanImg,
             items: [
               {
+                index: 1,
                 kind: 'video',
                 url: cleanVid,
+                thumbnail: cleanImg,
                 quality: '1080p',
                 ext: 'mp4',
               },
               {
+                index: 2,
                 kind: 'audio',
                 url: cleanVid,
                 quality: 'MP3',
@@ -1009,6 +1255,7 @@ interface ProfileSuccessBuildOptions {
   height?: number;
   engineStage?: string;
   httpStatus?: number;
+  activeStories?: ExtractMediaItem[];
 }
 
 export const IG_PROFILE_BLOCKED_MESSAGE =
@@ -1020,11 +1267,28 @@ function buildInstagramProfileResponse(
   const cleanUser = opts.username.replace(/^@/, '').trim().toLowerCase();
   const cleanPhoto = cleanEscapedUrl(opts.photoUrl);
   const cleanFullName = opts.fullName ? cleanEscapedUrl(String(opts.fullName)).trim() : '';
+  const hasActiveStories = Boolean(opts.activeStories && opts.activeStories.length > 0);
+
+  const profileItem: ExtractMediaItem = {
+    index: 1,
+    ...(hasActiveStories ? { selected: true, label: 'profile_photo' } : {}),
+    kind: 'image',
+    url: cleanPhoto,
+    thumbnail: cleanPhoto,
+    quality: opts.quality,
+    ext: 'jpg',
+    width: opts.width,
+    height: opts.height,
+  };
+
+  const allItems: ExtractMediaItem[] = hasActiveStories
+    ? [profileItem, ...(opts.activeStories || [])]
+    : [profileItem];
 
   return {
     ok: true,
     platform: 'instagram',
-    type: 'image',
+    type: hasActiveStories ? 'carousel' : 'image',
     title: `@${cleanUser}`,
     stage: 'direct',
     engineStage: opts.engineStage,
@@ -1039,16 +1303,7 @@ function buildInstagramProfileResponse(
       verified: Boolean(opts.verified),
     },
     thumbnail: cleanPhoto,
-    items: [
-      {
-        kind: 'image',
-        url: cleanPhoto,
-        quality: opts.quality,
-        ext: 'jpg',
-        width: opts.width,
-        height: opts.height,
-      },
-    ],
+    items: allItems,
   };
 }
 
@@ -1258,6 +1513,56 @@ export async function extractInstagramProfile(
       const bestUrl = hdUrl || stdUrl;
 
       if (bestUrl) {
+        let activeStories: ExtractMediaItem[] | undefined;
+        const userId = user.id ? String(user.id) : '';
+        if (auth?.hasSession && auth?.cookieHeader && userId) {
+          try {
+            const reelsRes = await fetchProfileManual(
+              `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(userId)}`,
+              {
+                method: 'GET',
+                headers: {
+                  'User-Agent': BROWSER_USER_AGENT,
+                  'X-IG-App-ID': IG_WEB_APP_ID,
+                  'X-ASBD-ID': IG_ASBD_ID,
+                  'X-CSRFToken': auth.csrfToken || 'missing',
+                  'X-Requested-With': 'XMLHttpRequest',
+                  Referer: `https://www.instagram.com/${username}/`,
+                  Accept: 'application/json',
+                  Cookie: auth.cookieHeader,
+                },
+              },
+              6000,
+              customFetch
+            );
+            if (reelsRes.status === 200) {
+              const rJson: any = await reelsRes.json().catch(() => null);
+              const reelItems: any[] =
+                rJson?.reels?.[userId]?.items ||
+                rJson?.reels_media?.[0]?.items ||
+                [];
+              if (reelItems.length > 0) {
+                const parsedStories: ExtractMediaItem[] = [];
+                reelItems.forEach((rawNode) => {
+                  const built = parseStoryNodeToItem(
+                    rawNode,
+                    parsedStories.length + 2,
+                    false
+                  );
+                  if (built) {
+                    parsedStories.push({ ...built, label: 'story' });
+                  }
+                });
+                if (parsedStories.length > 0) {
+                  activeStories = parsedStories;
+                }
+              }
+            }
+          } catch {
+            // Ignorer si les stories actives ne sont pas disponibles
+          }
+        }
+
         return buildInstagramProfileResponse({
           username: String(user.username || username),
           fullName: user.full_name ? String(user.full_name) : undefined,
@@ -1276,6 +1581,7 @@ export async function extractInstagramProfile(
               : undefined,
           engineStage: stageName,
           httpStatus: res.status,
+          activeStories,
         });
       }
 

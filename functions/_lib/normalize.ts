@@ -16,6 +16,10 @@ export type ErrorCode =
   | 'BLOCKED';
 
 export interface ExtractMediaItem {
+  index?: number;
+  id?: string;
+  selected?: boolean;
+  label?: string;
   kind: 'video' | 'image' | 'audio';
   url: string;
   backupUrl?: string;
@@ -26,6 +30,7 @@ export interface ExtractMediaItem {
   size?: string;
   width?: number;
   height?: number;
+  date?: string;
 }
 
 export interface ExtractResponse {

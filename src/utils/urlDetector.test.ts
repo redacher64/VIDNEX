@@ -3733,7 +3733,311 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(loggedActions.has('blog.restore'));
     assert.ok(loggedActions.has('blog.import_existing'));
   });
+
+  it('Écran de SÉLECTION avant téléchargement — Carrousels (IG, TikTok, X), Stories/Highlights/Profil actifs avec IG_SESSION_ID (présélection de la story du lien), ZIP fflate (limite 20 éléments / 100 Mo), miniatures /api/download, 10 langues et compteurs selection_started / selection_download', async () => {
+    resetRateLimitBuckets();
+    resetD1RateLimitFallback();
+    const db = createMemoryD1Database();
+    const origFetch = globalThis.fetch;
+
+    const { mapExtractResponseToMediaResult } = await import(
+      '../services/extractorService.ts'
+    );
+    const {
+      buildUncompressedZipBytes,
+      validateSelectionLimits,
+      MAX_SELECTION_ITEMS,
+      MAX_SELECTION_TOTAL_BYTES,
+    } = await import('../utils/zipArchive.ts');
+    const { unzipSync } = await import('fflate');
+    const { SELECTION_UI_TEXTS } = await import('../i18n/translations.ts');
+    const { SUPPORTED_LOCALES } = await import('../i18n/config.ts');
+
+    // 1. Textes traduits dans les 10 langues
+    for (const loc of SUPPORTED_LOCALES) {
+      const t = SELECTION_UI_TEXTS[loc];
+      assert.ok(t, `Missing SELECTION_UI_TEXTS for locale ${loc}`);
+      assert.ok(t.selectedCount.includes('{selected}'));
+      assert.ok(t.selectedCount.includes('{total}'));
+      assert.ok(t.downloadSelection.length > 0);
+      assert.ok(t.limitMaxItems.includes('20'));
+      assert.ok(t.limitMaxSize.includes('100'));
+      assert.ok(t.progressFetching.includes('{current}'));
+      assert.ok(t.activeStoriesSubtitle.length > 0);
+    }
+
+    // 2. Assemblage ZIP côté navigateur via fflate + limites strictes (20 éléments ou 100 Mo)
+    const sampleFiles = [
+      { name: 'slide_1.jpg', data: new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]) },
+      { name: 'slide_2.mp4', data: new Uint8Array([0x00, 0x00, 0x00, 0x18, 4, 5, 6]) },
+    ];
+    const zipBytes = buildUncompressedZipBytes(sampleFiles);
+    const unzipped = unzipSync(zipBytes);
+    assert.deepEqual(Array.from(unzipped['slide_1.jpg']), [0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+    assert.deepEqual(Array.from(unzipped['slide_2.mp4']), [0x00, 0x00, 0x00, 0x18, 4, 5, 6]);
+
+    assert.equal(MAX_SELECTION_ITEMS, 20);
+    assert.equal(MAX_SELECTION_TOTAL_BYTES, 100 * 1024 * 1024);
+    assert.equal(validateSelectionLimits(20, 50 * 1024 * 1024).valid, true);
+    const overItems = validateSelectionLimits(21, 10 * 1024 * 1024);
+    assert.equal(overItems.valid, false);
+    assert.equal(overItems.reason, 'MAX_ITEMS_EXCEEDED');
+    const overSize = validateSelectionLimits(5, 101 * 1024 * 1024);
+    assert.equal(overSize.valid, false);
+    assert.equal(overSize.reason, 'MAX_SIZE_EXCEEDED');
+
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+
+        // Mock X multi-image tweet
+        if (u.includes('cdn.syndication.twimg.com/tweet-result') && u.includes('id=1888888888888888888')) {
+          return new Response(
+            JSON.stringify({
+              id_str: '1888888888888888888',
+              text: 'Multi photo post on X',
+              created_at: '2026-03-20T14:30:00.000Z',
+              user: { name: 'Creator X', screen_name: 'creatorx' },
+              mediaDetails: [
+                {
+                  type: 'photo',
+                  media_url_https: 'https://pbs.twimg.com/media/SlideOne.jpg',
+                  original_info: { width: 1200, height: 1500 },
+                },
+                {
+                  type: 'photo',
+                  media_url_https: 'https://pbs.twimg.com/media/SlideTwo.png',
+                  original_info: { width: 1080, height: 1080 },
+                },
+              ],
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Mock Instagram Story + Active Account Stories (when IG_SESSION_ID is set)
+        if (u.includes('/api/v1/users/web_profile_info/?username=storycreator')) {
+          return new Response(
+            JSON.stringify({
+              data: {
+                user: {
+                  id: '42424242',
+                  username: 'storycreator',
+                  full_name: 'Story Creator',
+                  is_private: false,
+                  profile_pic_url: 'https://scontent.cdninstagram.com/v/t51.2885-19/storycreator_150.jpg',
+                  hd_profile_pic_url_info: {
+                    url: 'https://scontent.cdninstagram.com/v/t51.2885-19/storycreator_hd.jpg',
+                    width: 1080,
+                    height: 1080,
+                  },
+                },
+              },
+              status: 'ok',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (u.includes('/api/v1/feed/reels_media/?reel_ids=42424242')) {
+          return new Response(
+            JSON.stringify({
+              reels_media: [
+                {
+                  id: '42424242',
+                  user: {
+                    pk: '42424242',
+                    username: 'storycreator',
+                    full_name: 'Story Creator',
+                    profile_pic_url: 'https://scontent.cdninstagram.com/v/t51.2885-19/storycreator_150.jpg',
+                  },
+                  items: [
+                    {
+                      pk: '1111111111111111111',
+                      id: '1111111111111111111_42424242',
+                      media_type: 1,
+                      taken_at: 1774000000,
+                      original_width: 1080,
+                      original_height: 1920,
+                      image_versions2: {
+                        candidates: [
+                          {
+                            url: 'https://scontent.cdninstagram.com/v/t51.2885-15/story_1_photo.jpg',
+                            width: 1080,
+                            height: 1920,
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      pk: '2222222222222222222',
+                      id: '2222222222222222222_42424242',
+                      media_type: 2,
+                      taken_at: 1774003600,
+                      original_width: 1080,
+                      original_height: 1920,
+                      image_versions2: {
+                        candidates: [
+                          {
+                            url: 'https://scontent.cdninstagram.com/v/t51.2885-15/story_2_thumb.jpg',
+                            width: 1080,
+                            height: 1920,
+                          },
+                        ],
+                      },
+                      video_versions: [
+                        {
+                          url: 'https://scontent.cdninstagram.com/v/t50.2886-16/story_2_video.mp4',
+                          width: 1080,
+                          height: 1920,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+              status: 'ok',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Mock upstream image for /api/download?sel=1
+        if (u.startsWith('https://pbs.twimg.com/media/SlideOne.jpg')) {
+          return new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Length': '4',
+            },
+          });
+        }
+
+        return origFetch(input, init);
+      };
+
+      // 3. Carrousel X multi-images : items[] enrichi (index, kind, thumbnail via /api/download, width, height, date)
+      const xCarouselRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://x.com/creatorx/status/1888888888888888888'
+        ),
+        { DB: db, IP_HASH_SALT: 'sel-salt-2026' }
+      );
+      assert.equal(xCarouselRes.status, 200);
+      const xCarouselJson: any = await xCarouselRes.json();
+      assert.equal(xCarouselJson.ok, true);
+      assert.equal(xCarouselJson.type, 'carousel');
+      assert.equal(xCarouselJson.items.length, 2);
+      assert.equal(xCarouselJson.items[0].index, 1);
+      assert.equal(xCarouselJson.items[0].kind, 'image');
+      assert.equal(xCarouselJson.items[0].width, 1200);
+      assert.equal(xCarouselJson.items[0].height, 1500);
+      assert.equal(xCarouselJson.items[0].date, '2026-03-20T14:30:00.000Z');
+      assert.ok(xCarouselJson.items[0].thumbnail.startsWith('/api/download?'));
+      assert.ok(xCarouselJson.items[0].thumbnail.includes('inline=1'));
+      assert.equal(xCarouselJson.items[1].index, 2);
+
+      // 4. Story Instagram avec IG_SESSION_ID : liste toutes les stories actives du compte + présélectionne la story du lien (#2)
+      const igStoryRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/stories/storycreator/2222222222222222222/'
+        ),
+        { DB: db, IG_SESSION_ID: 'mock_session_id_123', IP_HASH_SALT: 'sel-salt-2026' }
+      );
+      assert.equal(igStoryRes.status, 200);
+      const igStoryJson: any = await igStoryRes.json();
+      assert.equal(igStoryJson.ok, true);
+      assert.equal(igStoryJson.type, 'carousel');
+      assert.equal(igStoryJson.items.length, 2);
+      assert.equal(igStoryJson.items[0].index, 1);
+      assert.equal(igStoryJson.items[0].kind, 'image');
+      assert.equal(igStoryJson.items[0].selected, false);
+      assert.ok(igStoryJson.items[0].date);
+      assert.equal(igStoryJson.items[1].index, 2);
+      assert.equal(igStoryJson.items[1].kind, 'video');
+      assert.equal(igStoryJson.items[1].selected, true);
+      assert.equal(igStoryJson.items[1].quality, '1080p');
+      assert.ok(igStoryJson.items[1].thumbnail.startsWith('/api/download?'));
+
+      const mappedStoryResult = mapExtractResponseToMediaResult(
+        igStoryJson,
+        'https://www.instagram.com/stories/storycreator/2222222222222222222/',
+        detectMediaUrl(
+          'https://www.instagram.com/stories/storycreator/2222222222222222222/'
+        )
+      );
+      assert.equal(mappedStoryResult.payloadType, 'carousel');
+      if (mappedStoryResult.payloadType === 'carousel') {
+        assert.equal(mappedStoryResult.selectionContext, 'story');
+        assert.equal(mappedStoryResult.items.length, 2);
+        assert.equal(mappedStoryResult.items[0].selected, false);
+        assert.equal(mappedStoryResult.items[1].selected, true);
+      }
+
+      // 5. Profil Instagram avec IG_SESSION_ID et stories actives : photo de profil (présélectionnée) + stories actives
+      const igProfileWithStoriesRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/storycreator/'
+        ),
+        { DB: db, IG_SESSION_ID: 'mock_session_id_123', IP_HASH_SALT: 'sel-salt-2026' }
+      );
+      assert.equal(igProfileWithStoriesRes.status, 200);
+      const igProfileJson: any = await igProfileWithStoriesRes.json();
+      assert.equal(igProfileJson.ok, true);
+      assert.equal(igProfileJson.type, 'carousel');
+      assert.equal(igProfileJson.items.length, 3);
+      assert.equal(igProfileJson.items[0].label, 'profile_photo');
+      assert.equal(igProfileJson.items[0].selected, true);
+      assert.equal(igProfileJson.items[1].label, 'story');
+      assert.equal(igProfileJson.items[1].selected, false);
+      assert.equal(igProfileJson.items[2].label, 'story');
+      assert.equal(igProfileJson.items[2].selected, false);
+
+      // 6. Story sans IG_SESSION_ID : conserve le message clair PRIVATE_OR_LOGIN_REQUIRED
+      const igStoryNoSessionRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/stories/storycreator/2222222222222222222/'
+        ),
+        { DB: db, IP_HASH_SALT: 'sel-salt-2026' }
+      );
+      assert.equal(igStoryNoSessionRes.status, 403);
+      const igStoryNoSessionJson: any = await igStoryNoSessionRes.json();
+      assert.equal(igStoryNoSessionJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+      assert.equal(
+        igStoryNoSessionJson.error.message,
+        'Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.'
+      );
+
+      // 7. Téléchargement depuis l'écran de sélection (&sel=1) -> incrémente selection_download dans daily_metrics sans identifiant
+      const dlUrl = new URL(`https://vidnex.space${xCarouselJson.items[0].url}&sel=1`);
+      const dlRes = await worker.fetch(new Request(dlUrl.toString()), {
+        DB: db,
+        IP_HASH_SALT: 'sel-salt-2026',
+      });
+      assert.equal(dlRes.status, 200);
+      await dlRes.arrayBuffer();
+
+      const metricsRows = await db
+        .prepare('SELECT day, platform, event, count FROM daily_metrics')
+        .all<{ day: string; platform: string; event: string; count: number }>();
+      const eventsMap = new Map<string, number>();
+      for (const r of metricsRows.results || []) {
+        eventsMap.set(`${r.platform}:${r.event}`, r.count);
+      }
+      assert.ok((eventsMap.get('x:selection_started') || 0) >= 1);
+      assert.ok((eventsMap.get('instagram:selection_started') || 0) >= 1);
+      assert.ok((eventsMap.get('x:selection_download') || 0) >= 1);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });
+
 
 
 

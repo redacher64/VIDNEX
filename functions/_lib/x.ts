@@ -325,6 +325,12 @@ export function parseSyndicationTweetPayload(
     verified,
   };
 
+  const tweetDate = (() => {
+    if (!data.created_at || typeof data.created_at !== 'string') return undefined;
+    const parsed = new Date(data.created_at);
+    return !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : undefined;
+  })();
+
   // Cas 1 : Plusieurs médias dans le tweet => Carrousel
   if (availableMedia.length > 1) {
     const carouselItems: ExtractMediaItem[] = [];
@@ -333,6 +339,7 @@ export function parseSyndicationTweetPayload(
       const width = Number(m.original_info?.width || m.sizes?.large?.w) || undefined;
       const height = Number(m.original_info?.height || m.sizes?.large?.h) || undefined;
       const thumb = typeof m.media_url_https === 'string' ? m.media_url_https : undefined;
+      const itemId = String(m.id_str || '') || undefined;
 
       if (mType === 'video' || mType === 'animated_gif') {
         const variants = parseMp4Variants(
@@ -344,6 +351,8 @@ export function parseSyndicationTweetPayload(
         const best = variants[0];
         if (best) {
           carouselItems.push({
+            index: carouselItems.length + 1,
+            id: itemId,
             kind: 'video',
             url: best.url,
             thumbnail: thumb,
@@ -351,11 +360,14 @@ export function parseSyndicationTweetPayload(
             ext: 'mp4',
             width: best.width,
             height: best.height,
+            date: tweetDate,
           });
         }
       } else if (mType === 'photo' && thumb) {
         const { url: origUrl, ext } = ensureOrigImageUrl(thumb);
         carouselItems.push({
+          index: carouselItems.length + 1,
+          id: itemId,
           kind: 'image',
           url: origUrl,
           thumbnail: thumb,
@@ -363,6 +375,7 @@ export function parseSyndicationTweetPayload(
           ext,
           width,
           height,
+          date: tweetDate,
         });
       }
     }
@@ -420,7 +433,8 @@ export function parseSyndicationTweetPayload(
       singleMedia.video_info?.duration_millis ?? data.video?.durationMs
     );
 
-    const videoItems: ExtractMediaItem[] = variants.map((v) => ({
+    const videoItems: ExtractMediaItem[] = variants.map((v, idx) => ({
+      index: idx + 1,
       kind: 'video',
       url: v.url,
       thumbnail: mediaThumb,
@@ -428,6 +442,7 @@ export function parseSyndicationTweetPayload(
       ext: 'mp4',
       width: v.width,
       height: v.height,
+      date: tweetDate,
     }));
 
     return {
@@ -459,6 +474,7 @@ export function parseSyndicationTweetPayload(
       thumbnail: mediaThumb,
       items: [
         {
+          index: 1,
           kind: 'image',
           url: origUrl,
           thumbnail: mediaThumb,
@@ -466,6 +482,7 @@ export function parseSyndicationTweetPayload(
           ext,
           width: origW,
           height: origH,
+          date: tweetDate,
         },
       ],
     };

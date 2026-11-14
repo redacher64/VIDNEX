@@ -11,7 +11,49 @@ import {
   UI_TRANSLATIONS,
   UiDictionary,
 } from '../i18n/translations';
-import { buildUncompressedZipArchive } from '../utils/zipArchive';
+import {
+  buildUncompressedZipArchive,
+  MAX_SELECTION_ITEMS,
+  MAX_SELECTION_TOTAL_BYTES,
+  parseEstimatedSizeBytes,
+  validateSelectionLimits,
+} from '../utils/zipArchive';
+import type { CarouselSlideItem } from '../services/extractorService';
+
+export function getInitialSelectedSlideIds(
+  items: CarouselSlideItem[]
+): string[] {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const hasExplicitPartialSelection =
+    items.some((it) => it.selected === true) &&
+    items.some((it) => it.selected === false);
+  if (hasExplicitPartialSelection) {
+    return items
+      .filter((it) => it.selected === true)
+      .slice(0, MAX_SELECTION_ITEMS)
+      .map((it) => it.id);
+  }
+  return items.slice(0, MAX_SELECTION_ITEMS).map((it) => it.id);
+}
+
+export function formatSlideDateTime(
+  isoDate: string | undefined,
+  language: LanguageCode
+): string | null {
+  if (!isoDate) return null;
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+  try {
+    return new Intl.DateTimeFormat(language, {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(parsed);
+  } catch {
+    return parsed.toISOString().slice(0, 16).replace('T', ' ');
+  }
+}
 
 interface ResultDrawerProps {
   isLoading: boolean;
@@ -25,17 +67,26 @@ interface ResultDrawerProps {
 const STUDIO_FALLBACK_THUMB =
   "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 900'%3E%3Crect width='720' height='900' fill='%231f130b'/%3E%3Ccircle cx='360' cy='420' r='56' fill='%23ea580c' fill-opacity='0.85'/%3E%3Cpolygon points='346,396 346,444 388,420' fill='%23fffaf5'/%3E%3Ctext x='360' y='535' text-anchor='middle' fill='%23fffaf5' font-family='sans-serif' font-size='26' font-weight='700'%3EVIDNEX HD STREAM%3C/text%3E%3C/svg%3E";
 
-function buildDownloadEndpointUrl(filename: string, rawDownloadUrl?: string): string {
+function buildDownloadEndpointUrl(
+  filename: string,
+  rawDownloadUrl?: string,
+  fromSelection = false
+): string {
   if (!rawDownloadUrl) return '';
   if (rawDownloadUrl.includes('/api/download')) {
-    return resolveApiUrl(rawDownloadUrl);
+    const resolved = resolveApiUrl(rawDownloadUrl);
+    if (!fromSelection) return resolved;
+    const sep = resolved.includes('?') ? '&' : '?';
+    return `${resolved}${sep}sel=1`;
   }
-  return resolveApiUrl(
-    `/api/download?${new URLSearchParams({
-      url: rawDownloadUrl,
-      filename,
-    }).toString()}`
-  );
+  const params = new URLSearchParams({
+    url: rawDownloadUrl,
+    filename,
+  });
+  if (fromSelection) {
+    params.set('sel', '1');
+  }
+  return resolveApiUrl(`/api/download?${params.toString()}`);
 }
 
 export function buildInlineVideoPreviewUrl(rawDownloadUrl?: string): string {
@@ -58,8 +109,16 @@ export function buildInlineVideoPreviewUrl(rawDownloadUrl?: string): string {
   }
 }
 
-function triggerNativeBackendDownload(filename: string, rawDownloadUrl?: string) {
-  const targetUrl = buildDownloadEndpointUrl(filename, rawDownloadUrl);
+function triggerNativeBackendDownload(
+  filename: string,
+  rawDownloadUrl?: string,
+  fromSelection = false
+) {
+  const targetUrl = buildDownloadEndpointUrl(
+    filename,
+    rawDownloadUrl,
+    fromSelection
+  );
   if (!targetUrl) return;
 
   let downloadAttr = filename;
@@ -234,7 +293,7 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
               <ProfileDpResultView data={result} t={t} />
             )}
             {result.payloadType === 'carousel' && (
-              <CarouselResultView data={result} t={t} />
+              <CarouselResultView data={result} t={t} language={language} />
             )}
           </div>
         )}
@@ -636,73 +695,183 @@ const ProfileDpResultView: React.FC<{
 };
 
 /* ============================================================================
- * CAROUSEL VIEW
+ * MULTI-ITEM PRE-DOWNLOAD SELECTION VIEW (CAROUSEL / STORIES / HIGHLIGHTS / PROFILE)
  * ========================================================================== */
 const CarouselResultView: React.FC<{
   data: CarouselMediaResult;
   t: UiDictionary['drawer'];
-}> = ({ data, t }) => {
+  language: LanguageCode;
+}> = ({ data, t, language }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
-    data.items.map((item) => item.id)
+    getInitialSelectedSlideIds(data.items)
   );
   const [zipDownloading, setZipDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
+  const [limitError, setLimitError] = useState<string | null>(null);
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
 
   useEffect(() => {
-    setSelectedIds(data.items.map((item) => item.id));
+    setSelectedIds(getInitialSelectedSlideIds(data.items));
     setHasTriggeredDownload(false);
+    setLimitError(null);
+    setLiveAnnouncement('');
   }, [data.id, data.items]);
 
-  const allSelected = selectedIds.length === data.items.length;
+  const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
+  const estimatedBytes = selectedSlides.reduce(
+    (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
+    0
+  );
+  const validation = validateSelectionLimits(
+    selectedSlides.length,
+    estimatedBytes
+  );
+
+  const allSelected =
+    data.items.length > 0 && selectedIds.length === data.items.length;
 
   const handleToggleSelectAll = () => {
-    setSelectedIds(allSelected ? [] : data.items.map((item) => item.id));
+    if (allSelected) {
+      setSelectedIds([]);
+      setLimitError(null);
+      return;
+    }
+    const allIds = data.items.map((item) => item.id);
+    const totalEst = data.items.reduce(
+      (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
+      0
+    );
+    const check = validateSelectionLimits(allIds.length, totalEst);
+    if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
+      setSelectedIds(allIds.slice(0, MAX_SELECTION_ITEMS));
+      setLimitError(t.limitMaxItems);
+      setLiveAnnouncement(t.limitMaxItems);
+      return;
+    }
+    if (!check.valid && check.reason === 'MAX_SIZE_EXCEEDED') {
+      setSelectedIds(allIds);
+      setLimitError(t.limitMaxSize);
+      setLiveAnnouncement(t.limitMaxSize);
+      return;
+    }
+    setLimitError(null);
+    setSelectedIds(allIds);
   };
 
   const handleToggleSlide = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) {
+        const next = prev.filter((item) => item !== id);
+        const nextSlides = data.items.filter((i) => next.includes(i.id));
+        const nextBytes = nextSlides.reduce(
+          (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
+          0
+        );
+        const check = validateSelectionLimits(next.length, nextBytes);
+        if (check.valid || check.reason === 'EMPTY_SELECTION') {
+          setLimitError(null);
+        }
+        return next;
+      }
+
+      const next = [...prev, id];
+      const nextSlides = data.items.filter((i) => next.includes(i.id));
+      const nextBytes = nextSlides.reduce(
+        (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
+        0
+      );
+      const check = validateSelectionLimits(next.length, nextBytes);
+      if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
+        setLimitError(t.limitMaxItems);
+        setLiveAnnouncement(t.limitMaxItems);
+        return prev;
+      }
+      if (!check.valid && check.reason === 'MAX_SIZE_EXCEEDED') {
+        setLimitError(t.limitMaxSize);
+        setLiveAnnouncement(t.limitMaxSize);
+      } else {
+        setLimitError(null);
+      }
+      return next;
+    });
   };
 
   const handleDownloadSelected = async () => {
-    if (selectedIds.length === 0 || zipDownloading) return;
+    if (selectedSlides.length === 0 || zipDownloading) return;
+
+    if (!validation.valid) {
+      const msg =
+        validation.reason === 'MAX_ITEMS_EXCEEDED'
+          ? t.limitMaxItems
+          : t.limitMaxSize;
+      setLimitError(msg);
+      setLiveAnnouncement(msg);
+      return;
+    }
+
+    setLimitError(null);
+    const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
+
+    // 1 élément sélectionné = téléchargement direct du fichier
+    if (selectedSlides.length === 1) {
+      const slide = selectedSlides[0];
+      const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+      const singleFilename = `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`;
+      setHasTriggeredDownload(true);
+      const doneMsg = t.progressDone.replace('{count}', '1');
+      setLiveAnnouncement(doneMsg);
+      triggerNativeBackendDownload(singleFilename, slide.downloadUrl, true);
+      return;
+    }
+
+    // Plusieurs éléments sélectionnés = archive ZIP assemblée dans le navigateur avec fflate
     setZipDownloading(true);
     setHasTriggeredDownload(true);
-    const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
-    const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
 
     try {
-      if (selectedSlides.length === 1) {
-        const slide = selectedSlides[0];
-        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
-        const singleFilename = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
-        setDownloadProgress('1/1');
-        const targetUrl = buildDownloadEndpointUrl(
-          singleFilename,
-          slide.downloadUrl
-        );
-        const resp = await fetch(targetUrl);
-        if (!resp.ok) {
-          throw new Error(`HTTP ${resp.status}`);
-        }
-        const blob = await resp.blob();
-        triggerBlobDownload(blob, singleFilename);
-        return;
-      }
-
       const zipEntries: Array<{ name: string; data: Uint8Array }> = [];
+      let totalDownloadedBytes = 0;
+
       for (let i = 0; i < selectedSlides.length; i++) {
         const slide = selectedSlides[i];
         const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
-        const entryName = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
-        setDownloadProgress(`${i + 1}/${selectedSlides.length}`);
+        const entryName = `VIDNEX_${cleanHandle}_${String(slide.index).padStart(2, '0')}.${ext}`;
+        const stepLabel = `${i + 1}/${selectedSlides.length}`;
+        setDownloadProgress(stepLabel);
+        setLiveAnnouncement(
+          t.progressFetching
+            .replace('{current}', String(i + 1))
+            .replace('{total}', String(selectedSlides.length))
+        );
 
-        const targetUrl = buildDownloadEndpointUrl(entryName, slide.downloadUrl);
+        const targetUrl = buildDownloadEndpointUrl(
+          entryName,
+          slide.downloadUrl,
+          i === 0
+        );
         const resp = await fetch(targetUrl);
         if (resp.ok) {
+          const contentLenHeader = Number(
+            resp.headers.get('Content-Length') || 0
+          );
+          if (
+            contentLenHeader > 0 &&
+            totalDownloadedBytes + contentLenHeader > MAX_SELECTION_TOTAL_BYTES
+          ) {
+            setLimitError(t.limitMaxSize);
+            setLiveAnnouncement(t.limitMaxSize);
+            return;
+          }
+
           const buf = await resp.arrayBuffer();
+          totalDownloadedBytes += buf.byteLength;
+          if (totalDownloadedBytes > MAX_SELECTION_TOTAL_BYTES) {
+            setLimitError(t.limitMaxSize);
+            setLiveAnnouncement(t.limitMaxSize);
+            return;
+          }
+
           zipEntries.push({
             name: entryName,
             data: new Uint8Array(buf),
@@ -711,103 +880,200 @@ const CarouselResultView: React.FC<{
       }
 
       if (zipEntries.length > 0) {
+        setLiveAnnouncement(
+          t.progressZipping.replace('{count}', String(zipEntries.length))
+        );
         const zipBlob = buildUncompressedZipArchive(zipEntries);
         triggerBlobDownload(
           zipBlob,
-          `VIDNEX_${cleanHandle}_carousel_${zipEntries.length}_slides.zip`
+          `VIDNEX_${cleanHandle}_selection_${zipEntries.length}.zip`
+        );
+        setLiveAnnouncement(
+          t.progressDone.replace('{count}', String(zipEntries.length))
         );
       } else {
         selectedSlides.forEach((slide, idx) => {
           const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
           setTimeout(() => {
             triggerNativeBackendDownload(
-              `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
-              slide.downloadUrl
+              `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`,
+              slide.downloadUrl,
+              idx === 0
             );
           }, idx * 450);
         });
       }
-    } catch {
-      selectedSlides.forEach((slide, idx) => {
-        const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
-        setTimeout(() => {
-          triggerNativeBackendDownload(
-            `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`,
-            slide.downloadUrl
-          );
-        }, idx * 450);
-      });
+    } catch (err: any) {
+      if (err?.message === 'MAX_SIZE_EXCEEDED') {
+        setLimitError(t.limitMaxSize);
+        setLiveAnnouncement(t.limitMaxSize);
+      } else if (err?.message === 'MAX_ITEMS_EXCEEDED') {
+        setLimitError(t.limitMaxItems);
+        setLiveAnnouncement(t.limitMaxItems);
+      } else {
+        selectedSlides.forEach((slide, idx) => {
+          const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
+          setTimeout(() => {
+            triggerNativeBackendDownload(
+              `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`,
+              slide.downloadUrl,
+              idx === 0
+            );
+          }, idx * 450);
+        });
+      }
     } finally {
       setZipDownloading(false);
       setDownloadProgress(null);
     }
   };
 
+  const formattedCounter = t.selectedCount
+    .replace('{selected}', String(selectedIds.length))
+    .replace('{total}', String(data.items.length));
+
+  const isStoryOrProfileContext =
+    data.selectionContext === 'story' ||
+    data.selectionContext === 'profile' ||
+    data.items.some((it) => Boolean(it.date));
+
+  const hasSinglePreselectedStory =
+    data.items.some((it) => it.selected === true) &&
+    data.items.some((it) => it.selected === false);
+
   return (
-    <div className="space-y-4 relative z-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-12 rtl:pr-0 rtl:pl-12">
-        <div>
+    <div data-testid="selection-screen" className="space-y-4 relative z-10">
+      {/* Live region for screen-reader announcements (ZIP progress & limits) */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="selection-aria-live"
+        className="sr-only"
+      >
+        {liveAnnouncement}
+      </div>
+
+      {/* Header & Selection Action Bar */}
+      <div className="flex flex-col gap-3 pr-12 rtl:pr-0 rtl:pl-12">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             dir="ltr"
-            className="font-display text-base font-bold text-[#1f130b] dark:text-[#fffaf5]"
+            className="font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5]"
           >
             {data.creatorHandle}
           </span>
-          <span className="ml-2 font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold">
+          <span className="font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold">
             · {data.totalItems} {t.slidesDetected}
-            {data.archiveSize ? ` (${data.archiveSize})` : ''}
           </span>
+          {isStoryOrProfileContext && (
+            <span className="px-2.5 py-0.5 rounded-md bg-orange-100/90 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-[11px] font-semibold text-orange-900 dark:text-orange-200">
+              {t.activeStoriesSubtitle}
+            </span>
+          )}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={handleToggleSelectAll}
-            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer"
-          >
-            {allSelected ? t.deselectAll : t.selectAll}
-          </button>
+        {/* Action Bar: Select All, Counter, Download Selection */}
+        <div
+          data-testid="selection-action-bar"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-orange-50/70 dark:bg-[#241811] border border-orange-200/80 dark:border-orange-900/60"
+        >
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <button
+              type="button"
+              data-testid="selection-select-all-btn"
+              onClick={handleToggleSelectAll}
+              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white dark:bg-[#1c140e] border border-orange-300 dark:border-orange-800 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-colors cursor-pointer"
+            >
+              {allSelected ? t.deselectAll : t.selectAll}
+            </button>
+
+            <span
+              data-testid="selection-counter"
+              className="font-mono text-xs sm:text-sm font-bold text-[#4a3429] dark:text-orange-200"
+            >
+              {formattedCounter}
+            </span>
+          </div>
 
           <button
             type="button"
-            disabled={selectedIds.length === 0 || zipDownloading}
+            data-testid="selection-download-btn"
+            disabled={
+              selectedIds.length === 0 || zipDownloading || !validation.valid
+            }
             onClick={handleDownloadSelected}
-            className="min-h-[48px] px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:opacity-40 text-white font-mono text-xs font-bold shadow-sm transition-all cursor-pointer"
+            className="min-h-[48px] px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 disabled:opacity-45 text-white font-mono text-xs sm:text-sm font-bold shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-all cursor-pointer"
           >
             {zipDownloading
               ? `${t.packagingZip}${downloadProgress ? ` (${downloadProgress})` : ''}`
-              : selectedIds.length === 1
-              ? `${t.downloadSelectedZip} (1)`
-              : `${t.downloadSelectedZip} (${selectedIds.length}) .ZIP`}
+              : selectedIds.length <= 1
+              ? `${t.downloadSelection}${selectedIds.length === 1 ? ' (1)' : ''}`
+              : `${t.downloadSelection} (${selectedIds.length} · .ZIP)`}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* Visible Progress or Limit Alert Banner */}
+      {zipDownloading && downloadProgress && (
+        <div
+          data-testid="selection-progress-banner"
+          className="px-4 py-2.5 rounded-xl bg-orange-100/90 dark:bg-orange-950/60 border border-orange-300 dark:border-orange-800 text-xs font-mono font-semibold text-orange-950 dark:text-orange-100 flex items-center justify-between gap-3"
+        >
+          <span>{liveAnnouncement || t.packagingZip}</span>
+          <span dir="ltr" className="font-bold">
+            {downloadProgress}
+          </span>
+        </div>
+      )}
+
+      {limitError && (
+        <div
+          role="alert"
+          data-testid="selection-limit-error"
+          className="px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-300 dark:border-red-800/80 text-xs sm:text-sm font-medium text-red-800 dark:text-red-200"
+        >
+          {limitError}
+        </div>
+      )}
+
+      {/* Responsive Thumbnail Grid: 2 columns on mobile, 3 on tablet, 4 on desktop */}
+      <div
+        data-testid="selection-grid"
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-3.5"
+      >
         {data.items.map((slide) => {
           const isSelected = selectedIds.includes(slide.id);
           const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
           const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
-          const slideFilename = `VIDNEX_${cleanHandle}_slide_${slide.index}.${ext}`;
+          const slideFilename = `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`;
+          const mediaTypeLabel =
+            slide.mediaType === 'video' ? t.videoType : t.photoType;
+          const qualityLabel = slide.quality || '1080p';
+          const formattedDate = formatSlideDateTime(slide.date, language);
+          const checkboxAriaLabel = t.checkboxAria
+            .replace('{index}', String(slide.index))
+            .replace('{type}', mediaTypeLabel)
+            .replace('{quality}', qualityLabel);
 
           return (
-            <div
+            <article
               key={slide.id}
-              className={`relative aspect-[4/5] rounded-2xl overflow-hidden border-2 transition-all group ${
+              data-testid={`selection-item-${slide.index}`}
+              className={`flex flex-col rounded-2xl overflow-hidden border-2 bg-white dark:bg-[#221710] transition-all ${
                 isSelected
                   ? 'border-orange-500 shadow-orange-sm'
-                  : 'border-orange-200/50 dark:border-orange-950/50 opacity-65 hover:opacity-100'
+                  : 'border-orange-200/70 dark:border-orange-900/50 opacity-85 hover:opacity-100'
               }`}
             >
-              <button
-                type="button"
+              {/* Fixed-dimension 4:5 Thumbnail Container (Zero CLS) */}
+              <div
                 onClick={() => handleToggleSlide(slide.id)}
-                aria-pressed={isSelected}
-                className="w-full h-full block text-left cursor-pointer"
+                className="relative w-full aspect-[4/5] bg-[#1f130b] overflow-hidden cursor-pointer group"
               >
                 <img
                   src={resolveApiUrl(slide.thumbnailUrl)}
-                  alt={`${data.creatorHandle} — #${slide.index} (${slide.mediaType})`}
+                  alt={`${data.creatorHandle} — #${slide.index} (${mediaTypeLabel} ${qualityLabel})`}
                   width={360}
                   height={450}
                   loading="lazy"
@@ -819,48 +1085,111 @@ const CarouselResultView: React.FC<{
                       img.src = STUDIO_FALLBACK_THUMB;
                     }
                   }}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <span
-                  className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-colors ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
-                      : 'bg-black/50 text-transparent border border-white/50'
-                  }`}
-                >
-                  ✓
-                </span>
-                {slide.fileSize && (
-                  <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 text-white font-mono text-[10px]">
-                    {slide.fileSize}
-                  </span>
-                )}
-              </button>
 
-              <button
-                type="button"
-                title={`Download Slide #${slide.index}`}
-                aria-label={`Download Slide ${slide.index}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setHasTriggeredDownload(true);
-                  triggerNativeBackendDownload(slideFilename, slide.downloadUrl);
-                }}
-                className="absolute bottom-2 right-2 w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  className="w-4 h-4"
+                {/* Top-start: Accessible Checkbox + Item Number (#1, #2, ...) */}
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 flex items-center gap-1.5 z-10"
                 >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </button>
-            </div>
+                  <label className="relative flex items-center justify-center w-7 h-7 rounded-lg bg-stone-950/80 backdrop-blur-sm border border-white/40 cursor-pointer focus-within:ring-2 focus-within:ring-orange-400">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleSlide(slide.id)}
+                      aria-label={checkboxAriaLabel}
+                      data-testid={`selection-checkbox-${slide.index}`}
+                      className="w-4 h-4 accent-orange-600 rounded cursor-pointer"
+                    />
+                  </label>
+                  <span
+                    dir="ltr"
+                    data-testid={`selection-number-${slide.index}`}
+                    className="px-2 py-1 rounded-lg bg-stone-950/80 backdrop-blur-sm text-white font-mono text-xs font-bold"
+                  >
+                    #{slide.index}
+                  </span>
+                </div>
+
+                {/* Top-end: Media Type (Photo/Video) & Quality Badge */}
+                <span
+                  data-testid={`selection-badge-${slide.index}`}
+                  className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 px-2 py-1 rounded-lg bg-stone-950/80 backdrop-blur-sm text-amber-300 font-mono text-[11px] font-bold"
+                >
+                  {mediaTypeLabel} · {qualityLabel}
+                </span>
+
+                {/* Bottom overlay: Date/Time (for active stories), Linked Story badge, or Dimensions/Size */}
+                <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/85 via-black/45 to-transparent flex flex-col gap-1 pointer-events-none">
+                  {slide.label === 'profile_photo' && (
+                    <span className="self-start px-2 py-0.5 rounded bg-orange-600/90 text-white font-mono text-[10px] font-bold">
+                      {t.profilePhotoBadge}
+                    </span>
+                  )}
+                  {hasSinglePreselectedStory &&
+                    slide.selected === true &&
+                    slide.label !== 'profile_photo' && (
+                      <span
+                        data-testid={`selection-preselected-badge-${slide.index}`}
+                        className="self-start px-2 py-0.5 rounded bg-orange-600/90 text-white font-mono text-[10px] font-bold"
+                      >
+                        {t.linkedStoryBadge}
+                      </span>
+                    )}
+                  {formattedDate && (
+                    <span
+                      data-testid={`selection-date-${slide.index}`}
+                      className="text-white/95 font-mono text-[11px] font-medium truncate"
+                    >
+                      {formattedDate}
+                    </span>
+                  )}
+                  {(slide.dimensions || slide.fileSize) && (
+                    <span
+                      dir="ltr"
+                      className="text-white/80 font-mono text-[10px] truncate"
+                    >
+                      {[slide.dimensions, slide.fileSize]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Card Footer: Individual "Télécharger" Button */}
+              <div className="p-2 bg-orange-50/50 dark:bg-[#221710] border-t border-orange-200/60 dark:border-orange-900/50">
+                <button
+                  type="button"
+                  data-testid={`selection-item-download-${slide.index}`}
+                  aria-label={`${t.downloadItem} #${slide.index} (${mediaTypeLabel} ${qualityLabel})`}
+                  onClick={() => {
+                    setHasTriggeredDownload(true);
+                    triggerNativeBackendDownload(
+                      slideFilename,
+                      slide.downloadUrl,
+                      true
+                    );
+                  }}
+                  className="w-full min-h-[40px] px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-mono text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-colors cursor-pointer"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    aria-hidden="true"
+                    className="w-3.5 h-3.5 shrink-0"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>{t.downloadItem}</span>
+                </button>
+              </div>
+            </article>
           );
         })}
       </div>

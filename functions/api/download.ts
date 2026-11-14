@@ -631,6 +631,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
 
   const shouldTrackDownloadMetric =
     !isInline && method !== 'HEAD' && rate.firstRequestForFile !== false;
+  const isSelectionDownload = reqUrl.searchParams.get('sel') === '1';
 
   if (shouldTrackDownloadMetric) {
     const downloadPlatform = inferDownloadPlatform(
@@ -640,7 +641,13 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
     scheduleBackground(
       context,
-      incrementDailyMetrics(context.env, downloadPlatform, ['download_started'])
+      incrementDailyMetrics(
+        context.env,
+        downloadPlatform,
+        isSelectionDownload
+          ? ['download_started', 'selection_download']
+          : ['download_started']
+      )
     );
 
     if (upstreamRes.body) {

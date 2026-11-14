@@ -459,20 +459,36 @@ export async function extractTikTok(
         }
 
         // 1A. Carrousel Photo TikTok (Photo Mode Slideshow)
+        const tikwmDate =
+          typeof data.create_time === 'number' && data.create_time > 0
+            ? new Date(
+                (data.create_time < 1e12
+                  ? data.create_time * 1000
+                  : data.create_time)
+              ).toISOString()
+            : undefined;
         if (Array.isArray(data.images) && data.images.length > 0) {
           const items: ExtractMediaItem[] = data.images
             .map((img: unknown) => resolveTikWmMediaUrl(img))
             .filter(Boolean)
-            .map((imgUrl: string) => ({
+            .map((imgUrl: string, idx: number) => ({
+              index: idx + 1,
               kind: 'image' as const,
               url: imgUrl,
               thumbnail: imgUrl,
               quality: '1080p',
               ext: 'jpg',
+              width: 1080,
+              height: 1350,
+              date: tikwmDate,
             }));
 
           if (audioItem) {
-            items.push(audioItem);
+            items.push({
+              ...audioItem,
+              index: items.length + 1,
+              date: tikwmDate,
+            });
           }
 
           if (items.length > 0) {
@@ -701,6 +717,15 @@ export async function extractTikTok(
 
     const items: ExtractMediaItem[] = [];
 
+    const structDate =
+      itemStruct.createTime && Number(itemStruct.createTime) > 0
+        ? new Date(
+            (Number(itemStruct.createTime) < 1e12
+              ? Number(itemStruct.createTime) * 1000
+              : Number(itemStruct.createTime))
+          ).toISOString()
+        : undefined;
+
     if (
       Array.isArray(itemStruct.imagePost?.images) &&
       itemStruct.imagePost.images.length > 0
@@ -712,18 +737,26 @@ export async function extractTikTok(
           img.urlList?.[0];
         if (imgUrl) {
           items.push({
+            index: items.length + 1,
             kind: 'image',
             url: imgUrl,
             cookie: sessionCookies,
             thumbnail: imgUrl,
             quality: '1080p',
             ext: 'jpg',
+            width: Number(img.imageWidth || img.displayImage?.width) || 1080,
+            height: Number(img.imageHeight || img.displayImage?.height) || 1350,
+            date: structDate,
           });
         }
       });
 
       if (audioItem) {
-        items.push(audioItem);
+        items.push({
+          ...audioItem,
+          index: items.length + 1,
+          date: structDate,
+        });
       }
 
       return {

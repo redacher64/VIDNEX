@@ -39,8 +39,14 @@ export interface CarouselSlideItem {
   id: string;
   index: number;
   mediaType: 'image' | 'video';
+  quality?: string;
+  width?: number;
+  height?: number;
   dimensions?: string;
   fileSize?: string;
+  date?: string;
+  selected?: boolean;
+  label?: string;
   thumbnailUrl: string;
   downloadUrl: string;
 }
@@ -85,6 +91,7 @@ export interface CarouselMediaResult extends BaseMediaResult {
   caption: string;
   totalItems: number;
   archiveSize?: string;
+  selectionContext?: 'carousel' | 'story' | 'highlight' | 'profile';
   items: CarouselSlideItem[];
   audioTrack?: {
     title: string;
@@ -504,6 +511,14 @@ export async function extractMediaFromUrl(
     throw new Error(localized);
   }
 
+  return mapExtractResponseToMediaResult(data, url, detected);
+}
+
+export function mapExtractResponseToMediaResult(
+  data: any,
+  url: string,
+  detected: DetectedUrlInfo
+): MediaResult {
   const platform: PlatformId =
     (data.platform as PlatformId) ||
     (detected.platform as PlatformId) ||
@@ -533,15 +548,26 @@ export async function extractMediaFromUrl(
       ? `LinkedIn (${creatorHandle})`
       : 'Instagram Reel');
 
-  // 1. Format Photo de Profil (DP)
+  const visualItems = (data.items || []).filter(
+    (it: any) => it.kind === 'image' || it.kind === 'video'
+  );
+
+  const isMultiItemSelection =
+    data.type === 'carousel' ||
+    ((detected.mediaType === 'story' || detected.mediaType === 'highlight') &&
+      visualItems.length > 0) ||
+    (data.type !== 'video' && visualItems.length > 1);
+
+  // 1. Format Photo de Profil (DP) unique (sans stories actives multiples)
   const isProfilePayload =
-    data.type === 'profile' ||
-    detected.mediaType === 'profile' ||
-    platform === 'linkedin' ||
-    (platform === 'instagram' &&
-      data.type === 'image' &&
-      typeof data.title === 'string' &&
-      /^@[a-z0-9._]{1,30}$/i.test(data.title.trim()));
+    !isMultiItemSelection &&
+    (data.type === 'profile' ||
+      detected.mediaType === 'profile' ||
+      platform === 'linkedin' ||
+      (platform === 'instagram' &&
+        data.type === 'image' &&
+        typeof data.title === 'string' &&
+        /^@[a-z0-9._]{1,30}$/i.test(data.title.trim())));
 
   if (isProfilePayload) {
     const dpItem = data.items?.[0];
@@ -584,22 +610,44 @@ export async function extractMediaFromUrl(
     };
   }
 
-  // 2. Format Carrousel Multi-Slides
-  if (data.type === 'carousel') {
-    const items: CarouselSlideItem[] = (data.items || [])
-      .filter((it: any) => it.kind === 'image' || it.kind === 'video')
-      .map((it: any, idx: number) => ({
-        id: `slide-${idx + 1}`,
-        index: idx + 1,
+  // 2. Écran de Sélection (Carrousel, Diaporama, Stories d'un compte, Highlights, Profil avec stories actives)
+  if (isMultiItemSelection) {
+    const selectionContext: CarouselMediaResult['selectionContext'] =
+      detected.mediaType === 'story'
+        ? 'story'
+        : detected.mediaType === 'highlight'
+        ? 'highlight'
+        : detected.mediaType === 'profile'
+        ? 'profile'
+        : 'carousel';
+
+    const items: CarouselSlideItem[] = visualItems.map((it: any, idx: number) => {
+      const itemIndex = typeof it.index === 'number' ? it.index : idx + 1;
+      const width = typeof it.width === 'number' ? it.width : undefined;
+      const height = typeof it.height === 'number' ? it.height : undefined;
+      const defaultQuality =
+        it.quality ||
+        (it.kind === 'video' ? '1080p' : platform === 'x' ? 'Original' : '1080p');
+
+      return {
+        id: it.id ? `slide-${it.id}-${idx + 1}` : `slide-${idx + 1}`,
+        index: itemIndex,
         mediaType: it.kind === 'video' ? 'video' : 'image',
+        quality: String(defaultQuality),
+        width,
+        height,
         dimensions:
-          it.width && it.height
-            ? `${it.width} × ${it.height}`
+          width && height
+            ? `${width} × ${height}`
             : it.dimensions || undefined,
         fileSize: it.size || undefined,
+        date: typeof it.date === 'string' ? it.date : undefined,
+        selected: typeof it.selected === 'boolean' ? it.selected : undefined,
+        label: typeof it.label === 'string' ? it.label : undefined,
         thumbnailUrl: resolveApiUrl(it.thumbnail || it.url),
         downloadUrl: resolveApiUrl(it.url),
-      }));
+      };
+    });
 
     const audioItem = (data.items || []).find(
       (it: any) => it.kind === 'audio' && typeof it.url === 'string' && it.url.trim().length > 0
@@ -617,7 +665,12 @@ export async function extractMediaFromUrl(
       id: resolvedId,
       payloadType: 'carousel',
       platform,
-      badgeLabel: `${badgeLabel} (Carousel)`,
+      badgeLabel:
+        selectionContext === 'story'
+          ? `${badgeLabel} (Stories)`
+          : selectionContext === 'highlight'
+          ? `${badgeLabel} (Highlights)`
+          : `${badgeLabel} (Carousel)`,
       sourceUrl: url,
       creatorHandle,
       creatorName: authorName,
@@ -626,6 +679,7 @@ export async function extractMediaFromUrl(
       caption: data.title || `${creatorHandle}`,
       totalItems: items.length,
       archiveSize: undefined,
+      selectionContext,
       items,
       audioTrack: audioItem
         ? {

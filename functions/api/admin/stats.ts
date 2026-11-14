@@ -39,6 +39,8 @@ function createEmptyPlatformStats() {
     extract_error: 0,
     download_started: 0,
     download_success: 0,
+    selection_started: 0,
+    selection_download: 0,
     downloadRate: 0,
     downloadCompletionRate: 0,
     direct: 0,
@@ -79,6 +81,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       error: number;
       download_started: number;
       download_success: number;
+      selection_started: number;
+      selection_download: number;
     }
   >();
   for (let i = 29; i >= 0; i--) {
@@ -90,6 +94,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       error: 0,
       download_started: 0,
       download_success: 0,
+      selection_started: 0,
+      selection_download: 0,
     });
   }
 
@@ -108,6 +114,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     extract_error: 0,
     download_started: 0,
     download_success: 0,
+    selection_started: 0,
+    selection_download: 0,
     extractSuccessRate: 0,
     downloadConversionRate: 0,
     downloadCompletionRate: 0,
@@ -236,6 +244,16 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         if (p) platforms[p].download_success += count;
         const bucket = dailyMap.get(dayKey);
         if (bucket) bucket.download_success += count;
+      } else if (ev === 'selection_started') {
+        funnel.selection_started += count;
+        if (p) platforms[p].selection_started += count;
+        const bucket = dailyMap.get(dayKey);
+        if (bucket) bucket.selection_started += count;
+      } else if (ev === 'selection_download') {
+        funnel.selection_download += count;
+        if (p) platforms[p].selection_download += count;
+        const bucket = dailyMap.get(dayKey);
+        if (bucket) bucket.selection_download += count;
       }
     }
 

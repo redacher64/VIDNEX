@@ -517,6 +517,15 @@ async function handleExtract(
     );
   }
 
+  const visualItemsCount = (result.items || []).filter(
+    (it) => it.kind === 'image' || it.kind === 'video'
+  ).length;
+  const isSelectionResult =
+    result.type === 'carousel' ||
+    ((detection.kind === 'story' || detection.kind === 'highlight') &&
+      visualItemsCount > 0) ||
+    (result.type !== 'video' && visualItemsCount > 1);
+
   // Journalisation asynchrone du succès + mise à jour engine_status via waitUntil()
   scheduleAsyncLog(
     ctx,
@@ -531,6 +540,7 @@ async function handleExtract(
       httpStatus: result.httpStatus ?? 200,
       contentKind,
       engineFn,
+      isSelection: isSelectionResult,
     })
   );
 
@@ -556,7 +566,9 @@ async function handleExtract(
       (item.kind === 'video' ? 'mp4' : item.kind === 'audio' ? 'm4a' : 'jpg');
     const qualityTag = (item.quality || `${idx + 1}`).replace(/[^a-zA-Z0-9]/g, '');
     const safeFilename = isIgProfile
-      ? `instagram_${profileUsername}_profile.jpg`
+      ? idx === 0
+        ? `instagram_${profileUsername}_profile.jpg`
+        : `instagram_${profileUsername}_story_${idx}.${ext}`
       : isLinkedInProfile
       ? `linkedin_${profileUsername}_profile.jpg`
       : result.platform === 'tiktok' && item.kind === 'audio'
@@ -567,17 +579,23 @@ async function handleExtract(
       ? (result.items || []).length > 1
         ? `x_${username}_${tweetOrMediaId}_${qualityTag || idx + 1}.${ext}`
         : `x_${username}_${tweetOrMediaId}.${ext}`
-      : `VIDNEX_${result.platform}_${username}_${qualityTag}.${ext}`;
+      : `VIDNEX_${result.platform}_${username}_${qualityTag}_${idx + 1}.${ext}`;
     const itemCookie =
       isIgProfile || isLinkedInProfile ? undefined : item.cookie || sharedCookie;
+    const rawThumbCandidate =
+      item.thumbnail ||
+      (item.kind === 'image' ? item.url : undefined);
 
     return {
       ...item,
-      thumbnail: item.thumbnail
+      index: typeof item.index === 'number' ? item.index : idx + 1,
+      thumbnail: rawThumbCandidate
         ? wrapDownloadUrl(
-            item.thumbnail,
+            rawThumbCandidate,
             isIgProfile
-              ? `instagram_${profileUsername}_profile.jpg`
+              ? idx === 0
+                ? `instagram_${profileUsername}_profile.jpg`
+                : `instagram_${profileUsername}_story_thumb_${idx}.jpg`
               : isLinkedInProfile
               ? `linkedin_${profileUsername}_profile.jpg`
               : result.platform === 'facebook'

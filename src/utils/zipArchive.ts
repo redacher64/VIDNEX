@@ -1,8 +1,14 @@
 /**
- * Générateur PKZIP standard (méthode STORE sans compression, compatible Windows/macOS/Linux/iOS/Android)
- * Permet d'assembler plusieurs photos/vidéos d'un carrousel en une vraie archive .ZIP
- * directement dans le navigateur sans aucune dépendance externe ni faux lien `synthetic://`.
+ * Assemblage d'archives .ZIP directement dans le navigateur avec `fflate` (méthode STORE level 0,
+ * compatible Windows/macOS/Linux/iOS/Android) et validation stricte des limites de sélection :
+ * - Maximum 20 éléments par sélection
+ * - Maximum 100 Mo (104 857 600 octets) au total
  */
+
+import { zipSync, type Zippable } from 'fflate';
+
+export const MAX_SELECTION_ITEMS = 20;
+export const MAX_SELECTION_TOTAL_BYTES = 100 * 1024 * 1024; // 100 Mo
 
 const CRC32_TABLE = (() => {
   const table = new Uint32Array(256);
@@ -29,88 +35,103 @@ export interface ZipEntryInput {
   data: Uint8Array;
 }
 
+export type SelectionLimitErrorReason =
+  | 'EMPTY_SELECTION'
+  | 'MAX_ITEMS_EXCEEDED'
+  | 'MAX_SIZE_EXCEEDED';
+
+export interface SelectionValidationResult {
+  valid: boolean;
+  reason?: SelectionLimitErrorReason;
+  itemCount: number;
+  totalBytes: number;
+}
+
+export function parseEstimatedSizeBytes(sizeLabel?: string): number {
+  if (!sizeLabel || typeof sizeLabel !== 'string') return 0;
+  const match = sizeLabel
+    .trim()
+    .match(/^(\d+(?:[.,]\d+)?)\s*(B|KB|KO|MB|MO|GB|GO)$/i);
+  if (!match) return 0;
+  const val = parseFloat(match[1].replace(',', '.'));
+  if (!Number.isFinite(val) || val <= 0) return 0;
+  const unit = match[2].toUpperCase();
+  if (unit === 'KB' || unit === 'KO') return Math.round(val * 1024);
+  if (unit === 'MB' || unit === 'MO') return Math.round(val * 1024 * 1024);
+  if (unit === 'GB' || unit === 'GO') return Math.round(val * 1024 * 1024 * 1024);
+  return Math.round(val);
+}
+
+export function validateSelectionLimits(
+  itemCount: number,
+  totalBytes = 0
+): SelectionValidationResult {
+  if (itemCount <= 0) {
+    return {
+      valid: false,
+      reason: 'EMPTY_SELECTION',
+      itemCount: 0,
+      totalBytes,
+    };
+  }
+  if (itemCount > MAX_SELECTION_ITEMS) {
+    return {
+      valid: false,
+      reason: 'MAX_ITEMS_EXCEEDED',
+      itemCount,
+      totalBytes,
+    };
+  }
+  if (totalBytes > MAX_SELECTION_TOTAL_BYTES) {
+    return {
+      valid: false,
+      reason: 'MAX_SIZE_EXCEEDED',
+      itemCount,
+      totalBytes,
+    };
+  }
+  return {
+    valid: true,
+    itemCount,
+    totalBytes,
+  };
+}
+
+/**
+ * Assemble une archive .ZIP standard dans le navigateur via `fflate.zipSync` (level: 0).
+ */
 export function buildUncompressedZipBytes(files: ZipEntryInput[]): Uint8Array {
-  const encoder = new TextEncoder();
-  const localParts: Uint8Array[] = [];
-  const centralParts: Uint8Array[] = [];
-  let offset = 0;
-
-  for (const file of files) {
-    const nameBytes = encoder.encode(file.name);
-    const crc = crc32(file.data);
-    const size = file.data.byteLength;
-
-    const localHeader = new Uint8Array(30 + nameBytes.length);
-    const lv = new DataView(localHeader.buffer);
-    lv.setUint32(0, 0x04034b50, true); // Local file header signature (PK\x03\x04)
-    lv.setUint16(4, 20, true); // Version needed to extract (2.0)
-    lv.setUint16(6, 0x0800, true); // General purpose bit flag (UTF-8 filename)
-    lv.setUint16(8, 0, true); // Compression method: 0 (STORE)
-    lv.setUint16(10, 0, true); // Last mod file time
-    lv.setUint16(12, 0, true); // Last mod file date
-    lv.setUint32(14, crc, true); // CRC-32
-    lv.setUint32(18, size, true); // Compressed size
-    lv.setUint32(22, size, true); // Uncompressed size
-    lv.setUint16(26, nameBytes.length, true); // File name length
-    lv.setUint16(28, 0, true); // Extra field length
-    localHeader.set(nameBytes, 30);
-
-    localParts.push(localHeader, file.data);
-
-    const centralHeader = new Uint8Array(46 + nameBytes.length);
-    const cv = new DataView(centralHeader.buffer);
-    cv.setUint32(0, 0x02014b50, true); // Central directory file header signature (PK\x01\x02)
-    cv.setUint16(4, 20, true); // Version made by
-    cv.setUint16(6, 20, true); // Version needed to extract
-    cv.setUint16(8, 0x0800, true); // UTF-8 flag
-    cv.setUint16(10, 0, true); // Compression method: 0 (STORE)
-    cv.setUint16(12, 0, true);
-    cv.setUint16(14, 0, true);
-    cv.setUint32(16, crc, true);
-    cv.setUint32(20, size, true);
-    cv.setUint32(24, size, true);
-    cv.setUint16(28, nameBytes.length, true);
-    cv.setUint16(30, 0, true);
-    cv.setUint16(32, 0, true);
-    cv.setUint16(34, 0, true);
-    cv.setUint16(36, 0, true);
-    cv.setUint32(38, 0, true);
-    cv.setUint32(42, offset, true); // Relative offset of local header
-    centralHeader.set(nameBytes, 46);
-
-    centralParts.push(centralHeader);
-    offset += localHeader.byteLength + size;
+  let totalBytes = 0;
+  for (const f of files) {
+    totalBytes += f.data.byteLength;
+  }
+  const check = validateSelectionLimits(files.length, totalBytes);
+  if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
+    throw new Error('MAX_ITEMS_EXCEEDED');
+  }
+  if (!check.valid && check.reason === 'MAX_SIZE_EXCEEDED') {
+    throw new Error('MAX_SIZE_EXCEEDED');
   }
 
-  let centralSize = 0;
-  for (const part of centralParts) {
-    centralSize += part.byteLength;
+  const zippable: Zippable = {};
+  const usedNames = new Set<string>();
+
+  for (let i = 0; i < files.length; i++) {
+    const rawName = (files[i].name || `media_${i + 1}.jpg`).trim();
+    let safeName = rawName.replace(/[\\/]+/g, '_');
+    if (usedNames.has(safeName)) {
+      const dotIdx = safeName.lastIndexOf('.');
+      if (dotIdx > 0) {
+        safeName = `${safeName.slice(0, dotIdx)}_${i + 1}${safeName.slice(dotIdx)}`;
+      } else {
+        safeName = `${safeName}_${i + 1}`;
+      }
+    }
+    usedNames.add(safeName);
+    zippable[safeName] = [files[i].data, { level: 0 }];
   }
 
-  const eocd = new Uint8Array(22);
-  const ev = new DataView(eocd.buffer);
-  ev.setUint32(0, 0x06054b50, true); // End of central directory signature (PK\x05\x06)
-  ev.setUint16(4, 0, true);
-  ev.setUint16(6, 0, true);
-  ev.setUint16(8, files.length, true);
-  ev.setUint16(10, files.length, true);
-  ev.setUint32(12, centralSize, true);
-  ev.setUint32(16, offset, true);
-  ev.setUint16(20, 0, true);
-
-  const totalLength = offset + centralSize + eocd.byteLength;
-  const output = new Uint8Array(totalLength);
-  let pos = 0;
-  for (const part of localParts) {
-    output.set(part, pos);
-    pos += part.byteLength;
-  }
-  for (const part of centralParts) {
-    output.set(part, pos);
-    pos += part.byteLength;
-  }
-  output.set(eocd, pos);
-  return output;
+  return zipSync(zippable, { level: 0 });
 }
 
 export function buildUncompressedZipArchive(files: ZipEntryInput[]): Blob {

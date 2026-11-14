@@ -299,7 +299,7 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 
 ---
 
-### 4.3 Format de réponse de `/api/extract`
+### 4.3 Format de réponse de `/api/extract` et Écran de Sélection avant téléchargement
 
 Toutes les réponses de `/api/extract` respectent l'interface `ExtractResponse` (`functions/_lib/normalize.ts`) :
 
@@ -308,7 +308,7 @@ Toutes les réponses de `/api/extract` respectent l'interface `ExtractResponse` 
   "ok": true,
   "id": "7381234567890123456",
   "platform": "tiktok",
-  "type": "video",
+  "type": "carousel",
   "title": "Titre ou description de la publication",
   "author": {
     "username": "createur",
@@ -316,25 +316,31 @@ Toutes les réponses de `/api/extract` respectent l'interface `ExtractResponse` 
     "avatar": "https://...",
     "verified": true
   },
-  "thumbnail": "https://...",
+  "thumbnail": "/api/download?url=...&inline=1",
   "duration": "00:42",
   "items": [
     {
-      "kind": "video",
-      "url": "https://...",
+      "index": 1,
+      "id": "slide-1",
+      "kind": "image",
+      "url": "/api/download?url=...&filename=...",
+      "thumbnail": "/api/download?url=...&inline=1",
       "quality": "1080p",
-      "ext": "mp4",
-      "size": "14.2 MB"
-    },
-    {
-      "kind": "audio",
-      "url": "https://...",
-      "quality": "Audio",
-      "ext": "m4a"
+      "ext": "jpg",
+      "width": 1080,
+      "height": 1350,
+      "date": "2026-03-20T14:30:00.000Z",
+      "selected": true
     }
   ]
 }
 ```
+- **Écran de SÉLECTION avant téléchargement (`src/components/ResultDrawer.tsx`)** :
+  - S'active automatiquement lorsqu'un lien contient plusieurs éléments : **carrousels / diaporamas** (Instagram `/p/...`, TikTok Photo Mode, X avec plusieurs images), **stories actives d'un compte** (Instagram lorsque `IG_SESSION_ID` est défini ; Facebook conserve le message explicite `PRIVATE_OR_LOGIN_REQUIRED` en l'absence de moteur sans connexion), **highlights** (`/stories/highlights/{id}/` avec `IG_SESSION_ID`) et **profils avec stories actives**.
+  - Affiche une grille de miniatures de **tous** les éléments trouvés (`grid-cols-2` sur mobile), numérotés (`#1`, `#2`, ...), avec badge de type (`Photo` / `Vidéo`), qualité (`1080p`, `HD`, `Original`) et date/heure de publication pour les stories.
+  - Pour un lien de story (`/stories/{username}/{id}`), liste toutes les stories actives du compte et **présélectionne automatiquement la story du lien**.
+  - Barre d'actions avec « Tout sélectionner », compteur `{selected} / {total}` et « Télécharger la sélection » : **1 élément** lance un téléchargement direct ; **plusieurs éléments** assemblent un fichier `.zip` directement dans le navigateur avec **`fflate`** (limité à **20 éléments ou 100 Mo maximum** avec message d'erreur clair et progression annoncée via `aria-live="polite"`).
+  - Toutes les miniatures passent par `/api/download?inline=1` (même origine, allowlist), en chargement différé (`loading="lazy"`) et dimensions fixes (`aspect-[4/5]`, `width="360"`, `height="450"`, CLS = 0). Aucune donnée d'élément extrait n'est stockée en base.
 > **Note de sécurité** : Avant d'envoyer la réponse JSON au navigateur, `functions/api/extract.ts` supprime systématiquement toute propriété interne `cookie` afin qu'aucun cookie de session serveur ne fuite côté client.
 
 ---
@@ -358,7 +364,7 @@ Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (
 3. **En-têtes et Cookies de session** : Ajoute automatiquement les en-têtes `Referer` et `Origin` requis par chaque CDN et supporte l'en-tête `Range` pour la reprise de téléchargement.
 4. **Auto-Heal** : Si un lien média signé a expiré (`403`, `401`, `410`) et que le paramètre `src` est fourni, `/api/download` relance le moteur correspondant à la volée pour récupérer une nouvelle URL CDN fraîche.
 5. **Limite de taille** : Rejette avec `413 Payload Too Large` tout fichier dépassant **250 Mo** (`MAX_CONTENT_LENGTH_BYTES = 250 * 1024 * 1024`).
-6. **Mesure de bout en bout du flux (`download_started` / `download_success`)** : Lors d'un téléchargement (`!inline`), incrémente `download_started` au démarrage, puis pipe le flux à travers un `TransformStream` dans `ctx.waitUntil` et n'incrémente `download_success` que lorsque le flux se termine intégralement sans erreur côté serveur.
+6. **Mesure de bout en bout du flux (`download_started` / `download_success` / `selection_download`)** : Lors d'un téléchargement (`!inline`), incrémente `download_started` (ainsi que `selection_download` si déclenché depuis l'écran de sélection via `sel=1`) au démarrage, puis pipe le flux à travers un `TransformStream` dans `ctx.waitUntil` et n'incrémente `download_success` que lorsque le flux se termine intégralement sans erreur côté serveur.
 
 ---
 
@@ -372,7 +378,7 @@ Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (
    - `/api/download` : contrôlé par `download_limit_per_min` (défaut **60 fichiers/min** par IP hachée, 1 comptage par fichier/min, requêtes `Range` comprises).
    - En cas d'indisponibilité de D1, bascule automatiquement sur le limiteur **Token Bucket en mémoire** (`checkRateLimit`).
 5. **Mesures agrégées (`daily_metrics`) et économie d'écritures D1 (`functions/_lib/logger.ts`)** :
-   - Les extractions réussies ne sont plus enregistrées ligne par ligne dans `request_log`. Elles sont agrégées dans `daily_metrics` (1 ligne par `day` UTC, `platform` et `event` : `extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`).
+   - Les extractions réussies ne sont plus enregistrées ligne par ligne dans `request_log`. Elles sont agrégées dans `daily_metrics` (1 ligne par `day` UTC, `platform` et `event` : `extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`, `selection_started`, `selection_download`).
    - La table `request_log` conserve le détail (`error_code`, `engine_stage`, `http_status`, `duration_ms`) **uniquement pour les erreurs**.
    - **Aucun identifiant personnel** n'est stocké dans `daily_metrics` ni dans `request_log`.
    - **Économie d'écritures D1 mesurée par extraction réussie** : avant, chaque succès exécutait **3 requêtes d'écriture SQL** (`rate_limits` + `request_log` + `engine_status`, soit 4 écritures B-tree avec l'index `idx_request_log_ts`). Après, en régime stabilisé, une extraction réussie exécute **2 requêtes d'écriture SQL** (`rate_limits` + upsert `daily_metrics`, `engine_status` n'étant mis à jour en cas de succès qu'après une erreur ou au plus 1 fois par minute) et **0 insertion dans `request_log`**.

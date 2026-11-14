@@ -24,3 +24,8 @@ public/assets/aistudio/
 
 .wrangler/
 
+# Unused package manager locks
+bun.lock
+bun.lockb
+
+

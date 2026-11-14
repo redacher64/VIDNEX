@@ -23,3 +23,5 @@ Thumbs.db
 public/assets/aistudio/
 
 .wrangler/
+bun.lock
+bun.lockb

@@ -2887,6 +2887,38 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(redirectedIgStory.contentKind, 'story');
     assert.notEqual(redirectedIgStory.kind, 'reel');
 
+    // Liens courts Instagram Highlight (/s/base64) et login redirect (?next=/stories/...)
+    const igHighlightShortUrl = 'https://www.instagram.com/s/aGlnaGxpZ2h0OjE3ODk1NDg1MjAxMTA0MDU0?story_media_id=3399123456789012345';
+    const dIgHighlightShort = detectBackendUrl(igHighlightShortUrl);
+    assert.equal(dIgHighlightShort.isValid, true);
+    assert.equal(dIgHighlightShort.kind, 'highlight');
+    assert.equal(dIgHighlightShort.contentKind, 'highlight');
+    assert.notEqual(dIgHighlightShort.kind, 'reel');
+
+    const redirectedIgLoginStory = await resolveAndDetectUrl(
+      'https://www.instagram.com/share/BAStoryLoginRedirect/',
+      'instagram',
+      async () =>
+        new Response(null, {
+          status: 302,
+          headers: {
+            Location: 'https://www.instagram.com/accounts/login/?next=%2Fstories%2Fnatgeo%2F3399123456789012345%2F',
+          },
+        })
+    );
+    assert.equal(redirectedIgLoginStory.isValid, true);
+    assert.equal(redirectedIgLoginStory.kind, 'story');
+    assert.equal(redirectedIgLoginStory.contentKind, 'story');
+    assert.notEqual(redirectedIgLoginStory.kind, 'reel');
+    assert.equal(redirectedIgLoginStory.isLoginRedirect, true);
+
+    const dFbShareStory = detectBackendUrl('https://www.facebook.com/share/s/1AbCdEfGhI/');
+    assert.equal(dFbShareStory.isValid, true);
+    assert.equal(dFbShareStory.kind, 'story');
+    assert.equal(dFbShareStory.contentKind, 'story');
+    assert.equal(dFbShareStory.isShortLink, true);
+    assert.notEqual(dFbShareStory.kind, 'reel');
+
     // 3. Moteur Instagram Story sans IG_SESSION_ID : PRIVATE_OR_LOGIN_REQUIRED immédiat, 0 appel réseau Reels/Embed
     let igNetworkCallsWithoutSession = 0;
     const igNoSessionRes = await extractInstagram(

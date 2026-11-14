@@ -185,6 +185,7 @@ const RESERVED_IG_PATHS = new Set([
   'locations',
   'directory',
   'share',
+  's',
   'clips',
 ]);
 
@@ -435,6 +436,32 @@ export function detectMediaUrl(
     };
   }
 
+  const igHighlightShortMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/s\/([A-Za-z0-9_=-]{4,80})\/?(?:\?.*)?$/i
+  );
+  if (igHighlightShortMatch) {
+    const rawCode = igHighlightShortMatch[1];
+    let highlightId = rawCode;
+    try {
+      const b64 = rawCode.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(b64);
+      const hlDecoded = decoded.match(/^highlight:(\d+)$/i);
+      if (hlDecoded) {
+        highlightId = hlDecoded[1];
+      }
+    } catch {
+      // keep rawCode
+    }
+    return {
+      isValid: true,
+      platform: 'instagram',
+      mediaType: 'highlight',
+      badgeLabel: `Instagram Highlight (${highlightId})`,
+      identifier: highlightId,
+      normalizedUrl: `https://www.instagram.com/stories/highlights/${highlightId}/`,
+    };
+  }
+
   const igStoryMatch = urlWithProtocol.match(
     /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/stories\/([A-Za-z0-9._]{1,30})(?:\/([0-9A-Za-z_-]+))?\/?/i
   );
@@ -450,6 +477,28 @@ export function detectMediaUrl(
       normalizedUrl: storyId
         ? `https://www.instagram.com/stories/${storyUser}/${storyId}/`
         : `https://www.instagram.com/stories/${storyUser}/`,
+    };
+  }
+
+  const igShareMatch = urlWithProtocol.match(
+    /^https?:\/\/(?:(?:www|m)\.)?(?:instagram\.com|instagr\.am)\/share\/(?:(stories|s|reel|reels|p)\/)?([A-Za-z0-9_-]{3,60})\/?(?:\?.*)?$/i
+  );
+  if (igShareMatch) {
+    const subKind = (igShareMatch[1] || '').toLowerCase();
+    const shareCode = igShareMatch[2];
+    const isStoryShare = subKind === 'stories' || subKind === 's';
+    const isReelShare = subKind === 'reel' || subKind === 'reels';
+    return {
+      isValid: true,
+      platform: 'instagram',
+      mediaType: isStoryShare ? 'story' : isReelShare ? 'reel' : 'post',
+      badgeLabel: isStoryShare
+        ? 'Instagram Story'
+        : isReelShare
+        ? 'Instagram Reel'
+        : 'Instagram Share Link',
+      identifier: shareCode,
+      normalizedUrl: urlWithProtocol.split('?')[0],
     };
   }
 
@@ -646,7 +695,10 @@ export function detectMediaUrl(
         };
       }
 
-      if (fbPathLower === '/story.php') {
+      if (
+        fbPathLower === '/story.php' ||
+        (fbPathLower === '/permalink.php' && parsedFb.searchParams.has('story_fbid'))
+      ) {
         const storyFbid = (parsedFb.searchParams.get('story_fbid') || '').trim();
         if (storyFbid) {
           return {
@@ -705,18 +757,21 @@ export function detectMediaUrl(
         }
       }
 
-      // 5b. /share/v/{code} or /share/r/{code}
-      const fbShareMatch = fbPath.match(/^\/share\/(v|r)\/([A-Za-z0-9_-]{3,60})$/i);
+      // 5b. /share/v/{code} or /share/r/{code} or /share/{code}
+      const fbShareMatch = fbPath.match(/^\/share\/(?:(v|r)\/)?([A-Za-z0-9_-]{3,60})$/i);
       if (fbShareMatch) {
-        const shareKind = fbShareMatch[1].toLowerCase();
+        const shareKind = (fbShareMatch[1] || 'v').toLowerCase();
         const shareCode = fbShareMatch[2];
+        const cleanSharePath = fbShareMatch[1]
+          ? `/share/${shareKind}/${shareCode}/`
+          : `/share/${shareCode}/`;
         return {
           isValid: true,
           platform: 'facebook',
           mediaType: shareKind === 'r' ? 'reel' : 'video',
           badgeLabel: shareKind === 'r' ? 'Facebook Reel' : 'Facebook Video',
           identifier: shareCode,
-          normalizedUrl: `https://www.facebook.com/share/${shareKind}/${shareCode}/`,
+          normalizedUrl: `https://www.facebook.com${cleanSharePath}`,
         };
       }
 

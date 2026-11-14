@@ -117,6 +117,7 @@ const RESERVED_IG_SEGMENTS = new Set([
   'locations',
   'directory',
   'share',
+  's',
   'clips',
 ]);
 
@@ -338,7 +339,26 @@ export function detectUrl(
     host === 'm.instagram.com' ||
     host === 'instagr.am'
   ) {
-    // 1A. Story Highlight (TESTÉ AVANT LES REELS) : /stories/highlights/{id}/
+    // 1.0 Redirection de connexion Instagram (/accounts/login/?next=...)
+    if (pathname.toLowerCase().startsWith('/accounts/login')) {
+      const nextParam = parsed.searchParams.get('next');
+      if (nextParam) {
+        try {
+          const nextUrl = new URL(nextParam, 'https://www.instagram.com');
+          const nextDetected = detectUrl(nextUrl.toString(), 'instagram');
+          if (nextDetected.isValid && nextDetected.platform === 'instagram') {
+            return {
+              ...nextDetected,
+              isLoginRedirect: true,
+            };
+          }
+        } catch {
+          // Ignorer
+        }
+      }
+    }
+
+    // 1A. Story Highlight (TESTÉ AVANT LES REELS) : /stories/highlights/{id}/ ou /s/{base64}/
     const highlightMatch = pathname.match(
       /^\/stories\/highlights\/([A-Za-z0-9_-]+)\/?/i
     );
@@ -352,6 +372,32 @@ export function detectUrl(
         content_kind: 'highlight',
         identifier: highlightId,
         cleanUrl: `https://www.instagram.com/stories/highlights/${highlightId}/`,
+      };
+    }
+
+    const highlightShortMatch = pathname.match(/^\/s\/([A-Za-z0-9_=-]{4,80})\/?$/i);
+    if (highlightShortMatch) {
+      const rawCode = highlightShortMatch[1];
+      let highlightId = rawCode;
+      try {
+        const b64 = rawCode.replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = atob(b64);
+        const hlDecoded = decoded.match(/^highlight:(\d+)$/i);
+        if (hlDecoded) {
+          highlightId = hlDecoded[1];
+        }
+      } catch {
+        // Conserver rawCode
+      }
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'highlight',
+        contentKind: 'highlight',
+        content_kind: 'highlight',
+        identifier: highlightId,
+        cleanUrl: `https://www.instagram.com/stories/highlights/${highlightId}/`,
+        isShortLink: highlightId === rawCode,
       };
     }
 
@@ -388,23 +434,22 @@ export function detectUrl(
 
     // 1C. Liens courts / partage Instagram (/share/...)
     const igShareMatch = pathname.match(
-      /^\/share\/(?:(stories|reel|reels|p)\/)?([A-Za-z0-9_-]{4,45})\/?$/i
+      /^\/share\/(?:(stories|s|reel|reels|p)\/)?([A-Za-z0-9_-]{3,60})\/?$/i
     );
     if (igShareMatch) {
       const subKind = (igShareMatch[1] || '').toLowerCase();
       const shareCode = igShareMatch[2];
-      const kind: ContentKind =
-        subKind === 'stories'
-          ? 'story'
-          : subKind === 'reel' || subKind === 'reels'
-          ? 'reel'
-          : 'post';
-      const contentKind: LogContentKind =
-        subKind === 'stories'
-          ? 'story'
-          : subKind === 'reel' || subKind === 'reels'
-          ? 'reel'
-          : 'short_link';
+      const isShareStory = subKind === 'stories' || subKind === 's';
+      const kind: ContentKind = isShareStory
+        ? 'story'
+        : subKind === 'reel' || subKind === 'reels'
+        ? 'reel'
+        : 'post';
+      const contentKind: LogContentKind = isShareStory
+        ? 'story'
+        : subKind === 'reel' || subKind === 'reels'
+        ? 'reel'
+        : 'short_link';
       return {
         isValid: true,
         platform: 'instagram',
@@ -717,8 +762,13 @@ export function detectUrl(
       };
     }
 
-    // Format 0B (TESTÉ AVANT LES REELS) : /story.php?story_fbid=...
-    if (lowerPath === '/story.php' || lowerPath === '/story.php/') {
+    // Format 0B (TESTÉ AVANT LES REELS) : /story.php?story_fbid=... (ou /permalink.php?story_fbid=...)
+    if (
+      lowerPath === '/story.php' ||
+      lowerPath === '/story.php/' ||
+      ((lowerPath === '/permalink.php' || lowerPath === '/permalink.php/') &&
+        parsed.searchParams.has('story_fbid'))
+    ) {
       const storyFbid = (parsed.searchParams.get('story_fbid') || '').trim();
       if (storyFbid) {
         return {
@@ -951,6 +1001,7 @@ export async function resolveAndDetectUrl(
   }
 
   let currentUrl = initial.cleanUrl;
+  let sawLoginRedirect = false;
   for (let hop = 0; hop < 4; hop++) {
     let parsed: URL;
     try {
@@ -984,8 +1035,10 @@ export async function resolveAndDetectUrl(
         if (
           nextPathLower === '/login' ||
           nextPathLower.startsWith('/login/') ||
-          nextPathLower.startsWith('/login.php')
+          nextPathLower.startsWith('/login.php') ||
+          nextPathLower.startsWith('/accounts/login')
         ) {
+          sawLoginRedirect = true;
           const nextTarget = nextUrl.searchParams.get('next');
           if (nextTarget) {
             currentUrl = new URL(nextTarget, nextUrl).toString();
@@ -1017,7 +1070,9 @@ export async function resolveAndDetectUrl(
   if (currentUrl && currentUrl !== initial.cleanUrl) {
     const reclassified = detectUrl(currentUrl, initial.platform || preferredPlatform);
     if (reclassified.isValid || reclassified.isLoginRedirect) {
-      return reclassified;
+      return sawLoginRedirect
+        ? { ...reclassified, isLoginRedirect: true }
+        : reclassified;
     }
   }
 

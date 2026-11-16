@@ -1373,7 +1373,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(resolved404.pageKey, 'not_found');
     assert.equal(resolved404.isNotFound, true);
 
-    // 4. Hreflang : 10 langues + x-default sur les pages principales, aucun hreflang sur les pages légales
+    // 4. Hreflang : 10 langues + x-default sur les pages principales, 3 langues (fr, en, ar) + x-default sur les pages légales
     const tiktokHreflangs = buildHreflangCluster('tiktok');
     assert.equal(tiktokHreflangs.length, 11);
     const xDefault = tiktokHreflangs.find((h) => h.hreflang === 'x-default');
@@ -1381,7 +1381,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       xDefault?.href,
       'https://vidnex.space/en/tiktok-video-downloader'
     );
-    assert.equal(buildHreflangCluster('privacy').length, 0);
+    assert.equal(buildHreflangCluster('privacy').length, 4);
     assert.equal(
       getPageCanonicalUrl('fr', 'home'),
       'https://vidnex.space/'
@@ -2424,15 +2424,15 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'ru',
     ]);
 
-    // 1. Existing 75 core routes remain untouched; blog routes add 2 hubs (/blog, /fr/blog) + 11 published article pages (6 EN + 5 FR) = 13 routes -> 88 total
+    // 1. Existing 75 core routes remain untouched; blog routes add 2 hubs (/blog, /fr/blog) + 13 published article pages (7 EN + 6 FR) = 15 routes -> 90 total
     assert.equal(getAllPublicRoutes().length, 75);
     const blogRoutes = getAllBlogPublicRoutes();
-    assert.equal(blogRoutes.length, 13);
-    assert.equal(getAllIndexableRoutes().length, 88);
+    assert.equal(blogRoutes.length, 15);
+    assert.equal(getAllIndexableRoutes().length, 90);
 
-    // 2. Only the 6 specified English articles are published at /blog/{slug}; es and de have 0 published articles
+    // 2. Only the 7 specified English articles are published at /blog/{slug}; es and de have 0 published articles
     const enArticles = getPublishedArticlesForLocale('en');
-    assert.equal(enArticles.length, 6);
+    assert.equal(enArticles.length, 7);
     const expectedEnIds = [
       'troubleshooting-expired-blocked-social-media-links',
       'instagram-reels-carousels-resolution-compression-guide',
@@ -2440,6 +2440,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'why-is-downloaded-video-low-quality',
       'save-public-tiktok-videos-without-watermark-guide',
       'download-public-instagram-reels-carousels-guide',
+      'download-public-x-twitter-videos-gifs-mp4-guide',
     ];
     assert.deepEqual(
       enArticles.map((a) => a.article.id),
@@ -2447,7 +2448,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(getPublishedArticlesForLocale('es').length, 0);
     assert.equal(getPublishedArticlesForLocale('de').length, 0);
-    assert.equal(getPublishedArticlesForLocale('fr').length, 5);
+    assert.equal(getPublishedArticlesForLocale('fr').length, 6);
 
     // 3. English default blog hub (/blog) is 200; /en/blog and /en/blog/{slug} are 301 redirects (no longer 200 aliases)
     const resBlogEn = resolveRouteFromPathname('/blog');
@@ -2575,15 +2576,26 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links'
     );
 
-    // 8. Verify Schema.org JSON-LD graph on blog article (BlogPosting + BreadcrumbList + FAQPage)
+    // 8. Verify Schema.org JSON-LD graph on blog article (Article + BreadcrumbList + FAQPage) and tool page (WebApplication + HowTo + FAQPage + BreadcrumbList)
     const graphItems = (headArtFr.jsonLdGraph as any)['@graph'] as Array<
       Record<string, any>
     >;
     assert.equal(graphItems.length, 3);
-    assert.equal(graphItems[0]['@type'], 'BlogPosting');
+    assert.equal(graphItems[0]['@type'], 'Article');
     assert.equal(graphItems[0].author.name, 'VIDNEX');
     assert.equal(graphItems[1]['@type'], 'BreadcrumbList');
     assert.equal(graphItems[2]['@type'], 'FAQPage');
+
+    const headToolEn = buildHeadMetadataForRoute('en', 'tiktok');
+    const toolGraph = (headToolEn.jsonLdGraph as any)['@graph'] as Array<
+      Record<string, any>
+    >;
+    assert.equal(toolGraph.length, 4);
+    assert.equal(toolGraph[0]['@type'], 'WebApplication');
+    assert.equal(toolGraph[1]['@type'], 'HowTo');
+    assert.equal(toolGraph[1].step.length, 3);
+    assert.equal(toolGraph[2]['@type'], 'FAQPage');
+    assert.equal(toolGraph[3]['@type'], 'BreadcrumbList');
 
     // 9. Verify blog analytics tracking
     trackBlogArticleView(

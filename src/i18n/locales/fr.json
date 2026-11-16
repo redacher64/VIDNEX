@@ -595,21 +595,21 @@
       "metaDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture web sans stockage de fichiers et nos engagements de transparence.",
       "h1": "À propos de VIDNEX",
       "breadcrumbLabel": "À propos",
-      "updatedAt": "10 novembre 2026",
-      "intro": "VIDNEX est une application web indépendante développée pour faciliter l'accès hors ligne aux vidéos publiques et photos de profil publiques partagées sur TikTok, Instagram, X (Twitter), Facebook et LinkedIn.",
+      "updatedAt": "15 novembre 2026",
+      "intro": "VIDNEX est un utilitaire web gratuit, sans inscription ni compte, conçu pour enregistrer uniquement les médias publics partagés sur TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn.",
       "sections": [
         {
-          "heading": "Notre mission et fonctionnement technique",
+          "heading": "Périmètre vérifié et formats pris en charge",
           "paragraphs": [
-            "Sur de nombreuses plateformes sociales, consulter un contenu public hors connexion ou récupérer sa propre création sans filigrane mobile nécessite souvent des logiciels complexes. VIDNEX propose une interface web claire, rapide et accessible sur ordinateur comme sur smartphone, sans inscription ni installation.",
-            "Techniquement, VIDNEX agit comme un résolveur de métadonnées publiques à la demande. Lorsqu'un utilisateur soumet une adresse URL, nos serveurs analysent à la volée les balises publiques de la page cible et relaient le flux multimédia directement depuis le réseau de diffusion (CDN) d'origine vers le navigateur de l'utilisateur."
+            "VIDNEX agit comme un résolveur de métadonnées publiques à la demande directement dans le navigateur (iPhone, Android, Mac et PC) : vidéos TikTok publiques en MP4 (sans filigrane lorsque la piste source le permet), audio MP3 ou M4A/AAC et diaporamas photos ; Reels Instagram publics, publications /p/ (photo, vidéo ou carrousel) et photos de profil publiques ; vidéos X (Twitter), GIFs convertis en MP4 et photos de tweets publics ; vidéos et Reels Facebook publics en MP4 HD/SD ; ainsi que les photos de profil publiques LinkedIn en JPG.",
+            "Exclusions techniques strictes : VIDNEX ne prend pas en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication nécessitant une authentification."
           ]
         },
         {
-          "heading": "Absence d'hébergement de fichiers et respect de la vie privée",
+          "heading": "Absence de stockage de comptes et respect du droit d'auteur",
           "paragraphs": [
-            "VIDNEX ne constitue pas une base de données de vidéos : nous n'hébergeons, n'archivons et ne réindexons aucun fichier vidéo, audio ou photo sur nos serveurs. Chaque requête est traitée à la volée en mémoire vive.",
-            "Nous limitons strictement le périmètre de l'outil aux publications publiques accessibles sans compte. Aucune fonctionnalité ne permet de contourner un mur de connexion, un compte privé ou une mesure de protection technique."
+            "VIDNEX ne stocke aucun compte utilisateur, aucun mot de passe et n'héberge ni n'archive aucun fichier vidéo, audio ou photo sur ses serveurs. Chaque flux multimédia transite uniquement en mémoire vive depuis le réseau de diffusion (CDN) d'origine vers votre navigateur.",
+            "L'enregistrement d'un média public ne transfère aucun droit de propriété intellectuelle : l'outil est destiné à la sauvegarde de vos propres créations, à la consultation personnelle hors ligne ou aux usages autorisés par l'auteur original."
           ]
         }
       ],

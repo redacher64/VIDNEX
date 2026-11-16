@@ -535,8 +535,13 @@ async function main() {
       fs.copyFileSync(cssPath, path.join(DIST_DIR, 'sitemap.css'));
     }
 
+    const robotsPath = path.join(PUBLIC_DIR, 'robots.txt');
+    if (fs.existsSync(robotsPath)) {
+      fs.copyFileSync(robotsPath, path.join(DIST_DIR, 'robots.txt'));
+    }
+
     console.log(
-      `✓ Pre-rendered ${routes.length} public pages + /admin shell + sitemap.xml + llms.txt.`
+      `✓ Pre-rendered ${routes.length} public pages + /admin shell + sitemap.xml + llms.txt + robots.txt.`
     );
   } finally {
     await vite.close();

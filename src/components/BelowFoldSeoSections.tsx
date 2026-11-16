@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
+  getBlogArticlePath,
+  getBlogUiLabels,
+  getPublishedArticleById,
+  type BlogLocale,
+} from '../data/blogArticles.ts';
+import {
   getLocalizedPagePath,
   PLATFORM_PAGE_KEYS,
   type PlatformPageKey,
@@ -13,12 +19,34 @@ import { PlatformIcon } from './icons/PlatformIcons.tsx';
 interface BelowFoldSeoSectionsProps {
   pageKey: 'home' | PlatformPageKey;
   onNavigatePage: (pageKey: 'home' | PlatformPageKey) => void;
+  onNavigatePath?: (path: string) => void;
   language: SupportedLocale;
 }
+
+const PILLAR_BLOG_ARTICLE_IDS: Partial<Record<PlatformPageKey, string>> = {
+  tiktok: 'save-public-tiktok-videos-without-watermark-guide',
+  instagram: 'download-public-instagram-reels-carousels-guide',
+  x: 'download-public-x-twitter-videos-gifs-mp4-guide',
+  facebook: 'facebook-video-downloader-not-working',
+};
+
+const PRACTICAL_GUIDE_LABELS: Record<SupportedLocale, string> = {
+  fr: 'Guide pratique',
+  en: 'Practical Guide',
+  ar: 'دليل عملي',
+  es: 'Guía práctica',
+  pt: 'Guia prático',
+  de: 'Praxis-Ratgeber',
+  tr: 'Pratik Rehber',
+  id: 'Panduan Praktis',
+  it: 'Guida pratica',
+  ru: 'Практическое руководство',
+};
 
 export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
   pageKey,
   onNavigatePage,
+  onNavigatePath,
   language,
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -27,6 +55,23 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
   const pageContent =
     pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
   const editorial = pageContent.editorial;
+
+  const pillarArticleId =
+    pageKey !== 'home' ? PILLAR_BLOG_ARTICLE_IDS[pageKey] : undefined;
+  const pillarArticle = pillarArticleId
+    ? getPublishedArticleById(pillarArticleId)
+    : null;
+  const pillarBlogLocale: BlogLocale =
+    language === 'fr' &&
+    pillarArticle?.translations.fr?.translationStatus === 'published'
+      ? 'fr'
+      : 'en';
+  const pillarTranslation = pillarArticle?.translations[pillarBlogLocale];
+  const pillarHref =
+    pillarTranslation && pillarTranslation.translationStatus === 'published'
+      ? getBlogArticlePath(pillarBlogLocale, pillarTranslation.localizedSlug)
+      : null;
+  const blogUi = getBlogUiLabels(language);
 
   useEffect(() => {
     setOpenFaqIndex(0);
@@ -41,8 +86,54 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handlePillarGuideClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetPath: string
+  ) => {
+    if (!onNavigatePath) return;
+    e.preventDefault();
+    onNavigatePath(targetPath);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="w-full">
+      {/* AEO DIRECT SUMMARY + PILLAR BLOG GUIDE LINK (40–60 words below the tool for Featured Snippets) */}
+      <section
+        aria-label={editorial.heading}
+        className="w-full bg-[#fffaf5] dark:bg-[#140e0a] border-b border-orange-200/60 dark:border-orange-900/40 py-5"
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <p className="text-sm sm:text-base text-[#4a3429] dark:text-orange-100/90 leading-relaxed max-w-3xl">
+            <strong className="font-display font-bold text-[#1f130b] dark:text-[#fffaf5]">
+              {pageContent.h1} :{' '}
+            </strong>
+            {editorial.paragraphs[0]}
+          </p>
+
+          {pillarHref && pillarTranslation && (
+            <a
+              href={pillarHref}
+              onClick={(e) => handlePillarGuideClick(e, pillarHref)}
+              className="shrink-0 inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-white/95 dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm hover:border-orange-400 hover:shadow-orange-sm transition-all group max-w-sm"
+            >
+              <div className="min-w-0">
+                <span className="block font-mono text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400">
+                  {PRACTICAL_GUIDE_LABELS[language]} ·{' '}
+                  {pillarTranslation.readingTimeMinutes} {blogUi.minReadSuffix}
+                </span>
+                <span className="block font-display text-xs sm:text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] group-hover:text-orange-600 dark:group-hover:text-amber-400 transition-colors line-clamp-2 mt-0.5">
+                  {pillarTranslation.title}
+                </span>
+              </div>
+              <span className="text-orange-600 dark:text-amber-400 font-mono text-sm font-bold shrink-0 rtl:rotate-180">
+                →
+              </span>
+            </a>
+          )}
+        </div>
+      </section>
+
       {/* 1. SPECS RIBBON */}
       <section className="w-full bg-gradient-to-r from-orange-50 via-white to-amber-50/60 dark:from-[#1c140e] dark:via-[#140e0a] dark:to-[#1c140e] border-b border-orange-200/60 dark:border-orange-900/40 shadow-sm py-5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 items-stretch">

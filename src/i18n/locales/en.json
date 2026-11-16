@@ -595,21 +595,21 @@
       "metaDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using a stateless web architecture with zero file storage.",
       "h1": "About VIDNEX",
       "breadcrumbLabel": "About Us",
-      "updatedAt": "November 10, 2026",
-      "intro": "VIDNEX is an independent web utility built to make saving public social media videos and public profile photos from TikTok, Instagram, X (Twitter), Facebook, and LinkedIn straightforward and transparent.",
+      "updatedAt": "November 15, 2026",
+      "intro": "VIDNEX is a free, browser-based web utility requiring no registration or account, built to save strictly public media from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures.",
       "sections": [
         {
-          "heading": "How VIDNEX works",
+          "heading": "Verified scope and supported formats",
           "paragraphs": [
-            "Saving a public clip for offline reference or archiving your own social videos without mobile watermarks shouldn't require installing untrusted desktop software. VIDNEX provides a clean browser interface that works across phones, tablets, and computers without registration.",
-            "Under the hood, VIDNEX acts as an on-demand public metadata resolver. When you submit a public URL, our system inspects the public metadata of the post and proxies the direct media stream from the origin CDN to your browser."
+            "VIDNEX operates as an on-demand public metadata resolver across iPhone, Android, Mac, and PC browsers: public TikTok MP4 videos (without watermark when available), MP3 or M4A/AAC audio tracks, and photo slideshows; public Instagram Reels, /p/ posts (photo, video, or multi-slide carousel), and public profile pictures; public X (Twitter) videos, GIFs converted to MP4, and post photos; public Facebook HD/SD videos and Reels; and public LinkedIn profile pictures in original JPG.",
+            "Strict technical exclusions: VIDNEX does not support YouTube, Snapchat, private accounts, private stories, or any login-restricted content."
           ]
         },
         {
-          "heading": "Zero file hosting and strict privacy boundaries",
+          "heading": "Zero user account storage and copyright compliance",
           "paragraphs": [
-            "VIDNEX does not operate a media archive: we never host, store, or index video, audio, or image files on our servers. Every stream is relayed in volatile memory.",
-            "We strictly limit extraction to public posts accessible without authentication. VIDNEX never bypasses login walls, private accounts, or digital rights management controls."
+            "VIDNEX never requires or stores user accounts or social credentials, and never hosts, archives, or indexes video, audio, or image files on its servers. Media streams are relayed in volatile memory directly from the origin CDN to your browser.",
+            "Saving a public file does not transfer copyright ownership: VIDNEX is intended for archiving your own creations, personal offline viewing, or uses explicitly permitted by the original creator."
           ]
         }
       ],

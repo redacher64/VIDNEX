@@ -5,6 +5,7 @@ import {
   type RouteHeadMetadata,
 } from '../i18n/hreflang.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { JsonLd } from './JsonLd.tsx';
 
 export { buildHeadMetadataForRoute, type RouteHeadMetadata };
 
@@ -20,10 +21,9 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   blogSlug,
 }) => {
   const loadedBundleLocale = getLocaleBundleSync(language).locale;
+  const meta = buildHeadMetadataForRoute(language, pageKey, blogSlug);
 
   useEffect(() => {
-    const meta = buildHeadMetadataForRoute(language, pageKey, blogSlug);
-
     document.documentElement.lang = meta.lang;
     document.documentElement.dir = meta.dir;
     document.title = meta.title;
@@ -106,18 +106,8 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
       link.setAttribute('data-vidnex-hreflang', 'true');
       document.head.appendChild(link);
     });
+  }, [meta, pageKey, language, blogSlug, loadedBundleLocale]);
 
-    let scriptEl = document.getElementById(
-      'vidnex-jsonld-schema'
-    ) as HTMLScriptElement | null;
-    if (!scriptEl) {
-      scriptEl = document.createElement('script');
-      scriptEl.id = 'vidnex-jsonld-schema';
-      scriptEl.type = 'application/ld+json';
-      document.head.appendChild(scriptEl);
-    }
-    scriptEl.textContent = JSON.stringify(meta.jsonLdGraph);
-  }, [pageKey, language, blogSlug, loadedBundleLocale]);
-
-  return null;
+  return <JsonLd data={meta.jsonLdGraph} />;
 };
+

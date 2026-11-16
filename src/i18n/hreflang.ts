@@ -35,6 +35,7 @@ import {
   getLocalizedPagePath,
   isLegalPageKey,
   isPlatformPageKey,
+  LEGAL_SUPPORTED_LOCALES,
   LOCALES_CONFIG,
   type PageKey,
   type PlatformPageKey,
@@ -175,7 +176,7 @@ export function buildBlogHreflangCluster(
  * Génère la liste complète des liens hreflang pour une page donnée.
  * - Pour 'home' et les 5 pages plateformes : renvoie les 10 langues + 'x-default' vers la version anglaise.
  * - Pour 'blog' et 'blog_article' : renvoie uniquement les versions linguistiques réellement publiées + 'x-default' vers la version anglaise.
- * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') : renvoie [].
+ * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') : renvoie les 3 langues indexées (fr, en, ar) + 'x-default' vers la version anglaise.
  */
 export function buildHreflangCluster(
   pageKey: PageKey | 'blog_article',
@@ -186,7 +187,20 @@ export function buildHreflangCluster(
   }
 
   if (isLegalPageKey(pageKey)) {
-    return [];
+    const legalEntries: HreflangEntry[] = LEGAL_SUPPORTED_LOCALES.map(
+      (code) => {
+        const loc = LOCALES_CONFIG[code];
+        return {
+          hreflang: loc.hreflang,
+          href: getCanonicalUrl(getLocalizedPagePath(loc.code, pageKey)),
+        };
+      }
+    );
+    legalEntries.push({
+      hreflang: 'x-default',
+      href: getCanonicalUrl(getLocalizedPagePath('en', pageKey)),
+    });
+    return legalEntries;
   }
 
   const entries: HreflangEntry[] = SUPPORTED_LOCALES.map((code) => {
@@ -226,7 +240,10 @@ export function getOgLocales(
 ): { ogLocale: string; ogLocaleAlternates: string[] } {
   const currentDef = getLocaleDefinition(locale);
   if (isLegalPageKey(pageKey as PageKey)) {
-    return { ogLocale: currentDef.ogLocale, ogLocaleAlternates: [] };
+    const alternates = LEGAL_SUPPORTED_LOCALES.filter(
+      (code) => code !== locale
+    ).map((code) => LOCALES_CONFIG[code].ogLocale);
+    return { ogLocale: currentDef.ogLocale, ogLocaleAlternates: alternates };
   }
 
   if (pageKey === 'blog') {
@@ -498,7 +515,7 @@ export function buildHeadMetadataForRoute(
 
     const graph: Record<string, unknown>[] = [
       {
-        '@type': 'BlogPosting',
+        '@type': 'Article',
         '@id': `${canonicalUrl}#article`,
         mainEntityOfPage: {
           '@type': 'WebPage',
@@ -517,7 +534,7 @@ export function buildHeadMetadataForRoute(
         ].join(', '),
         author: {
           '@type': 'Organization',
-          name: article.author.name,
+          name: SITE_NAME,
           url: SITE_URL,
         },
         publisher: {
@@ -631,12 +648,17 @@ export function buildHeadMetadataForRoute(
         url: canonicalUrl,
         inLanguage: localeMeta.hreflang,
         description,
+        publisher: {
+          '@id': `${SITE_URL}/#organization`,
+        },
       },
       {
         '@type': 'Organization',
         '@id': `${SITE_URL}/#organization`,
         name: SITE_NAME,
         url: SITE_URL,
+        description:
+          'VIDNEX is a free, browser-based web utility for saving strictly public media (MP4 video, MP3/M4A audio, and JPG photos) from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures without login or server-side file storage.',
         logo: buildAbsoluteUrl('/icon-512.png'),
       },
       {
@@ -717,6 +739,33 @@ export function buildHeadMetadataForRoute(
         },
       },
       {
+        '@type': 'HowTo',
+        '@id': `${canonicalUrl}#howto`,
+        name: `${bundle.ui.sections.howToHeading} — ${p.h1}`,
+        description: p.subtitle,
+        inLanguage: localeMeta.hreflang,
+        step: p.howToSteps.map((step, idx) => ({
+          '@type': 'HowToStep',
+          position: idx + 1,
+          name: step.title,
+          text: step.description,
+          url: `${canonicalUrl}#step-${idx + 1}`,
+        })),
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faq`,
+        inLanguage: localeMeta.hreflang,
+        mainEntity: p.faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
+      {
         '@type': 'BreadcrumbList',
         '@id': `${canonicalUrl}#breadcrumb`,
         itemListElement: [
@@ -733,19 +782,6 @@ export function buildHeadMetadataForRoute(
             item: canonicalUrl,
           },
         ],
-      },
-      {
-        '@type': 'FAQPage',
-        '@id': `${canonicalUrl}#faq`,
-        inLanguage: localeMeta.hreflang,
-        mainEntity: p.faqs.map((faq) => ({
-          '@type': 'Question',
-          name: faq.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: faq.answer,
-          },
-        })),
       },
     ];
 
@@ -849,13 +885,13 @@ export function buildHeadMetadataForRoute(
     ogImageHeight: OG_IMAGE_HEIGHT,
     ogImageAlt,
     ogLocale,
-    ogLocaleAlternates: [],
+    ogLocaleAlternates,
     twitterCard: 'summary_large_image',
     twitterTitle: ogTitle,
     twitterDescription: ogDescription,
     twitterImage: ogImage,
     twitterImageAlt: ogImageAlt,
-    hreflangs: [], // Legal pages have NO hreflang per ÉTAPE 2 & 3
+    hreflangs,
     jsonLdGraph: {
       '@context': 'https://schema.org',
       '@graph': graph,

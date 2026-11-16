@@ -821,14 +821,14 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
     }
   }
 
-  // 2. Pages légales (complètes en fr, en, ar, sans hreflang = 15 routes)
+  // 2. Pages légales (complètes en fr, en, ar, avec hreflang bidirectionnel = 15 routes)
   for (const legalLoc of LEGAL_SUPPORTED_LOCALES) {
     for (const lKey of LEGAL_PAGE_KEYS) {
       routes.push({
         path: getLocalizedPagePath(legalLoc, lKey),
         locale: legalLoc,
         pageKey: lKey,
-        hasHreflang: false,
+        hasHreflang: true,
         priority: '0.5',
         changefreq: 'monthly',
       });
@@ -938,7 +938,8 @@ export function resolveBlogRedirectPath(rawPathname: string): string | null {
 }
 
 /**
- * Génère le contenu de /llms.txt à partir de la configuration du site, des outils et du Blog.
+ * Génère le contenu structuré de /llms.txt à partir de la configuration du site, des outils et du Blog
+ * pour l'indexation GEO (ChatGPT Search, Perplexity, Claude, Google AI Overviews).
  */
 export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   const base = siteUrl.replace(/\/+$/, '');
@@ -948,37 +949,52 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   return [
     '# VIDNEX',
     '',
-    '> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3 ainsi que les photos de profil publiques LinkedIn en JPG HD, sans compte et sans accès aux contenus privés.',
+    '> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.',
     '',
-    '## Pages principales',
+    '## Définition et périmètre technique (Verified Facts)',
     '',
-    `- [Accueil VIDNEX](${base}/)`,
-    `- [Télécharger Vidéo TikTok](${base}${getLocalizedPagePath('fr', 'tiktok')})`,
-    `- [Télécharger Reel et Vidéo Instagram](${base}${getLocalizedPagePath('fr', 'instagram')})`,
-    `- [Télécharger Vidéo X (Twitter)](${base}${getLocalizedPagePath('fr', 'x')})`,
-    `- [Télécharger Vidéo Facebook](${base}${getLocalizedPagePath('fr', 'facebook')})`,
-    `- [Télécharger Photo de Profil LinkedIn](${base}${getLocalizedPagePath('fr', 'linkedin')})`,
-    `- [VIDNEX Editorial Blog (English Default)](${base}/blog)`,
-    `- [Blog VIDNEX Français](${base}/fr/blog)`,
-    `- [À propos](${base}${getLocalizedPagePath('fr', 'about')})`,
-    `- [Politique de confidentialité](${base}${getLocalizedPagePath('fr', 'privacy')})`,
-    `- [Conditions d’utilisation](${base}${getLocalizedPagePath('fr', 'terms')})`,
-    `- [Contact](${base}${getLocalizedPagePath('fr', 'contact')})`,
-    `- [Droits d’auteur et DMCA](${base}${getLocalizedPagePath('fr', 'dmca')})`,
+    '- **Nature du service** : Résolveur web de métadonnées publiques à la demande (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).',
+    '- **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).',
+    '- **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.',
+    '- **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.',
     '',
-    '## Guides techniques & Blog (English — /blog)',
+    '## Outils principaux et formats pris en charge',
+    '',
+    `- **TikTok** — [FR: ${base}${getLocalizedPagePath('fr', 'tiktok')}](${base}${getLocalizedPagePath('fr', 'tiktok')}) | [EN: ${base}${getLocalizedPagePath('en', 'tiktok')}](${base}${getLocalizedPagePath('en', 'tiktok')})`,
+    '  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics et photo de profil publique.',
+    `- **Instagram** — [FR: ${base}${getLocalizedPagePath('fr', 'instagram')}](${base}${getLocalizedPagePath('fr', 'instagram')}) | [EN: ${base}${getLocalizedPagePath('en', 'instagram')}](${base}${getLocalizedPagePath('en', 'instagram')})`,
+    '  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides) et photo de profil publique en JPG.',
+    `- **X (Twitter)** — [FR: ${base}${getLocalizedPagePath('fr', 'x')}](${base}${getLocalizedPagePath('fr', 'x')}) | [EN: ${base}${getLocalizedPagePath('en', 'x')}](${base}${getLocalizedPagePath('en', 'x')})`,
+    '  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).',
+    `- **Facebook** — [FR: ${base}${getLocalizedPagePath('fr', 'facebook')}](${base}${getLocalizedPagePath('fr', 'facebook')}) | [EN: ${base}${getLocalizedPagePath('en', 'facebook')}](${base}${getLocalizedPagePath('en', 'facebook')})`,
+    '  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.',
+    `- **LinkedIn** — [FR: ${base}${getLocalizedPagePath('fr', 'linkedin')}](${base}${getLocalizedPagePath('fr', 'linkedin')}) | [EN: ${base}${getLocalizedPagePath('en', 'linkedin')}](${base}${getLocalizedPagePath('en', 'linkedin')})`,
+    '  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.',
+    '',
+    '## Pages principales et Informations légales',
+    '',
+    `- [Accueil VIDNEX (FR)](${base}/) | [VIDNEX Home (EN)](${base}/en)`,
+    `- [VIDNEX Editorial Blog (English)](${base}/blog)`,
+    `- [Blog VIDNEX (Français)](${base}/fr/blog)`,
+    `- [À propos (FR)](${base}${getLocalizedPagePath('fr', 'about')}) | [About Us (EN)](${base}${getLocalizedPagePath('en', 'about')}) | [من نحن (AR)](${base}${getLocalizedPagePath('ar', 'about')})`,
+    `- [Politique de confidentialité (FR)](${base}${getLocalizedPagePath('fr', 'privacy')}) | [Privacy Policy (EN)](${base}${getLocalizedPagePath('en', 'privacy')})`,
+    `- [Conditions d’utilisation (FR)](${base}${getLocalizedPagePath('fr', 'terms')}) | [Terms of Service (EN)](${base}${getLocalizedPagePath('en', 'terms')})`,
+    `- [Contact (FR)](${base}${getLocalizedPagePath('fr', 'contact')}) | [Contact (EN)](${base}${getLocalizedPagePath('en', 'contact')})`,
+    `- [Droits d’auteur et DMCA (FR)](${base}${getLocalizedPagePath('fr', 'dmca')}) | [DMCA & Copyright (EN)](${base}${getLocalizedPagePath('en', 'dmca')})`,
+    '',
+    '## Guides techniques publiés (English — /blog)',
     '',
     ...enArticles.map(
       (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
     ),
     '',
-    '## Guides techniques & Blog (Français — /fr/blog)',
+    '## Guides techniques publiés (Français — /fr/blog)',
     '',
     ...frArticles.map(
       (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
     ),
     '',
-    '## Langues disponibles',
+    '## Langues disponibles (10)',
     '',
     ...SUPPORTED_LOCALES.map((code) => {
       const def = LOCALES_CONFIG[code];

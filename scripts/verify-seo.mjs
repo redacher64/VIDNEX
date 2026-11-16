@@ -14,6 +14,7 @@ import { SITE_URL } from '../src/config/site.ts';
 import {
   getAllIndexableRoutes,
   isLegalPageKey,
+  LEGAL_SUPPORTED_LOCALES,
   SUPPORTED_LOCALES,
 } from '../src/i18n/config.ts';
 import { BLOG_ARTICLES } from '../src/data/blogArticles.ts';
@@ -131,11 +132,23 @@ function main() {
     }
 
     if (isLegalPageKey(route.pageKey)) {
-      if (pageHreflangs.size > 0) {
+      // Legal pages (fr, en, ar) must have 3 locales + x-default = 4 reciprocal hreflang links
+      if (pageHreflangs.size !== LEGAL_SUPPORTED_LOCALES.length + 1) {
         fail(
-          `Legal route ${route.path} should NOT have hreflang tags, found ${pageHreflangs.size}`
+          `Legal route ${route.path}: expected ${
+            LEGAL_SUPPORTED_LOCALES.length + 1
+          } hreflang tags, found ${pageHreflangs.size}`
         );
       }
+      if (pageHreflangs.get(route.locale) !== expectedCanonical) {
+        fail(
+          `Legal route ${route.path}: missing or mismatched self-referencing hreflang="${route.locale}"`
+        );
+      }
+      if (!pageHreflangs.has('x-default')) {
+        fail(`Legal route ${route.path}: missing hreflang="x-default"`);
+      }
+      hreflangGraph.set(expectedCanonical, pageHreflangs);
     } else if (route.pageKey === 'blog' || route.pageKey === 'blog_article') {
       // Blog hubs and blog articles must have self-referencing hreflang + x-default + only published translations
       if (pageHreflangs.size < 2) {

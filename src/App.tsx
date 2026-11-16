@@ -504,6 +504,7 @@ export function App({ initialPath }: AppProps = {}) {
             <BelowFoldSeoSections
               pageKey={activeToolPageKey}
               onNavigatePage={(target) => handleNavigatePage(target)}
+              onNavigatePath={handleNavigatePath}
               language={language}
             />
           </>

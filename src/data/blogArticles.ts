@@ -4898,6 +4898,750 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       },
     },
   },
+
+  // ============================================================================
+  // ARTICLE 12 — How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos
+  // Translations: en (published), fr (published), ar (draft)
+  // ============================================================================
+  {
+    id: 'download-public-x-twitter-videos-gifs-mp4-guide',
+    status: 'published',
+    featured: false,
+    category: 'x-twitter-guides',
+    primaryPlatform: 'x',
+    primaryToolRoute: '/en/x-twitter-video-downloader',
+    secondaryToolRoute: '/en/tiktok-video-downloader',
+    author: BLOG_AUTHORS.editorialTeam,
+    publishedAt: '2026-11-15',
+    updatedAt: '2026-11-15',
+    relatedArticleIds: [
+      'troubleshooting-expired-blocked-social-media-links',
+      'why-is-downloaded-video-low-quality',
+      'instagram-reels-carousels-resolution-compression-guide',
+    ],
+    featuredImage: {
+      diagramType: 'x-gif-mp4-transcode',
+      alt: {
+        en: 'How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos',
+        fr: 'Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)',
+        es: '',
+        de: '',
+      },
+      caption: {
+        en: '',
+        fr: '',
+        es: '',
+        de: '',
+      },
+    },
+    translations: {
+      en: {
+        locale: 'en',
+        localizedSlug: 'download-public-x-twitter-videos-gifs-mp4-guide',
+        translationStatus: 'published',
+        title: 'How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos',
+        metaTitle: 'Save Public X (Twitter) Videos & GIFs as MP4 (Guide)',
+        metaDescription:
+          'Learn how to save public X (Twitter) videos, GIFs as MP4 files, and tweet photos on iPhone, Android, or PC without an account or app.',
+        excerpt:
+          'X does not offer a universal download button for public videos, and every GIF posted on the platform is actually stored as a looping MP4 file. Here is how to save public X videos, GIFs, and photos cleanly.',
+        quickAnswer:
+          'To save a public X (Twitter) video, GIF, or photo, open the public post, tap the Share icon beneath it, and choose Copy link. Paste that URL into the VIDNEX X Video Downloader in your web browser, then select the MP4 video option (or image download for tweet photos) to save the file directly to your phone or computer with no account required.',
+        keyTakeaways: [
+          'X converts every uploaded animated GIF into a silent, looping MP4 video file on its servers, so saved X GIFs always download as lightweight MP4 clips.',
+          'Unlike reposting or bookmarking a tweet inside X, saving the MP4 file stores the media offline on your device even if the original post is later deleted.',
+          'Both x.com and legacy twitter.com post links work identically when copied from the Share button.',
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; tap Share and Save Video to add them to your Camera Roll.',
+          'Only public X posts can be processed; protected (private) accounts are never accessible, and creator copyright always applies.',
+        ],
+        primaryKeyword: 'download x twitter videos and gifs as mp4',
+        secondaryKeywords: [
+          'save twitter video to camera roll',
+          'download gif from x as mp4',
+          'save x post photos',
+          'public twitter video downloader',
+        ],
+        searchIntent:
+          'Informational and transactional: users want to download public X (Twitter) videos, looping GIFs as MP4, and tweet photos on iPhone, Android, or desktop without X Premium or third-party apps.',
+        readingTimeMinutes: 7,
+        introduction: [
+          'To save a public X (Twitter) video, GIF, or photo, open the public post, tap the Share icon beneath it, and choose Copy link. Paste that URL into the VIDNEX X Video Downloader in your web browser, then select the MP4 video option (or image download for tweet photos) to save the file directly to your phone or computer with no account required.',
+          'X converts every uploaded animated GIF into a silent, looping MP4 video file on its servers, so saved X GIFs always download as lightweight MP4 clips.',
+          'Unlike reposting or bookmarking a tweet inside X, saving the MP4 file stores the media offline on your device even if the original post is later deleted.',
+          'Both x.com and legacy twitter.com post links work identically when copied from the Share button.',
+          'On iPhone and iPad, Safari saves downloaded MP4 files inside the Files app first; tap Share and Save Video to add them to your Camera Roll.',
+          'Only public X posts can be processed; protected (private) accounts are never accessible, and creator copyright always applies.',
+        ],
+        tableOfContents: [
+          {
+            id: 'why-x-gifs-and-videos-use-mp4',
+            heading: 'Why X (Twitter) Has No Universal Save Button—and Why GIFs Download as MP4',
+          },
+          {
+            id: 'step-by-step-save-x-videos-gifs',
+            heading: 'How to Save Public X (Twitter) Videos, GIFs, and Photos Step by Step',
+          },
+          {
+            id: 'where-downloads-go-iphone-android-pc',
+            heading: 'Where Saved X Videos and GIFs Are Stored on iPhone, Android, and PC',
+          },
+          {
+            id: 'video-quality-and-link-formats',
+            heading: 'Video Quality, x.com vs. twitter.com Links, and Compression',
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving Media from X',
+          },
+          {
+            id: 'platform-scope-and-copyright',
+            heading: 'Tool Boundaries and Respecting Creator Copyright on X',
+          },
+        ],
+        content: [
+          {
+            id: 'why-x-gifs-and-videos-use-mp4',
+            heading: 'Why X (Twitter) Has No Universal Save Button—and Why GIFs Download as MP4',
+            paragraphs: [
+              'If you browse X (formerly Twitter) on mobile or desktop, you will quickly notice there is no standard Save button on videos or GIFs. While X introduced a native download toggle that creators can opt into on select video uploads—primarily accessible to paid subscribers—most public posts still leave viewers with only Bookmark and Repost options. Bookmarking saves the link inside your X account, meaning the video vanishes if the author deletes the post or locks their profile.',
+              "Another common surprise happens when you try to save an animated GIF from X. Users often expect a `.gif` file, yet the saved file arrives as a `.mp4` video. This is not a bug: according to X's media architecture, every GIF uploaded to X is automatically re-encoded on X's servers into a silent, looping MP4 stream. Modern MP4 compression delivers smoother frame rates at a fraction of the file size of legacy `.gif` files, and it plays natively in iPhone Photos, Android Gallery, WhatsApp, and video editors.",
+              'By copying the link to a public post and processing it in your browser, you can retrieve the public MP4 video, looping GIF stream, or attached tweet photos without installing third-party apps or logging into X.',
+            ],
+            table: {
+              headers: [
+                'X Media Type',
+                'Saved File Format',
+                'Includes Audio',
+                'Notes',
+              ],
+              rows: [
+                [
+                  'Public X Video Post',
+                  'MP4 (H.264 / AAC)',
+                  'Yes (if present in source)',
+                  'Available in standard/HD resolutions offered by X',
+                ],
+                [
+                  'Public X Animated GIF',
+                  'MP4 (looping video)',
+                  'No (GIFs on X are silent)',
+                  'Stored natively by X as a looping MP4 rather than .gif',
+                ],
+                [
+                  'Public Tweet Photos',
+                  'JPG / PNG image',
+                  'N/A',
+                  'Saves each attached image from a public multi-photo post',
+                ],
+                [
+                  'Protected (Private) Posts',
+                  'Not supported',
+                  'N/A',
+                  'VIDNEX processes strictly public posts only',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'step-by-step-save-x-videos-gifs',
+            heading: 'How to Save Public X (Twitter) Videos, GIFs, and Photos Step by Step',
+            paragraphs: [
+              'Using a browser-based downloader works across iOS, Android, Windows, and macOS without requiring browser extensions or account permissions.',
+              'Follow these steps with the [VIDNEX X (Twitter) Video Downloader](https://vidnex.space/en/x-twitter-video-downloader) to save media from a public post:',
+            ],
+            bullets: [
+              '1. Open the X app or visit x.com in your browser and find the public post containing the video, GIF, or photos you want to save.',
+              '2. Tap the Share icon (the upward-pointing arrow located beneath the post on the right side).',
+              '3. Select Copy link from the menu. On a desktop browser, you can also copy the post URL directly from the address bar.',
+              '4. Open your web browser (such as Safari on iPhone or Chrome on Android and PC) and navigate to the VIDNEX X Video Downloader page.',
+              '5. Paste the copied link into the input field and start the fetch.',
+              '6. Select the MP4 download button (for videos or GIFs) or save the individual public tweet photos to your device.',
+            ],
+            proTip:
+              "Make sure you copy the link to the specific post containing the video—not a profile link or a reply thread without the media. If a post quotes another user's video, tap into the quoted post first and copy its direct link.",
+          },
+          {
+            id: 'where-downloads-go-iphone-android-pc',
+            heading: 'Where Saved X Videos and GIFs Are Stored on iPhone, Android, and PC',
+            paragraphs: [
+              "After clicking download, the location of your MP4 file depends on your device's operating system.",
+              "On iPhone and iPad (iOS / iPadOS), Safari does not place downloaded web files straight into the Photos app. Instead, Apple stores them in the Downloads folder inside the built-in Files app. To move your saved X video or looping GIF to your Camera Roll, tap the blue download icon next to Safari's address bar (or open the Files app > Downloads), tap the MP4 file, tap the Share icon in the lower-left corner, and select Save Video. It will immediately appear in your Photos library.",
+              'On Android phones and tablets, Chrome and Samsung Internet save MP4 videos and tweet images straight into the system Downloads folder. Apps like Google Photos and Samsung Gallery automatically display these files inside a Downloads album.',
+              'On Windows and macOS computers, your browser saves the MP4 or image files directly into your default Downloads directory, ready for playback in QuickTime, VLC, Windows Media Player, or any editing suite.',
+            ],
+          },
+          {
+            id: 'video-quality-and-link-formats',
+            heading: 'Video Quality, x.com vs. twitter.com Links, and Compression',
+            paragraphs: [
+              'Whether your copied URL starts with `https://x.com/...` or `https://twitter.com/...` and includes tracking suffixes like `?s=20` or `?t=...`, the link points to the same public post ID and resolves automatically.',
+              "When X encodes a public video, it generates adaptive MP4 streams based on the resolution and bitrate uploaded by the creator. Saving the public MP4 stream retrieves the clean file hosted on X's delivery servers without adding watermarks. If a saved clip looks blurry or blocky, the compression happened when the original user uploaded a low-bitrate file or recorded over a poor mobile connection—a behavior we explain in detail in our guide on [why a downloaded video looks low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+            ],
+          },
+          {
+            id: 'common-problems-and-solutions',
+            heading: 'Common Problems and Solutions When Saving Media from X',
+            paragraphs: [
+              'Because X frequently updates its web infrastructure and access controls, occasional errors can happen and no online tool can promise uninterrupted availability. Here is how to solve the most common issues:',
+            ],
+            bullets: [
+              "Post not found or link fails: Check whether the author's account has a padlock icon next to their name (Protected posts). VIDNEX only processes public posts. If you cannot view the post in an incognito browser tab while logged out, it cannot be saved.",
+              'Age-restricted or sensitive media warning: Posts flagged as sensitive or restricted to logged-in viewers are blocked from unauthenticated web access and cannot be retrieved without logging into X.',
+              "MP4 opens in a browser player instead of downloading: On desktop, right-click the video player and choose 'Save video as...'. On mobile Safari, press and hold the download link or use the browser's Share sheet to save the file.",
+              "Link copied from a quote post downloads nothing: If you copied a post that simply comments on someone else's video, open the inner quoted post directly, copy its own URL, and paste that link instead—or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              'Looking to save media from other platforms? VIDNEX also supports public clips from [TikTok](https://vidnex.space/en/tiktok-video-downloader), Instagram, Facebook, and public LinkedIn profile photos.',
+            ],
+          },
+          {
+            id: 'platform-scope-and-copyright',
+            heading: 'Tool Boundaries and Respecting Creator Copyright on X',
+            paragraphs: [
+              'Before saving any media from X, keep both the technical scope of VIDNEX and copyright rules in mind.',
+              'Technically, VIDNEX is a free browser utility requiring no registration or account login. It works exclusively with public media across five platforms: X/Twitter (public videos, GIFs as MP4, and tweet photos), TikTok (public MP4 videos without watermark when available, MP3/M4A audio, public photos/slideshows, profile picture), Instagram (public Reels, posts, carousels, and profile photos), Facebook (public HD/SD videos and Reels), and LinkedIn (public profile picture only). It never accesses private accounts, does not support YouTube or Snapchat, and cannot guarantee permanent availability if platforms change their systems.',
+              "Legally, under X's Copyright Policy and international copyright law, creators own the videos, GIFs, and photographs they post. Saving a public MP4 file does not transfer copyright or grant permission to re-upload someone else's work as your own or use it commercially. Only save public content for personal offline viewing, archiving your own posts, or authorized uses with explicit permission and credit.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'Why did my X (Twitter) GIF download as an MP4 file instead of a .gif?',
+            answer:
+              'X automatically converts every uploaded GIF into a silent, looping MP4 video file on its servers because MP4 loads faster and uses less data. When you save a GIF from X, you are downloading that native looping MP4 stream.',
+          },
+          {
+            question: 'Do I need an X account or X Premium subscription to use VIDNEX?',
+            answer:
+              'No. You do not need to log into X or pay for a subscription. VIDNEX processes public X post links directly in your browser without any account.',
+          },
+          {
+            question: 'Can I save a video from a protected (private) X account that I follow?',
+            answer:
+              'No. VIDNEX operates without user authentication and can only process posts that are publicly visible to everyone on the web.',
+          },
+          {
+            question: 'How do I move a downloaded X video to my iPhone Camera Roll?',
+            answer:
+              'Safari saves downloads to the Files app on iOS. Open the Files app, tap Downloads, open your MP4 video, tap the Share icon in the bottom-left corner, and choose Save Video to place it in your Photos app.',
+          },
+          {
+            question: 'Can I also download photos attached to a public X post?',
+            answer:
+              'Yes. In addition to public videos and GIFs in MP4 format, VIDNEX lets you save photos attached to public X posts.',
+          },
+          {
+            question: "Is it legal to repost someone else's X video after downloading it?",
+            answer:
+              "No, not without permission from the copyright holder. Under X's Copyright Policy, downloading a public video does not grant redistribution rights. Always get permission and credit the original creator.",
+          },
+        ],
+        ctaTitle: 'Save Any Public X (Twitter) Video, GIF, or Photo Now',
+        ctaDescription:
+          'Paste a public X post link to download videos or GIFs as clean MP4 files, or save public tweet photos—free and with no account required.',
+        ctaButtonLabel: 'Open X (Twitter) Video Downloader',
+        internalLinks: [
+          {
+            label: 'Open X (Twitter) Video Downloader',
+            description:
+              'Paste a public X post link to download videos or GIFs as clean MP4 files, or save public tweet photos—free and with no account required.',
+            targetType: 'platform',
+            platformKey: 'x',
+          },
+        ],
+        sources: [
+          {
+            title: 'How to share and watch videos on X',
+            publisher: 'X Help Center',
+            url: 'https://help.x.com/en/using-x/x-videos',
+          },
+          {
+            title: 'How to post photos or GIFs on X',
+            publisher: 'X Help Center',
+            url: 'https://help.x.com/en/using-x/tweet-media',
+          },
+          {
+            title: 'Copyright and DMCA policy',
+            publisher: 'X Help Center',
+            url: 'https://help.x.com/en/rules-and-policies/copyright-policy',
+          },
+          {
+            title: 'Where to find downloads on your iPhone or iPad',
+            publisher: 'Apple Support',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+      fr: {
+        locale: 'fr',
+        localizedSlug: 'telecharger-videos-gifs-x-twitter-mp4-guide',
+        translationStatus: 'published',
+        title: 'Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)',
+        metaTitle: 'Télécharger vidéo et GIF X (Twitter) en MP4 : Guide',
+        metaDescription:
+          'Comment enregistrer une vidéo publique, un GIF en MP4 ou une photo de tweet sur X (Twitter) sur iPhone, Android ou PC, sans compte ni application.',
+        excerpt:
+          'X ne propose pas de bouton de téléchargement universel pour les vidéos publiques, et tous les GIF publiés sur la plateforme sont en réalité encodés en MP4. Voici comment les enregistrer proprement.',
+        quickAnswer:
+          "Pour enregistrer une vidéo, un GIF ou une photo d'un post public sur X (Twitter), ouvrez la publication, appuyez sur l'icône Partager puis sur Copier le lien. Collez cette adresse dans l'outil X / Twitter de VIDNEX depuis votre navigateur web et téléchargez le fichier MP4 (ou les photos publiques du tweet) directement sur votre téléphone ou ordinateur, sans compte.",
+        keyTakeaways: [
+          'X convertit automatiquement chaque GIF animé publié en une vidéo MP4 muette tournant en boucle : un GIF enregistré depuis X est donc toujours un fichier MP4 léger.',
+          "Contrairement aux signets internes de X qui disparaissent si l'auteur supprime son message, le téléchargement MP4 conserve le fichier hors ligne sur votre appareil.",
+          'Les liens commençant par x.com comme les anciens liens twitter.com fonctionnent de la même manière.',
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'ajouter à vos Photos.",
+          "Seuls les posts publics sont pris en charge : les comptes protégés (privés) sont inaccessibles et le droit d'auteur des créateurs reste applicable.",
+        ],
+        primaryKeyword: 'télécharger une vidéo ou un gif sur x twitter en mp4',
+        secondaryKeywords: [
+          'enregistrer vidéo twitter sur iphone',
+          'télécharger gif twitter mp4',
+          'sauvegarder photo tweet public',
+          'comment enregistrer vidéo x',
+        ],
+        searchIntent:
+          "Informationnelle et pratique : l'internaute cherche comment enregistrer une vidéo publique ou un GIF (en MP4) depuis X/Twitter sur iPhone, Android ou ordinateur sans compte et comprendre pourquoi les GIFs sortent en MP4.",
+        readingTimeMinutes: 7,
+        introduction: [
+          "Pour enregistrer une vidéo, un GIF ou une photo d'un post public sur X (Twitter), ouvrez la publication, appuyez sur l'icône Partager puis sur Copier le lien. Collez cette adresse dans l'outil X / Twitter de VIDNEX depuis votre navigateur web et téléchargez le fichier MP4 (ou les photos publiques du tweet) directement sur votre téléphone ou ordinateur, sans compte.",
+          'X convertit automatiquement chaque GIF animé publié en une vidéo MP4 muette tournant en boucle : un GIF enregistré depuis X est donc toujours un fichier MP4 léger.',
+          "Contrairement aux signets internes de X qui disparaissent si l'auteur supprime son message, le téléchargement MP4 conserve le fichier hors ligne sur votre appareil.",
+          'Les liens commençant par x.com comme les anciens liens twitter.com fonctionnent de la même manière.',
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'ajouter à vos Photos.",
+          "Seuls les posts publics sont pris en charge : les comptes protégés (privés) sont inaccessibles et le droit d'auteur des créateurs reste applicable.",
+        ],
+        tableOfContents: [
+          {
+            id: 'pourquoi-gifs-et-videos-x-sont-en-mp4',
+            heading: "Pourquoi X (Twitter) n'a pas de bouton Enregistrer universel — et pourquoi les GIFs sont en MP4",
+          },
+          {
+            id: 'etapes-enregistrer-video-gif-x-twitter',
+            heading: 'Comment enregistrer une vidéo, un GIF ou une photo X étape par étape',
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading: 'Où retrouver la vidéo ou le GIF enregistré sur iPhone, Android et PC ?',
+          },
+          {
+            id: 'qualite-liens-x-et-compression',
+            heading: 'Formats de liens (x.com vs twitter.com) et qualité vidéo',
+          },
+          {
+            id: 'problemes-frequents-solutions-x',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement sur X',
+          },
+          {
+            id: 'limites-outil-et-droit-auteur',
+            heading: "Limites de l'outil et respect du droit d'auteur sur X",
+          },
+        ],
+        content: [
+          {
+            id: 'pourquoi-gifs-et-videos-x-sont-en-mp4',
+            heading: "Pourquoi X (Twitter) n'a pas de bouton Enregistrer universel — et pourquoi les GIFs sont en MP4",
+            paragraphs: [
+              "Sur X (anciennement Twitter), il n'existe pas de bouton standard permettant de sauvegarder directement une vidéo ou un GIF dans la mémoire de votre téléphone. Bien que X ait introduit une option de téléchargement activable au cas par cas par les créateurs (et réservée principalement aux abonnés payants), la grande majorité des publications publiques proposent uniquement le signet ou le repost. Or, un signet ne garde qu'un lien en ligne : si le post est effacé ou si le compte passe en privé, la vidéo disparaît.",
+              "Une autre surprise fréquente concerne les GIFs animés : lorsqu'on enregistre un GIF depuis X, on obtient un fichier `.mp4` et non `.gif`. Ce comportement est tout à fait normal. D'après le fonctionnement technique de X, chaque image animée envoyée sur la plateforme est ré-encodée par les serveurs de X sous forme de vidéo MP4 muette en boucle. Ce format offre une meilleure fluidité pour un poids beaucoup plus faible qu'un fichier `.gif` classique, et reste compatible avec l'application Photos de l'iPhone, Android et les logiciels de montage.",
+              "En copiant simplement le lien d'un post public pour l'analyser dans votre navigateur, vous pouvez enregistrer la vidéo MP4, le GIF en MP4 ou les photos jointes au tweet sans installer d'application tierce.",
+            ],
+            table: {
+              headers: [
+                'Type de média sur X',
+                'Format enregistré',
+                'Piste audio',
+                'Particularités',
+              ],
+              rows: [
+                [
+                  'Vidéo publique sur X',
+                  'MP4 (H.264 / AAC)',
+                  'Oui (si présente dans la vidéo)',
+                  'Récupère le flux MP4 public disponible sur X',
+                ],
+                [
+                  'GIF animé public sur X',
+                  'MP4 (lecture en boucle)',
+                  'Non (les GIFs X sont muets)',
+                  'Encodé nativement en MP4 par les serveurs de X',
+                ],
+                [
+                  "Photos d'un tweet public",
+                  'Image JPG / PNG',
+                  'Non applicable',
+                  'Permet de sauvegarder les photos jointes au post',
+                ],
+                [
+                  'Compte protégé (privé)',
+                  'Non pris en charge',
+                  'Non applicable',
+                  'VIDNEX traite exclusivement les posts publics',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'etapes-enregistrer-video-gif-x-twitter',
+            heading: 'Comment enregistrer une vidéo, un GIF ou une photo X étape par étape',
+            paragraphs: [
+              'Passer par un outil dans votre navigateur fonctionne de façon identique sur mobile et ordinateur, sans extension ni accès à votre compte X.',
+              'Voici comment procéder avec le [téléchargeur vidéo X / Twitter VIDNEX](https://vidnex.space/telecharger-video-x-twitter) :',
+            ],
+            bullets: [
+              "1. Ouvrez l'application X ou le site x.com et affichez le post public contenant la vidéo, le GIF ou les photos à sauvegarder.",
+              "2. Appuyez sur l'icône Partager (la flèche pointant vers le haut située sous la publication, à droite).",
+              "3. Choisissez « Copier le lien » dans le menu. Sur ordinateur, vous pouvez également copier l'URL directement dans la barre d'adresse.",
+              "4. Ouvrez votre navigateur web (Safari sur iPhone, Chrome sur Android ou ordinateur) et rendez-vous sur la page de l'outil X de VIDNEX.",
+              '5. Collez le lien copié dans le champ de saisie puis lancez la récupération.',
+              '6. Cliquez sur le bouton de téléchargement MP4 (pour une vidéo ou un GIF) ou enregistrez les photos publiques du tweet sur votre appareil.',
+            ],
+            proTip:
+              "Veillez à copier le lien direct du post qui contient la vidéo. Si vous voyez une vidéo dans un post cité (Quote), ouvrez d'abord le post d'origine cité et copiez son propre lien.",
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading: 'Où retrouver la vidéo ou le GIF enregistré sur iPhone, Android et PC ?',
+            paragraphs: [
+              "Une fois le téléchargement terminé dans votre navigateur, l'emplacement du fichier varie selon votre appareil.",
+              "Sur iPhone et iPad (iOS / iPadOS), Safari place les fichiers téléchargés sur le web dans le dossier Téléchargements de l'application « Fichiers », et non directement dans « Photos ». Pour transférer le fichier MP4 dans votre pellicule : touchez l'icône bleue de téléchargement à côté de la barre d'adresse de Safari (ou ouvrez l'app Fichiers > Téléchargements), touchez la vidéo MP4, appuyez sur le bouton Partager en bas à gauche, puis sélectionnez « Enregistrer la vidéo ». Elle apparaît aussitôt dans l'application Photos.",
+              'Sur Android, Chrome ou le navigateur Samsung enregistre le fichier MP4 et les photos directement dans le dossier « Téléchargements » (Downloads), visible automatiquement dans Google Photos et la Galerie.',
+              'Sur Windows et Mac, le fichier rejoint votre dossier « Téléchargements » habituel et s’ouvre directement dans VLC, QuickTime ou le lecteur Windows.',
+            ],
+          },
+          {
+            id: 'qualite-liens-x-et-compression',
+            heading: 'Formats de liens (x.com vs twitter.com) et qualité vidéo',
+            paragraphs: [
+              "Que l'adresse copiée commence par `https://x.com/...` ou `https://twitter.com/...` et qu'elle contienne des paramètres de suivi comme `?s=20`, l'outil reconnaît automatiquement l'identifiant du post public.",
+              "La définition du fichier MP4 dépend de l'encodage généré par X lors de la mise en ligne initiale par l'auteur. Si la vidéo enregistrée manque de netteté, cette perte est liée à la compression appliquée au moment de la publication sur X. Vous pouvez en lire davantage dans notre article expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+            ],
+          },
+          {
+            id: 'problemes-frequents-solutions-x',
+            heading: 'Problèmes fréquents et solutions lors du téléchargement sur X',
+            paragraphs: [
+              "X modifiant régulièrement ses interfaces et restrictions d'accès, aucun outil web ne peut garantir une disponibilité permanente sans interruption. Voici comment résoudre les erreurs les plus courantes :",
+            ],
+            bullets: [
+              'Post introuvable ou lien refusé : Vérifiez que le compte ne comporte pas de cadenas à côté de son nom (compte protégé/privé). VIDNEX traite exclusivement les publications publiques accessibles sans connexion.',
+              "Contenu sensible ou soumis à une limite d'âge : Les publications masquées par X aux visiteurs non connectés ne peuvent pas être récupérées via un lien public.",
+              "La vidéo s'ouvre dans un lecteur au lieu de se télécharger : Sur ordinateur, faites un clic droit sur la vidéo puis choisissez « Enregistrer la vidéo sous… ». Sur iPhone, utilisez le menu Partager de Safari pour sauvegarder le fichier.",
+              "Lien d'un post cité qui ne renvoie aucun média : Ouvrez le post cité d'origine pour copier son URL propre, ou consultez notre guide sur le [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Besoin d'enregistrer des médias sur d'autres réseaux ? VIDNEX prend aussi en charge les contenus publics de [TikTok](https://vidnex.space/telecharger-video-tiktok), Instagram, Facebook et la photo de profil publique LinkedIn.",
+            ],
+          },
+          {
+            id: 'limites-outil-et-droit-auteur',
+            heading: "Limites de l'outil et respect du droit d'auteur sur X",
+            paragraphs: [
+              "Avant d'enregistrer un média depuis X, gardez à l'esprit le périmètre technique de l'outil ainsi que les règles de propriété intellectuelle.",
+              "Sur le plan technique, VIDNEX est un service gratuit sans inscription qui fonctionne uniquement sur les contenus publics de cinq plateformes : X/Twitter (vidéos publiques, GIFs en MP4 et photos de tweets publics), TikTok (vidéos publiques MP4 sans filigrane quand disponible, audio MP3/M4A, photos/diaporamas publics, photo de profil), Instagram (Reels, publications, carrousels et photos de profil publics), Facebook (vidéos et Reels publics HD/SD) et LinkedIn (photo de profil publique uniquement). Aucun compte privé n'est accessible, YouTube et Snapchat ne sont pas pris en charge, et la disponibilité dépend des accès autorisés par les plateformes.",
+              "Sur le plan juridique, conformément à la politique de droits d'auteur de X, chaque auteur conserve la propriété de ses vidéos, GIFs et photographies. Télécharger un fichier MP4 public ne vous autorise pas à le republier sous votre nom ni à en faire un usage commercial sans l'accord explicite de son créateur.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'Pourquoi mon GIF téléchargé depuis X (Twitter) est-il au format MP4 et non .gif ?',
+            answer:
+              'X convertit automatiquement tous les GIFs envoyés sur sa plateforme en vidéos MP4 muettes tournant en boucle afin de réduire le poids des fichiers et accélérer le chargement. Le téléchargement récupère donc ce fichier MP4 natif.',
+          },
+          {
+            question: 'Faut-il un compte X ou un abonnement X Premium pour utiliser VIDNEX ?',
+            answer:
+              "Non. Aucun compte X ni abonnement n'est nécessaire : il suffit de coller le lien d'un post public dans votre navigateur.",
+          },
+          {
+            question: "Puis-je télécharger la vidéo d'un compte X protégé (privé) auquel je suis abonné ?",
+            answer:
+              'Non. VIDNEX fonctionne sans connexion à votre compte et ne peut donc traiter que les posts publics visibles par tout le monde.',
+          },
+          {
+            question: "Comment mettre une vidéo X téléchargée dans l'application Photos de mon iPhone ?",
+            answer:
+              "Sur iOS, Safari enregistre le téléchargement dans l'application Fichiers. Ouvrez Fichiers > Téléchargements, touchez la vidéo MP4, appuyez sur Partager en bas à gauche puis choisissez « Enregistrer la vidéo ».",
+          },
+          {
+            question: "Peut-on également sauvegarder les photos d'un tweet public ?",
+            answer:
+              "Oui. En plus des vidéos et GIFs publics en MP4, VIDNEX permet d'enregistrer les photos jointes aux posts publics sur X.",
+          },
+          {
+            question: "Ai-je le droit de republier la vidéo d'un autre utilisateur X après l'avoir enregistrée ?",
+            answer:
+              "Non, pas sans l'autorisation de son auteur. Enregistrer un fichier public ne cède pas les droits d'auteur : demandez toujours l'accord du créateur et mentionnez la source.",
+          },
+        ],
+        ctaTitle: 'Enregistrez une vidéo, un GIF ou une photo X publique en MP4',
+        ctaDescription:
+          "Collez le lien d'un post X public pour télécharger la vidéo ou le GIF en MP4, ou sauvegarder les photos du tweet — gratuitement et sans compte.",
+        ctaButtonLabel: "Ouvrir l'outil X / Twitter VIDNEX",
+        internalLinks: [
+          {
+            label: "Ouvrir l'outil X / Twitter VIDNEX",
+            description:
+              "Collez le lien d'un post X public pour télécharger la vidéo ou le GIF en MP4, ou sauvegarder les photos du tweet — gratuitement et sans compte.",
+            targetType: 'platform',
+            platformKey: 'x',
+          },
+        ],
+        sources: [
+          {
+            title: 'Comment partager et regarder des vidéos sur X',
+            publisher: "Centre d'aide X",
+            url: 'https://help.x.com/en/using-x/x-videos',
+          },
+          {
+            title: 'Comment publier des photos ou des GIF sur X',
+            publisher: "Centre d'aide X",
+            url: 'https://help.x.com/en/using-x/tweet-media',
+          },
+          {
+            title: "Politique relative aux droits d'auteur et au DMCA",
+            publisher: "Centre d'aide X",
+            url: 'https://help.x.com/en/rules-and-policies/copyright-policy',
+          },
+          {
+            title: 'Où trouver des téléchargements sur votre iPhone ou iPad',
+            publisher: 'Assistance Apple',
+            url: 'https://support.apple.com/fr-lu/102440',
+          },
+        ],
+      },
+      ar: {
+        locale: 'ar',
+        localizedSlug: 'tanzil-video-gif-x-twitter-mp4-dalil',
+        translationStatus: 'draft',
+        title: 'كيفية تنزيل فيديو أو صورة متحركة GIF (بصيغة MP4) أو صور من منصة إكس (تويتر)',
+        metaTitle: 'تنزيل فيديو وصور GIF من منصة إكس تويتر MP4: دليل شامل',
+        metaDescription:
+          'تعرف على طريقة تنزيل الفيديوهات العامة والصور المتحركة GIF بصيغة MP4 وصور التغريدات العامة من منصة إكس (تويتر) على الآيفون والأندرويد والكمبيوتر بدون حساب.',
+        excerpt:
+          'لا توفر منصة إكس زر تنزيل عام لجميع الفيديوهات، كما أن كل صورة GIF تُنشر على المنصة تُحفظ فعلياً كملف فيديو MP4 متكرر. إليك طريقة حفظ الفيديوهات والصور المتحركة وصور التغريدات العامة.',
+        quickAnswer:
+          'لتنزيل فيديو أو صورة متحركة GIF أو صورة من منشور عام على منصة إكس (تويتر)، افتح المنشور واضغط على أيقونة المشاركة أسفله ثم اختر نسخ الرابط. الصق الرابط في أداة تنزيل فيديو إكس على موقع VIDNEX عبر متصفحك، ثم اختر تنزيل ملف MP4 (أو الصور العامة المرفقة بالمنشور) لحفظه مباشرة على جهازك دون تسجيل دخول.',
+        keyTakeaways: [
+          'تحوّل منصة إكس كل صورة GIF متحركة إلى ملف فيديو MP4 صامت يعمل في حلقة مستمرة، لذا تُحفظ صور GIF من إكس دائماً بصيغة MP4 خفيفة الحجم.',
+          'على عكس الإشارات المرجعية داخل التطبيق التي تختفي إذا حذف الناشر منشوره، يتيح لك التنزيل حفظ الملف على جهازك للمشاهدة دون إنترنت.',
+          'تعمل روابط x.com الحديثة وروابط twitter.com القديمة بنفس الكفاءة عند نسخها من زر المشاركة.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تدعم المنشورات العامة فقط ولا يمكنها الوصول إلى الحسابات المحمية (الخاصة)، ويجب دائماً احترام حقوق النشر.',
+        ],
+        primaryKeyword: 'تنزيل فيديو وصور متحركة GIF من منصة إكس تويتر',
+        secondaryKeywords: [
+          'حفظ فيديو تويتر للايفون MP4',
+          'تحميل GIF من تويتر',
+          'تنزيل صور تغريدة عامة',
+          'حفظ مقاطع منصة اكس',
+        ],
+        searchIntent:
+          'بحث معلوماتي وعملي: يبحث المستخدم عن طريقة لحفظ الفيديوهات العامة والصور المتحركة GIF بصيغة MP4 وصور التغريدات من منصة إكس (تويتر) على الآيفون والأندرويد والكمبيوتر بدون حساب.',
+        readingTimeMinutes: 7,
+        introduction: [
+          'لتنزيل فيديو أو صورة متحركة GIF أو صورة من منشور عام على منصة إكس (تويتر)، افتح المنشور واضغط على أيقونة المشاركة أسفله ثم اختر نسخ الرابط. الصق الرابط في أداة تنزيل فيديو إكس على موقع VIDNEX عبر متصفحك، ثم اختر تنزيل ملف MP4 (أو الصور العامة المرفقة بالمنشور) لحفظه مباشرة على جهازك دون تسجيل دخول.',
+          'تحوّل منصة إكس كل صورة GIF متحركة إلى ملف فيديو MP4 صامت يعمل في حلقة مستمرة، لذا تُحفظ صور GIF من إكس دائماً بصيغة MP4 خفيفة الحجم.',
+          'على عكس الإشارات المرجعية داخل التطبيق التي تختفي إذا حذف الناشر منشوره، يتيح لك التنزيل حفظ الملف على جهازك للمشاهدة دون إنترنت.',
+          'تعمل روابط x.com الحديثة وروابط twitter.com القديمة بنفس الكفاءة عند نسخها من زر المشاركة.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تدعم المنشورات العامة فقط ولا يمكنها الوصول إلى الحسابات المحمية (الخاصة)، ويجب دائماً احترام حقوق النشر.',
+        ],
+        tableOfContents: [
+          {
+            id: 'limadha-tuhfaz-suwar-gif-fi-x-bisighat-mp4',
+            heading: 'لماذا لا يوجد زر حفظ موحد في إكس (تويتر) — ولماذا تُنزل صور GIF بصيغة MP4؟',
+          },
+          {
+            id: 'khatwat-tanzil-video-gif-x-twitter',
+            heading: 'خطوات تنزيل فيديو أو GIF أو صور منصة إكس (تويتر) عبر المتصفح',
+          },
+          {
+            id: 'ayna-tuhfaz-almalafat-iphone-android-pc',
+            heading: 'أين تُحفظ فيديوهات وصور GIF منصة إكس على الآيفون والأندرويد والكمبيوتر؟',
+          },
+          {
+            id: 'jawdat-alfيديو-wasigh-alrawabit',
+            heading: 'جودة الفيديو وصيغ الروابط (x.com و twitter.com)',
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-x',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل وسائط منصة إكس',
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-x',
+            heading: 'نطاق عمل الأداة واحترام حقوق الملكية الفكرية على منصة إكس',
+          },
+        ],
+        content: [
+          {
+            id: 'limadha-tuhfaz-suwar-gif-fi-x-bisighat-mp4',
+            heading: 'لماذا لا يوجد زر حفظ موحد في إكس (تويتر) — ولماذا تُنزل صور GIF بصيغة MP4؟',
+            paragraphs: [
+              'عند تصفح منصة إكس (تويتر سابقاً) على الهاتف أو الكمبيوتر، ستلاحظ عدم وجود زر موحد لحفظ مقاطع الفيديو أو الصور المتحركة في ذاكرة الجهاز. ورغم وجود خيار تنزيل محدود لبعض الفيديوهات التي يفعلها الناشر للمشتركين، فإن معظم المنشورات العامة تتيح فقط إضافة إشارة مرجعية أو إعادة النشر. وحفظ الإشارة المرجعية يبقي الرابط داخل حسابك فقط، فإذا حذف صاحب المنشور تغريدته أو أغلق حسابه يختفي المقطع فوراً.',
+              'وهناك تفصيل تقني يثير تساؤل الكثيرين عند حفظ صورة متحركة GIF من إكس: إذ يُحفظ الملف بصيغة `.mp4` وليس بصيغة `.gif`. يعود ذلك إلى طريقة عمل خوادم منصة إكس؛ حيث تعيد المنصة ترميز أي ملف GIF مرفوع ليصبح مقطع فيديو MP4 صامتاً يعمل بتكرار مستمر، لأن صيغة MP4 توفر جودة حركة أعلى وحجم ملف أصغر بكثير، وتعمل بسلاسة في ألبوم صور الآيفون والأندرويد.',
+              'من خلال نسخ رابط أي منشور عام ومعالجته عبر المتصفح، يمكنك حفظ الفيديو بصيغة MP4 أو الصورة المتحركة أو الصور المرفقة بالتغريدة دون تثبيت تطبيقات خارجية.',
+            ],
+            table: {
+              headers: [
+                'نوع الوسائط في إكس',
+                'صيغة الملف المحفوظ',
+                'وجود الصوت',
+                'ملاحظات تقنية',
+              ],
+              rows: [
+                [
+                  'فيديو عام على منصة إكس',
+                  'MP4 (H.264 / AAC)',
+                  'نعم (إذا كان الفيديو يحتوي على صوت)',
+                  'يجلب ملف MP4 العام المتوفر على خوادم إكس',
+                ],
+                [
+                  'صورة متحركة GIF عامة',
+                  'MP4 (فيديو متكرر)',
+                  'لا (صور GIF في إكس صامتة)',
+                  'تُخزن أصلاً في إكس بصيغة MP4 متكررة',
+                ],
+                [
+                  'صور منشور عام',
+                  'صورة JPG / PNG',
+                  'لا ينطبق',
+                  'يتيح حفظ الصور المرفقة بالتغريدة العامة',
+                ],
+                [
+                  'الحسابات المحمية (الخاصة)',
+                  'غير مدعوم',
+                  'لا ينطبق',
+                  'يدعم VIDNEX المنشورات العامة فقط',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'khatwat-tanzil-video-gif-x-twitter',
+            heading: 'خطوات تنزيل فيديو أو GIF أو صور منصة إكس (تويتر) عبر المتصفح',
+            paragraphs: [
+              'الاعتماد على أداة في المتصفح يعمل بنفس الطريقة على الهواتف الذكية وأجهزة الكمبيوتر دون الحاجة إلى إضافات أو ربط حسابك الشخصي.',
+              'اتبع هذه الخطوات عبر [أداة تنزيل فيديو إكس تويتر من VIDNEX](https://vidnex.space/ar/x-twitter-video-downloader) :',
+            ],
+            bullets: [
+              '1. افتح تطبيق إكس أو موقع x.com وانتقل إلى المنشور العام الذي يحتوي على الفيديو أو الصورة المتحركة GIF أو الصور.',
+              '2. اضغط على أيقونة المشاركة (السهم المتجه للأعلى أسفل المنشور).',
+              '3. اختر «نسخ الرابط» من القائمة. وعلى الكمبيوتر يمكنك نسخ الرابط مباشرة من شريط العنوان في المتصفح.',
+              '4. افتح متصفح الإنترنت لديك (مثل سفاري على الآيفون أو كروم على الأندرويد والكمبيوتر) وانتقل إلى صفحة أداة إكس في موقع VIDNEX.',
+              '5. الصق الرابط المنسوخ في حقل الإدخال ثم ابدأ عملية المعالجة.',
+              '6. اختر زر تنزيل MP4 (للفيديو أو الصورة المتحركة) أو احفظ الصور العامة المرفقة بالمنشور على جهازك.',
+            ],
+            proTip:
+              'تأكد من نسخ رابط المنشور الأصلي الذي يحتوي على الفيديو مباشرة. إذا كان الفيديو داخل منشور مقتبس (Quote)، فافتح المنشور الأصلي المقتبس أولاً وانسخ رابطه الخاص.',
+          },
+          {
+            id: 'ayna-tuhfaz-almalafat-iphone-android-pc',
+            heading: 'أين تُحفظ فيديوهات وصور GIF منصة إكس على الآيفون والأندرويد والكمبيوتر؟',
+            paragraphs: [
+              'بعد الضغط على زر التنزيل في المتصفح، يختلف مكان حفظ الملف باختلاف نظام تشغيل جهازك.',
+              'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري الملفات المحملة من الإنترنت داخل مجلد التنزيلات في تطبيق «الملفات» المدمج وليس في تطبيق «الصور» مباشرة. لنقل الفيديو أو ملف GIF بصيغة MP4 إلى ألبوم الكاميرا: اضغط على أيقونة سهم التنزيلات الأزرق بجانب شريط العنوان في سفاري (أو افتح تطبيق الملفات ثم التنزيلات)، وافتح ملف MP4، ثم اضغط على زر المشاركة في الزاوية السفلية واختر «حفظ الفيديو» ليظهر فوراً في تطبيق الصور.',
+              'على هواتف أندرويد، يقوم متصفح كروم أو متصفح الهاتف الافتراضي بحفظ ملف MP4 والصور مباشرة في مجلد «التنزيلات» (Downloads) وتظهر تلقائياً في تطبيق المعرض أو صور جوجل.',
+              'على أجهزة الكمبيوتر (ويندوز أو ماك)، يُحفظ الملف في مجلد التنزيلات الافتراضي لمتصفحك ويعمل فوراً على أي مشغل وسائط.',
+            ],
+          },
+          {
+            id: 'jawdat-alfيديو-wasigh-alrawabit',
+            heading: 'جودة الفيديو وصيغ الروابط (x.com و twitter.com)',
+            paragraphs: [
+              'سواء بدأ الرابط المنسوخ بـ `https://x.com/...` أو `https://twitter.com/...` وتضمن رموز تتبع إضافية مثل `?s=20`، تتعرف الأداة تلقائياً على المنشور العام وتجلب الوسائط المتاحة فيه.',
+              'تعتمد دقة ملف MP4 المحفوظ على الجودة التي رفعت بها المنصة الفيديو الأصلي. وإذا بدا المقطع منخفض الوضوح، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي من قِبل صانع المحتوى، وهو ما نشرحه بالتفصيل في دليل [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+            ],
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-x',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل وسائط منصة إكس',
+            paragraphs: [
+              'تُحدّث منصة إكس أنظمتها باستمرار، لذا لا يمكن لأي أداة ضمان عملها بشكل دائم دون انقطاع. إليك أبرز الحلول للمشكلات الشائعة:',
+            ],
+            bullets: [
+              'المنشور غير موجود أو فشل قراءة الرابط: تأكد من عدم وجود علامة القفل بجانب اسم الحساب (حساب محمي/خاص). موقع VIDNEX يعالج المنشورات العامة المتاحة للجميع فقط.',
+              'المحتوى المقيد بالعمر أو المحتوى الحساس: المنشورات التي تقيدها إكس للمستخدمين المسجلين فقط لا يمكن الوصول إليها عبر الروابط العامة.',
+              'فتح الفيديو داخل المتصفح بدلاً من التنزيل: على الكمبيوتر اضغط بزر الفأرة الأيمن واختر «حفظ الفيديو باسم»، وعلى الآيفون استخدم زر المشاركة في سفاري لحفظ الملف.',
+              'عدم ظهور وسائط عند نسخ رابط منشور مقتبس: افتح المنشور الأصلي المقتبس وانسخ رابطه المباشر، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'هل تريد حفظ وسائط من منصات أخرى؟ يدعم VIDNEX أيضاً المحتوى العام من [تيك توك](https://vidnex.space/ar/tiktok-video-downloader) وإنستغرام وفيسبوك وصورة الملف الشخصي العامة في لينكد إن.',
+            ],
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-x',
+            heading: 'نطاق عمل الأداة واحترام حقوق الملكية الفكرية على منصة إكس',
+            paragraphs: [
+              'من الضروري مراعاة الحدود التقنية للأداة وقوانين حقوق الملكية الفكرية عند التعامل مع أي محتوى منشور.',
+              'تقنياً، VIDNEX موقع مجاني لا يتطلب تسجيل حساب، ويعمل حصرياً مع الوسائط العامة من خمس منصات: إكس/تويتر (فيديوهات عامة، صور متحركة GIF بصيغة MP4، وصور التغريدات العامة)، وتيك توك (فيديو عام MP4 بدون علامة مائية عند توفره، صوت MP3/M4A، صور وعروض شرائح عامة، وصورة الملف الشخصي)، وإنستغرام (الريلز والمنشورات والكاروسيل وصورة الحساب العامة)، وفيسبوك (الفيديوهات والريلز العامة بجودة HD/SD)، ولينكد إن (صورة الملف الشخصي العامة فقط). الموقع لا يصل إلى الحسابات الخاصة، ولا يدعم يوتيوب أو سناب شات، ولا يقدم وعوداً بتوفر دائم للخدمة.',
+              'قانونياً، وفقاً لسياسة حقوق النشر في منصة إكس، يحتفظ أصحاب المحتوى بحقوق ملكية الفيديوهات والصور التي ينشرونها. حفظ ملف MP4 عام لا يمنحك الحق في إعادة نشره على حسابك دون إذن صريح من صاحبه الأصلي.',
+            ],
+          },
+        ],
+        faq: [
+          {
+            question: 'لماذا تم تنزيل صورة GIF من منصة إكس بصيغة MP4 وليس بصيغة .gif؟',
+            answer:
+              'تحوّل منصة إكس كل صورة GIF مرفوعة إلى مقطع فيديو MP4 صامت متكرر على خوادمها لتسريع التحميل وتقليل حجم البيانات، لذلك يتم تنزيل ملف MP4 الأصلي.',
+          },
+          {
+            question: 'هل أحتاج إلى حساب في منصة إكس أو اشتراك مدفوع لاستخدام VIDNEX؟',
+            answer:
+              'لا، لا يتطلب الموقع تسجيل الدخول أو أي اشتراك مدفوع؛ يكفي لصق رابط المنشور العام في المتصفح.',
+          },
+          {
+            question: 'هل يمكنني تنزيل فيديو من حساب خاص (محمي) أتابعه على منصة إكس؟',
+            answer:
+              'لا، يعمل الموقع دون تسجيل دخول بأي حساب، لذلك فهو يعالج المنشورات العامة المتاحة للجميع فقط.',
+          },
+          {
+            question: 'كيف أنقل فيديو إكس المحمل إلى ألبوم الصور على الآيفون؟',
+            answer:
+              'يحفظ سفاري الملفات في تطبيق «الملفات». افتح تطبيق الملفات ثم مجلد التنزيلات، وافتح ملف MP4 واضغط على أيقونة المشاركة في الأسفل ثم اختر «حفظ الفيديو».',
+          },
+          {
+            question: 'هل يمكن حفظ الصور المرفقة بمنشور عام على منصة إكس؟',
+            answer:
+              'نعم، بالإضافة إلى الفيديوهات والصور المتحركة بصيغة MP4، يتيح VIDNEX حفظ الصور المرفقة بالمنشورات العامة على إكس.',
+          },
+          {
+            question: 'هل يجوز إعادة نشر فيديو لشخص آخر من منصة إكس بعد تنزيله؟',
+            answer:
+              'لا، حفظ الفيديو العام لا ينقل ملكيته إليك؛ يجب دائماً الحصول على إذن صريح من صاحب المحتوى الأصلي قبل إعادة النشر.',
+          },
+        ],
+        ctaTitle: 'احفظ أي فيديو أو GIF أو صورة عامة من منصة إكس الآن',
+        ctaDescription:
+          'الصق رابط أي منشور عام على إكس لتنزيل الفيديو أو الصورة المتحركة بصيغة MP4، أو حفظ صور المنشور — مجاناً وبدون حساب.',
+        ctaButtonLabel: 'افتح أداة تنزيل فيديو إكس (تويتر)',
+        internalLinks: [
+          {
+            label: 'افتح أداة تنزيل فيديو إكس (تويتر)',
+            description:
+              'الصق رابط أي منشور عام على إكس لتنزيل الفيديو أو الصورة المتحركة بصيغة MP4، أو حفظ صور المنشور — مجاناً وبدون حساب.',
+            targetType: 'platform',
+            platformKey: 'x',
+          },
+        ],
+        sources: [
+          {
+            title: 'كيفية مشاركة ومشاهدة الفيديوهات على منصة إكس',
+            publisher: 'مركز مساعدة إكس',
+            url: 'https://help.x.com/en/using-x/x-videos',
+          },
+          {
+            title: 'كيفية نشر الصور أو ملفات GIF على إكس',
+            publisher: 'مركز مساعدة إكس',
+            url: 'https://help.x.com/en/using-x/tweet-media',
+          },
+          {
+            title: 'سياسة حقوق النشر وحقوق الملكية الفكرية',
+            publisher: 'مركز مساعدة إكس',
+            url: 'https://help.x.com/en/rules-and-policies/copyright-policy',
+          },
+          {
+            title: 'العثور على الملفات المحملة من سفاري على آيفون وآيباد',
+            publisher: 'دعم آبل',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+    },
+  },
 ];
 
 // ============================================================================

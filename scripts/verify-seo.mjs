@@ -186,15 +186,21 @@ function main() {
       hreflangGraph.set(expectedCanonical, pageHreflangs);
     }
 
-    // 7. Verify all internal <a href="/..."> links
+    // 7. Verify all internal <a href="/..."> links (must be canonical without trailing slash on non-root)
     const linkRegex = /<a\s+[^>]*href="(\/[^"#?]*)"/gi;
     let linkMatch;
     while ((linkMatch = linkRegex.exec(html)) !== null) {
-      const targetHref = linkMatch[1].replace(/\/+$/, '') || '/';
+      const rawHref = linkMatch[1];
+      if (rawHref !== '/' && rawHref.endsWith('/')) {
+        fail(
+          `Inconsistent trailing slash in internal link href="${rawHref}" on page ${route.path} (must be non-trailing-slash canonical)`
+        );
+      }
+      const targetHref = rawHref.replace(/\/+$/, '') || '/';
       totalLinksChecked++;
       if (!validInternalPaths.has(targetHref)) {
         fail(
-          `Broken internal link href="${linkMatch[1]}" found on page ${route.path}`
+          `Broken internal link href="${rawHref}" found on page ${route.path}`
         );
       }
     }
@@ -248,11 +254,29 @@ function main() {
   if (sitemapXml.includes('/admin') || sitemapXml.includes('/api/')) {
     fail('dist/sitemap.xml must not contain /admin or /api/');
   }
-  const locCount = (sitemapXml.match(/<loc>/g) || []).length;
+  const locMatches = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  const locCount = locMatches.length;
   if (locCount !== routes.length) {
     fail(
       `dist/sitemap.xml has ${locCount} <loc> entries, expected ${routes.length}`
     );
+  }
+  for (const locUrl of locMatches) {
+    const parsedLoc = new URL(locUrl);
+    if (parsedLoc.pathname !== '/' && parsedLoc.pathname.endsWith('/')) {
+      fail(`dist/sitemap.xml has trailing slash on non-root <loc>: ${locUrl}`);
+    }
+    if (parsedLoc.pathname === '/' && !locUrl.endsWith('/')) {
+      fail(`dist/sitemap.xml missing trailing slash on root <loc>: ${locUrl}`);
+    }
+  }
+
+  const xhtmlMatches = [...sitemapXml.matchAll(/<xhtml:link[^>]+href="([^"]+)"/g)].map((m) => m[1]);
+  for (const xhtmlUrl of xhtmlMatches) {
+    const parsedXhtml = new URL(xhtmlUrl);
+    if (parsedXhtml.pathname !== '/' && parsedXhtml.pathname.endsWith('/')) {
+      fail(`dist/sitemap.xml has trailing slash on non-root xhtml:link: ${xhtmlUrl}`);
+    }
   }
 
   console.log('==========================================================');

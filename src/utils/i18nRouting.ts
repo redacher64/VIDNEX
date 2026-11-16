@@ -205,6 +205,15 @@ export function handleLegacyQueryRedirect(): {
     return { redirected: true, path: blogRedirect };
   }
 
+  // Normalize trailing slash on non-root paths in browser history
+  const currentPath = window.location.pathname;
+  if (currentPath !== '/' && currentPath.endsWith('/')) {
+    const cleanPath = currentPath.replace(/\/+$/, '') || '/';
+    const cleanUrl = `${cleanPath}${window.location.search}${window.location.hash}`;
+    window.history.replaceState({}, '', cleanUrl);
+    return { redirected: true, path: cleanPath };
+  }
+
   const search = window.location.search;
   if (!search) {
     return { redirected: false, path: window.location.pathname };

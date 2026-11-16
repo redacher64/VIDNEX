@@ -1,24 +1,39 @@
 # VIDNEX
 
-> VIDNEX est un téléchargeur web gratuit permettant d’enregistrer uniquement des vidéos publiques depuis TikTok, Instagram, X (Twitter) et Facebook en MP4 ou MP3 ainsi que les photos de profil publiques LinkedIn en JPG HD, sans compte et sans accès aux contenus privés.
+> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.
 
-## Pages principales
+## Définition et périmètre technique (Verified Facts)
 
-- [Accueil VIDNEX](https://vidnex.space/)
-- [Télécharger Vidéo TikTok](https://vidnex.space/telecharger-video-tiktok)
-- [Télécharger Reel et Vidéo Instagram](https://vidnex.space/telecharger-reel-instagram)
-- [Télécharger Vidéo X (Twitter)](https://vidnex.space/telecharger-video-x-twitter)
-- [Télécharger Vidéo Facebook](https://vidnex.space/telecharger-video-facebook)
-- [Télécharger Photo de Profil LinkedIn](https://vidnex.space/telecharger-photo-profil-linkedin)
-- [VIDNEX Editorial Blog (English Default)](https://vidnex.space/blog)
-- [Blog VIDNEX Français](https://vidnex.space/fr/blog)
-- [À propos](https://vidnex.space/a-propos)
-- [Politique de confidentialité](https://vidnex.space/confidentialite)
-- [Conditions d’utilisation](https://vidnex.space/conditions)
-- [Contact](https://vidnex.space/contact)
-- [Droits d’auteur et DMCA](https://vidnex.space/dmca)
+- **Nature du service** : Résolveur web de métadonnées publiques à la demande (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).
+- **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).
+- **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.
+- **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.
 
-## Guides techniques & Blog (English — /blog)
+## Outils principaux et formats pris en charge
+
+- **TikTok** — [FR: https://vidnex.space/telecharger-video-tiktok](https://vidnex.space/telecharger-video-tiktok) | [EN: https://vidnex.space/en/tiktok-video-downloader](https://vidnex.space/en/tiktok-video-downloader)
+  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics et photo de profil publique.
+- **Instagram** — [FR: https://vidnex.space/telecharger-reel-instagram](https://vidnex.space/telecharger-reel-instagram) | [EN: https://vidnex.space/en/instagram-reels-downloader](https://vidnex.space/en/instagram-reels-downloader)
+  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides) et photo de profil publique en JPG.
+- **X (Twitter)** — [FR: https://vidnex.space/telecharger-video-x-twitter](https://vidnex.space/telecharger-video-x-twitter) | [EN: https://vidnex.space/en/x-twitter-video-downloader](https://vidnex.space/en/x-twitter-video-downloader)
+  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).
+- **Facebook** — [FR: https://vidnex.space/telecharger-video-facebook](https://vidnex.space/telecharger-video-facebook) | [EN: https://vidnex.space/en/facebook-video-downloader](https://vidnex.space/en/facebook-video-downloader)
+  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.
+- **LinkedIn** — [FR: https://vidnex.space/telecharger-photo-profil-linkedin](https://vidnex.space/telecharger-photo-profil-linkedin) | [EN: https://vidnex.space/en/linkedin-profile-picture-downloader](https://vidnex.space/en/linkedin-profile-picture-downloader)
+  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.
+
+## Pages principales et Informations légales
+
+- [Accueil VIDNEX (FR)](https://vidnex.space/) | [VIDNEX Home (EN)](https://vidnex.space/en)
+- [VIDNEX Editorial Blog (English)](https://vidnex.space/blog)
+- [Blog VIDNEX (Français)](https://vidnex.space/fr/blog)
+- [À propos (FR)](https://vidnex.space/a-propos) | [About Us (EN)](https://vidnex.space/en/about) | [من نحن (AR)](https://vidnex.space/ar/about)
+- [Politique de confidentialité (FR)](https://vidnex.space/confidentialite) | [Privacy Policy (EN)](https://vidnex.space/en/privacy)
+- [Conditions d’utilisation (FR)](https://vidnex.space/conditions) | [Terms of Service (EN)](https://vidnex.space/en/terms)
+- [Contact (FR)](https://vidnex.space/contact) | [Contact (EN)](https://vidnex.space/en/contact)
+- [Droits d’auteur et DMCA (FR)](https://vidnex.space/dmca) | [DMCA & Copyright (EN)](https://vidnex.space/en/dmca)
+
+## Guides techniques publiés (English — /blog)
 
 - [Why Is My TikTok Video Not Downloading? 7 Causes and Fixes](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links)
 - [Instagram Reel Downloaded Without Sound? Here's Why](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide)
@@ -26,16 +41,18 @@
 - [Why Is My Downloaded Video Low Quality?](https://vidnex.space/blog/why-is-downloaded-video-low-quality)
 - [How to Save Public TikTok Videos Without a Watermark on Any Device](https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide)
 - [How to Save Public Instagram Reels, Carousels, and Posts with Sound](https://vidnex.space/blog/download-public-instagram-reels-carousels-guide)
+- [How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos](https://vidnex.space/blog/download-public-x-twitter-videos-gifs-mp4-guide)
 
-## Guides techniques & Blog (Français — /fr/blog)
+## Guides techniques publiés (Français — /fr/blog)
 
 - [Pourquoi ma vidéo TikTok ne se télécharge pas ? 7 causes et solutions](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme)
 - [Reel Instagram téléchargé sans le son ? Voici pourquoi et comment le corriger](https://vidnex.space/fr/blog/instagram-reels-carrousels-resolution-compression-guide)
 - [MP4 vs MP3 : quelle est la différence technique ?](https://vidnex.space/fr/blog/audio-tiktok-mp3-vs-m4a-aac-guide-technique)
 - [Comment enregistrer une vidéo TikTok publique sans filigrane (Mobile et PC)](https://vidnex.space/fr/blog/enregistrer-videos-tiktok-publiques-sans-filigrane-guide)
 - [Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son](https://vidnex.space/fr/blog/telecharger-reels-carrousels-instagram-publics-guide)
+- [Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)](https://vidnex.space/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide)
 
-## Langues disponibles
+## Langues disponibles (10)
 
 - [Français (FR)](https://vidnex.space/)
 - [English (EN)](https://vidnex.space/en)

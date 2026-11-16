@@ -71,6 +71,24 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
     });
   }
 
+  // Trailing slash 301 redirection on non-root paths (GET & HEAD)
+  if (
+    pathname !== '/' &&
+    pathname.endsWith('/') &&
+    (request.method === 'GET' || request.method === 'HEAD')
+  ) {
+    const cleanPathname = pathname.replace(/\/+$/, '') || '/';
+    const isWww = url.hostname.toLowerCase() === 'www.vidnex.space';
+    const targetOrigin = isWww ? SITE_URL : url.origin;
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${targetOrigin}${cleanPathname}${url.search}`,
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+  }
+
   const isAdminPage = pathname === '/admin' || pathname.startsWith('/admin/');
   const isAdminApi =
     pathname === '/api/admin' || pathname.startsWith('/api/admin/');

@@ -280,8 +280,19 @@ export default {
     ctx?: ExecutionContextLike
   ): Promise<Response> {
     const url = new URL(request.url);
-    if (url.hostname.toLowerCase() === 'www.vidnex.space') {
-      const targetUrl = `https://vidnex.space${url.pathname}${url.search}`;
+    const isWww = url.hostname.toLowerCase() === 'www.vidnex.space';
+    const hasTrailingSlash =
+      url.pathname !== '/' &&
+      url.pathname.endsWith('/') &&
+      (request.method === 'GET' || request.method === 'HEAD');
+
+    if (isWww || hasTrailingSlash) {
+      const cleanPathname = hasTrailingSlash
+        ? url.pathname.replace(/\/+$/, '') || '/'
+        : url.pathname;
+      const targetHost = isWww ? 'vidnex.space' : url.host;
+      const targetProtocol = isWww ? 'https:' : url.protocol;
+      const targetUrl = `${targetProtocol}//${targetHost}${cleanPathname}${url.search}`;
       return new Response(null, {
         status: 301,
         headers: {

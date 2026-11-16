@@ -4562,6 +4562,174 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       globalThis.fetch = origFetch;
     }
   });
+
+  it('AUDIT SEO : (1) Canonicals auto-référents & HTTPS, (2) Hreflangs réciproques & x-default, (3) Trailing slash cohérent partout & Redirection 301', async () => {
+    const { getAllIndexableRoutes, LOCALES_CONFIG } = await import(
+      '../i18n/config.ts'
+    );
+    const { buildHeadMetadataForRoute } = await import(
+      '../i18n/hreflang.ts'
+    );
+    const { SITE_URL } = await import('../config/site.ts');
+    const { default: worker } = await import('../../worker.ts');
+    const { onRequest: middlewareOnRequest } = await import(
+      '../../functions/_middleware.ts'
+    );
+
+    const routes = getAllIndexableRoutes();
+    assert.ok(routes.length >= 80, `Expected at least 80 indexable routes, got ${routes.length}`);
+
+    // (1) Check all canonicals: auto-référent et en https://
+    for (const r of routes) {
+      const meta = buildHeadMetadataForRoute(r.locale, r.pageKey, r.blogSlug);
+      const expectedCanonical =
+        r.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${r.path}`;
+
+      assert.ok(
+        meta.canonicalUrl.startsWith('https://'),
+        `Canonical URL on route ${r.path} must start with https://, got "${meta.canonicalUrl}"`
+      );
+      assert.equal(
+        meta.canonicalUrl,
+        expectedCanonical,
+        `Canonical URL on route ${r.path} must be self-referencing`
+      );
+    }
+
+    // (2) Check hreflang reciprocity + x-default
+    const clusterMap = new Map<string, Map<string, string>>();
+    for (const r of routes) {
+      const meta = buildHeadMetadataForRoute(r.locale, r.pageKey, r.blogSlug);
+      const expectedCanonical =
+        r.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${r.path}`;
+      const hlList = meta.hreflangs || [];
+
+      // Self-reference check
+      const selfHl = hlList.find(
+        (h) => h.hreflang === LOCALES_CONFIG[r.locale].hreflang
+      );
+      assert.ok(
+        selfHl,
+        `Route ${r.path} must include a self-referencing hreflang tag`
+      );
+      assert.equal(
+        selfHl?.href,
+        expectedCanonical,
+        `Self-referencing hreflang tag on ${r.path} must match canonical URL`
+      );
+
+      // x-default check
+      const xDefault = hlList.find((h) => h.hreflang === 'x-default');
+      assert.ok(
+        xDefault,
+        `Route ${r.path} must include an hreflang="x-default" tag`
+      );
+      assert.ok(
+        xDefault?.href.startsWith('https://'),
+        `x-default tag on ${r.path} must be https://`
+      );
+
+      clusterMap.set(
+        expectedCanonical,
+        new Map(hlList.map((h) => [h.hreflang, h.href]))
+      );
+    }
+
+    // 100% Reciprocity check
+    for (const [sourceUrl, linksMap] of clusterMap.entries()) {
+      for (const [langCode, targetUrl] of linksMap.entries()) {
+        if (langCode === 'x-default') continue;
+        const targetLinks = clusterMap.get(targetUrl);
+        assert.ok(
+          targetLinks,
+          `Target hreflang "${targetUrl}" referenced from "${sourceUrl}" must exist in indexed routes`
+        );
+        for (const [expectedLang, expectedUrl] of linksMap.entries()) {
+          if (expectedLang === 'x-default') continue;
+          assert.equal(
+            targetLinks?.get(expectedLang),
+            expectedUrl,
+            `Reciprocity failure between ${sourceUrl} and ${targetUrl} for hreflang="${expectedLang}"`
+          );
+        }
+      }
+    }
+
+    // (3) Check trailing slash consistency across canonicals (only root has slash)
+    for (const r of routes) {
+      const meta = buildHeadMetadataForRoute(r.locale, r.pageKey, r.blogSlug);
+      if (r.path === '/') {
+        assert.ok(
+          meta.canonicalUrl.endsWith('/'),
+          `Root canonical must have trailing slash: "${meta.canonicalUrl}"`
+        );
+      } else {
+        assert.ok(
+          !meta.canonicalUrl.endsWith('/'),
+          `Non-root canonical must NOT have trailing slash: "${meta.canonicalUrl}"`
+        );
+      }
+    }
+
+    // (3b) Check 301 redirection on server (worker.ts and functions/_middleware.ts)
+    const testCases = [
+      { input: 'https://vidnex.space/telecharger-video-tiktok/', expected: 'https://vidnex.space/telecharger-video-tiktok' },
+      { input: 'https://vidnex.space/en/', expected: 'https://vidnex.space/en' },
+      { input: 'https://vidnex.space/blog/', expected: 'https://vidnex.space/blog' },
+      { input: 'https://vidnex.space/fr/blog/', expected: 'https://vidnex.space/fr/blog' },
+      { input: 'https://vidnex.space/a-propos/', expected: 'https://vidnex.space/a-propos' },
+      { input: 'https://vidnex.space/en/privacy/', expected: 'https://vidnex.space/en/privacy' },
+      { input: 'https://www.vidnex.space/en/', expected: 'https://vidnex.space/en' },
+      { input: 'https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide/', expected: 'https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide' },
+    ];
+
+    for (const tc of testCases) {
+      // Test worker.ts
+      const reqWorker = new Request(tc.input, { method: 'GET' });
+      const resWorker = await worker.fetch(reqWorker, {});
+      assert.equal(
+        resWorker.status,
+        301,
+        `worker.ts: expected 301 redirect for "${tc.input}", got ${resWorker.status}`
+      );
+      assert.equal(
+        resWorker.headers.get('Location'),
+        tc.expected,
+        `worker.ts: expected redirect Location "${tc.expected}", got "${resWorker.headers.get('Location')}"`
+      );
+
+      // Test functions/_middleware.ts
+      const reqMw = new Request(tc.input, { method: 'GET' });
+      const resMw = await middlewareOnRequest({
+        request: reqMw,
+        env: {},
+        next: async () => new Response('ok', { status: 200 }),
+      });
+      assert.equal(
+        resMw.status,
+        301,
+        `_middleware.ts: expected 301 redirect for "${tc.input}", got ${resMw.status}`
+      );
+      assert.equal(
+        resMw.headers.get('Location'),
+        tc.expected,
+        `_middleware.ts: expected redirect Location "${tc.expected}", got "${resMw.headers.get('Location')}"`
+      );
+    }
+
+    // Root must NOT be redirected
+    const rootReqWorker = new Request('https://vidnex.space/', { method: 'GET' });
+    const rootResWorker = await worker.fetch(rootReqWorker, {});
+    assert.notEqual(rootResWorker.status, 301, 'Root "/" must not be 301 redirected');
+
+    const rootReqMw = new Request('https://vidnex.space/', { method: 'GET' });
+    const rootResMw = await middlewareOnRequest({
+      request: rootReqMw,
+      env: {},
+      next: async () => new Response('root content', { status: 200 }),
+    });
+    assert.equal(rootResMw.status, 200, 'Root "/" in middleware must pass through with status 200');
+  });
 });
 
 

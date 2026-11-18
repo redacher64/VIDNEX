@@ -12,6 +12,7 @@ import type { AdminPermission, AdminUserProfile } from './Login.tsx';
 
 export type AdminTab =
   | 'dashboard'
+  | 'visitors'
   | 'health'
   | 'controls'
   | 'activity'
@@ -70,7 +71,7 @@ export function isTabAuthorizedForUser(
   if (!user) return false;
   if (user.isOwner) return true;
   if (tab === 'account') return true;
-  if (tab === 'controls' || tab === 'users') return false;
+  if (tab === 'controls' || tab === 'users' || tab === 'visitors') return false;
   if (tab === 'dashboard') return user.permissions.includes('dashboard.view');
   if (tab === 'health') return user.permissions.includes('health.view');
   if (tab === 'activity') return user.permissions.includes('activity.view');

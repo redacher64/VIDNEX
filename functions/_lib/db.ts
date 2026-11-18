@@ -37,6 +37,10 @@ export interface AdminEnv {
   IG_COOKIES?: string;
   TIKWM_API_KEY?: string;
   TT_COOKIE?: string;
+  CF_API_TOKEN?: string;
+  CF_API?: string;
+  CF_ZONE_ID?: string;
+  CF_ACCOUNT_ID?: string;
   [key: string]: unknown;
 }
 

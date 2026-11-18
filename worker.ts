@@ -44,6 +44,7 @@ import {
   onRequestPut as adminBlogPut,
   onRequestDelete as adminBlogDelete,
 } from './functions/api/admin/blog.ts';
+import { onRequestGet as adminVisitorsGet } from './functions/api/admin/visitors.ts';
 import { onRequest as adminMiddleware } from './functions/_middleware.ts';
 import type { ExecutionContextLike } from './functions/_lib/db.ts';
 
@@ -150,6 +151,11 @@ async function routeInner(
     if (request.method === 'POST') return adminBlogPost({ request, env });
     if (request.method === 'PUT') return adminBlogPut({ request, env });
     if (request.method === 'DELETE') return adminBlogDelete({ request, env });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/admin/visitors') {
+    if (request.method === 'GET') return adminVisitorsGet({ request, env });
     return new Response('Method Not Allowed', { status: 405 });
   }
 

@@ -13,9 +13,11 @@ import {
   Users as UsersIcon,
   UserCircle,
   FileText,
+  Globe,
 } from './AdminIcons';
 import { Login, type AdminUserProfile } from './Login';
 import { Dashboard } from './Dashboard';
+import { Visitors } from './Visitors';
 import { Health } from './Health';
 import { Controls } from './Controls';
 import { Activity } from './Activity';
@@ -47,6 +49,7 @@ function getExplicitUrlTab(): AdminTab | null {
   const tab = new URLSearchParams(window.location.search).get('tab');
   if (
     tab === 'dashboard' ||
+    tab === 'visitors' ||
     tab === 'health' ||
     tab === 'controls' ||
     tab === 'activity' ||
@@ -263,6 +266,12 @@ export const AdminApp: React.FC = () => {
       visible: isTabAuthorizedForUser('dashboard', user),
     },
     {
+      id: 'visitors',
+      label: 'Visiteurs',
+      icon: <Globe className="w-4 h-4" />,
+      visible: user.isOwner,
+    },
+    {
       id: 'health',
       label: 'Santé des moteurs',
       icon: <HeartPulse className="w-4 h-4" />,
@@ -429,6 +438,7 @@ export const AdminApp: React.FC = () => {
                 }}
               />
             )}
+            {activeTab === 'visitors' && user.isOwner && <Visitors />}
             {activeTab === 'health' && <Health readOnly={!user.isOwner} />}
             {activeTab === 'controls' && user.isOwner && <Controls />}
             {activeTab === 'activity' && <Activity />}

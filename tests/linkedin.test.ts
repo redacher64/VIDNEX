@@ -1210,6 +1210,286 @@ test('AdminApp Blog tab & BlogEditor: authorizes blog.* permissions, validates d
   assert.equal(publishedOnly.length + draftsOnly.length, allArticles.length);
 });
 
+test('Admin Visitors Analytics: owner-only RBAC, Cloudflare GraphQL country aggregation, 5-min cache, and zero token leak', async () => {
+  const {
+    onRequestGet: adminVisitorsGet,
+    clearVisitorsCacheForTests,
+  } = await import('../functions/api/admin/visitors.ts');
+  const {
+    createSignedSessionToken,
+    ADMIN_COOKIE_NAME,
+  } = await import('../functions/_lib/auth.ts');
+  const { onRequestPost: adminUsersPost } = await import(
+    '../functions/api/admin/users.ts'
+  );
+  const { isTabAuthorizedForUser } = await import(
+    '../src/pages/admin/blogAdminLogic.ts'
+  );
 
+  clearVisitorsCacheForTests();
 
+  // 1. UI tab authorization: owner only
+  assert.equal(
+    isTabAuthorizedForUser('visitors', { isOwner: true, permissions: ['*'] }),
+    true
+  );
+  assert.equal(
+    isTabAuthorizedForUser('visitors', {
+      isOwner: false,
+      permissions: ['blog.read', 'blog.write'],
+    }),
+    false
+  );
+
+  const db = createMemoryD1Database();
+  const sessionSecret = 'test-visitors-hmac-secret-2026';
+  const ownerCookie = `${ADMIN_COOKIE_NAME}=${await createSignedSessionToken(
+    sessionSecret,
+    Date.now(),
+    { type: 'owner' }
+  )}`;
+
+  const createRes = await adminUsersPost({
+    request: new Request('https://vidnex.space/api/admin/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://vidnex.space',
+        Cookie: ownerCookie,
+      },
+      body: JSON.stringify({
+        action: 'create',
+        login: 'editor_vis',
+        display_name: 'Editor Visitors Test',
+        role_label: 'Rédacteur blog',
+        permissions: ['blog.read', 'blog.write'],
+      }),
+    }),
+    env: {
+      DB: db,
+      ADMIN_PASSWORD: 'owner-pwd',
+      SESSION_SECRET: sessionSecret,
+    },
+  });
+  const createdUserJson: any = await createRes.json();
+  const editorCookie = `${ADMIN_COOKIE_NAME}=${await createSignedSessionToken(
+    sessionSecret,
+    Date.now(),
+    { type: 'user', userId: createdUserJson.user.id, sessionVersion: 1 }
+  )}`;
+
+  // 2. Non-owner is rejected with 403
+  const forbiddenRes = await adminVisitorsGet({
+    request: new Request('https://vidnex.space/api/admin/visitors', {
+      method: 'GET',
+      headers: { Cookie: editorCookie },
+    }),
+    env: {
+      DB: db,
+      ADMIN_PASSWORD: 'owner-pwd',
+      SESSION_SECRET: sessionSecret,
+      CF_API_TOKEN: 'cf-secret-token-never-expose',
+      CF_ZONE_ID: 'zone-12345',
+    },
+  });
+  assert.equal(forbiddenRes.status, 403);
+
+  // 3. Missing secrets returns 503 CONFIG_MISSING with clear error message (no crash)
+  const missingConfigRes = await adminVisitorsGet({
+    request: new Request('https://vidnex.space/api/admin/visitors', {
+      method: 'GET',
+      headers: { Cookie: ownerCookie },
+    }),
+    env: {
+      DB: db,
+      ADMIN_PASSWORD: 'owner-pwd',
+      SESSION_SECRET: sessionSecret,
+    },
+  });
+  assert.equal(missingConfigRes.status, 503);
+  const missingJson: any = await missingConfigRes.json();
+  assert.equal(missingJson.ok, false);
+  assert.equal(missingJson.errorCode, 'CONFIG_MISSING');
+
+  // 4. Mock Cloudflare GraphQL call and verify aggregation, sorting, flags, percentages, and 5-min cache
+  const originalFetch = globalThis.fetch;
+  let graphqlCalls = 0;
+  const secretToken = 'cf-secret-token-do-not-leak-999';
+
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input.toString();
+    assert.equal(url, 'https://api.cloudflare.com/client/v4/graphql');
+    const authHeader = (init?.headers as Record<string, string>)?.Authorization;
+    assert.equal(authHeader, `Bearer ${secretToken}`);
+    graphqlCalls += 1;
+
+    return new Response(
+      JSON.stringify({
+        data: {
+          viewer: {
+            zones: [
+              {
+                period24h: [
+                  {
+                    dimensions: { datetime: '2026-11-18T10:00:00Z' },
+                    sum: {
+                      requests: 300,
+                      cachedRequests: 180,
+                      bytes: 1_500_000,
+                      cachedBytes: 900_000,
+                      pageViews: 240,
+                      threats: 2,
+                      countryMap: [
+                        { clientCountryName: 'US', requests: 100, bytes: 500_000 },
+                        { clientCountryName: 'FR', requests: 200, bytes: 1_000_000 },
+                      ],
+                      responseStatusMap: [
+                        { edgeResponseStatus: 200, requests: 210 },
+                        { edgeResponseStatus: 304, requests: 60 },
+                        { edgeResponseStatus: 404, requests: 30 },
+                      ],
+                      browserMap: [
+                        { uaBrowserFamily: 'Chrome', pageViews: 150 },
+                        { uaBrowserFamily: 'Safari', pageViews: 90 },
+                      ],
+                    },
+                    uniq: { uniques: 120 },
+                  },
+                  {
+                    dimensions: { datetime: '2026-11-18T11:00:00Z' },
+                    sum: {
+                      requests: 100,
+                      cachedRequests: 60,
+                      bytes: 500_000,
+                      cachedBytes: 300_000,
+                      pageViews: 80,
+                      threats: 0,
+                      countryMap: [
+                        { clientCountryName: 'FR', requests: 50, bytes: 250_000 },
+                        { clientCountryName: 'MA', requests: 50, bytes: 250_000 },
+                      ],
+                      responseStatusMap: [
+                        { edgeResponseStatus: 200, requests: 90 },
+                        { edgeResponseStatus: 301, requests: 10 },
+                      ],
+                    },
+                    uniq: { uniques: 40 },
+                  },
+                ],
+                period7d: [
+                  {
+                    dimensions: { date: '2026-11-18' },
+                    sum: {
+                      requests: 2000,
+                      cachedRequests: 1170,
+                      bytes: 12_000_000,
+                      cachedBytes: 7_000_000,
+                      pageViews: 1600,
+                      threats: 5,
+                      countryMap: [
+                        { clientCountryName: 'FR', requests: 1200 },
+                        { clientCountryName: 'US', requests: 800 },
+                      ],
+                    },
+                    uniq: { uniques: 950 },
+                  },
+                ],
+                period30d: [
+                  {
+                    dimensions: { date: '2026-11-18' },
+                    sum: {
+                      requests: 8000,
+                      cachedRequests: 4800,
+                      bytes: 48_000_000,
+                      cachedBytes: 28_000_000,
+                      pageViews: 6200,
+                      threats: 12,
+                      countryMap: [
+                        { clientCountryName: 'FR', requests: 5000 },
+                        { clientCountryName: 'US', requests: 3000 },
+                      ],
+                    },
+                    uniq: { uniques: 3400 },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  };
+
+  try {
+    const envWithCf = {
+      DB: db,
+      ADMIN_PASSWORD: 'owner-pwd',
+      SESSION_SECRET: sessionSecret,
+      CF_API_TOKEN: secretToken,
+      CF_ZONE_ID: 'vidnex-zone-id-001',
+    };
+
+    const res1 = await adminVisitorsGet({
+      request: new Request('https://vidnex.space/api/admin/visitors', {
+        method: 'GET',
+        headers: { Cookie: ownerCookie },
+      }),
+      env: envWithCf,
+    });
+    assert.equal(res1.status, 200);
+    const rawText1 = await res1.text();
+    assert.ok(
+      !rawText1.includes(secretToken),
+      'CF_API_TOKEN must never appear in response payload'
+    );
+
+    const json1: any = JSON.parse(rawText1);
+    assert.equal(json1.ok, true);
+    assert.equal(json1.cached, false);
+    assert.equal(graphqlCalls, 1);
+
+    // Verify 24h totals, cache hit rate, status codes, timeseries & sorted countries
+    const p24 = json1.periods['24h'];
+    assert.equal(p24.totalRequests, 400);
+    assert.equal(p24.uniqueVisitors, 160);
+    assert.equal(p24.cachedRequests, 240);
+    assert.equal(p24.cacheHitRate, 60);
+    assert.equal(p24.totalBytes, 2_000_000);
+    assert.equal(p24.cachedBytes, 1_200_000);
+    assert.equal(p24.statusCodes.status2xx, 300);
+    assert.equal(p24.statusCodes.status3xx, 70);
+    assert.equal(p24.statusCodes.status4xx, 30);
+    assert.equal(p24.timeseries.length, 2);
+    assert.equal(p24.browsers[0].browser, 'Chrome');
+    assert.equal(p24.countries.length, 3);
+    assert.equal(p24.countries[0].countryCode, 'FR');
+    assert.equal(p24.countries[0].flag, '🇫🇷');
+    assert.equal(p24.countries[0].requests, 250);
+    assert.equal(p24.countries[0].percentage, 62.5);
+    assert.equal(p24.countries[1].countryCode, 'US');
+    assert.equal(p24.countries[1].requests, 100);
+    assert.equal(p24.countries[1].percentage, 25);
+    assert.equal(p24.countries[2].countryCode, 'MA');
+    assert.equal(p24.countries[2].requests, 50);
+    assert.equal(p24.countries[2].percentage, 12.5);
+
+    // Second request within 5 minutes must hit the server cache without calling fetch again
+    const res2 = await adminVisitorsGet({
+      request: new Request('https://vidnex.space/api/admin/visitors', {
+        method: 'GET',
+        headers: { Cookie: ownerCookie },
+      }),
+      env: envWithCf,
+    });
+    assert.equal(res2.status, 200);
+    const json2: any = await res2.json();
+    assert.equal(json2.ok, true);
+    assert.equal(json2.cached, true);
+    assert.equal(graphqlCalls, 1, 'Should serve from 5-min cache without calling Cloudflare again');
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearVisitorsCacheForTests();
+  }
+});
 

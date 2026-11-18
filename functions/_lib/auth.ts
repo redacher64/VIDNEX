@@ -52,6 +52,7 @@ export type AssignablePermission = (typeof ASSIGNABLE_PERMISSIONS)[number];
 export const OWNER_ONLY_RESOURCES = [
   'controls',
   'users',
+  'visitors',
   'settings',
   'services_tiers',
   'secrets',
@@ -755,7 +756,15 @@ export function resolveAdminRoutePermission(
  */
 export function getFirstAuthorizedTab(
   principal: Pick<AdminPrincipal, 'isOwner' | 'permissions'>
-): 'dashboard' | 'health' | 'controls' | 'activity' | 'blog' | 'users' | 'account' {
+):
+  | 'dashboard'
+  | 'visitors'
+  | 'health'
+  | 'controls'
+  | 'activity'
+  | 'blog'
+  | 'users'
+  | 'account' {
   if (principal.isOwner) return 'dashboard';
   const perms = principal.permissions || [];
   if (perms.includes('dashboard.view')) return 'dashboard';

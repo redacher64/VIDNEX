@@ -1493,3 +1493,168 @@ test('Admin Visitors Analytics: owner-only RBAC, Cloudflare GraphQL country aggr
   }
 });
 
+test('DashboardWidget computeDailyUsageSummary: summarizes daily D1 API usage, deltas, peak day, and extraction success rates', async () => {
+  const { computeDailyUsageSummary } = await import(
+    '../src/pages/admin/dashboardWidgetLogic.ts'
+  );
+
+  const summary = computeDailyUsageSummary({
+    ok: true,
+    dbConnected: true,
+    counts: {
+      today: 40,
+      last7d: 140,
+      last30d: 140,
+    },
+    funnel: {
+      extract_started: 140,
+      extract_success: 126,
+      extract_error: 14,
+      download_started: 110,
+      download_success: 105,
+      extractSuccessRate: 90,
+      downloadConversionRate: 78.6,
+      downloadCompletionRate: 95.5,
+    },
+    platforms: {
+      tiktok: { total: 80, success: 76, error: 4, successRate: 95 },
+      instagram: { total: 40, success: 32, error: 8, successRate: 80 },
+      x: { total: 20, success: 18, error: 2, successRate: 90 },
+    },
+    daily: [
+      { day: '2026-11-16', total: 50, success: 45, error: 5, download_success: 38 },
+      { day: '2026-11-17', total: 50, success: 45, error: 5, download_success: 37 },
+      { day: '2026-11-18', total: 40, success: 36, error: 4, download_success: 30 },
+    ],
+  });
+
+  assert.equal(summary.dbConnected, true);
+  assert.equal(summary.today.day, '2026-11-18');
+  assert.equal(summary.today.total, 40);
+  assert.equal(summary.today.success, 36);
+  assert.equal(summary.today.error, 4);
+  assert.equal(summary.today.successRate, 90);
+  assert.equal(summary.today.downloads, 30);
+
+  assert.equal(summary.yesterday.day, '2026-11-17');
+  assert.equal(summary.yesterday.total, 50);
+  assert.equal(summary.deltaTodayVsYesterdayPct, -20);
+
+  assert.equal(summary.last7d.total, 140);
+  assert.equal(summary.last7d.success, 126);
+  assert.equal(summary.last7d.error, 14);
+  assert.equal(summary.last7d.successRate, 90);
+  assert.equal(summary.last7d.downloads, 105);
+  assert.equal(summary.last7d.days[0].day, '2026-11-18');
+
+  assert.equal(summary.last30d.peakDay, '2026-11-16');
+  assert.equal(summary.last30d.peakTotal, 50);
+
+  assert.equal(summary.platforms[0].key, 'tiktok');
+  assert.equal(summary.platforms[0].total, 80);
+  assert.equal(summary.platforms[0].successRate, 95);
+  assert.equal(summary.platforms[1].key, 'instagram');
+  assert.equal(summary.platforms[1].successRate, 80);
+
+  const { buildDailyUsageCsv } = await import(
+    '../src/pages/admin/dashboardWidgetLogic.ts'
+  );
+  const csv = buildDailyUsageCsv(summary.last7d.days);
+  const lines = csv.split('\r\n');
+  assert.equal(
+    lines[0],
+    'Date (UTC),Appels API,Succès,Échecs,Téléchargements,Taux de succès (%)'
+  );
+  assert.equal(lines[1], '2026-11-18,40,36,4,30,90');
+  assert.equal(lines[2], '2026-11-17,50,45,5,37,90');
+  assert.equal(lines[3], '2026-11-16,50,45,5,38,90');
+});
+
+test('worldMapLogic: projects lat/lon coordinates to SVG, aggregates regional continent traffic, and computes extended visitor metrics', async () => {
+  const {
+    projectLatLonToSvg,
+    computeGeoMapAnalytics,
+    computeExtendedVisitorMetrics,
+  } = await import('../src/pages/admin/worldMapLogic.ts');
+
+  const center = projectLatLonToSvg(0, 0);
+  assert.equal(center.svgX, 500);
+  assert.equal(center.svgY, 277.8);
+
+  const geo = computeGeoMapAnalytics([
+    { countryCode: 'FR', requests: 500, bytes: 2_500_000, threats: 1 },
+    { countryCode: 'MA', requests: 300, bytes: 1_500_000, threats: 0 },
+    { countryCode: 'US', requests: 200, bytes: 1_000_000, threats: 2 },
+  ]);
+
+  assert.equal(geo.totalRequests, 1000);
+  assert.equal(geo.totalBytes, 5_000_000);
+  assert.equal(geo.totalThreats, 3);
+  assert.equal(geo.points.length, 3);
+  assert.equal(geo.points[0].countryCode, 'FR');
+  assert.equal(geo.points[0].region, 'europe');
+  assert.equal(geo.points[0].percentage, 50);
+  assert.equal(geo.points[1].countryCode, 'MA');
+  assert.equal(geo.points[1].region, 'africa_mena');
+  assert.equal(geo.points[1].percentage, 30);
+
+  const europeRegion = geo.regions.find((r) => r.region === 'europe');
+  assert.ok(europeRegion);
+  assert.equal(europeRegion!.requests, 500);
+  assert.equal(europeRegion!.percentage, 50);
+
+  const ext = computeExtendedVisitorMetrics({
+    totalRequests: 1000,
+    uniqueVisitors: 250,
+    pageViews: 800,
+    cachedRequests: 600,
+    totalBytes: 5_000_000,
+    cachedBytes: 3_000_000,
+    threats: 5,
+    statusCodes: { status2xx: 900, status3xx: 80, status4xx: 15, status5xx: 5 },
+    workerMetrics: { invocations: 400, subrequests: 600 },
+    countries: [{ requests: 500 }, { requests: 300 }, { requests: 100 }, { requests: 100 }],
+  });
+
+  assert.equal(ext.originRequests, 400);
+  assert.equal(ext.originRatePct, 40);
+  assert.equal(ext.savedBytes, 3_000_000);
+  assert.equal(ext.originBytes, 2_000_000);
+  assert.equal(ext.avgBytesPerRequest, 5000);
+  assert.equal(ext.requestsPerUniqueVisitor, 4);
+  assert.equal(ext.pageViewsPerUniqueVisitor, 3.2);
+  assert.equal(ext.subrequestsPerInvocation, 1.5);
+  assert.equal(ext.availabilityRatePct, 99.5);
+  assert.equal(ext.topCountrySharePct, 50);
+  assert.equal(ext.top3ConcentrationPct, 90);
+});
+
+test('VisitorsMap buildD1VisitorsMapSummary: builds D1 mock visitor origins, ranks most active regions, and assigns heat tiers', async () => {
+  const { buildD1VisitorsMapSummary } = await import(
+    '../src/pages/admin/visitorsMapLogic.ts'
+  );
+
+  const default30d = buildD1VisitorsMapSummary('30d', null);
+  assert.equal(default30d.source, 'd1-default-mock');
+  assert.ok(default30d.totalVisitors > 0);
+  assert.ok(default30d.totalExtractions > 0);
+  assert.equal(default30d.regions.length, 5);
+  assert.equal(default30d.mostActiveRegion.rank, 1);
+  assert.equal(default30d.mostActiveRegion.isTopRegion, true);
+  assert.equal(default30d.mostActiveRegion.heatTier, 'hot');
+  assert.equal(default30d.mostActiveCountry.countryCode, 'FR');
+  assert.equal(default30d.mostActiveCountry.heatTier, 'hot');
+
+  // Verify scaling with D1 stats counts
+  const scaled7d = buildD1VisitorsMapSummary('7d', {
+    counts: { today: 200, last7d: 5000, last30d: 20000 },
+    funnel: { extractSuccessRate: 97.2 },
+  });
+  assert.equal(scaled7d.source, 'd1-scaled-mock');
+  assert.equal(scaled7d.globalSuccessRate, 97.2);
+  assert.ok(scaled7d.regions[0].visitors >= scaled7d.regions[1].visitors);
+});
+
+
+
+

@@ -10,6 +10,8 @@ import {
   Activity,
   CheckCircle2,
 } from './AdminIcons';
+import { WorldMapVisualization } from './WorldMapVisualization';
+import { computeExtendedVisitorMetrics } from './worldMapLogic';
 
 export type VisitorsPeriodKey = '24h' | '7d' | '30d';
 
@@ -313,6 +315,22 @@ export const Visitors: React.FC = () => {
   const subrequestHosts = activeSummary.subrequestHosts || [];
   const topHostnames = activeSummary.topHostnames || [];
   const browsers = activeSummary.browsers || [];
+  const extendedMetrics = useMemo(
+    () =>
+      computeExtendedVisitorMetrics({
+        totalRequests: activeSummary.totalRequests,
+        uniqueVisitors: activeSummary.uniqueVisitors,
+        pageViews: activeSummary.pageViews,
+        cachedRequests: activeSummary.cachedRequests,
+        totalBytes: activeSummary.totalBytes,
+        cachedBytes: activeSummary.cachedBytes,
+        threats: activeSummary.threats,
+        statusCodes,
+        workerMetrics,
+        countries: activeSummary.countries,
+      }),
+    [activeSummary, statusCodes, workerMetrics]
+  );
 
   return (
     <div className="space-y-6">
@@ -616,6 +634,83 @@ export const Visitors: React.FC = () => {
             <span className="font-mono text-slate-300">
               Menaces : {formatNumber(activeSummary.threats)}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 Cartes de Métriques Avancées Edge, Engagement & Concentration Géographique */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Disponibilité HTTP &amp; Origin</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-lg font-bold font-mono text-emerald-400">
+              {formatPercentage(extendedMetrics.availabilityRatePct)}
+            </span>
+            <span className="text-xs font-mono text-slate-300">
+              Origin : {formatCompactNumber(extendedMetrics.originRequests)} req (
+              {extendedMetrics.originRatePct}%)
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Disponibilité Edge sans erreur 5xx
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Bande passante économisée</span>
+            <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-lg font-bold font-mono text-sky-400">
+              {formatBytes(extendedMetrics.savedBytes)}
+            </span>
+            <span className="text-xs font-mono text-slate-300">
+              {formatBytes(extendedMetrics.avgBytesPerRequest)} / req
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Trafic Origin : {formatBytes(extendedMetrics.originBytes)}
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Intensité par Visiteur Unique</span>
+            <Users className="w-3.5 h-3.5 text-indigo-400" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-lg font-bold font-mono text-white">
+              {extendedMetrics.requestsPerUniqueVisitor} req/vis.
+            </span>
+            <span className="text-xs font-mono text-indigo-300">
+              {extendedMetrics.pageViewsPerUniqueVisitor} pages/vis.
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Ratio sous-requêtes/invocation : {extendedMetrics.subrequestsPerInvocation}x
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Concentration Géographique &amp; CPU P99</span>
+            <Globe className="w-3.5 h-3.5 text-amber-400" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-lg font-bold font-mono text-amber-300">
+              Top 3 : {formatPercentage(extendedMetrics.top3ConcentrationPct)}
+            </span>
+            <span className="text-xs font-mono text-slate-300">
+              P99 : {workerMetrics.cpuTimeP99Ms} ms
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-400">
+            Pays #1 : {formatPercentage(extendedMetrics.topCountrySharePct)} · Menaces :{' '}
+            {extendedMetrics.threatRatePct}%
           </div>
         </div>
       </div>
@@ -1070,6 +1165,16 @@ export const Visitors: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Carte Mondiale Interactive & Répartition par Continent */}
+      <WorldMapVisualization
+        countries={activeSummary.countries}
+        periodLabel={activePeriodMeta.shortLabel}
+        variant="slate"
+        onSelectCountry={(iso) =>
+          setCountrySearch((prev) => (prev.toUpperCase() === iso ? '' : iso))
+        }
+      />
 
       {/* Tableau trié par pays : Drapeau + Pays + Visites + Bande passante + % (Request Distribution) */}
       <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">

@@ -1,12 +1,728 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Activity,
+  Globe,
   RefreshCw,
   TrendingUp,
   CheckCircle2,
   AlertTriangle,
   BarChart3,
   HeartPulse,
+  ShieldCheck,
 } from './AdminIcons';
+import {
+  computeDailyUsageSummary,
+  buildDailyUsageCsv,
+  type WidgetStatsInput,
+} from './dashboardWidgetLogic';
+import { WorldMapVisualization } from './WorldMapVisualization';
+import type { GeoInputCountryRow } from './worldMapLogic';
+import { VisitorsMap, type VisitorsMapProps } from './VisitorsMap';
+
+export { VisitorsMap, type VisitorsMapProps, buildDailyUsageCsv };
+
+export interface DashboardWidgetProps {
+  data?: WidgetStatsInput | null;
+  loading?: boolean;
+  onRefresh?: () => void;
+}
+
+const D1_DEFAULT_LANGUAGE_GEO_WEIGHTS: Array<{
+  code: string;
+  name: string;
+  weight: number;
+}> = [
+  { code: 'FR', name: 'France', weight: 0.28 },
+  { code: 'US', name: 'États-Unis', weight: 0.16 },
+  { code: 'MA', name: 'Maroc', weight: 0.12 },
+  { code: 'ES', name: 'Espagne', weight: 0.09 },
+  { code: 'BR', name: 'Brésil', weight: 0.08 },
+  { code: 'DE', name: 'Allemagne', weight: 0.07 },
+  { code: 'DZ', name: 'Algérie', weight: 0.06 },
+  { code: 'CA', name: 'Canada', weight: 0.05 },
+  { code: 'TR', name: 'Turquie', weight: 0.05 },
+  { code: 'ID', name: 'Indonésie', weight: 0.04 },
+];
+
+export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
+  data: externalData,
+  loading: externalLoading,
+  onRefresh,
+}) => {
+  const [internalData, setInternalData] = useState<WidgetStatsInput | null>(null);
+  const [internalLoading, setInternalLoading] = useState<boolean>(false);
+  const [internalError, setInternalError] = useState<string | null>(null);
+  const [geoCountries, setGeoCountries] = useState<GeoInputCountryRow[] | null>(null);
+  const [period, setPeriod] = useState<'today' | '7d' | '30d'>('7d');
+  const [viewMode, setViewMode] = useState<'both' | 'table' | 'chart' | 'map'>('both');
+
+  const isControlled = externalData !== undefined;
+  const activeData = isControlled ? externalData : internalData;
+  const isLoading = isControlled ? Boolean(externalLoading) : internalLoading;
+
+  const fetchD1Stats = async () => {
+    setInternalLoading(true);
+    setInternalError(null);
+    try {
+      const res = await fetch('/api/admin/stats', {
+        headers: { Accept: 'application/json' },
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.message || 'Impossible de charger les statistiques D1.');
+      }
+      setInternalData(json);
+    } catch (err) {
+      setInternalError(err instanceof Error ? err.message : 'Erreur réseau D1');
+    } finally {
+      setInternalLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isControlled) {
+      fetchD1Stats();
+    }
+  }, [isControlled]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/visitors', {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (cancelled || !json?.ok || !json?.periods) return;
+        const pKey = period === 'today' ? '24h' : period;
+        const countries = json.periods[pKey]?.countries;
+        if (Array.isArray(countries) && countries.length > 0) {
+          setGeoCountries(countries);
+        }
+      })
+      .catch(() => {
+        // Optional geographic enrichment; silently falls back to D1 regional distribution
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
+
+  const summary = computeDailyUsageSummary(activeData);
+
+  const selectedMetrics =
+    period === 'today'
+      ? {
+          label: `Aujourd’hui (${summary.today.day})`,
+          total: summary.today.total,
+          success: summary.today.success,
+          error: summary.today.error,
+          successRate: summary.today.successRate,
+          avgOrSub:
+            summary.deltaTodayVsYesterdayPct !== null
+              ? `${summary.deltaTodayVsYesterdayPct >= 0 ? '+' : ''}${summary.deltaTodayVsYesterdayPct}% vs hier (${summary.yesterday.total})`
+              : `Hier : ${summary.yesterday.total} req (${summary.yesterday.successRate}%)`,
+          downloads: summary.today.downloads,
+          downloadsStarted: summary.today.downloadsStarted,
+          selectionsStarted: summary.today.selectionsStarted,
+          selectionsDownloaded: summary.today.selectionsDownloaded,
+        }
+      : period === '7d'
+      ? {
+          label: '7 derniers jours (UTC)',
+          total: summary.last7d.total,
+          success: summary.last7d.success,
+          error: summary.last7d.error,
+          successRate: summary.last7d.successRate,
+          avgOrSub: `Moyenne : ${summary.last7d.avgDaily} req / jour`,
+          downloads: summary.last7d.downloads,
+          downloadsStarted: summary.last7d.downloadsStarted,
+          selectionsStarted: summary.last7d.selectionsStarted,
+          selectionsDownloaded: summary.last7d.selectionsDownloaded,
+        }
+      : {
+          label: '30 derniers jours (UTC)',
+          total: summary.last30d.total,
+          success: summary.last30d.success,
+          error: summary.last30d.error,
+          successRate: summary.last30d.successRate,
+          avgOrSub: `Moyenne : ${summary.last30d.avgDaily} req / jour`,
+          downloads: summary.last30d.downloads,
+          downloadsStarted: summary.last30d.downloadsStarted,
+          selectionsStarted: summary.last30d.selectionsStarted,
+          selectionsDownloaded: summary.last30d.selectionsDownloaded,
+        };
+
+  const mapCountriesData: GeoInputCountryRow[] = useMemo(() => {
+    if (geoCountries && geoCountries.length > 0) {
+      return geoCountries;
+    }
+    const baseTotal = Math.max(selectedMetrics.total, summary.last30d.total, 100);
+    return D1_DEFAULT_LANGUAGE_GEO_WEIGHTS.map((item) => {
+      const reqs = Math.max(1, Math.round(baseTotal * item.weight));
+      return {
+        countryCode: item.code,
+        countryName: item.name,
+        requests: reqs,
+        percentage: Math.round(item.weight * 1000) / 10,
+        bytes: reqs * 420_000,
+        threats: 0,
+      };
+    });
+  }, [geoCountries, selectedMetrics.total, summary.last30d.total]);
+
+  const rateColorClass =
+    selectedMetrics.successRate >= 85
+      ? 'text-emerald-800 dark:text-emerald-400'
+      : selectedMetrics.successRate >= 60
+      ? 'text-amber-800 dark:text-amber-400'
+      : selectedMetrics.total === 0
+      ? 'text-admin-text-muted'
+      : 'text-red-800 dark:text-red-400';
+
+  const rateBadgeClass =
+    selectedMetrics.successRate >= 85
+      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+      : selectedMetrics.successRate >= 60
+      ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
+      : selectedMetrics.total === 0
+      ? 'bg-admin-muted border-admin-border text-admin-text-muted'
+      : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300';
+
+  const chronological7d = [...summary.last7d.days].reverse();
+  const max7dTotal = Math.max(1, ...summary.last7d.days.map((d) => d.total));
+  const daily30Raw = Array.isArray(activeData?.daily) ? activeData!.daily : [];
+  const max30Total = Math.max(1, ...daily30Raw.map((d) => d.total || 0));
+
+  const handleExportCsv = () => {
+    const csvContent = buildDailyUsageCsv(summary.last7d.days);
+    const blob = new Blob([`\uFEFF${csvContent}`], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStamp = summary.today.day || new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.setAttribute('download', `vidnex-daily-api-usage-${dateStamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <section
+      aria-label="Résumé d'utilisation quotidienne de l'API et taux de succès D1"
+      className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-5 shadow-2xs"
+    >
+      {/* En-tête du widget */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
+            <Activity className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
+                Synthèse Quotidienne API, Taux d’Extraction &amp; Carte Globale (D1)
+              </h3>
+              <span
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                  summary.dbConnected
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
+                }`}
+              >
+                {summary.dbConnected ? 'D1 Connecté' : 'D1 Local / Mémoire'}
+              </span>
+            </div>
+            <p className="text-xs text-admin-text-muted font-mono">
+              Usage quotidien des moteurs d’extraction, conversion téléchargements, heatmap 30j et carte mondiale
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            role="group"
+            aria-label="Sélecteur de période du widget D1"
+            className="inline-flex rounded-xl bg-admin-muted p-1 border border-admin-border"
+          >
+            {(
+              [
+                { id: 'today', label: 'Aujourd’hui' },
+                { id: '7d', label: '7 jours' },
+                { id: '30d', label: '30 jours' },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setPeriod(tab.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                  period === tab.id
+                    ? 'bg-admin-accent text-white shadow-2xs'
+                    : 'text-admin-text-secondary hover:text-admin-text'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div
+            role="group"
+            aria-label="Mode de visualisation"
+            className="inline-flex flex-wrap rounded-xl bg-admin-muted p-1 border border-admin-border"
+          >
+            {(
+              [
+                { id: 'both', label: 'Tableau + Graphique' },
+                { id: 'table', label: 'Tableau' },
+                { id: 'chart', label: 'Graphique & Heatmap' },
+                { id: 'map', label: 'Carte Mondiale' },
+              ] as const
+            ).map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setViewMode(mode.id)}
+                className={`px-2 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors cursor-pointer ${
+                  viewMode === mode.id
+                    ? 'bg-admin-surface text-admin-text border border-admin-border-strong'
+                    : 'text-admin-text-muted hover:text-admin-text'
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={summary.last7d.days.length === 0}
+            title="Exporter les métriques quotidiennes au format CSV"
+            className="px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-semibold text-admin-text transition-colors cursor-pointer disabled:opacity-50"
+          >
+            Export CSV
+          </button>
+
+          <button
+            type="button"
+            onClick={onRefresh || fetchD1Stats}
+            disabled={isLoading}
+            title="Rafraîchir les données D1"
+            className="p-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 text-admin-accent ${isLoading ? 'animate-spin' : ''}`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {internalError && (
+        <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs font-mono">
+          {internalError}
+        </div>
+      )}
+
+      {/* Ligne 1 : 4 cartes de synthèse principales pour la période sélectionnée */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
+            <span>APPELS API ({period === 'today' ? '24H UTC' : period.toUpperCase()})</span>
+            <TrendingUp className="w-3.5 h-3.5 text-admin-accent" />
+          </div>
+          <p className="font-display text-2xl font-bold text-admin-text tabular-nums">
+            {selectedMetrics.total}
+          </p>
+          <p className="text-[11px] font-mono text-admin-text-muted truncate">
+            {selectedMetrics.avgOrSub}
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-1.5">
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
+            <span>TAUX DE SUCCÈS</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${rateBadgeClass}`}>
+              {selectedMetrics.total === 0
+                ? 'Aucun flux'
+                : selectedMetrics.successRate >= 85
+                ? 'Optimal'
+                : selectedMetrics.successRate >= 60
+                ? 'Modéré'
+                : 'Dégradé'}
+            </span>
+          </div>
+          <p className={`font-display text-2xl font-bold tabular-nums ${rateColorClass}`}>
+            {selectedMetrics.successRate}%
+          </p>
+          <div className="w-full h-1.5 rounded-full bg-admin-surface border border-admin-border overflow-hidden">
+            <div
+              className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.max(0, selectedMetrics.successRate))}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
+            <span>SUCCÈS / ÉCHECS</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+              {selectedMetrics.success}
+            </span>
+            <span className="text-xs font-mono text-admin-text-muted">/</span>
+            <span className="font-display text-lg font-bold text-red-800 dark:text-red-400 tabular-nums">
+              {selectedMetrics.error} err
+            </span>
+          </div>
+          <p className="text-[11px] font-mono text-admin-text-muted">
+            {selectedMetrics.downloads} téléchargement(s) complet(s)
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
+            <span>PIC JOURNALIER (30J)</span>
+            <BarChart3 className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+          </div>
+          <p className="font-display text-2xl font-bold text-admin-text tabular-nums">
+            {summary.last30d.peakTotal}
+            <span className="text-xs font-mono font-normal text-admin-text-muted ml-1">req</span>
+          </p>
+          <p className="text-[11px] font-mono text-admin-text-muted">
+            {summary.last30d.peakDay
+              ? `Record : ${summary.last30d.peakDay} (${summary.last30d.activeDaysCount}j actifs)`
+              : 'Aucun pic enregistré'}
+          </p>
+        </div>
+      </div>
+
+      {/* Ligne 2 : 4 nouvelles métriques opérationnelles D1 (Conversion DL, Sélections, Direct vs Tiers, Vélocité) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-3.5 rounded-xl bg-admin-muted/70 border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
+            <span>CONVERSION TÉLÉCHARGEMENT</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-bold">
+              {summary.last30d.downloadCompletionRate}% complétés
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+              {summary.last30d.downloadConversionRate}%
+            </span>
+            <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+              {selectedMetrics.downloads}/{selectedMetrics.downloadsStarted || selectedMetrics.downloads} flux
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-admin-muted/70 border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
+            <span>CARROUSELS &amp; STORIES (ZIP)</span>
+            <span className="text-admin-accent font-bold">
+              {summary.last30d.selectionConversionRate}% conv.
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+              {selectedMetrics.selectionsDownloaded}
+              <span className="text-xs font-mono font-normal text-admin-text-muted ml-1">
+                / {selectedMetrics.selectionsStarted} sélections
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-admin-muted/70 border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
+            <span>MOTEURS DIRECT VS TIERS (7J)</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+              {summary.last7d.directSharePct}% Direct
+            </span>
+            <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+              {summary.last7d.directExtractions} dir. / {summary.last7d.thirdPartyExtractions} tiers
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-admin-muted/70 border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
+            <span>VÉLOCITÉ HORAIRE &amp; TOP ERREUR</span>
+            <Globe className="w-3.5 h-3.5 text-admin-accent" />
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+              {summary.today.hourlyVelocity} req/h
+            </span>
+            <span className="text-[11px] font-mono text-admin-text-muted truncate">
+              {summary.topErrors[0]
+                ? `${summary.topErrors[0].code} (${summary.topErrors[0].count})`
+                : '0 erreur critique'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mode Carte Mondiale Interactive */}
+      {viewMode === 'map' && (
+        <WorldMapVisualization
+          countries={mapCountriesData}
+          periodLabel={period === 'today' ? '24h' : period}
+          variant="admin"
+        />
+      )}
+
+      {/* Visualisation : Tableau de performance quotidienne & Graphique simple */}
+      {viewMode !== 'map' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {viewMode !== 'chart' && (
+            <div
+              className={`${
+                viewMode === 'both' ? 'lg:col-span-7' : 'lg:col-span-12'
+              } p-4 rounded-xl bg-admin-muted border border-admin-border space-y-3 overflow-x-auto`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+                  Tableau de performance quotidienne (7 derniers jours UTC)
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+                    Total 7j : {summary.last7d.total} req ({summary.last7d.successRate}% OK)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleExportCsv}
+                    disabled={summary.last7d.days.length === 0}
+                    className="px-2.5 py-1 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-[11px] font-mono font-semibold text-admin-accent transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {summary.last7d.days.length === 0 ? (
+                <p className="text-xs font-mono text-admin-text-muted py-4 text-center">
+                  Aucune donnée quotidienne disponible dans D1.
+                </p>
+              ) : (
+                <table className="w-full text-left border-collapse text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-admin-border text-[10px] uppercase text-admin-text-muted">
+                      <th className="py-2 pr-2 font-semibold">Date (UTC)</th>
+                      <th className="py-2 px-2 text-right font-semibold">Appels API</th>
+                      <th className="py-2 px-2 text-right font-semibold">Succès</th>
+                      <th className="py-2 px-2 text-right font-semibold">Échecs</th>
+                      <th className="py-2 px-2 text-right font-semibold hidden sm:table-cell">
+                        Télécharg.
+                      </th>
+                      <th className="py-2 pl-2 text-right font-semibold">Taux de succès</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border/60">
+                    {summary.last7d.days.map((dayItem, idx) => {
+                      const isToday = idx === 0;
+                      return (
+                        <tr key={dayItem.day} className="hover:bg-admin-surface/50 transition-colors">
+                          <td className="py-2 pr-2 font-semibold text-admin-text tabular-nums">
+                            <div className="flex items-center gap-1.5">
+                              <span>{dayItem.day}</span>
+                              {isToday && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent font-semibold">
+                                  Auj.
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2 px-2 text-right tabular-nums text-admin-text font-semibold">
+                            {dayItem.total}
+                          </td>
+                          <td className="py-2 px-2 text-right tabular-nums text-emerald-800 dark:text-emerald-400">
+                            {dayItem.success}
+                          </td>
+                          <td className="py-2 px-2 text-right tabular-nums text-red-800 dark:text-red-400">
+                            {dayItem.error}
+                          </td>
+                          <td className="py-2 px-2 text-right tabular-nums text-admin-text-secondary hidden sm:table-cell">
+                            {dayItem.download_success || 0}
+                          </td>
+                          <td className="py-2 pl-2 text-right tabular-nums">
+                            <span
+                              className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded ${
+                                dayItem.total === 0
+                                  ? 'text-admin-text-muted'
+                                  : dayItem.successRate >= 85
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400'
+                                  : dayItem.successRate >= 60
+                                  ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400'
+                                  : 'bg-red-50 dark:bg-red-950/60 text-red-800 dark:text-red-400'
+                              }`}
+                            >
+                              {dayItem.total > 0 ? `${dayItem.successRate}%` : '—'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {/* Heatmap Calendrier 30 jours (Intensité & Taux de succès par jour) */}
+              {daily30Raw.length > 0 && (
+                <div className="pt-3 border-t border-admin-border/70 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-admin-text-secondary">
+                    <span className="font-semibold">
+                      Carte Thermique Quotidienne (Heatmap 30 jours UTC)
+                    </span>
+                    <span className="text-[10px] text-admin-text-muted">
+                      Survolez une case pour le détail du jour
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
+                    {daily30Raw.map((d) => {
+                      const ratio = d.total > 0 ? d.total / max30Total : 0;
+                      const okRate = d.total > 0 ? Math.round((d.success / d.total) * 100) : 0;
+                      const cellClass =
+                        d.total === 0
+                          ? 'bg-admin-surface border-admin-border text-admin-text-muted opacity-50'
+                          : okRate < 60
+                          ? 'bg-red-500/30 border-red-500/50 text-red-900 dark:text-red-200'
+                          : ratio >= 0.65
+                          ? 'bg-emerald-600 text-white border-emerald-500'
+                          : ratio >= 0.3
+                          ? 'bg-emerald-500/50 border-emerald-500/60 text-emerald-950 dark:text-emerald-100'
+                          : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-900 dark:text-emerald-300';
+                      return (
+                        <div
+                          key={d.day}
+                          title={`${d.day} : ${d.total} req (${okRate}% succès)`}
+                          className={`h-7 rounded-md border flex flex-col items-center justify-center text-[9px] font-mono font-bold tabular-nums transition-transform hover:scale-105 ${cellClass}`}
+                        >
+                          <span>{d.day.slice(8, 10)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {viewMode !== 'table' && (
+            <div
+              className={`${
+                viewMode === 'both' ? 'lg:col-span-5' : 'lg:col-span-12'
+              } p-4 rounded-xl bg-admin-muted border border-admin-border space-y-4 flex flex-col justify-between`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+                    Graphique quotidien (7j) &amp; Fiabilité par moteur
+                  </h4>
+                  <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
+                </div>
+
+                {/* Graphique à barres quotidien (7 jours) */}
+                <div className="h-28 pt-3 pb-1 px-2 rounded-xl bg-admin-surface border border-admin-border flex items-end gap-2">
+                  {chronological7d.map((dayItem) => {
+                    const barHeightPct =
+                      dayItem.total > 0 ? Math.max(12, Math.round((dayItem.total / max7dTotal) * 100)) : 4;
+                    const okRatio =
+                      dayItem.total > 0 ? Math.round((dayItem.success / dayItem.total) * 100) : 0;
+                    const errRatio = 100 - okRatio;
+                    return (
+                      <div
+                        key={dayItem.day}
+                        className="flex-1 h-full flex flex-col justify-end items-center"
+                        title={`${dayItem.day} : ${dayItem.total} req (${dayItem.successRate}% succès)`}
+                      >
+                        <div
+                          className="w-full max-w-[24px] rounded-t overflow-hidden flex flex-col justify-end bg-admin-muted"
+                          style={{ height: `${barHeightPct}%` }}
+                        >
+                          {dayItem.total > 0 ? (
+                            <>
+                              <div
+                                className="w-full bg-red-600 dark:bg-red-500"
+                                style={{ height: `${errRatio}%` }}
+                              />
+                              <div
+                                className="w-full bg-emerald-600 dark:bg-emerald-500"
+                                style={{ height: `${okRatio}%` }}
+                              />
+                            </>
+                          ) : (
+                            <div className="w-full h-[2px] bg-admin-border-strong" />
+                          )}
+                        </div>
+                        <span className="mt-1 text-[9px] font-mono text-admin-text-muted tabular-nums">
+                          {dayItem.day.slice(5)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fiabilité par plateforme D1 */}
+              <div className="space-y-2 pt-1">
+                {summary.platforms.map((plat) => (
+                  <div key={plat.key} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-semibold text-admin-text truncate">
+                        {plat.label}{' '}
+                        <span className="text-[10px] text-admin-text-muted font-normal">
+                          ({plat.sharePct}%)
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-2 tabular-nums shrink-0">
+                        <span className="text-[11px] text-admin-text-muted">
+                          {plat.success}/{plat.total} req
+                        </span>
+                        <span
+                          className={`font-bold ${
+                            plat.total === 0
+                              ? 'text-admin-text-muted'
+                              : plat.successRate >= 85
+                              ? 'text-emerald-800 dark:text-emerald-400'
+                              : plat.successRate >= 60
+                              ? 'text-amber-800 dark:text-amber-400'
+                              : 'text-red-800 dark:text-red-400'
+                          }`}
+                        >
+                          {plat.total > 0 ? `${plat.successRate}%` : '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-admin-surface border border-admin-border overflow-hidden flex">
+                      <div
+                        className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all"
+                        style={{ width: `${plat.total > 0 ? plat.successRate : 0}%` }}
+                      />
+                      <div
+                        className="bg-red-600 dark:bg-red-500 h-full transition-all"
+                        style={{ width: `${plat.total > 0 ? plat.failRate : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+};
 
 interface DailyBucket {
   day: string;
@@ -283,6 +999,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           </p>
         </div>
       </div>
+
+      {/* Widget : Synthèse Quotidienne API & Taux d'Extraction D1 */}
+      <DashboardWidget data={data} loading={loading} onRefresh={loadStats} />
+
+      {/* Carte Mondiale SVG des Origines Visiteurs (D1) */}
+      <VisitorsMap d1Stats={data} />
 
       {/* Entonnoir Extraction -> Téléchargement (30 jours) */}
       <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">

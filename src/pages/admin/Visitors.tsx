@@ -108,7 +108,8 @@ interface VisitorsApiResponse {
   fetchedAt?: number;
   cacheExpiresAt?: number;
   cacheTtlSeconds?: number;
-  sourceScope?: 'zone' | 'zone+account' | 'account';
+  sourceScope?: 'zone' | 'zone+account' | 'account' | 'd1-fallback';
+  rateLimitedWarning?: string;
   periods?: Record<VisitorsPeriodKey, PeriodVisitorsSummary>;
   errorCode?: string;
   message?: string;
@@ -416,13 +417,33 @@ export const Visitors: React.FC = () => {
                 </button>
                 <span className="text-[11px] text-rose-300/80">
                   Secrets Pages requis :{' '}
-                  <code className="font-mono">CF_API_TOKEN</code> (Analytics:Read) +{' '}
+                  <code className="font-mono">CF_API_TOKEN</code> (ou{' '}
+                  <code className="font-mono">CF_API</code>) +{' '}
                   <code className="font-mono">CF_ZONE_ID</code> (ou{' '}
                   <code className="font-mono">CF_ACCOUNT_ID</code>)
                 </span>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Avertissement non bloquant en cas de quota GraphQL temporaire (affiche le cache ou le repli D1) */}
+      {!error && data?.rateLimitedWarning && (
+        <div className="bg-amber-950/35 border border-amber-500/40 rounded-2xl p-4 text-amber-200 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            <p className="text-xs leading-relaxed">{data.rateLimitedWarning}</p>
+          </div>
+          <button
+            type="button"
+            onClick={fetchVisitors}
+            disabled={loading}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-semibold text-white transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Réessayer
+          </button>
         </div>
       )}
 

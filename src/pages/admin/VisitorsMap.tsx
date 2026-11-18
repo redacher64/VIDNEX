@@ -90,7 +90,7 @@ function getHeatTierColors(tier: ActivityHeatTier, isSelected: boolean) {
       stroke: isSelected ? '#fb923c' : '#f97316',
       dot: '#f97316',
       badge:
-        'bg-orange-500/15 border-orange-500/40 text-orange-700 dark:text-orange-300',
+        'bg-orange-500/15 border-orange-500/40 text-orange-800 dark:text-orange-300',
       label: 'Activité Maximale',
     };
   }
@@ -106,7 +106,7 @@ function getHeatTierColors(tier: ActivityHeatTier, isSelected: boolean) {
   }
   if (tier === 'medium') {
     return {
-      fill: isSelected ? 'rgba(16, 185, 129, 0.34)' : 'rgba(16, 185, 129, 0.2)',
+      fill: isSelected ? 'rgba(16, 185, 129, 0.34)' : 'rgba(16, 185, 129, 0.22)',
       stroke: isSelected ? '#34d399' : '#10b981',
       dot: '#10b981',
       badge:
@@ -115,8 +115,8 @@ function getHeatTierColors(tier: ActivityHeatTier, isSelected: boolean) {
     };
   }
   return {
-    fill: isSelected ? 'rgba(56, 189, 248, 0.28)' : 'rgba(51, 65, 85, 0.45)',
-    stroke: isSelected ? '#38bdf8' : '#475569',
+    fill: isSelected ? 'rgba(56, 189, 248, 0.28)' : 'rgba(92, 53, 30, 0.45)',
+    stroke: isSelected ? '#38bdf8' : '#7c4324',
     dot: '#38bdf8',
     badge: 'bg-sky-500/15 border-sky-500/40 text-sky-800 dark:text-sky-300',
     label: 'Activité Standard',
@@ -180,8 +180,19 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
               <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
                 Carte Mondiale des Origines Visiteurs (D1 Analytics)
               </h3>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-orange-500/15 border border-orange-500/40 text-orange-800 dark:text-orange-300">
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
                 Région #1 : {summary.mostActiveRegion.shortName} ({summary.mostActiveRegion.sharePct}%)
+              </span>
+              <span
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                  summary.source === 'd1-scaled-mock'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-admin-muted border-admin-border text-admin-text-secondary'
+                }`}
+              >
+                {summary.source === 'd1-scaled-mock'
+                  ? 'Ressource : D1 · daily_metrics (Calibré)'
+                  : 'Ressource : D1 · Modèle Régional'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted font-mono">
@@ -317,15 +328,13 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
       {/* Carte Mondiale SVG + Classement des Régions les plus actives */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Canvas SVG Carte Mondiale avec régions surlignées par intensité d'activité */}
-        <div className="lg:col-span-8 rounded-2xl bg-[#0d131f] border border-admin-border p-3.5 flex flex-col justify-between text-slate-100">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-[11px] font-mono text-slate-400">
+        <div className="lg:col-span-8 rounded-2xl bg-[#16100c] border border-admin-border p-3.5 flex flex-col justify-between text-[#fffaf5]">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-[11px] font-mono text-[#c89d7c]">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
               Zones thermiques D1 : les régions les plus actives sont illuminées en orange/ambre
             </span>
-            <span>
-              Cliquez sur un continent ou un pays pour inspecter
-            </span>
+            <span>Cliquez sur un continent ou un pays pour inspecter</span>
           </div>
 
           <div className="relative w-full aspect-[2/1] min-h-[240px]">
@@ -353,7 +362,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 </radialGradient>
               </defs>
 
-              {/* Grille géographique */}
+              {/* Grille géographique chaude */}
               {[100, 200, 300, 400].map((y) => (
                 <line
                   key={`grid-y-${y}`}
@@ -361,7 +370,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                   y1={y}
                   x2={1000}
                   y2={y}
-                  stroke="#1e293b"
+                  stroke="#2c1d13"
                   strokeWidth="0.8"
                   strokeDasharray="4 4"
                 />
@@ -373,7 +382,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                   y1={0}
                   x2={x}
                   y2={500}
-                  stroke="#1e293b"
+                  stroke="#2c1d13"
                   strokeWidth="0.8"
                   strokeDasharray="4 4"
                 />
@@ -442,8 +451,8 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                       width="92"
                       height="16"
                       rx="4"
-                      fill="#020617"
-                      fillOpacity="0.9"
+                      fill="#120c08"
+                      fillOpacity="0.92"
                       stroke={reg.isTopRegion ? '#f97316' : '#f59e0b'}
                       strokeWidth="1"
                     />
@@ -495,21 +504,21 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                       <circle
                         r={radius + 3}
                         fill="none"
-                        stroke={isSelected ? '#ffffff' : dotFill}
+                        stroke={isSelected ? '#fffaf5' : dotFill}
                         strokeWidth={isSelected ? '1.8' : '1.1'}
                       />
                     )}
                     <circle
                       r={Math.max(4, radius * 0.6)}
                       fill={dotFill}
-                      stroke="#020617"
+                      stroke="#140e0a"
                       strokeWidth="1.2"
                     />
                     {(idx < 6 || isSelected) && (
                       <text
                         textAnchor="middle"
                         y={radius + 11}
-                        fill="#f8fafc"
+                        fill="#fffaf5"
                         fontSize="7.5"
                         fontFamily="monospace"
                         fontWeight="bold"
@@ -524,7 +533,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           </div>
 
           {/* Légende d'intensité thermique */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 border-t border-[#2c1d13] text-[11px] font-mono text-[#c89d7c]">
             <div className="flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
@@ -539,9 +548,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 Activité Modérée / Standard
               </span>
             </div>
-            <span>
-              Région active : {activeRegion.name}
-            </span>
+            <span className="text-[#f3d5b5]">Région active : {activeRegion.name}</span>
           </div>
         </div>
 

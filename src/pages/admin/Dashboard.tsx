@@ -235,6 +235,9 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               >
                 {summary.dbConnected ? 'D1 Connecté' : 'D1 Local / Mémoire'}
               </span>
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
+                Ressource : D1 · daily_metrics + request_log
+              </span>
             </div>
             <p className="text-xs text-admin-text-muted font-mono">
               Usage quotidien des moteurs d’extraction, conversion téléchargements, heatmap 30j et carte mondiale
@@ -1076,11 +1079,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       {/* Résumé Santé des moteurs */}
       <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <HeartPulse className="w-4 h-4 text-admin-accent" />
             <h3 className="font-display text-sm font-bold text-admin-text">
               Santé des moteurs
             </h3>
+            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-muted border border-admin-border text-admin-text-secondary">
+              Ressource : D1 · engine_health
+            </span>
           </div>
           {onNavigateTab && (
             <button
@@ -1201,20 +1207,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               </div>
 
               {(key === 'tiktok' || key === 'instagram') && (
-                <div className="p-2.5 rounded-xl bg-[#120c08] border border-orange-950/90 space-y-1.5 text-[11px] font-mono">
-                  <div className="flex items-center justify-between text-orange-200/85">
+                <div className="p-2.5 rounded-xl bg-orange-50/75 dark:bg-[#120c08] border border-orange-200 dark:border-orange-950/90 space-y-1.5 text-[11px] font-mono">
+                  <div className="flex items-center justify-between text-orange-950 dark:text-orange-200/85">
                     <span>Succès Direct (`stage: direct`) :</span>
-                    <span className="text-emerald-300 font-semibold tabular-nums">
+                    <span className="text-emerald-800 dark:text-emerald-300 font-semibold tabular-nums">
                       {stats.stage?.direct ?? stats.direct ?? 0} (7j : {stats.stage?.direct7d ?? stats.direct7d ?? 0})
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-orange-200/85">
+                  <div className="flex items-center justify-between text-orange-950 dark:text-orange-200/85">
                     <span>Succès Tiers (`stage: tiers`) :</span>
-                    <span className="text-amber-300 font-semibold tabular-nums">
+                    <span className="text-amber-800 dark:text-amber-300 font-semibold tabular-nums">
                       {stats.stage?.tiers ?? stats.tiers ?? 0} (7j : {stats.stage?.tiers7d ?? stats.tiers7d ?? 0})
                     </span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-orange-950/80 pt-1 text-orange-300">
+                  <div className="flex items-center justify-between border-t border-orange-200 dark:border-orange-950/80 pt-1 text-orange-900 dark:text-orange-300">
                     <span>Part services tiers (7 jours) :</span>
                     <span className="font-bold tabular-nums">
                       {stats.stage?.thirdPartyRate7d ?? stats.thirdPartyRate7d ?? 0}%

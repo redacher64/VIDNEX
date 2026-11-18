@@ -15,6 +15,7 @@ export interface WorldMapVisualizationProps {
   countries: GeoInputCountryRow[];
   periodLabel?: string;
   variant?: 'slate' | 'admin';
+  sourceLabel?: string;
   onSelectCountry?: (countryCode: string) => void;
 }
 
@@ -104,7 +105,7 @@ const REGION_VIEWBOX: Record<GeoRegionKey, string> = {
 export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
   countries,
   periodLabel = '24h',
-  variant = 'slate',
+  sourceLabel = 'Cloudflare Edge & D1 Geo',
   onSelectCountry,
 }) => {
   const [metricMode, setMetricMode] = useState<GeoMetricMode>('requests');
@@ -129,48 +130,27 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
     return visiblePoints[0] || analytics.points[0] || null;
   }, [activeCountryCode, visiblePoints, analytics.points]);
 
-  const isAdminTheme = variant === 'admin';
-  const cardBg = isAdminTheme
-    ? 'bg-admin-surface border-admin-border text-admin-text'
-    : 'bg-slate-900/60 border-slate-800/80 text-white';
-  const subCardBg = isAdminTheme
-    ? 'bg-admin-muted border-admin-border'
-    : 'bg-slate-950/70 border-slate-800/80';
-
   return (
-    <div className={`border rounded-2xl p-5 space-y-5 ${cardBg}`}>
+    <div className="bg-admin-surface border border-admin-border text-admin-text rounded-2xl p-5 space-y-5 shadow-2xs">
       {/* En-tête de la carte mondiale */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div
-            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 border ${
-              isAdminTheme
-                ? 'bg-admin-accent-bg border-admin-accent-border text-admin-accent'
-                : 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400'
-            }`}
-          >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 border bg-admin-accent-bg border-admin-accent-border text-admin-accent">
             <Globe className="w-4 h-4" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold">
+              <h2 className="font-display text-sm sm:text-base font-bold text-admin-text">
                 Carte Mondiale Interactive &amp; Télémétrie Géographique ({periodLabel})
               </h2>
-              <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-md border ${
-                  isAdminTheme
-                    ? 'bg-admin-muted border-admin-border text-admin-text-secondary'
-                    : 'bg-slate-800/90 border-slate-700 text-slate-300'
-                }`}
-              >
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md border bg-admin-muted border-admin-border text-admin-text-secondary">
                 {analytics.points.length} pays actifs
               </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md border bg-admin-accent-bg border-admin-accent-border text-admin-accent font-semibold">
+                Ressource : {sourceLabel}
+              </span>
             </div>
-            <p
-              className={`text-xs mt-0.5 ${
-                isAdminTheme ? 'text-admin-text-muted font-mono' : 'text-slate-400'
-              }`}
-            >
+            <p className="text-xs mt-0.5 text-admin-text-muted font-mono">
               Visualisation géospatiale du trafic Edge, de la bande passante et des menaces par pays et continent
             </p>
           </div>
@@ -181,7 +161,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
           <div
             role="group"
             aria-label="Métrique de la carte"
-            className={`inline-flex rounded-xl p-1 border ${subCardBg}`}
+            className="inline-flex rounded-xl p-1 border bg-admin-muted border-admin-border"
           >
             {(
               [
@@ -196,12 +176,8 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                 onClick={() => setMetricMode(m.id)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
                   metricMode === m.id
-                    ? isAdminTheme
-                      ? 'bg-admin-accent text-white'
-                      : 'bg-indigo-600 text-white'
-                    : isAdminTheme
-                    ? 'text-admin-text-secondary hover:text-admin-text'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-admin-accent text-white shadow-2xs'
+                    : 'text-admin-text-secondary hover:text-admin-text'
                 }`}
               >
                 {m.label}
@@ -213,7 +189,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
           <div
             role="group"
             aria-label="Zoom par région continentale"
-            className={`inline-flex flex-wrap rounded-xl p-1 border ${subCardBg}`}
+            className="inline-flex flex-wrap rounded-xl p-1 border bg-admin-muted border-admin-border"
           >
             {(
               [
@@ -230,12 +206,8 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                 onClick={() => setSelectedRegion(reg.id)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors cursor-pointer ${
                   selectedRegion === reg.id
-                    ? isAdminTheme
-                      ? 'bg-admin-surface text-admin-text border border-admin-border-strong'
-                      : 'bg-slate-800 text-white border border-slate-700'
-                    : isAdminTheme
-                    ? 'text-admin-text-muted hover:text-admin-text'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-admin-surface text-admin-text border border-admin-border-strong shadow-2xs'
+                    : 'text-admin-text-muted hover:text-admin-text'
                 }`}
               >
                 {reg.label}
@@ -247,22 +219,14 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
 
       {/* Grille principale : Carte SVG (8 cols) + Inspecteur de Pays & Régions (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Canvas SVG Carte Mondiale */}
-        <div
-          className={`lg:col-span-8 rounded-2xl border p-3 relative overflow-hidden flex flex-col justify-between ${
-            isAdminTheme
-              ? 'bg-[#0e1420] border-admin-border text-slate-100'
-              : 'bg-slate-950/90 border-slate-800/90 text-slate-100'
-          }`}
-        >
-          <div className="flex items-center justify-between px-2 pt-1 pb-2 text-[11px] font-mono text-slate-400">
+        {/* Canvas SVG Carte Mondiale (Fond cartographique obsidienne chaude VIDNEX) */}
+        <div className="lg:col-span-8 rounded-2xl border border-admin-border bg-[#16100c] p-3 relative overflow-hidden flex flex-col justify-between text-[#fffaf5]">
+          <div className="flex items-center justify-between px-2 pt-1 pb-2 text-[11px] font-mono text-[#c89d7c]">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
               Projection géospatiale Cloudflare Edge · Cliquez sur un hub pays
             </span>
-            <span>
-              {visiblePoints.length} point(s) affiché(s)
-            </span>
+            <span>{visiblePoints.length} point(s) affiché(s)</span>
           </div>
 
           <div className="relative w-full aspect-[2/1] min-h-[240px]">
@@ -274,9 +238,9 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
             >
               <defs>
                 <radialGradient id="vidnexHubGlowRequests" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
-                  <stop offset="55%" stopColor="#38bdf8" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#f97316" stopOpacity="0.9" />
+                  <stop offset="55%" stopColor="#fb923c" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
                 </radialGradient>
                 <radialGradient id="vidnexHubGlowBytes" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0.85" />
@@ -290,7 +254,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                 </radialGradient>
               </defs>
 
-              {/* Grille de latitude / longitude */}
+              {/* Grille de latitude / longitude chaude */}
               {[100, 200, 300, 400].map((y) => (
                 <line
                   key={`lat-${y}`}
@@ -298,7 +262,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   y1={y}
                   x2={1000}
                   y2={y}
-                  stroke="#1e293b"
+                  stroke="#2c1d13"
                   strokeWidth="0.8"
                   strokeDasharray="4 4"
                 />
@@ -310,7 +274,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   y1={0}
                   x2={x}
                   y2={500}
-                  stroke="#1e293b"
+                  stroke="#2c1d13"
                   strokeWidth="0.8"
                   strokeDasharray="4 4"
                 />
@@ -322,7 +286,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                 y1={277.8}
                 x2={1000}
                 y2={277.8}
-                stroke="#334155"
+                stroke="#4d2c19"
                 strokeWidth="1"
               />
 
@@ -334,8 +298,8 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   <path
                     key={cont.id}
                     d={cont.d}
-                    fill={isFocusedRegion ? '#1e293b' : '#0f172a'}
-                    stroke={isFocusedRegion ? '#334155' : '#1e293b'}
+                    fill={isFocusedRegion ? '#261911' : '#1b120c'}
+                    stroke={isFocusedRegion ? '#5c351e' : '#352013'}
                     strokeWidth="1.5"
                     strokeLinejoin="round"
                     className="transition-colors duration-300"
@@ -356,10 +320,10 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                       fill="none"
                       stroke={
                         metricMode === 'bytes'
-                          ? 'rgba(16, 185, 129, 0.28)'
+                          ? 'rgba(16, 185, 129, 0.35)'
                           : metricMode === 'threats'
-                          ? 'rgba(244, 63, 94, 0.28)'
-                          : 'rgba(56, 189, 248, 0.28)'
+                          ? 'rgba(244, 63, 94, 0.35)'
+                          : 'rgba(249, 115, 22, 0.38)'
                       }
                       strokeWidth="1.2"
                       strokeDasharray="3 3"
@@ -382,7 +346,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                     ? '#10b981'
                     : metricMode === 'threats'
                     ? '#f43f5e'
-                    : '#38bdf8';
+                    : '#f97316';
 
                 return (
                   <g
@@ -399,7 +363,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                     <circle
                       r={pt.radius * 1.9}
                       fill={glowId}
-                      opacity={isSelected ? 0.95 : 0.7}
+                      opacity={isSelected ? 0.95 : 0.72}
                     />
 
                     {/* Anneau de sélection ou top 3 */}
@@ -407,9 +371,9 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                       <circle
                         r={pt.radius + 3.5}
                         fill="none"
-                        stroke={isSelected ? '#ffffff' : dotColor}
-                        strokeWidth={isSelected ? '1.8' : '1'}
-                        strokeOpacity={isSelected ? 0.95 : 0.55}
+                        stroke={isSelected ? '#fffaf5' : dotColor}
+                        strokeWidth={isSelected ? '1.8' : '1.1'}
+                        strokeOpacity={isSelected ? 0.95 : 0.6}
                       />
                     )}
 
@@ -417,7 +381,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                     <circle
                       r={Math.max(4, pt.radius * 0.65)}
                       fill={dotColor}
-                      stroke="#0f172a"
+                      stroke="#140e0a"
                       strokeWidth="1.2"
                     />
 
@@ -425,20 +389,20 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                     {(index < 8 || isSelected) && (
                       <g transform={`translate(0, ${-Math.max(7, pt.radius * 0.75) - 4})`}>
                         <rect
-                          x="-18"
+                          x="-20"
                           y="-11"
-                          width="36"
+                          width="40"
                           height="13"
                           rx="3.5"
-                          fill="#020617"
-                          fillOpacity="0.88"
-                          stroke={isSelected ? '#38bdf8' : '#334155'}
-                          strokeWidth="0.8"
+                          fill="#120c08"
+                          fillOpacity="0.92"
+                          stroke={isSelected ? '#fb923c' : '#5c351e'}
+                          strokeWidth="0.9"
                         />
                         <text
                           textAnchor="middle"
                           y="-2"
-                          fill="#f8fafc"
+                          fill="#fffaf5"
                           fontSize="7.5"
                           fontFamily="monospace"
                           fontWeight="bold"
@@ -454,18 +418,18 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
           </div>
 
           {/* Légende de la carte */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-2 pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-2 pt-2 border-t border-[#2c1d13] text-[11px] font-mono text-[#c89d7c]">
             <div className="flex flex-wrap items-center gap-4">
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
                 Hub actif (taille = volume)
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-4 h-0.5 border-b border-dashed border-sky-400" />
+                <span className="w-4 h-0.5 border-b border-dashed border-orange-400" />
                 Flux principaux Top 6
               </span>
             </div>
-            <span>
+            <span className="text-[#f3d5b5]">
               Total : {formatNum(analytics.totalRequests)} visites ·{' '}
               {formatBytesShort(analytics.totalBytes)}
             </span>
@@ -475,12 +439,12 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
         {/* Colonne droite (4 cols) : Inspecteur du pays sélectionné + Répartition par Continent */}
         <div className="lg:col-span-4 flex flex-col justify-between gap-4">
           {/* Fiche détaillée du pays sélectionné / survolé */}
-          <div className={`p-4 rounded-2xl border space-y-3 ${subCardBg}`}>
+          <div className="p-4 rounded-2xl border bg-admin-muted border-admin-border space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-admin-text-muted font-semibold">
                 Inspecteur Géographique
               </span>
-              <span className="text-[11px] font-mono text-sky-400">
+              <span className="text-[11px] font-mono font-semibold text-admin-accent">
                 {highlightedPoint ? highlightedPoint.regionLabel : 'Aucun pays'}
               </span>
             </div>
@@ -491,44 +455,46 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="text-2xl leading-none">{highlightedPoint.flag}</span>
                     <div className="min-w-0">
-                      <div className="font-bold text-sm truncate">
+                      <div className="font-display font-bold text-sm text-admin-text truncate">
                         {highlightedPoint.countryName}
                       </div>
-                      <div className="text-[11px] font-mono text-slate-400">
+                      <div className="text-[11px] font-mono text-admin-text-muted">
                         ISO {highlightedPoint.countryCode} · Lat {highlightedPoint.lat}° / Lon{' '}
                         {highlightedPoint.lon}°
                       </div>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold shrink-0">
+                  <span className="px-2.5 py-1 rounded-lg bg-admin-accent-bg border border-admin-accent-border text-admin-accent font-mono text-xs font-bold shrink-0">
                     {highlightedPoint.percentage}%
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 pt-1 text-xs font-mono">
-                  <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">VISITES</div>
-                    <div className="text-sm font-bold text-white mt-0.5">
+                  <div className="p-2.5 rounded-xl bg-admin-surface border border-admin-border">
+                    <div className="text-[10px] text-admin-text-muted">VISITES</div>
+                    <div className="text-sm font-bold text-admin-text mt-0.5 tabular-nums">
                       {formatNum(highlightedPoint.requests)}
                     </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">BANDE PASSANTE</div>
-                    <div className="text-sm font-bold text-emerald-400 mt-0.5">
+                  <div className="p-2.5 rounded-xl bg-admin-surface border border-admin-border">
+                    <div className="text-[10px] text-admin-text-muted">BANDE PASSANTE</div>
+                    <div className="text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5 tabular-nums">
                       {formatBytesShort(highlightedPoint.bytes)}
                     </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">POIDS / REQ</div>
-                    <div className="text-sm font-bold text-sky-300 mt-0.5">
+                  <div className="p-2.5 rounded-xl bg-admin-surface border border-admin-border">
+                    <div className="text-[10px] text-admin-text-muted">POIDS / REQ</div>
+                    <div className="text-sm font-bold text-sky-700 dark:text-sky-400 mt-0.5 tabular-nums">
                       {formatBytesShort(highlightedPoint.avgBytesPerRequest)}
                     </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">MENACES WAF</div>
+                  <div className="p-2.5 rounded-xl bg-admin-surface border border-admin-border">
+                    <div className="text-[10px] text-admin-text-muted">MENACES WAF</div>
                     <div
-                      className={`text-sm font-bold mt-0.5 ${
-                        highlightedPoint.threats > 0 ? 'text-rose-400' : 'text-emerald-400'
+                      className={`text-sm font-bold mt-0.5 tabular-nums ${
+                        highlightedPoint.threats > 0
+                          ? 'text-red-700 dark:text-rose-400'
+                          : 'text-emerald-700 dark:text-emerald-400'
                       }`}
                     >
                       {formatNum(highlightedPoint.threats)}
@@ -537,19 +503,19 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                 </div>
               </>
             ) : (
-              <p className="text-xs font-mono text-slate-400 py-4 text-center">
+              <p className="text-xs font-mono text-admin-text-muted py-4 text-center">
                 Aucune donnée géographique disponible sur cette période.
               </p>
             )}
           </div>
 
           {/* Répartition par Continent */}
-          <div className={`p-4 rounded-2xl border space-y-3 flex-1 ${subCardBg}`}>
+          <div className="p-4 rounded-2xl border bg-admin-muted border-admin-border space-y-3 flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-admin-text-muted font-semibold">
                 Répartition par Continent
               </span>
-              <BarChart3 className="w-3.5 h-3.5 text-indigo-400" />
+              <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
             </div>
 
             <div className="space-y-2.5">
@@ -563,21 +529,26 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   className="w-full text-left space-y-1 group cursor-pointer"
                 >
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="font-semibold group-hover:text-sky-400 transition-colors">
+                    <span className="font-semibold text-admin-text group-hover:text-admin-accent transition-colors">
                       {reg.label}{' '}
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-admin-text-muted font-normal">
                         ({reg.countryCount} pays)
                       </span>
                     </span>
-                    <span className="tabular-nums font-bold">
+                    <span className="tabular-nums font-bold text-admin-text">
                       {formatNum(reg.requests)}{' '}
-                      <span className="text-indigo-400">({reg.percentage}%)</span>
+                      <span className="text-admin-accent">({reg.percentage}%)</span>
                     </span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-admin-surface border border-admin-border overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-sky-400 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, Math.max(reg.requests > 0 ? 3 : 0, reg.percentage))}%` }}
+                      className="h-full bg-gradient-to-r from-[#c2410c] to-amber-500 dark:from-orange-500 dark:to-amber-400 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          Math.max(reg.requests > 0 ? 3 : 0, reg.percentage)
+                        )}%`,
+                      }}
                     />
                   </div>
                 </button>

@@ -1563,6 +1563,29 @@ function buildErrorResponse(
   );
 }
 
+export function sanitizeCloudflareToken(raw: unknown): string {
+  let s = String(raw || '').trim();
+  if (!s) return '';
+  // If user pasted a full curl command or header, extract cfat_ token directly if present
+  const cfatMatch = s.match(/cfat_[A-Za-z0-9_-]{20,}/);
+  if (cfatMatch) {
+    return cfatMatch[0];
+  }
+  // Strip surrounding quotes
+  s = s.replace(/^["'`]+|["'`]+$/g, '').trim();
+  // Strip optional "Authorization:" and "Bearer " prefixes
+  s = s.replace(/^Authorization\s*:\s*/i, '').trim();
+  s = s.replace(/^Bearer\s+/i, '').trim();
+  s = s.replace(/^["'`]+|["'`]+$/g, '').trim();
+  return s;
+}
+
+function maskTokenPreview(token: string): string {
+  if (!token) return 'vide';
+  if (token.length <= 10) return `${token.slice(0, 2)}*** (${token.length} car.)`;
+  return `${token.slice(0, 8)}…${token.slice(-4)} (${token.length} car.)`;
+}
+
 export async function onRequestGet(context: PagesContext): Promise<Response> {
   const env = context.env || {};
 
@@ -1570,10 +1593,18 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
   const auth = await requirePermission(context.request, env, 'owner');
   if (!auth.ok) return auth.response;
 
-  // Support both CF_API_TOKEN and CF_API secret names
-  const apiToken = String(env.CF_API_TOKEN || env.CF_API || '').trim();
-  let zoneId = String(env.CF_ZONE_ID || '').trim();
-  const accountId = String(env.CF_ACCOUNT_ID || '').trim();
+  // Support both CF_API_TOKEN and CF_API secret names, sanitized
+  const candidateTokens = Array.from(
+    new Set(
+      [
+        sanitizeCloudflareToken(env.CF_API_TOKEN),
+        sanitizeCloudflareToken(env.CF_API),
+      ].filter((t) => t.length > 0)
+    )
+  );
+  let apiToken = candidateTokens[0] || '';
+  let zoneId = String(env.CF_ZONE_ID || '').trim().replace(/^["']+|["']+$/g, '');
+  const accountId = String(env.CF_ACCOUNT_ID || '').trim().replace(/^["']+|["']+$/g, '');
 
   if (!apiToken) {
     const missingVars: string[] = ['CF_API_TOKEN (ou CF_API)'];
@@ -1638,7 +1669,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
 
   async function executeCfGraphQl(
     query: string,
-    variables: Record<string, unknown>
+    variables: Record<string, unknown>,
+    tokenToUse = apiToken
   ) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12_000);
@@ -1646,7 +1678,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       return await fetch(CF_GRAPHQL_ENDPOINT, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiToken}`,
+          Authorization: `Bearer ${tokenToUse}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
@@ -1668,8 +1700,22 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
   try {
     cfRes = await executeCfGraphQl(
       initialQueryPkg.query,
-      initialQueryPkg.variables
+      initialQueryPkg.variables,
+      apiToken
     );
+    // If both CF_API_TOKEN and CF_API were set with different values and the first returned 401/403, try the second
+    if ((cfRes.status === 401 || cfRes.status === 403) && candidateTokens.length > 1) {
+      const secondToken = candidateTokens[1];
+      const retryRes = await executeCfGraphQl(
+        initialQueryPkg.query,
+        initialQueryPkg.variables,
+        secondToken
+      );
+      if (retryRes.ok) {
+        apiToken = secondToken;
+        cfRes = retryRes;
+      }
+    }
   } catch (err) {
     const isAbort =
       err instanceof Error &&
@@ -1705,7 +1751,6 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         );
       }
 
-      // Serve live D1 telemetry fallback with a clear warning banner so the page stays functional
       const fallbackPayload: VisitorsAnalyticsResponse = {
         ok: true,
         cached: false,
@@ -1733,10 +1778,13 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     }
 
     if (cfRes.status === 401 || cfRes.status === 403) {
+      const masked = maskTokenPreview(apiToken);
       return buildErrorResponse(
         502,
         'CF_AUTH_ERROR',
-        `Authentification refusée par Cloudflare (HTTP ${cfRes.status}). Vérifiez que le secret CF_API_TOKEN (ou CF_API) est actif et dispose de la permission Analytics → Read.`
+        cfRes.status === 401
+          ? `Jeton refusé par Cloudflare (HTTP 401 — Invalid API Token). Ce n’est PAS un problème de permissions : le jeton actuellement enregistré dans votre secret CF_API (${masked}) a été révoqué ou régénéré chez Cloudflare. Cliquez sur « Roll » (Régénérer) sur votre token dans Cloudflare, copiez le nouveau jeton cfat_… et mettez à jour le secret CF_API dans Workers & Pages → vidnex → Settings → Variables and Secrets.`
+          : `Accès refusé par Cloudflare (HTTP 403). Vérifiez que le jeton (${masked}) dispose de la permission Account Analytics → Read (ou Zone → Analytics → Read).`
       );
     }
     return buildErrorResponse(

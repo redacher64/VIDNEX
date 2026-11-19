@@ -34,6 +34,17 @@ import {
 import { createMemoryD1Database } from '../../functions/_lib/db.ts';
 import worker from '../../worker.ts';
 
+// Offline CI guard: any unmocked external fetch rejects immediately instead of hitting the internet
+globalThis.fetch = (async (input: RequestInfo | URL) => {
+  const u =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : input.url;
+  throw new Error(`[Offline Test Guard] Unmocked network fetch attempted: ${u}`);
+}) as typeof fetch;
+
 describe('VIDNEX URL Detection & Security Suite', () => {
   it('Frontend detectMediaUrl validates Instagram, TikTok, X (Twitter) & Facebook URLs and @handles, and marks unsupported platforms as Coming Soon', () => {
     const igReel = detectMediaUrl('https://www.instagram.com/reel/C8x9kLmN2pQ/');
@@ -862,65 +873,129 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(d1RateLimitedJson.error.code, 'RATE_LIMITED');
 
     // (8) Bouton « Tester maintenant » (POST /api/admin/health) enregistre l'URL et le résultat dans engine_status
-    const healthTestRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/health', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: 'https://vidnex.space',
-          Cookie: sessionCookie,
-        },
-        body: JSON.stringify({
-          action: 'test_engine',
-          platform: 'tiktok',
-          url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
-        }),
-      }),
-      adminEnv
-    );
-    assert.equal(healthTestRes.status, 200);
-    const healthTestJson: any = await healthTestRes.json();
-    assert.equal(healthTestJson.ok, true);
-    assert.equal(healthTestJson.platform, 'tiktok');
+    const origHealthFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        if (u.includes('tikwm.com')) {
+          return new Response(
+            JSON.stringify({
+              code: 0,
+              data: {
+                id: '7106594312292453675',
+                title: 'TikTok Official Video',
+                duration: 15,
+                cover: 'https://p16-sign-va.tiktokcdn.com/tos-maliva-p-0068/cover.jpeg',
+                hdplay: 'https://v16-webapp-prime.tiktok.com/video/tos/useast2a/hd.mp4',
+                play: 'https://v16-webapp-prime.tiktok.com/video/tos/useast2a/sd.mp4',
+                author: { unique_id: 'tiktok', nickname: 'TikTok' },
+              },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        if (u.includes('cdn.syndication.twimg.com/tweet-result') && u.includes('id=2040511285998313827')) {
+          return new Response(
+            JSON.stringify({
+              __typename: 'Tweet',
+              id_str: '2040511285998313827',
+              text: 'Deterministic X test video',
+              user: { name: 'Reactiive', screen_name: 'reactiive_' },
+              mediaDetails: [
+                {
+                  type: 'video',
+                  media_url_https: 'https://pbs.twimg.com/ext_tw_video_thumb/2040511285998313827/pu/img/thumb.jpg',
+                  video_info: {
+                    duration_millis: 12000,
+                    variants: [
+                      {
+                        content_type: 'video/mp4',
+                        bitrate: 2176000,
+                        url: 'https://video.twimg.com/ext_tw_video/2040511285998313827/pu/vid/avc1/1280x720/video.mp4',
+                      },
+                      {
+                        content_type: 'video/mp4',
+                        bitrate: 832000,
+                        url: 'https://video.twimg.com/ext_tw_video/2040511285998313827/pu/vid/avc1/640x360/video.mp4',
+                      },
+                    ],
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        return new Response('Not Found', { status: 404 });
+      };
 
-    const healthGetRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/health', {
-        headers: { Cookie: sessionCookie },
-      }),
-      adminEnv
-    );
-    const healthGetJson: any = await healthGetRes.json();
-    assert.equal(
-      healthGetJson.engines.tiktok.test_url,
-      'https://www.tiktok.com/@tiktok/video/7106594312292453675'
-    );
-    assert.ok(healthGetJson.engines.tiktok.last_test_ts > 0);
-    assert.equal(healthGetJson.engines.x.platform, 'x');
-    assert.equal(healthGetJson.engines.facebook.platform, 'facebook');
-    assert.equal(healthGetJson.engines.facebook.test_url, '');
-
-    // Test de santé du moteur X (Twitter) et interrupteur platform_x dans Contrôles
-    const xHealthTestRes = await worker.fetch(
-      new Request('https://vidnex.space/api/admin/health', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: 'https://vidnex.space',
-          Cookie: sessionCookie,
-        },
-        body: JSON.stringify({
-          action: 'test_engine',
-          platform: 'x',
-          url: 'https://x.com/reactiive_/status/2040511285998313827',
+      const healthTestRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/health', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Origin: 'https://vidnex.space',
+            Cookie: sessionCookie,
+          },
+          body: JSON.stringify({
+            action: 'test_engine',
+            platform: 'tiktok',
+            url: 'https://www.tiktok.com/@tiktok/video/7106594312292453675',
+          }),
         }),
-      }),
-      adminEnv
-    );
-    assert.equal(xHealthTestRes.status, 200);
-    const xHealthTestJson: any = await xHealthTestRes.json();
-    assert.equal(xHealthTestJson.ok, true);
-    assert.equal(xHealthTestJson.platform, 'x');
-    assert.equal(xHealthTestJson.testOk, true);
+        adminEnv
+      );
+      assert.equal(healthTestRes.status, 200);
+      const healthTestJson: any = await healthTestRes.json();
+      assert.equal(healthTestJson.ok, true);
+      assert.equal(healthTestJson.platform, 'tiktok');
+
+      const healthGetRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/health', {
+          headers: { Cookie: sessionCookie },
+        }),
+        adminEnv
+      );
+      const healthGetJson: any = await healthGetRes.json();
+      assert.equal(
+        healthGetJson.engines.tiktok.test_url,
+        'https://www.tiktok.com/@tiktok/video/7106594312292453675'
+      );
+      assert.ok(healthGetJson.engines.tiktok.last_test_ts > 0);
+      assert.equal(healthGetJson.engines.x.platform, 'x');
+      assert.equal(healthGetJson.engines.facebook.platform, 'facebook');
+      assert.equal(healthGetJson.engines.facebook.test_url, '');
+
+      // Test de santé du moteur X (Twitter) et interrupteur platform_x dans Contrôles
+      const xHealthTestRes = await worker.fetch(
+        new Request('https://vidnex.space/api/admin/health', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Origin: 'https://vidnex.space',
+            Cookie: sessionCookie,
+          },
+          body: JSON.stringify({
+            action: 'test_engine',
+            platform: 'x',
+            url: 'https://x.com/reactiive_/status/2040511285998313827',
+          }),
+        }),
+        adminEnv
+      );
+      assert.equal(xHealthTestRes.status, 200);
+      const xHealthTestJson: any = await xHealthTestRes.json();
+      assert.equal(xHealthTestJson.ok, true);
+      assert.equal(xHealthTestJson.platform, 'x');
+      assert.equal(xHealthTestJson.testOk, true);
+    } finally {
+      globalThis.fetch = origHealthFetch;
+    }
 
     await worker.fetch(
       new Request('https://vidnex.space/api/admin/settings', {
@@ -990,101 +1065,206 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const db = createMemoryD1Database();
     const env = { DB: db };
 
-    // (1) Tweet public avec vidéo (x.com)
-    const videoRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://x.com/reactiive_/status/2040511285998313827'
-      ),
-      env
-    );
-    assert.equal(videoRes.status, 200);
-    const videoJson: any = await videoRes.json();
-    assert.equal(videoJson.ok, true);
-    assert.equal(videoJson.platform, 'x');
-    assert.equal(videoJson.type, 'video');
-    assert.ok(videoJson.items.length >= 2);
-    assert.equal(videoJson.items[0].quality, '720p');
-    assert.equal(videoJson.items[0].ext, 'mp4');
-    assert.ok(videoJson.items[0].url.startsWith('/api/download?url='));
+    const origFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        if (u.startsWith('https://t.co/vdZbCKTCgj')) {
+          return new Response(null, {
+            status: 301,
+            headers: {
+              Location: 'https://x.com/reactiive_/status/2040511285998313827',
+            },
+          });
+        }
+        if (u.includes('cdn.syndication.twimg.com/tweet-result')) {
+          if (u.includes('id=2040511285998313827')) {
+            return new Response(
+              JSON.stringify({
+                __typename: 'Tweet',
+                id_str: '2040511285998313827',
+                text: 'Public X video tweet',
+                user: { name: 'Reactiive', screen_name: 'reactiive_' },
+                mediaDetails: [
+                  {
+                    type: 'video',
+                    media_url_https:
+                      'https://pbs.twimg.com/ext_tw_video_thumb/2040511285998313827/pu/img/thumb.jpg',
+                    video_info: {
+                      duration_millis: 14000,
+                      variants: [
+                        {
+                          content_type: 'video/mp4',
+                          bitrate: 2176000,
+                          url: 'https://video.twimg.com/ext_tw_video/2040511285998313827/pu/vid/avc1/1280x720/video_720p.mp4',
+                        },
+                        {
+                          content_type: 'video/mp4',
+                          bitrate: 832000,
+                          url: 'https://video.twimg.com/ext_tw_video/2040511285998313827/pu/vid/avc1/640x360/video_360p.mp4',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          if (u.includes('id=20&')) {
+            return new Response(
+              JSON.stringify({
+                __typename: 'Tweet',
+                id_str: '20',
+                text: 'just setting up my twttr',
+                user: { name: 'jack', screen_name: 'jack' },
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          if (u.includes('id=1999999999999999999')) {
+            return new Response('{}', {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          }
+          if (u.includes('id=560070183650213889')) {
+            return new Response(
+              JSON.stringify({
+                __typename: 'TweetTombstone',
+                tombstone: {
+                  text: {
+                    text: 'Age-restricted adult content. This content might not be appropriate for people under 18 years old.',
+                  },
+                },
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          if (u.includes('id=440322224407314432')) {
+            return new Response(
+              JSON.stringify({
+                __typename: 'Tweet',
+                id_str: '440322224407314432',
+                text: 'If only Bradley’s arm was longer. Best photo ever.',
+                user: { name: 'The Ellen Show', screen_name: 'TheEllenShow' },
+                mediaDetails: [
+                  {
+                    type: 'photo',
+                    media_url_https: 'https://pbs.twimg.com/media/BhxWutnCEAAt663.jpg',
+                  },
+                ],
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+        return new Response('Not Found', { status: 404 });
+      };
 
-    // (4) Tweet sans média => NO_MEDIA (HTTP 422)
-    const noMediaRes = await worker.fetch(
-      new Request('https://vidnex.space/api/extract?url=https://x.com/jack/status/20'),
-      env
-    );
-    assert.equal(noMediaRes.status, 422);
-    const noMediaJson: any = await noMediaRes.json();
-    assert.equal(noMediaJson.ok, false);
-    assert.equal(noMediaJson.error.code, 'NO_MEDIA');
+      // (1) Tweet public avec vidéo (x.com)
+      const videoRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://x.com/reactiive_/status/2040511285998313827'
+        ),
+        env
+      );
+      assert.equal(videoRes.status, 200);
+      const videoJson: any = await videoRes.json();
+      assert.equal(videoJson.ok, true);
+      assert.equal(videoJson.platform, 'x');
+      assert.equal(videoJson.type, 'video');
+      assert.ok(videoJson.items.length >= 2);
+      assert.equal(videoJson.items[0].quality, '720p');
+      assert.equal(videoJson.items[0].ext, 'mp4');
+      assert.ok(videoJson.items[0].url.startsWith('/api/download?url='));
 
-    // (5) Tweet supprimé => NOT_FOUND (HTTP 404)
-    const deletedRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://x.com/user/status/1999999999999999999'
-      ),
-      env
-    );
-    assert.equal(deletedRes.status, 404);
-    const deletedJson: any = await deletedRes.json();
-    assert.equal(deletedJson.ok, false);
-    assert.equal(deletedJson.error.code, 'NOT_FOUND');
+      // (4) Tweet sans média => NO_MEDIA (HTTP 422)
+      const noMediaRes = await worker.fetch(
+        new Request('https://vidnex.space/api/extract?url=https://x.com/jack/status/20'),
+        env
+      );
+      assert.equal(noMediaRes.status, 422);
+      const noMediaJson: any = await noMediaRes.json();
+      assert.equal(noMediaJson.ok, false);
+      assert.equal(noMediaJson.error.code, 'NO_MEDIA');
 
-    // (6) Tweet sensible / restreint / tombstone => PRIVATE_OR_LOGIN_REQUIRED (HTTP 403)
-    const tombstoneRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://x.com/user/status/560070183650213889'
-      ),
-      env
-    );
-    assert.equal(tombstoneRes.status, 403);
-    const tombstoneJson: any = await tombstoneRes.json();
-    assert.equal(tombstoneJson.ok, false);
-    assert.equal(tombstoneJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+      // (5) Tweet supprimé => NOT_FOUND (HTTP 404)
+      const deletedRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://x.com/user/status/1999999999999999999'
+        ),
+        env
+      );
+      assert.equal(deletedRes.status, 404);
+      const deletedJson: any = await deletedRes.json();
+      assert.equal(deletedJson.ok, false);
+      assert.equal(deletedJson.error.code, 'NOT_FOUND');
 
-    // (7) Lien court t.co => résolu et revalidé
-    const tcoRes = await worker.fetch(
-      new Request('https://vidnex.space/api/extract?url=https://t.co/vdZbCKTCgj'),
-      env
-    );
-    assert.equal(tcoRes.status, 200);
-    const tcoJson: any = await tcoRes.json();
-    assert.equal(tcoJson.ok, true);
-    assert.equal(tcoJson.platform, 'x');
-    assert.equal(tcoJson.author.username, 'reactiive_');
+      // (6) Tweet sensible / restreint / tombstone => PRIVATE_OR_LOGIN_REQUIRED (HTTP 403)
+      const tombstoneRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://x.com/user/status/560070183650213889'
+        ),
+        env
+      );
+      assert.equal(tombstoneRes.status, 403);
+      const tombstoneJson: any = await tombstoneRes.json();
+      assert.equal(tombstoneJson.ok, false);
+      assert.equal(tombstoneJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
 
-    // (8) Liens twitter.com ET x.com avec /photo/1
-    const twitterPhotoRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://twitter.com/TheEllenShow/status/440322224407314432/photo/1'
-      ),
-      env
-    );
-    assert.equal(twitterPhotoRes.status, 200);
-    const twitterPhotoJson: any = await twitterPhotoRes.json();
-    assert.equal(twitterPhotoJson.ok, true);
-    assert.equal(twitterPhotoJson.platform, 'x');
-    assert.equal(twitterPhotoJson.type, 'image');
-    assert.ok(decodeURIComponent(twitterPhotoJson.items[0].url).includes('name=orig'));
+      // (7) Lien court t.co => résolu et revalidé
+      const tcoRes = await worker.fetch(
+        new Request('https://vidnex.space/api/extract?url=https://t.co/vdZbCKTCgj'),
+        env
+      );
+      assert.equal(tcoRes.status, 200);
+      const tcoJson: any = await tcoRes.json();
+      assert.equal(tcoJson.ok, true);
+      assert.equal(tcoJson.platform, 'x');
+      assert.equal(tcoJson.author.username, 'reactiive_');
 
-    // (9) URL invalide ou domaine miroir (fxtwitter) => UNSUPPORTED_URL (HTTP 400)
-    const mirrorRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://fxtwitter.com/reactiive_/status/2040511285998313827'
-      ),
-      env
-    );
-    assert.equal(mirrorRes.status, 400);
-    const mirrorJson: any = await mirrorRes.json();
-    assert.equal(mirrorJson.error.code, 'UNSUPPORTED_URL');
+      // (8) Liens twitter.com ET x.com avec /photo/1
+      const twitterPhotoRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://twitter.com/TheEllenShow/status/440322224407314432/photo/1'
+        ),
+        env
+      );
+      assert.equal(twitterPhotoRes.status, 200);
+      const twitterPhotoJson: any = await twitterPhotoRes.json();
+      assert.equal(twitterPhotoJson.ok, true);
+      assert.equal(twitterPhotoJson.platform, 'x');
+      assert.equal(twitterPhotoJson.type, 'image');
+      assert.ok(decodeURIComponent(twitterPhotoJson.items[0].url).includes('name=orig'));
 
-    // (10) Health.tsx : statut 'En ligne' / 'Hors ligne' et URL de test spécifique X
-    const { DEFAULT_X_TEST_URL, getEngineStatusLabel } = await import(
-      '../pages/admin/healthConfig.ts'
-    );
-    assert.equal(DEFAULT_X_TEST_URL, 'https://x.com/reactiive_/status/2040511285998313827');
-    assert.equal(getEngineStatusLabel(1), 'En ligne');
-    assert.equal(getEngineStatusLabel(null), 'En ligne');
-    assert.equal(getEngineStatusLabel(0), 'Hors ligne');
+      // (9) URL invalide ou domaine miroir (fxtwitter) => UNSUPPORTED_URL (HTTP 400)
+      const mirrorRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://fxtwitter.com/reactiive_/status/2040511285998313827'
+        ),
+        env
+      );
+      assert.equal(mirrorRes.status, 400);
+      const mirrorJson: any = await mirrorRes.json();
+      assert.equal(mirrorJson.error.code, 'UNSUPPORTED_URL');
+
+      // (10) Health.tsx : statut 'En ligne' / 'Hors ligne' et URL de test spécifique X
+      const { DEFAULT_X_TEST_URL, getEngineStatusLabel } = await import(
+        '../pages/admin/healthConfig.ts'
+      );
+      assert.equal(DEFAULT_X_TEST_URL, 'https://x.com/reactiive_/status/2040511285998313827');
+      assert.equal(getEngineStatusLabel(1), 'En ligne');
+      assert.equal(getEngineStatusLabel(null), 'En ligne');
+      assert.equal(getEngineStatusLabel(0), 'Hors ligne');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
   });
 
   it('ÉTAPE 5 (FACEBOOK) — Vérification complète des 9 scénarios Facebook (vidéo publique, Reel, fb.watch, /share/v|r/, privé/login, supprimée, invalide, non-régression, et test /admin)', async () => {
@@ -1863,67 +2043,127 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.notEqual(frNotFoundMsg, frBlockedMsg);
 
     // -------------------------------------------------------------------
-    // (1b) Extraction réelle via /api/extract sur @instagram, @chadi.sammou et compte inexistant @vidnex_nonexistent_987654321
+    // (1b) Extraction via /api/extract sur @instagram, @chadi.sammou et compte inexistant @vidnex_nonexistent_987654321
     // -------------------------------------------------------------------
-    const liveIgRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.instagram.com/instagram/'
-      ),
-      adminEnv
-    );
-    assert.equal(liveIgRes.status, 200);
-    const liveIgJson: any = await liveIgRes.json();
-    assert.equal(liveIgJson.ok, true);
-    assert.equal(liveIgJson.platform, 'instagram');
-    assert.equal(liveIgJson.type, 'image');
-    assert.equal(liveIgJson.title, '@instagram');
-    assert.equal(liveIgJson.author.username, 'instagram');
-    assert.equal(liveIgJson.items.length, 1);
-    assert.equal(liveIgJson.items[0].kind, 'image');
-    assert.equal(liveIgJson.items[0].ext, 'jpg');
-    assert.ok(
-      liveIgJson.items[0].url.includes('filename=instagram_instagram_profile.jpg')
-    );
-    // Le front public ne reçoit jamais engineStage ni httpStatus
-    assert.equal(liveIgJson.engineStage, undefined);
-    assert.equal(liveIgJson.httpStatus, undefined);
+    const origFetchIgProfile = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        const u =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        if (u.includes('username=instagram')) {
+          return new Response(
+            JSON.stringify({
+              data: {
+                user: {
+                  username: 'instagram',
+                  full_name: 'Instagram',
+                  is_private: false,
+                  hd_profile_pic_url_info: {
+                    url: 'https://scontent.cdninstagram.com/v/t51.2885-19/instagram_hd.jpg',
+                  },
+                },
+              },
+              status: 'ok',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        if (u.includes('username=chadi.sammou')) {
+          return new Response(
+            JSON.stringify({
+              data: {
+                user: {
+                  username: 'chadi.sammou',
+                  full_name: 'Chadi Sammou',
+                  is_private: false,
+                  hd_profile_pic_url_info: {
+                    url: 'https://scontent.cdninstagram.com/v/t51.2885-19/chadi_sammou_hd.jpg',
+                  },
+                },
+              },
+              status: 'ok',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        if (u.includes('vidnex_nonexistent_987654321')) {
+          if (u.includes('web_profile_info')) {
+            return new Response(
+              JSON.stringify({ data: { user: null }, status: 'ok' }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          return new Response('Page Not Found', { status: 404 });
+        }
+        return new Response('Not Found', { status: 404 });
+      };
 
-    const liveChadiRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.instagram.com/chadi.sammou/'
-      ),
-      adminEnv
-    );
-    assert.ok(liveChadiRes.status === 200 || liveChadiRes.status === 502);
-    const liveChadiJson: any = await liveChadiRes.json();
-    if (liveChadiRes.status === 200) {
-      assert.equal(liveChadiJson.ok, true);
-      assert.equal(liveChadiJson.platform, 'instagram');
-      assert.equal(liveChadiJson.type, 'image');
-      assert.equal(liveChadiJson.title, '@chadi.sammou');
-      assert.equal(liveChadiJson.author.username, 'chadi.sammou');
-      assert.ok(
-        liveChadiJson.items[0].url.includes(
-          'filename=instagram_chadi.sammou_profile.jpg'
-        )
+      const liveIgRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/instagram/'
+        ),
+        adminEnv
       );
-    } else {
-      assert.equal(liveChadiJson.error?.code, 'BLOCKED_BY_PLATFORM');
-    }
+      assert.equal(liveIgRes.status, 200);
+      const liveIgJson: any = await liveIgRes.json();
+      assert.equal(liveIgJson.ok, true);
+      assert.equal(liveIgJson.platform, 'instagram');
+      assert.equal(liveIgJson.type, 'image');
+      assert.equal(liveIgJson.title, '@instagram');
+      assert.equal(liveIgJson.author.username, 'instagram');
+      assert.equal(liveIgJson.items.length, 1);
+      assert.equal(liveIgJson.items[0].kind, 'image');
+      assert.equal(liveIgJson.items[0].ext, 'jpg');
+      assert.ok(
+        liveIgJson.items[0].url.includes('filename=instagram_instagram_profile.jpg')
+      );
+      // Le front public ne reçoit jamais engineStage ni httpStatus
+      assert.equal(liveIgJson.engineStage, undefined);
+      assert.equal(liveIgJson.httpStatus, undefined);
 
-    const liveNonExistentRes = await worker.fetch(
-      new Request(
-        'https://vidnex.space/api/extract?url=https://www.instagram.com/vidnex_nonexistent_987654321/'
-      ),
-      adminEnv
-    );
-    assert.ok(liveNonExistentRes.status === 404 || liveNonExistentRes.status === 502);
-    const liveNonExistentJson: any = await liveNonExistentRes.json();
-    assert.equal(liveNonExistentJson.ok, false);
-    assert.ok(
-      liveNonExistentJson.error.code === 'NOT_FOUND' ||
-        liveNonExistentJson.error.code === 'BLOCKED_BY_PLATFORM'
-    );
+      const liveChadiRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/chadi.sammou/'
+        ),
+        adminEnv
+      );
+      assert.ok(liveChadiRes.status === 200 || liveChadiRes.status === 502);
+      const liveChadiJson: any = await liveChadiRes.json();
+      if (liveChadiRes.status === 200) {
+        assert.equal(liveChadiJson.ok, true);
+        assert.equal(liveChadiJson.platform, 'instagram');
+        assert.equal(liveChadiJson.type, 'image');
+        assert.equal(liveChadiJson.title, '@chadi.sammou');
+        assert.equal(liveChadiJson.author.username, 'chadi.sammou');
+        assert.ok(
+          liveChadiJson.items[0].url.includes(
+            'filename=instagram_chadi.sammou_profile.jpg'
+          )
+        );
+      } else {
+        assert.equal(liveChadiJson.error?.code, 'BLOCKED_BY_PLATFORM');
+      }
+
+      const liveNonExistentRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/vidnex_nonexistent_987654321/'
+        ),
+        adminEnv
+      );
+      assert.ok(liveNonExistentRes.status === 404 || liveNonExistentRes.status === 502);
+      const liveNonExistentJson: any = await liveNonExistentRes.json();
+      assert.equal(liveNonExistentJson.ok, false);
+      assert.ok(
+        liveNonExistentJson.error.code === 'NOT_FOUND' ||
+          liveNonExistentJson.error.code === 'BLOCKED_BY_PLATFORM'
+      );
+    } finally {
+      globalThis.fetch = origFetchIgProfile;
+    }
 
     // (8) Vérification du téléchargement via /api/download : streaming JPG, Referer: https://www.instagram.com/, filename="instagram_{username}_profile.jpg"
     const origFetch = globalThis.fetch;

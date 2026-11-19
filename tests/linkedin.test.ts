@@ -23,6 +23,17 @@ import {
 import { updateSystemSettings } from '../functions/_lib/settings.ts';
 import { onRequestGet as adminStatsGet } from '../functions/api/admin/stats.ts';
 
+// Offline CI guard: any unmocked external fetch rejects immediately instead of hitting the internet
+globalThis.fetch = (async (input: RequestInfo | URL) => {
+  const u =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : input.url;
+  throw new Error(`[Offline Test Guard] Unmocked network fetch attempted: ${u}`);
+}) as typeof fetch;
+
 test('detectUrl and detectMediaUrl accept linkedin.com/in/{slug} and country subdomains', () => {
   const validCases = [
     { url: 'https://www.linkedin.com/in/satyanadella', expectedSlug: 'satyanadella' },
@@ -181,26 +192,39 @@ test('parseLinkedInProfileHtml returns LOGIN_WALL on authwall HTML without retry
 });
 
 test('live extractLinkedIn on public profile handles LinkedIn response cleanly', async () => {
-  const res = await extractLinkedIn('satyanadella');
-  assert.ok(
-    res.ok ||
-      [
-        'LOGIN_WALL',
-        'RATE_LIMITED',
-        'PROFILE_NOT_FOUND',
-        'PHOTO_NOT_AVAILABLE',
-        'INVALID_IMAGE',
-        'BLOCKED_BY_PLATFORM',
-        'PRIVATE_OR_LOGIN_REQUIRED',
-        'NOT_FOUND',
-        'TIMEOUT',
-      ].includes(res.error?.code || ''),
-    `Unexpected result: ${JSON.stringify(res)}`
-  );
-  if (res.ok) {
+  const origFetch = globalThis.fetch;
+  try {
+    const validJpeg = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+      ...new Array(128).fill(0x55),
+    ]);
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('linkedin.com/in/satyanadella')) {
+        return new Response(
+          `<!doctype html><html><head><meta property="og:image" content="https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=1750000000&amp;v=beta&amp;t=abc" /></head><body></body></html>`,
+          { status: 200, headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+      if (u.includes('media.licdn.com')) {
+        return new Response(validJpeg, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/jpeg',
+            'Content-Length': String(validJpeg.length),
+          },
+        });
+      }
+      return new Response('Not Found', { status: 404 });
+    }) as typeof fetch;
+
+    const res = await extractLinkedIn('satyanadella');
+    assert.equal(res.ok, true);
     assert.equal(res.platform, 'linkedin');
-    assert.ok(res.type === 'image' || res.type === 'carousel');
+    assert.equal(res.type, 'image');
     assert.equal(res.title, '@satyanadella');
+  } finally {
+    globalThis.fetch = origFetch;
   }
 });
 

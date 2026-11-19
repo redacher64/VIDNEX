@@ -19,6 +19,7 @@ import {
   validateSelectionLimits,
 } from '../utils/zipArchive';
 import type { CarouselSlideItem } from '../services/extractorService';
+import { AdSlot } from './AdSlot';
 
 export function getInitialSelectedSlideIds(
   items: CarouselSlideItem[]
@@ -62,7 +63,264 @@ interface ResultDrawerProps {
   onClose: () => void;
   onRetry?: () => void;
   language: LanguageCode;
+  platform?: string | null;
 }
+
+function detectClientImageMagicBytes(
+  bytes: Uint8Array
+): 'jpg' | 'png' | 'webp' | 'gif' | null {
+  if (!bytes || bytes.length < 4) return null;
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpg';
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
+  ) {
+    return 'png';
+  }
+  if (
+    bytes.length >= 6 &&
+    bytes[0] === 0x47 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x38 &&
+    (bytes[4] === 0x37 || bytes[4] === 0x39) &&
+    bytes[5] === 0x61
+  ) {
+    return 'gif';
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return 'webp';
+  }
+  return null;
+}
+
+const LinkedInManualUploadBox: React.FC = () => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<{
+    objectUrl: string;
+    file: File;
+    ext: 'jpg' | 'png' | 'webp' | 'gif';
+    width: number;
+    height: number;
+    isThumbnail: boolean;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (uploadedImage?.objectUrl) {
+        URL.revokeObjectURL(uploadedImage.objectUrl);
+      }
+    };
+  }, [uploadedImage?.objectUrl]);
+
+  const handleValidateAndPreviewFile = async (file: File) => {
+    setUploadError(null);
+    if (!file) return;
+
+    if (!file.type || !file.type.toLowerCase().startsWith('image/')) {
+      setUploadError(
+        'Le fichier sélectionné n’est pas une image valide (type MIME image/* requis).'
+      );
+      return;
+    }
+
+    if (file.size < 16 || file.size > 10 * 1024 * 1024) {
+      setUploadError(
+        'Taille de fichier invalide (l’image doit être comprise entre 16 octets et 10 Mo).'
+      );
+      return;
+    }
+
+    try {
+      const headerSlice = await file.slice(0, 32).arrayBuffer();
+      const magicExt = detectClientImageMagicBytes(new Uint8Array(headerSlice));
+      if (!magicExt) {
+        setUploadError(
+          'Signature binaire (magic bytes) invalide : seuls les formats JPEG, PNG, WebP et GIF réels sont acceptés.'
+        );
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      const dims = await new Promise<{ width: number; height: number }>(
+        (resolve, reject) => {
+          const img = new Image();
+          img.onload = () =>
+            resolve({
+              width: img.naturalWidth || 0,
+              height: img.naturalHeight || 0,
+            });
+          img.onerror = () => reject(new Error('IMAGE_DECODE_FAILED'));
+          img.src = objectUrl;
+        }
+      );
+
+      if (uploadedImage?.objectUrl) {
+        URL.revokeObjectURL(uploadedImage.objectUrl);
+      }
+
+      const isThumbnail =
+        dims.width <= 450 || dims.height <= 450 || file.size < 45_000;
+
+      setUploadedImage({
+        objectUrl,
+        file,
+        ext: magicExt,
+        width: dims.width,
+        height: dims.height,
+        isThumbnail,
+      });
+    } catch {
+      setUploadError(
+        'Impossible de décoder cette image. Vérifiez que le fichier n’est pas corrompu.'
+      );
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      void handleValidateAndPreviewFile(file);
+    }
+  };
+
+  return (
+    <div
+      data-testid="linkedin-manual-upload"
+      className="mt-4 rounded-2xl bg-orange-50/80 dark:bg-[#221710] border-2 border-dashed border-orange-300 dark:border-orange-800/80 p-4 sm:p-5 text-start"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400">
+            Étape 3 · Dernier recours
+          </span>
+          <h4 className="font-display text-sm sm:text-base font-bold text-[#1f130b] dark:text-[#fffaf5]">
+            Import manuel d’une photo LinkedIn (glisser-déposer ou fichier)
+          </h4>
+        </div>
+        <button
+          type="button"
+          data-testid="linkedin-manual-upload-btn"
+          onClick={() => fileInputRef.current?.click()}
+          className="min-h-[42px] px-4 py-2 rounded-xl bg-white dark:bg-[#1c140e] border border-orange-300 dark:border-orange-700 font-mono text-xs font-bold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer shrink-0"
+        >
+          Choisir une image…
+        </button>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        aria-label="Importer manuellement une photo de profil"
+        data-testid="linkedin-manual-upload-input"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleValidateAndPreviewFile(f);
+        }}
+        className="sr-only"
+      />
+
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`rounded-xl p-4 text-center transition-colors cursor-pointer border ${
+          isDragging
+            ? 'bg-orange-100/90 dark:bg-orange-950/50 border-orange-500'
+            : 'bg-white/80 dark:bg-[#18110c] border-orange-200/80 dark:border-orange-900/50 hover:border-orange-400'
+        }`}
+      >
+        <p className="text-xs sm:text-sm font-medium text-[#4a3429] dark:text-orange-100/90">
+          Glissez et déposez une image ici ou cliquez pour sélectionner un fichier (JPEG, PNG, WebP, GIF · max 10 Mo)
+        </p>
+      </div>
+
+      {uploadError && (
+        <p
+          role="alert"
+          data-testid="linkedin-manual-upload-error"
+          className="mt-2.5 text-xs font-semibold text-red-600 dark:text-red-400"
+        >
+          {uploadError}
+        </p>
+      )}
+
+      {uploadedImage && (
+        <div
+          data-testid="linkedin-manual-upload-preview"
+          className="mt-4 flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-xl bg-white dark:bg-[#1c140e] border border-orange-200 dark:border-orange-800/70"
+        >
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-[#1f130b] border border-orange-300 dark:border-orange-800 shrink-0">
+            <img
+              src={uploadedImage.objectUrl}
+              alt="Aperçu de l’image importée"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-stone-900/85 text-white font-mono text-[10px] font-bold">
+              {uploadedImage.isThumbnail ? 'Miniature' : 'Standard'} ·{' '}
+              {uploadedImage.ext.toUpperCase()}
+            </span>
+          </div>
+
+          <div className="flex-1 min-w-0 text-center sm:text-start space-y-1">
+            <p className="font-mono text-xs font-bold text-[#1f130b] dark:text-[#fffaf5] truncate">
+              {uploadedImage.file.name}
+            </p>
+            <p className="font-mono text-[11px] text-[#6c4e40] dark:text-orange-200/80">
+              {uploadedImage.width} × {uploadedImage.height} px ·{' '}
+              {Math.max(1, Math.round(uploadedImage.file.size / 1024))} Ko ·{' '}
+              {uploadedImage.isThumbnail
+                ? 'Version miniature'
+                : 'Qualité standard'}
+            </p>
+            <div className="pt-1.5 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <button
+                type="button"
+                data-testid="linkedin-manual-download-btn"
+                onClick={() =>
+                  triggerBlobDownload(
+                    uploadedImage.file,
+                    `linkedin_profile_import.${uploadedImage.ext}`
+                  )
+                }
+                className="min-h-[40px] px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-mono text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Enregistrer cette image ({uploadedImage.isThumbnail ? 'Miniature' : uploadedImage.ext.toUpperCase()})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const STUDIO_FALLBACK_THUMB =
   "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 900'%3E%3Crect width='720' height='900' fill='%231f130b'/%3E%3Ccircle cx='360' cy='420' r='56' fill='%23ea580c' fill-opacity='0.85'/%3E%3Cpolygon points='346,396 346,444 388,420' fill='%23fffaf5'/%3E%3Ctext x='360' y='535' text-anchor='middle' fill='%23fffaf5' font-family='sans-serif' font-size='26' font-weight='700'%3EVIDNEX HD STREAM%3C/text%3E%3C/svg%3E";
@@ -160,9 +418,20 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
   onClose,
   onRetry,
   language,
+  platform,
 }) => {
   const t = UI_TRANSLATIONS[language].drawer;
   const sectionRef = useRef<HTMLElement>(null);
+  const isLinkedInContext =
+    platform === 'linkedin' ||
+    result?.platform === 'linkedin' ||
+    Boolean(error && /linkedin/i.test(error));
+  const isLinkedInLoginWallError = Boolean(
+    isLinkedInContext &&
+      error &&
+      (/mur de connexion|login wall|giriş duvarı|muro de/i.test(error) ||
+        !error.toLowerCase().includes('réessayez'))
+  );
 
   // ÉTAPE 5: Smooth automatic scroll to result drawer when extraction starts or completes
   useEffect(() => {
@@ -227,49 +496,53 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
         {!isLoading && error && (
           <div
             role="alert"
-            className="rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-red-300 dark:border-red-900/70 p-5 sm:p-6 shadow-orange-glow flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-5"
+            className="rounded-3xl bg-white/95 dark:bg-[#1c140e]/95 backdrop-blur-xl border-2 border-red-300 dark:border-red-900/70 p-5 sm:p-6 shadow-orange-glow flex flex-col gap-4"
           >
-            <div className="flex items-start gap-4 text-start">
-              <div className="hidden sm:flex w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 items-center justify-center shrink-0 text-red-600 dark:text-red-400">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-6 h-6"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <div className="font-mono text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-                  {t.extractionInterrupted}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-5">
+              <div className="flex items-start gap-4 text-start">
+                <div className="hidden sm:flex w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 items-center justify-center shrink-0 text-red-600 dark:text-red-400">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="w-6 h-6"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
                 </div>
-                <p className="mt-1 text-base font-medium text-[#1f130b] dark:text-[#fffaf5] leading-relaxed break-words">
-                  {error}
-                </p>
+                <div className="min-w-0">
+                  <div className="font-mono text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+                    {t.extractionInterrupted}
+                  </div>
+                  <p className="mt-1 text-base font-medium text-[#1f130b] dark:text-[#fffaf5] leading-relaxed break-words">
+                    {error}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                {onRetry && !isLinkedInLoginWallError && (
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-mono text-xs font-bold shadow-sm transition-all cursor-pointer"
+                  >
+                    {t.retryExtraction}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer"
+                >
+                  {t.dismiss}
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
-              {onRetry && (
-                <button
-                  type="button"
-                  onClick={onRetry}
-                  className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-mono text-xs font-bold shadow-sm transition-all cursor-pointer"
-                >
-                  {t.retryExtraction}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2.5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 transition-colors cursor-pointer"
-              >
-                {t.dismiss}
-              </button>
-            </div>
+            {isLinkedInContext && <LinkedInManualUploadBox />}
           </div>
         )}
 
@@ -296,6 +569,15 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
               <CarouselResultView data={result} t={t} language={language} />
             )}
           </div>
+        )}
+
+        {/* Sous la carte de résultat : 300x250 */}
+        {!isLoading && !error && result && (
+          <AdSlot
+            slotId="vidnex-result-rectangle"
+            format="rectangle"
+            language={language}
+          />
         )}
       </div>
     </section>
@@ -568,7 +850,15 @@ const ProfileDpResultView: React.FC<{
   const [downloading, setDownloading] = useState(false);
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
 
-  const qualityBadge = data.quality === 'Standard' ? 'Standard' : 'HD';
+  const isMiniature =
+    data.quality === 'Miniature' ||
+    Boolean(data.isThumbnail) ||
+    data.platform === 'linkedin';
+  const qualityBadge = isMiniature
+    ? 'Miniature'
+    : data.quality === 'Standard'
+    ? 'Standard'
+    : 'HD';
   const cleanUsername = data.creatorHandle
     .replace(/^@/, '')
     .toLowerCase()
@@ -669,7 +959,11 @@ const ProfileDpResultView: React.FC<{
           onClick={handleDownloadDp}
           className="w-full sm:w-auto min-w-[240px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
         >
-          {downloading ? t.fetchingOriginalJpg : t.downloadFullSizePhoto}
+          {downloading
+            ? t.fetchingOriginalJpg
+            : isMiniature
+            ? 'Télécharger la miniature (JPG)'
+            : t.downloadFullSizePhoto}
         </button>
 
         <button
@@ -759,7 +1053,18 @@ const CarouselResultView: React.FC<{
     setSelectedIds(allIds);
   };
 
+  const isUnverifiedFallback = Boolean(data.unverifiedFallback);
+  const unverifiedBannerText =
+    data.unverifiedLabel ||
+    'Résultats non vérifiés, peut-être pas la bonne personne';
+
   const handleToggleSlide = (id: string) => {
+    if (isUnverifiedFallback) {
+      setLimitError(null);
+      setSelectedIds([id]);
+      return;
+    }
+
     setSelectedIds((prev) => {
       if (prev.includes(id)) {
         const next = prev.filter((item) => item !== id);
@@ -813,8 +1118,8 @@ const CarouselResultView: React.FC<{
     setLimitError(null);
     const cleanHandle = data.creatorHandle.replace(/[^a-zA-Z0-9_-]/g, '');
 
-    // 1 élément sélectionné = téléchargement direct du fichier
-    if (selectedSlides.length === 1) {
+    // En mode repli LinkedIn non vérifié ou si 1 élément sélectionné : téléchargement direct uniquement de l'élément choisi
+    if (isUnverifiedFallback || selectedSlides.length === 1) {
       const slide = selectedSlides[0];
       const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
       const singleFilename = `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`;
@@ -933,11 +1238,13 @@ const CarouselResultView: React.FC<{
     .replace('{total}', String(data.items.length));
 
   const isStoryOrProfileContext =
-    data.selectionContext === 'story' ||
-    data.selectionContext === 'profile' ||
-    data.items.some((it) => Boolean(it.date));
+    !isUnverifiedFallback &&
+    (data.selectionContext === 'story' ||
+      data.selectionContext === 'profile' ||
+      data.items.some((it) => Boolean(it.date)));
 
   const hasSinglePreselectedStory =
+    !isUnverifiedFallback &&
     data.items.some((it) => it.selected === true) &&
     data.items.some((it) => it.selected === false);
 
@@ -973,20 +1280,34 @@ const CarouselResultView: React.FC<{
           )}
         </div>
 
+        {/* Unverified LinkedIn Fallback Warning Banner */}
+        {isUnverifiedFallback && (
+          <div
+            role="status"
+            data-testid="linkedin-unverified-banner"
+            className="px-4 py-3 rounded-2xl bg-amber-100/90 dark:bg-amber-950/60 border-2 border-amber-400/90 dark:border-amber-700/80 text-xs sm:text-sm font-bold text-amber-950 dark:text-amber-200 flex items-center gap-2.5"
+          >
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+            <span>{unverifiedBannerText}</span>
+          </div>
+        )}
+
         {/* Action Bar: Select All, Counter, Download Selection */}
         <div
           data-testid="selection-action-bar"
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-orange-50/70 dark:bg-[#241811] border border-orange-200/80 dark:border-orange-900/60"
         >
           <div className="flex items-center justify-between sm:justify-start gap-3">
-            <button
-              type="button"
-              data-testid="selection-select-all-btn"
-              onClick={handleToggleSelectAll}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white dark:bg-[#1c140e] border border-orange-300 dark:border-orange-800 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-colors cursor-pointer"
-            >
-              {allSelected ? t.deselectAll : t.selectAll}
-            </button>
+            {!isUnverifiedFallback && (
+              <button
+                type="button"
+                data-testid="selection-select-all-btn"
+                onClick={handleToggleSelectAll}
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white dark:bg-[#1c140e] border border-orange-300 dark:border-orange-800 font-mono text-xs font-semibold text-orange-950 dark:text-orange-100 hover:bg-orange-100 dark:hover:bg-orange-950/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-colors cursor-pointer"
+              >
+                {allSelected ? t.deselectAll : t.selectAll}
+              </button>
+            )}
 
             <span
               data-testid="selection-counter"
@@ -1007,8 +1328,8 @@ const CarouselResultView: React.FC<{
           >
             {zipDownloading
               ? `${t.packagingZip}${downloadProgress ? ` (${downloadProgress})` : ''}`
-              : selectedIds.length <= 1
-              ? `${t.downloadSelection}${selectedIds.length === 1 ? ' (1)' : ''}`
+              : isUnverifiedFallback || selectedIds.length <= 1
+              ? `${t.downloadSelection}${selectedIds.length >= 1 ? ' (1)' : ''}`
               : `${t.downloadSelection} (${selectedIds.length} · .ZIP)`}
           </button>
         </div>
@@ -1049,7 +1370,11 @@ const CarouselResultView: React.FC<{
           const slideFilename = `VIDNEX_${cleanHandle}_item_${slide.index}.${ext}`;
           const mediaTypeLabel =
             slide.mediaType === 'video' ? t.videoType : t.photoType;
-          const qualityLabel = slide.quality || '1080p';
+          const qualityLabel =
+            slide.isThumbnail ||
+            String(slide.quality || '').toLowerCase() === 'miniature'
+              ? 'Miniature'
+              : slide.quality || '1080p';
           const formattedDate = formatSlideDateTime(slide.date, language);
           const checkboxAriaLabel = t.checkboxAria
             .replace('{index}', String(slide.index))
@@ -1158,13 +1483,29 @@ const CarouselResultView: React.FC<{
                 </div>
               </div>
 
-              {/* Card Footer: Individual "Télécharger" Button */}
-              <div className="p-2 bg-orange-50/50 dark:bg-[#221710] border-t border-orange-200/60 dark:border-orange-900/50">
+              {/* Card Footer: Source link (for fallback candidates) + Individual "Télécharger" Button */}
+              <div className="p-2 bg-orange-50/50 dark:bg-[#221710] border-t border-orange-200/60 dark:border-orange-900/50 flex flex-col gap-1.5">
+                {slide.sourceUrl && (
+                  <a
+                    href={slide.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`selection-item-source-${slide.index}`}
+                    className="inline-flex items-center justify-between px-2 py-1 rounded-lg bg-white/80 dark:bg-[#1a120d] border border-orange-200/80 dark:border-orange-900/60 font-mono text-[11px] font-semibold text-orange-800 dark:text-amber-300 hover:underline truncate"
+                  >
+                    <span className="truncate">Source</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+
                 <button
                   type="button"
                   data-testid={`selection-item-download-${slide.index}`}
                   aria-label={`${t.downloadItem} #${slide.index} (${mediaTypeLabel} ${qualityLabel})`}
                   onClick={() => {
+                    if (isUnverifiedFallback) {
+                      setSelectedIds([slide.id]);
+                    }
                     setHasTriggeredDownload(true);
                     triggerNativeBackendDownload(
                       slideFilename,
@@ -1223,6 +1564,10 @@ const CarouselResultView: React.FC<{
             {data.audioTrack.fileSize ? ` · ${data.audioTrack.fileSize}` : ''})
           </button>
         </div>
+      )}
+
+      {(data.platform === 'linkedin' || isUnverifiedFallback) && (
+        <LinkedInManualUploadBox />
       )}
 
       {hasTriggeredDownload && t.iosFilesHint && (

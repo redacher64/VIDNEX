@@ -30,6 +30,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         linkedin: settings.platform_linkedin,
       },
       ads_enabled: settings.ads_enabled,
+      ads_adsterra_enabled: settings.ads_adsterra_enabled,
     }),
     {
       status: 200,

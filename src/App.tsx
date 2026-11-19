@@ -21,6 +21,7 @@ import {
   MediaResult,
 } from './services/extractorService.ts';
 import {
+  ensureAdsterraSocialBarLoaded,
   fetchPublicConfig,
   getPublicConfigSnapshot,
   PublicConfig,
@@ -160,6 +161,11 @@ export function App({ initialPath }: AppProps = {}) {
       setPublicConfig({ ...cfg });
     });
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin || !publicConfig.ads_adsterra_enabled) return;
+    return ensureAdsterraSocialBarLoaded();
+  }, [isAdmin, publicConfig.ads_adsterra_enabled]);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -486,6 +492,12 @@ export function App({ initialPath }: AppProps = {}) {
               language={language}
             />
 
+            <AdSlot
+              slotId="vidnex-home-hero-leaderboard"
+              format="leaderboard"
+              language={language}
+            />
+
             <ResultDrawer
               isLoading={isExtracting}
               error={extractionError}
@@ -493,12 +505,7 @@ export function App({ initialPath }: AppProps = {}) {
               onClose={handleCloseDrawer}
               onRetry={handleRetryExtraction}
               language={language}
-            />
-
-            <AdSlot
-              slotId="vidnex-post-result-leaderboard"
-              format="leaderboard"
-              language={language}
+              platform={lastRequest?.detected?.platform || activePlatform}
             />
 
             <BelowFoldSeoSections

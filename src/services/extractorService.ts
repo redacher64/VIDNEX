@@ -40,6 +40,8 @@ export interface CarouselSlideItem {
   index: number;
   mediaType: 'image' | 'video';
   quality?: string;
+  isThumbnail?: boolean;
+  sourceUrl?: string;
   width?: number;
   height?: number;
   dimensions?: string;
@@ -80,7 +82,8 @@ export interface ProfileDpMediaResult extends BaseMediaResult {
   followersCount?: string;
   standardPreviewUrl: string;
   hdOriginalUrl: string;
-  quality: 'HD' | 'Standard';
+  quality: 'HD' | 'Standard' | 'Miniature';
+  isThumbnail?: boolean;
   dimensions?: string;
   fileSize?: string;
   format: 'JPG';
@@ -92,6 +95,8 @@ export interface CarouselMediaResult extends BaseMediaResult {
   totalItems: number;
   archiveSize?: string;
   selectionContext?: 'carousel' | 'story' | 'highlight' | 'profile';
+  unverifiedFallback?: boolean;
+  unverifiedLabel?: string;
   items: CarouselSlideItem[];
   audioTrack?: {
     title: string;
@@ -216,6 +221,11 @@ const PROFILE_ERROR_MESSAGES: Record<
 const LINKEDIN_ERROR_MESSAGES: Record<
   LanguageCode,
   {
+    LOGIN_WALL: string;
+    RATE_LIMITED: string;
+    PROFILE_NOT_FOUND: string;
+    PHOTO_NOT_AVAILABLE: string;
+    INVALID_IMAGE: string;
     NOT_FOUND: string;
     BLOCKED_BY_PLATFORM: string;
     PRIVATE_OR_LOGIN_REQUIRED: string;
@@ -223,98 +233,198 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   }
 > = {
   fr: {
+    LOGIN_WALL:
+      'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
+    RATE_LIMITED:
+      'Trop de requêtes envoyées vers LinkedIn (limite atteinte). Patientez quelques instants ou utilisez l’import manuel d’image ci-dessous.',
+    PROFILE_NOT_FOUND:
+      'Ce profil LinkedIn est introuvable ou a été supprimé (404). Vérifiez l’identifiant du profil dans l’URL.',
+    PHOTO_NOT_AVAILABLE:
+      'Aucune photo de profil publique n’est disponible sur ce compte LinkedIn (avatar absent ou par défaut).',
+    INVALID_IMAGE:
+      'Le fichier récupéré n’est pas une image valide (type MIME, signature binaire ou taille hors limite).',
     NOT_FOUND:
-      "Profil introuvable. Ce profil LinkedIn n'existe pas ou a été supprimé.",
+      'Ce profil LinkedIn est introuvable ou a été supprimé (404). Vérifiez l’identifiant du profil dans l’URL.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn bloque temporairement la demande (mur de connexion). Réessayez dans quelques minutes.',
+      'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
     PRIVATE_OR_LOGIN_REQUIRED:
-      "Ce profil LinkedIn n'est pas public ou sa photo de profil est absente.",
+      'Aucune photo de profil publique n’est disponible sur ce compte LinkedIn (avatar absent ou par défaut).',
     TIMEOUT:
       "Délai d'attente dépassé lors de la récupération de la photo de profil LinkedIn.",
   },
   en: {
+    LOGIN_WALL:
+      'LinkedIn returned a login wall for this profile. Use the image search fallback results or upload an image manually below.',
+    RATE_LIMITED:
+      'Too many requests to LinkedIn (rate limit reached). Please wait a moment or use manual image upload below.',
+    PROFILE_NOT_FOUND:
+      'Profile not found. This LinkedIn profile does not exist or has been removed (404).',
+    PHOTO_NOT_AVAILABLE:
+      'No public profile photo is available for this LinkedIn account (missing or default avatar).',
+    INVALID_IMAGE:
+      'The retrieved file is not a valid image (invalid MIME type, magic bytes, or file size).',
     NOT_FOUND:
       'Profile not found. This LinkedIn profile does not exist or has been removed.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn is temporarily blocking the request (login wall). Please try again later.',
+      'LinkedIn returned a login wall for this profile. Use the image search fallback results or upload an image manually below.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'This LinkedIn profile is not public or has no public profile photo.',
     TIMEOUT:
       'Request timed out while fetching the LinkedIn profile photo.',
   },
   ar: {
+    LOGIN_WALL:
+      'يعرض لينكدإن جدار تسجيل دخول لهذا الحساب. استخدم نتائج البحث عن الصور البديلة أو ارفع صورة يدوياً أدناه.',
+    RATE_LIMITED:
+      'تم تجاوز حد الطلبات نحو لينكدإن. يرجى الانتظار قليلاً أو استخدام الرفع اليدوي للصورة أدناه.',
+    PROFILE_NOT_FOUND:
+      'الملف الشخصي غير موجود. حساب لينكدإن هذا غير موجود أو تم حذفه (404).',
+    PHOTO_NOT_AVAILABLE:
+      'لا توجد صورة ملف شخصي عامة متاحة لحساب لينكدإن هذا.',
+    INVALID_IMAGE:
+      'الملف المستلم ليس صورة صالحة (نوع الملف أو البصمة الثنائية أو الحجم غير صالح).',
     NOT_FOUND: 'الملف الشخصي غير موجود. حساب لينكدإن هذا غير موجود أو تم حذفه.',
     BLOCKED_BY_PLATFORM:
-      'يحظر لينكدإن الطلب مؤقتاً (جدار تسجيل الدخول). يرجى المحاولة لاحقاً.',
+      'يعرض لينكدإن جدار تسجيل دخول لهذا الحساب. استخدم نتائج البحث عن الصور البديلة أو ارفع صورة يدوياً أدناه.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'ملف لينكدإن الشخصي هذا غير عام أو لا يحتوي على صورة ملف شخصي عامة.',
     TIMEOUT: 'انتهت مهلة الاتصال أثناء جلب صورة ملف لينكدإن الشخصي.',
   },
   es: {
+    LOGIN_WALL:
+      'LinkedIn muestra un muro de inicio de sesión para este perfil. Usa los resultados de búsqueda alternativa o sube una imagen manualmente abajo.',
+    RATE_LIMITED:
+      'Demasiadas solicitudes a LinkedIn (límite alcanzado). Espera unos instantes o sube una imagen manualmente abajo.',
+    PROFILE_NOT_FOUND:
+      'Perfil no encontrado. Este perfil de LinkedIn no existe o fue eliminado (404).',
+    PHOTO_NOT_AVAILABLE:
+      'No hay ninguna foto de perfil pública disponible en esta cuenta de LinkedIn.',
+    INVALID_IMAGE:
+      'El archivo obtenido no es una imagen válida (tipo MIME, firma binaria o tamaño no válido).',
     NOT_FOUND:
       'Perfil no encontrado. Este perfil de LinkedIn no existe o fue eliminado.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn está bloqueando temporalmente la solicitud (muro de inicio de sesión). Inténtalo más tarde.',
+      'LinkedIn muestra un muro de inicio de sesión para este perfil. Usa los resultados de búsqueda alternativa o sube una imagen manualmente abajo.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Este perfil de LinkedIn no es público o no tiene foto de perfil pública.',
     TIMEOUT:
       'Tiempo de espera agotado al obtener la foto de perfil de LinkedIn.',
   },
   pt: {
+    LOGIN_WALL:
+      'O LinkedIn exibe um muro de login para este perfil. Use os resultados alternativos de busca de imagens ou envie uma imagem manualmente abaixo.',
+    RATE_LIMITED:
+      'Muitas solicitações para o LinkedIn (limite atingido). Aguarde um momento ou use o envio manual de imagem abaixo.',
+    PROFILE_NOT_FOUND:
+      'Perfil não encontrado. Este perfil do LinkedIn não existe ou foi removido (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Nenhuma foto de perfil pública está disponível nesta conta do LinkedIn.',
+    INVALID_IMAGE:
+      'O arquivo obtido não é uma imagem válida (tipo MIME, assinatura binária ou tamanho inválido).',
     NOT_FOUND:
       'Perfil não encontrado. Este perfil do LinkedIn não existe ou foi removido.',
     BLOCKED_BY_PLATFORM:
-      'O LinkedIn está bloqueando temporariamente a solicitação (muro de login). Tente novamente mais tarde.',
+      'O LinkedIn exibe um muro de login para este perfil. Use os resultados alternativos de busca de imagens ou envie uma imagem manualmente abaixo.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Este perfil do LinkedIn não é público ou não possui foto de perfil pública.',
     TIMEOUT:
       'Tempo limite esgotado ao buscar a foto de perfil do LinkedIn.',
   },
   de: {
+    LOGIN_WALL:
+      'LinkedIn zeigt für dieses Profil eine Login-Wall an. Nutzen Sie die alternative Bildersuche oder laden Sie unten manuell ein Bild hoch.',
+    RATE_LIMITED:
+      'Zu viele Anfragen an LinkedIn (Ratenlimit erreicht). Bitte warten Sie kurz oder nutzen Sie den manuellen Bildupload.',
+    PROFILE_NOT_FOUND:
+      'Profil nicht gefunden. Dieses LinkedIn-Profil existiert nicht oder wurde gelöscht (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Für dieses LinkedIn-Konto ist kein öffentliches Profilbild verfügbar.',
+    INVALID_IMAGE:
+      'Die abgerufene Datei ist kein gültiges Bild (MIME-Typ, Magic Bytes oder Größe ungültig).',
     NOT_FOUND:
       'Profil nicht gefunden. Dieses LinkedIn-Profil existiert nicht oder wurde gelöscht.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn blockiert die Anfrage vorübergehend (Login-Wall). Bitte später erneut versuchen.',
+      'LinkedIn zeigt für dieses Profil eine Login-Wall an. Nutzen Sie die alternative Bildersuche oder laden Sie unten manuell ein Bild hoch.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Dieses LinkedIn-Profil ist nicht öffentlich oder hat kein öffentliches Profilbild.',
     TIMEOUT:
       'Zeitüberschreitung beim Abrufen des LinkedIn-Profilbilds.',
   },
   tr: {
+    LOGIN_WALL:
+      'LinkedIn bu profil için giriş duvarı gösteriyor. Alternatif görsel arama sonuçlarını kullanın veya aşağıdan manuel görsel yükleyin.',
+    RATE_LIMITED:
+      'LinkedIn istek sınırı aşıldı. Biraz bekleyin veya aşağıdan manuel görsel yüklemeyi kullanın.',
+    PROFILE_NOT_FOUND:
+      'Profil bulunamadı. Bu LinkedIn profili mevcut değil veya silinmiş (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Bu LinkedIn hesabında herkese açık bir profil fotoğrafı bulunmuyor.',
+    INVALID_IMAGE:
+      'Alınan dosya geçerli bir görsel değil (MIME türü, ikili imza veya boyut geçersiz).',
     NOT_FOUND:
       'Profil bulunamadı. Bu LinkedIn profili mevcut değil veya silinmiş.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn isteği geçici olarak engelliyor (giriş duvarı). Lütfen daha sonra tekrar deneyin.',
+      'LinkedIn bu profil için giriş duvarı gösteriyor. Alternatif görsel arama sonuçlarını kullanın veya aşağıdan manuel görsel yükleyin.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Bu LinkedIn profili herkese açık değil veya profil fotoğrafı yok.',
     TIMEOUT:
       'LinkedIn profil fotoğrafı alınırken zaman aşımı oluştu.',
   },
   id: {
+    LOGIN_WALL:
+      'LinkedIn menampilkan dinding login untuk profil ini. Gunakan hasil pencarian gambar alternatif atau unggah gambar secara manual di bawah.',
+    RATE_LIMITED:
+      'Terlalu banyak permintaan ke LinkedIn (batas tercapai). Tunggu sebentar atau gunakan unggah gambar manual di bawah.',
+    PROFILE_NOT_FOUND:
+      'Profil tidak ditemukan. Profil LinkedIn ini tidak ada atau telah dihapus (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Tidak ada foto profil publik yang tersedia untuk akun LinkedIn ini.',
+    INVALID_IMAGE:
+      'File yang diambil bukan gambar yang valid (tipe MIME, magic bytes, atau ukuran tidak valid).',
     NOT_FOUND:
       'Profil tidak ditemukan. Profil LinkedIn ini tidak ada atau telah dihapus.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn memblokir permintaan sementara (dinding login). Silakan coba lagi nanti.',
+      'LinkedIn menampilkan dinding login untuk profil ini. Gunakan hasil pencarian gambar alternatif atau unggah gambar secara manual di bawah.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Profil LinkedIn ini tidak publik atau tidak memiliki foto profil publik.',
     TIMEOUT:
       'Waktu tunggu habis saat mengambil foto profil LinkedIn.',
   },
   it: {
+    LOGIN_WALL:
+      'LinkedIn mostra un muro di accesso per questo profilo. Usa i risultati di ricerca immagini alternativi o carica manualmente un’immagine qui sotto.',
+    RATE_LIMITED:
+      'Troppe richieste verso LinkedIn (limite raggiunto). Attendi qualche istante o usa il caricamento manuale qui sotto.',
+    PROFILE_NOT_FOUND:
+      'Profilo non trovato. Questo profilo LinkedIn non esiste o è stato rimosso (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Nessuna foto del profilo pubblica disponibile per questo account LinkedIn.',
+    INVALID_IMAGE:
+      'Il file recuperato non è un’immagine valida (tipo MIME, magic bytes o dimensione non valida).',
     NOT_FOUND:
       'Profilo non trovato. Questo profilo LinkedIn non esiste o è stato rimosso.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn sta temporaneamente bloccando la richiesta (muro di accesso). Riprova più tardi.',
+      'LinkedIn mostra un muro di accesso per questo profilo. Usa i risultati di ricerca immagini alternativi o carica manualmente un’immagine qui sotto.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Questo profilo LinkedIn non è pubblico o non ha una foto del profilo pubblica.',
     TIMEOUT:
       'Tempo scaduto durante il recupero della foto del profilo LinkedIn.',
   },
   ru: {
+    LOGIN_WALL:
+      'LinkedIn показывает стену входа для этого профиля. Используйте результаты поиска альтернативных изображений или загрузите изображение вручную ниже.',
+    RATE_LIMITED:
+      'Слишком много запросов к LinkedIn (достигнут лимит). Подождите немного или загрузите изображение вручную ниже.',
+    PROFILE_NOT_FOUND:
+      'Профиль не найден. Этот профиль LinkedIn не существует или был удалён (404).',
+    PHOTO_NOT_AVAILABLE:
+      'Для этого аккаунта LinkedIn нет доступного публичного фото профиля.',
+    INVALID_IMAGE:
+      'Полученный файл не является допустимым изображением (неверный MIME-тип, сигнатура или размер).',
     NOT_FOUND:
       'Профиль не найден. Этот профиль LinkedIn не существует или был удалён.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn временно блокирует запрос (стена входа). Попробуйте позже.',
+      'LinkedIn показывает стену входа для этого профиля. Используйте результаты поиска альтернативных изображений или загрузите изображение вручную ниже.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Этот профиль LinkedIn не является публичным или не имеет публичного фото профиля.',
     TIMEOUT:
@@ -963,14 +1073,37 @@ export function getLocalizedErrorMessage(
     ? effectiveCode.replace(/^PROFILE_/, '')
     : effectiveCode;
 
-  if (
-    isProfileContext &&
-    (effectivePlatform === 'instagram' || effectivePlatform === 'linkedin')
-  ) {
+  if (isProfileContext && effectivePlatform === 'linkedin') {
+    const liDict = LINKEDIN_ERROR_MESSAGES[language] || LINKEDIN_ERROR_MESSAGES.fr;
+    if (effectiveCode === 'LOGIN_WALL') {
+      return liDict.LOGIN_WALL;
+    }
+    if (effectiveCode === 'RATE_LIMITED') {
+      return liDict.RATE_LIMITED;
+    }
+    if (effectiveCode === 'PROFILE_NOT_FOUND' || normalizedProfileCode === 'NOT_FOUND') {
+      return liDict.PROFILE_NOT_FOUND;
+    }
+    if (effectiveCode === 'PHOTO_NOT_AVAILABLE') {
+      return liDict.PHOTO_NOT_AVAILABLE;
+    }
+    if (effectiveCode === 'INVALID_IMAGE') {
+      return liDict.INVALID_IMAGE;
+    }
+    if (normalizedProfileCode === 'BLOCKED_BY_PLATFORM') {
+      return liDict.BLOCKED_BY_PLATFORM;
+    }
+    if (normalizedProfileCode === 'PRIVATE_OR_LOGIN_REQUIRED') {
+      return liDict.PRIVATE_OR_LOGIN_REQUIRED;
+    }
+    if (normalizedProfileCode === 'TIMEOUT') {
+      return liDict.TIMEOUT;
+    }
+  }
+
+  if (isProfileContext && effectivePlatform === 'instagram') {
     const profileDict =
-      effectivePlatform === 'linkedin'
-        ? LINKEDIN_ERROR_MESSAGES[language] || LINKEDIN_ERROR_MESSAGES.fr
-        : PROFILE_ERROR_MESSAGES[language] || PROFILE_ERROR_MESSAGES.fr;
+      PROFILE_ERROR_MESSAGES[language] || PROFILE_ERROR_MESSAGES.fr;
 
     if (normalizedProfileCode === 'NOT_FOUND') {
       return profileDict.NOT_FOUND;
@@ -1167,10 +1300,16 @@ export function mapExtractResponseToMediaResult(
       dpItem?.width && dpItem?.height
         ? `${dpItem.width} × ${dpItem.height}`
         : dpItem?.dimensions || undefined;
-    const itemQuality: 'HD' | 'Standard' =
-      String(dpItem?.quality || 'HD').toLowerCase() === 'standard'
-        ? 'Standard'
-        : 'HD';
+    const rawQuality = String(dpItem?.quality || '').toLowerCase();
+    const isThumb =
+      Boolean(dpItem?.isThumbnail) ||
+      rawQuality === 'miniature' ||
+      (platform === 'linkedin' && rawQuality !== 'hd' && rawQuality !== 'standard');
+    const itemQuality: 'HD' | 'Standard' | 'Miniature' = isThumb
+      ? 'Miniature'
+      : rawQuality === 'standard'
+      ? 'Standard'
+      : 'HD';
 
     return {
       id: `dp-${Date.now()}`,
@@ -1192,20 +1331,21 @@ export function mapExtractResponseToMediaResult(
       standardPreviewUrl: previewUrl,
       hdOriginalUrl: downloadUrl,
       quality: itemQuality,
+      isThumbnail: isThumb,
       dimensions: realDimensions,
       fileSize: dpItem?.size || undefined,
       format: 'JPG',
     };
   }
 
-  // 2. Écran de Sélection (Carrousel, Diaporama, Stories d'un compte, Highlights, Profil avec stories actives)
+  // 2. Écran de Sélection (Carrousel, Diaporama, Stories d'un compte, Highlights, Profil avec stories actives, ou Repli LinkedIn)
   if (isMultiItemSelection) {
     const selectionContext: CarouselMediaResult['selectionContext'] =
       detected.mediaType === 'story'
         ? 'story'
         : detected.mediaType === 'highlight'
         ? 'highlight'
-        : detected.mediaType === 'profile'
+        : detected.mediaType === 'profile' || platform === 'linkedin'
         ? 'profile'
         : 'carousel';
 
@@ -1215,13 +1355,23 @@ export function mapExtractResponseToMediaResult(
       const height = typeof it.height === 'number' ? it.height : undefined;
       const defaultQuality =
         it.quality ||
-        (it.kind === 'video' ? '1080p' : platform === 'x' ? 'Original' : '1080p');
+        (it.kind === 'video'
+          ? '1080p'
+          : platform === 'linkedin'
+          ? 'Miniature'
+          : platform === 'x'
+          ? 'Original'
+          : '1080p');
 
       return {
         id: it.id ? `slide-${it.id}-${idx + 1}` : `slide-${idx + 1}`,
         index: itemIndex,
         mediaType: it.kind === 'video' ? 'video' : 'image',
         quality: String(defaultQuality),
+        isThumbnail:
+          Boolean(it.isThumbnail) ||
+          String(defaultQuality).toLowerCase() === 'miniature',
+        sourceUrl: typeof it.sourceUrl === 'string' ? it.sourceUrl : undefined,
         width,
         height,
         dimensions:
@@ -1268,6 +1418,13 @@ export function mapExtractResponseToMediaResult(
       totalItems: items.length,
       archiveSize: undefined,
       selectionContext,
+      unverifiedFallback: Boolean(data.unverifiedFallback),
+      unverifiedLabel:
+        typeof data.unverifiedLabel === 'string'
+          ? data.unverifiedLabel
+          : data.unverifiedFallback
+          ? 'Résultats non vérifiés, peut-être pas la bonne personne'
+          : undefined,
       items,
       audioTrack: audioItem
         ? {

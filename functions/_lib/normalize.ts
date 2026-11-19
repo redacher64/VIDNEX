@@ -13,7 +13,11 @@ export type ErrorCode =
   | 'TIMEOUT'
   | 'MAINTENANCE'
   | 'PLATFORM_DISABLED'
-  | 'BLOCKED';
+  | 'BLOCKED'
+  | 'LOGIN_WALL'
+  | 'PROFILE_NOT_FOUND'
+  | 'PHOTO_NOT_AVAILABLE'
+  | 'INVALID_IMAGE';
 
 export interface ExtractMediaItem {
   index?: number;
@@ -23,9 +27,11 @@ export interface ExtractMediaItem {
   kind: 'video' | 'image' | 'audio';
   url: string;
   backupUrl?: string;
+  sourceUrl?: string;
   cookie?: string;
   thumbnail?: string;
   quality?: string;
+  isThumbnail?: boolean;
   ext: string;
   size?: string;
   width?: number;
@@ -52,6 +58,8 @@ export interface ExtractResponse {
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];
+  unverifiedFallback?: boolean;
+  unverifiedLabel?: string;
   stage?: 'direct' | 'tiers';
   engineStage?: string;
   httpStatus?: number | null;
@@ -74,12 +82,16 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'UNSUPPORTED_URL':
       return 400;
     case 'PRIVATE_OR_LOGIN_REQUIRED':
+    case 'LOGIN_WALL':
     case 'PLATFORM_DISABLED':
     case 'BLOCKED':
       return 403;
     case 'NOT_FOUND':
+    case 'PROFILE_NOT_FOUND':
       return 404;
     case 'NO_MEDIA':
+    case 'PHOTO_NOT_AVAILABLE':
+    case 'INVALID_IMAGE':
       return 422;
     case 'RATE_LIMITED':
       return 429;

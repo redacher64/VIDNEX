@@ -47,6 +47,9 @@ const ALLOWED_EXACT_MEDIA_HOSTS = new Set([
   'abs.twimg.com',
   // Domaine d'images de profil public LinkedIn réellement observé (URLs signées)
   'media.licdn.com',
+  // Domaines d'images publiques libres (repli recherche d'images LinkedIn validées)
+  'upload.wikimedia.org',
+  'live.staticflickr.com',
 ]);
 
 /**

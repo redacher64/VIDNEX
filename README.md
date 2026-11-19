@@ -527,7 +527,7 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 | :--- | :--- | :--- | :--- |
 | **`daily_metrics`** | `(day, platform, event)` | `day`, `platform`, `event`, `count` | Compteurs journaliers agrégés sans identifiant personnel (`extract_started`, `extract_success`, `extract_error`, `download_started`, `download_success`). |
 | **`request_log`** | `id` (AUTOINCREMENT) | `ts`, `platform`, `status`, `content_kind`, `engine_fn`, `engine_stage`, `http_status`, `error_code`, `duration_ms`, `ip_hash` | Journal détaillé **uniquement pour les erreurs** (`content_kind` et `engine_fn` classés depuis le motif du lien sans stocker l'URL, `http_status` vide uniquement en cas de timeout, `ip_hash` salée tronquée à 12 caractères conservée 30 jours, anciennes lignes = `—`). |
-| **`settings`** | `key` (TEXT) | `key`, `value` | Paramètres dynamiques du site (`maintenance`, `platform_*`, `rate_limit_per_min`, `download_limit_per_min`, `ads_enabled`, `test_url_*`). |
+| **`settings`** | `key` (TEXT) | `key`, `value` | Paramètres dynamiques du site (`maintenance`, `platform_*`, `rate_limit_per_min`, `download_limit_per_min`, `ads_adsterra_enabled`, `ads_enabled`, `test_url_*`). |
 | **`rate_limits`** | `(ip_hash, window)` | `ip_hash`, `window`, `count` | Compteur de requêtes par IP hachée et par minute (`/api/extract` et `dl:` pour `/api/download`). |
 | **`blocklist`** | `id` (AUTOINCREMENT) | `type` (`ip_hash` \| `domain` \| `url`), `value`, `created_ts` | Liste noire administrable en direct. |
 | **`engine_status`** | `platform` (TEXT) | `platform`, `last_success_ts`, `last_test_ts`, `last_test_ok`, `last_error_code`, `consecutive_failures`, `alert_sent` | État de santé en temps réel des 6 moteurs et suivi des pannes consécutives pour les alertes `ALERT_WEBHOOK_URL`. |
@@ -547,7 +547,8 @@ Chaque page injecte un graphe `@graph` JSON-LD adapté :
 | `platform_linkedin` | `'true'` | Active ou désactive LinkedIn (moteur + navigation + puces). |
 | `rate_limit_per_min` | `'30'` | Nombre maximal de requêtes `/api/extract` par minute et par IP hachée (entre `1` et `5000`). |
 | `download_limit_per_min` | `'60'` | Nombre maximal de fichiers `/api/download` par minute et par IP hachée (1 comptage par fichier/min, requêtes `Range` comprises). |
-| `ads_enabled` | `'true'` | Autorise ou masque l'affichage des emplacements publicitaires AdSense. |
+| `ads_adsterra_enabled` | `'true'` | Active ou masque l'ensemble des formats publicitaires Adsterra (bannières iframe `srcdoc`, Native Banner et Social Bar). |
+| `ads_enabled` | `'true'` | Autorise ou masque l'affichage des emplacements publicitaires Google AdSense (séparé d'Adsterra ; AdSense reste désactivé tant que `VITE_ADSENSE_CLIENT_ID` n'est pas configuré). |
 | `test_url_tiktok` | `''` | URL TikTok utilisée par le bouton « Tester maintenant » de l'onglet Santé. |
 | `test_url_instagram` | `''` | URL de publication/Reel Instagram utilisée pour le test de santé. |
 | `test_url_instagram_profile` | `''` | URL ou `@username` de profil Instagram utilisé pour le test du moteur Photo de profil. |
@@ -663,11 +664,22 @@ npm run indexnow
 | `TT_COOKIE` | Non (optionnel) | Cookie TikTok optionnel transmis lors de la récupération de la page officielle (`functions/_lib/tiktok.ts`). |
 | `DB_DISABLED` | Non (tests/debug) | Si défini à `'true'` ou `'1'`, désactive l'accès D1 dans `functions/_lib/db.ts` pour tester le repli sans base de données. |
 
-### 9.3 Variables publiques côté client Vite (`src/components/AdSlot.tsx`)
+### 9.3 Monétisation Adsterra (`src/config/adsterraConfig.ts`) & Variables AdSense (`src/components/AdSlot.tsx`)
+
+- **Configuration centralisée Adsterra (`src/config/adsterraConfig.ts`)** :
+  - `ADSTERRA_DOMAIN = 'https://bellnewyork.org'` : constante unique modifiable pour changer le domaine de diffusion Adsterra.
+  - **Bannières isolées en `iframe` (`srcdoc` avec `window.atOptions` + script `/22/<key>`, taille réservée fixe, CLS = 0, chargement différé au 1er scroll ou navigateur idle)** :
+    - **Accueil hero + milieu** (`format="leaderboard"`) : `728x90` sur desktop (`≥ 768px`, clé `88fab04888526875ad70d3600cd20552`) **OU** `320x50` sur mobile (`< 768px`, clé `be0d8adcee443989a07b21cca9731553`) — un seul des deux est chargé via `window.matchMedia('(min-width: 768px)')`.
+    - **Sous la carte de résultat** (`format="rectangle"`) : `300x250` (clé `5c421075520bced3f83caf40d4bb3a71`).
+    - **Rails latéraux (`≥ 1280px`)** (`format="skyscraper"`) : `160x600` (clé `d64ffc8510f6f1d20e3d96b787b7ff34`), chargés uniquement si `window.matchMedia('(min-width: 1280px)')` correspond.
+  - **Native Banner** (`format="native"`, sous les sections SEO de la page d'accueil) : script async `${ADSTERRA_DOMAIN}/21/b6b738ed32552f1fb5a38165c5c7ee4a` (`data-cfasync="false"`) + `<div id="container-b6b738ed32552f1fb5a38165c5c7ee4a">`.
+  - **Social Bar** : script `${ADSTERRA_DOMAIN}/14/d0aaec22d250227f3813abba951b9e0a` (`data-cfasync="false"`), injecté une seule fois globalement sur les pages publiques.
+  - **Exclusion stricte** : aucune publicité n'est injectée sur `/admin` ni dans le prérendu statique / SEO (`scripts/prerender.mjs`).
+  - **Interrupteurs `/admin` séparés** : `ads_adsterra_enabled` (Adsterra) et `ads_enabled` (Google AdSense) dans `/admin` → **Contrôles**.
 
 | Nom de la variable | Obligatoire | Rôle dans le code |
 | :--- | :---: | :--- |
-| `VITE_ADSENSE_CLIENT_ID` | Non | Identifiant éditeur Google AdSense (`ca-pub-...`). Tant qu'il est vide ou absent, aucun emplacement publicitaire n'est rendu en production. |
+| `VITE_ADSENSE_CLIENT_ID` | Non | Identifiant éditeur Google AdSense (`ca-pub-...`). Tant qu'il est vide ou absent, AdSense reste en place mais désactivé. |
 | `VITE_ADSENSE_SLOT_HOME_HERO` | Non | Identifiant du bloc d'annonces AdSense sous la section principale de l'accueil. |
 | `VITE_ADSENSE_SLOT_HOME_MID` | Non | Identifiant du bloc d'annonces AdSense intermédiaire de l'accueil. |
 | `VITE_ADSENSE_SLOT_RESULT_RECTANGLE` | Non | Identifiant du bloc d'annonces AdSense sous la carte de résultat d'extraction. |

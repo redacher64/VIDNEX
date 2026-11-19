@@ -16,6 +16,7 @@ export interface SystemSettings {
   rate_limit_per_min: number;
   download_limit_per_min: number;
   ads_enabled: boolean;
+  ads_adsterra_enabled: boolean;
   test_url_tiktok: string;
   test_url_instagram: string;
   test_url_instagram_profile: string;
@@ -42,6 +43,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   rate_limit_per_min: 30,
   download_limit_per_min: 60,
   ads_enabled: true,
+  ads_adsterra_enabled: true,
   test_url_tiktok: '',
   test_url_instagram: '',
   test_url_instagram_profile: '',
@@ -109,6 +111,9 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
         : true,
+      ads_adsterra_enabled: map.has('ads_adsterra_enabled')
+        ? map.get('ads_adsterra_enabled') !== 'false'
+        : true,
       test_url_tiktok: map.get('test_url_tiktok') ?? '',
       test_url_instagram: map.get('test_url_instagram') ?? '',
       test_url_instagram_profile: map.get('test_url_instagram_profile') ?? '',
@@ -165,6 +170,9 @@ export async function updateSystemSettings(
   }
   if (typeof partial.ads_enabled === 'boolean') {
     entries.push(['ads_enabled', String(partial.ads_enabled)]);
+  }
+  if (typeof partial.ads_adsterra_enabled === 'boolean') {
+    entries.push(['ads_adsterra_enabled', String(partial.ads_adsterra_enabled)]);
   }
   if (typeof partial.test_url_tiktok === 'string') {
     entries.push(['test_url_tiktok', partial.test_url_tiktok.trim()]);

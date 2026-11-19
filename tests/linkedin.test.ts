@@ -146,7 +146,7 @@ test('parseLinkedInProfileHtml falls back to JSON-LD Person image', () => {
   assert.equal(parsed.items?.[0]?.url, signedUrl);
 });
 
-test('parseLinkedInProfileHtml returns PRIVATE_OR_LOGIN_REQUIRED on ghost/default avatar', () => {
+test('parseLinkedInProfileHtml returns PHOTO_NOT_AVAILABLE on ghost/default avatar', () => {
   const html = `
     <!DOCTYPE html>
     <html>
@@ -159,10 +159,10 @@ test('parseLinkedInProfileHtml returns PRIVATE_OR_LOGIN_REQUIRED on ghost/defaul
 
   const parsed = parseLinkedInProfileHtml(html, 'no-photo-user');
   assert.equal(parsed.ok, false);
-  assert.equal(parsed.error?.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+  assert.equal(parsed.error?.code, 'PHOTO_NOT_AVAILABLE');
 });
 
-test('parseLinkedInProfileHtml returns BLOCKED_BY_PLATFORM on authwall HTML', () => {
+test('parseLinkedInProfileHtml returns LOGIN_WALL on authwall HTML without retry prompt', () => {
   const html = `
     <!DOCTYPE html>
     <html>
@@ -173,18 +173,33 @@ test('parseLinkedInProfileHtml returns BLOCKED_BY_PLATFORM on authwall HTML', ()
 
   const parsed = parseLinkedInProfileHtml(html, 'some-user');
   assert.equal(parsed.ok, false);
-  assert.equal(parsed.error?.code, 'BLOCKED_BY_PLATFORM');
+  assert.equal(parsed.error?.code, 'LOGIN_WALL');
+  assert.ok(
+    !parsed.error?.message.toLowerCase().includes('réessayez'),
+    'LOGIN_WALL message must not say réessayez'
+  );
 });
 
 test('live extractLinkedIn on public profile handles LinkedIn response cleanly', async () => {
   const res = await extractLinkedIn('satyanadella');
   assert.ok(
-    res.ok || ['BLOCKED_BY_PLATFORM', 'PRIVATE_OR_LOGIN_REQUIRED', 'NOT_FOUND', 'TIMEOUT'].includes(res.error?.code || ''),
+    res.ok ||
+      [
+        'LOGIN_WALL',
+        'RATE_LIMITED',
+        'PROFILE_NOT_FOUND',
+        'PHOTO_NOT_AVAILABLE',
+        'INVALID_IMAGE',
+        'BLOCKED_BY_PLATFORM',
+        'PRIVATE_OR_LOGIN_REQUIRED',
+        'NOT_FOUND',
+        'TIMEOUT',
+      ].includes(res.error?.code || ''),
     `Unexpected result: ${JSON.stringify(res)}`
   );
   if (res.ok) {
     assert.equal(res.platform, 'linkedin');
-    assert.equal(res.type, 'image');
+    assert.ok(res.type === 'image' || res.type === 'carousel');
     assert.equal(res.title, '@satyanadella');
   }
 });
@@ -1655,6 +1670,314 @@ test('VisitorsMap buildD1VisitorsMapSummary: builds D1 mock visitor origins, ran
   assert.ok(scaled7d.regions[0].visitors >= scaled7d.regions[1].visitors);
 });
 
+test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON-LD), magic-byte image validation, fallback search candidates, miniature label, and 5 distinct French error codes', async () => {
+  const {
+    extractTwitterImageFromHtml,
+    extractPersonNameFromSlugOrHtml,
+    detectImageMagicBytes,
+    validateLinkedInImageUrl,
+    LINKEDIN_FRENCH_ERROR_MESSAGES,
+    LINKEDIN_UNVERIFIED_FALLBACK_LABEL,
+  } = await import('../functions/_lib/linkedin.ts');
+  const {
+    getLocalizedErrorMessage,
+    mapExtractResponseToMediaResult,
+  } = await import('../src/services/extractorService.ts');
 
+  // 1. Metadata priority: og:image -> twitter:image -> JSON-LD "image"
+  const twitterImgUrl =
+    'https://media.licdn.com/dms/image/v2/C4D03AQ/profile-displayphoto-shrink_200_200/0/1650000000000?e=1750000000&v=beta&t=tw_sig';
+  const jsonLdImgUrl =
+    'https://media.licdn.com/dms/image/v2/C4D03AQ/profile-displayphoto-shrink_200_200/0/1650000000000?e=1750000000&v=beta&t=ld_sig';
+  const htmlWithTwitterAndJsonLd = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Claire Martin - Directrice | LinkedIn</title>
+        <meta name="twitter:image" content="${twitterImgUrl}" />
+        <script type="application/ld+json">
+          {"@type":"Person","image":"${jsonLdImgUrl}"}
+        </script>
+      </head>
+      <body>Profile</body>
+    </html>
+  `;
+  assert.equal(extractTwitterImageFromHtml(htmlWithTwitterAndJsonLd), twitterImgUrl);
+  const parsedTwitter = parseLinkedInProfileHtml(htmlWithTwitterAndJsonLd, 'claire-martin');
+  assert.equal(parsedTwitter.ok, true);
+  assert.equal(parsedTwitter.engineStage, 'twitter_image');
+  assert.equal(parsedTwitter.items?.[0]?.url, twitterImgUrl);
+  assert.equal(parsedTwitter.items?.[0]?.quality, 'Miniature');
+  assert.equal(parsedTwitter.items?.[0]?.isThumbnail, true);
 
+  // 2. Name extraction from slug or page title (ignoring generic authwall titles)
+  assert.equal(
+    extractPersonNameFromSlugOrHtml('jean-dupont-98a1b2c3', '<title>Sign Up | LinkedIn</title>'),
+    'Jean Dupont'
+  );
+  assert.equal(
+    extractPersonNameFromSlugOrHtml('claire-martin-12345', htmlWithTwitterAndJsonLd),
+    'Claire Martin'
+  );
 
+  // 3. Magic bytes validation: accepts JPEG/PNG/WebP/GIF and rejects HTML disguised as image
+  const validJpegBytes = new Uint8Array([
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9,
+  ]);
+  const validPngBytes = new Uint8Array([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0xc8, // width = 200
+    0x00, 0x00, 0x00, 0xc8, // height = 200
+  ]);
+  const htmlDisguisedBytes = new TextEncoder().encode('<!DOCTYPE html><html><body>Login</body></html>');
+  assert.equal(detectImageMagicBytes(validJpegBytes), 'jpg');
+  assert.equal(detectImageMagicBytes(validPngBytes), 'png');
+  assert.equal(detectImageMagicBytes(htmlDisguisedBytes), null);
+
+  // 4. Remote image validation + Fallback search when LinkedIn returns HTTP 999 or /authwall
+  const origFetch = globalThis.fetch;
+  try {
+    // Case A: Upstream returns text/html or HTML magic bytes even with 200 -> INVALID_IMAGE
+    globalThis.fetch = (async () => {
+      return new Response('<!DOCTYPE html><html>Authwall</html>', {
+        status: 200,
+        headers: { 'Content-Type': 'image/jpeg' },
+      });
+    }) as typeof fetch;
+
+    const badImgCheck = await validateLinkedInImageUrl(
+      'https://media.licdn.com/dms/image/v2/C4D03AQ/fake.jpg'
+    );
+    assert.equal(badImgCheck.ok, false);
+    assert.equal(badImgCheck.errorCode, 'INVALID_IMAGE');
+
+    // Case B: Upstream redirects to a valid 200x200 PNG image -> ok=true, qualityLabel='Miniature'
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('redirect-start.jpg')) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            Location: 'https://media.licdn.com/dms/image/v2/C4D03AQ/final-thumb.png',
+          },
+        });
+      }
+      return new Response(validPngBytes, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/png',
+          'Content-Length': String(validPngBytes.byteLength),
+        },
+      });
+    }) as typeof fetch;
+
+    const goodImgCheck = await validateLinkedInImageUrl(
+      'https://media.licdn.com/dms/image/v2/C4D03AQ/redirect-start.jpg'
+    );
+    assert.equal(goodImgCheck.ok, true);
+    assert.equal(goodImgCheck.ext, 'png');
+    assert.equal(goodImgCheck.width, 200);
+    assert.equal(goodImgCheck.height, 200);
+    assert.equal(goodImgCheck.isThumbnail, true);
+    assert.equal(goodImgCheck.qualityLabel, 'Miniature');
+
+    // Case C: LinkedIn returns status 999 (login wall) -> stops Step 1 immediately and runs Step 2 fallback search, returning up to 6 validated candidates with thumbnail + sourceUrl + unverified label
+    let linkedinFetchCount = 0;
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('linkedin.com/in/')) {
+        linkedinFetchCount += 1;
+        return new Response('<html>Request denied</html>', { status: 999 });
+      }
+      if (u.includes('wikipedia.org/w/api.php') || u.includes('commons.wikimedia.org/w/api.php')) {
+        const pages: Record<string, any> = {};
+        for (let i = 1; i <= 8; i++) {
+          pages[String(i)] = {
+            pageid: i,
+            title: `File:Candidate_${i}.jpg`,
+            fullurl: `https://fr.wikipedia.org/wiki/Candidat_${i}`,
+            thumbnail: {
+              source: `https://upload.wikimedia.org/wikipedia/commons/thumb/${i}/candidate_${i}.png`,
+              width: 200,
+              height: 200,
+            },
+          };
+        }
+        return new Response(JSON.stringify({ query: { pages } }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (u.includes('upload.wikimedia.org')) {
+        return new Response(validPngBytes, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/png',
+            'Content-Length': String(validPngBytes.byteLength),
+          },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    }) as typeof fetch;
+
+    const fallbackRes = await extractLinkedIn('marie-curie-123456');
+    assert.equal(
+      linkedinFetchCount,
+      1,
+      'Must stop after 1 normal browser fetch on status 999 without trying to bypass login wall'
+    );
+    assert.equal(fallbackRes.ok, true);
+    assert.equal(fallbackRes.type, 'carousel');
+    assert.equal(fallbackRes.unverifiedFallback, true);
+    assert.equal(
+      fallbackRes.unverifiedLabel,
+      'Résultats non vérifiés, peut-être pas la bonne personne'
+    );
+    assert.equal(fallbackRes.unverifiedLabel, LINKEDIN_UNVERIFIED_FALLBACK_LABEL);
+    assert.ok(fallbackRes.items && fallbackRes.items.length === 6, 'Should cap at 6 candidates');
+    for (const item of fallbackRes.items!) {
+      assert.ok(item.thumbnail?.includes('upload.wikimedia.org'));
+      assert.ok(item.sourceUrl?.startsWith('https://'));
+      assert.equal(item.quality, 'Miniature');
+      assert.equal(item.isThumbnail, true);
+    }
+
+    // Verify frontend mapping preserves unverifiedLabel, Miniature quality, sourceUrl, and single default selection
+    const detectedInfo = detectMediaUrl('https://www.linkedin.com/in/marie-curie-123456', 'linkedin');
+    const uiResult = mapExtractResponseToMediaResult(
+      fallbackRes,
+      'https://www.linkedin.com/in/marie-curie-123456',
+      detectedInfo
+    );
+    assert.equal(uiResult.payloadType, 'carousel');
+    if (uiResult.payloadType === 'carousel') {
+      assert.equal(uiResult.unverifiedFallback, true);
+      assert.equal(
+        uiResult.unverifiedLabel,
+        'Résultats non vérifiés, peut-être pas la bonne personne'
+      );
+      assert.equal(uiResult.items.length, 6);
+      assert.equal(uiResult.items[0].quality, 'Miniature');
+      assert.ok(uiResult.items[0].sourceUrl?.startsWith('https://'));
+      const selectedOnlyFirst = uiResult.items.filter((it) => it.selected === true);
+      assert.equal(selectedOnlyFirst.length, 1);
+    }
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+
+  // 5. Verify all 5 required error codes have distinct French messages and LOGIN_WALL never says "réessayez"
+  const errorCodes = [
+    'LOGIN_WALL',
+    'RATE_LIMITED',
+    'PROFILE_NOT_FOUND',
+    'PHOTO_NOT_AVAILABLE',
+    'INVALID_IMAGE',
+  ] as const;
+
+  const frenchMessages = errorCodes.map((code) =>
+    getLocalizedErrorMessage(code, 'fr', {
+      platform: 'linkedin',
+      isProfile: true,
+    })
+  );
+  const uniqueMessages = new Set(frenchMessages);
+  assert.equal(
+    uniqueMessages.size,
+    errorCodes.length,
+    `Each of the 5 error codes must have a distinct French message: ${JSON.stringify(frenchMessages)}`
+  );
+  assert.ok(
+    !frenchMessages[0].toLowerCase().includes('réessayez'),
+    'LOGIN_WALL French message must not say "réessayez"'
+  );
+  assert.ok(
+    !LINKEDIN_FRENCH_ERROR_MESSAGES.LOGIN_WALL.toLowerCase().includes('réessayez'),
+    'Backend LOGIN_WALL message must not say "réessayez"'
+  );
+});
+
+test('Adsterra integration: verifies centralized config, srcdoc iframe atOptions builders, and independent ads_adsterra_enabled / ads_enabled switches', async () => {
+  const {
+    ADSTERRA_CONFIG,
+    ADSTERRA_DOMAIN,
+    buildAdsterraBannerSrcDoc,
+    getAdsterraNativeBannerScriptUrl,
+    getAdsterraSocialBarScriptUrl,
+  } = await import('../src/config/adsterraConfig.ts');
+  const { getSystemSettings, updateSystemSettings } = await import(
+    '../functions/_lib/settings.ts'
+  );
+  const { onRequestGet: publicConfigGet } = await import(
+    '../functions/api/public-config.ts'
+  );
+
+  // 1. Centralized domain & scripts
+  assert.equal(ADSTERRA_DOMAIN, 'https://bellnewyork.org');
+  assert.equal(
+    getAdsterraSocialBarScriptUrl(),
+    'https://bellnewyork.org/14/d0aaec22d250227f3813abba951b9e0a'
+  );
+  assert.equal(
+    getAdsterraNativeBannerScriptUrl(),
+    'https://bellnewyork.org/21/b6b738ed32552f1fb5a38165c5c7ee4a'
+  );
+  assert.equal(
+    ADSTERRA_CONFIG.nativeBanner.containerId,
+    'container-b6b738ed32552f1fb5a38165c5c7ee4a'
+  );
+
+  // 2. All 4 banner units & isolated srcdoc generation
+  const expectedBanners = {
+    '728x90': { key: '88fab04888526875ad70d3600cd20552', width: 728, height: 90 },
+    '320x50': { key: 'be0d8adcee443989a07b21cca9731553', width: 320, height: 50 },
+    '300x250': { key: '5c421075520bced3f83caf40d4bb3a71', width: 300, height: 250 },
+    '160x600': { key: 'd64ffc8510f6f1d20e3d96b787b7ff34', width: 160, height: 600 },
+  } as const;
+
+  for (const [size, expected] of Object.entries(expectedBanners)) {
+    const unit = ADSTERRA_CONFIG.banners[size as keyof typeof ADSTERRA_CONFIG.banners];
+    assert.equal(unit.key, expected.key);
+    assert.equal(unit.width, expected.width);
+    assert.equal(unit.height, expected.height);
+    assert.equal(unit.format, 'iframe');
+
+    const srcDoc = buildAdsterraBannerSrcDoc(unit);
+    assert.ok(srcDoc.includes(`"key":"${expected.key}"`));
+    assert.ok(srcDoc.includes(`"format":"iframe"`));
+    assert.ok(srcDoc.includes(`"height":${expected.height}`));
+    assert.ok(srcDoc.includes(`"width":${expected.width}`));
+    assert.ok(srcDoc.includes(`"params":{}`));
+    assert.ok(
+      srcDoc.includes(`https://bellnewyork.org/22/${expected.key}`),
+      `srcDoc for ${size} must load /22/${expected.key}`
+    );
+  }
+
+  // 3. Separate D1 switches: ads_adsterra_enabled and ads_enabled
+  const db = createMemoryD1Database();
+  const env = { DB: db };
+
+  const initial = await getSystemSettings(env);
+  assert.equal(initial.ads_adsterra_enabled, true);
+  assert.equal(initial.ads_enabled, true);
+
+  // Toggle ads_adsterra_enabled to false while keeping ads_enabled true
+  const afterToggle = await updateSystemSettings(env, {
+    ads_adsterra_enabled: false,
+    ads_enabled: true,
+  });
+  assert.equal(afterToggle.ads_adsterra_enabled, false);
+  assert.equal(afterToggle.ads_enabled, true);
+
+  const pubRes = await publicConfigGet({
+    request: new Request('https://vidnex.space/api/public-config'),
+    env,
+  });
+  assert.equal(pubRes.status, 200);
+  const pubJson: any = await pubRes.json();
+  assert.equal(pubJson.ads_adsterra_enabled, false);
+  assert.equal(pubJson.ads_enabled, true);
+});

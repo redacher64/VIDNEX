@@ -317,27 +317,30 @@ export const AdminApp: React.FC = () => {
     <div className="min-h-screen bg-admin-bg text-admin-text flex flex-col transition-colors duration-150">
       {/* Top bar */}
       <header className="border-b border-admin-border bg-admin-surface/95 sticky top-0 z-30 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[#c2410c] flex items-center justify-center text-white shadow shrink-0">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div
+              title={`VIDNEX Admin · ${user.displayName} (${user.login})`}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#c2410c] flex items-center justify-center text-white shadow shrink-0"
+            >
               <Shield className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-base text-admin-text whitespace-nowrap">
-                  VIDNEX Admin
+                <span className="font-display font-bold text-sm sm:text-base text-admin-text whitespace-nowrap truncate">
+                  VIDNEX<span className="hidden xs:inline sm:inline"> Admin</span>
                 </span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden sm:inline-block">
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
                   {user.isOwner ? 'Propriétaire' : user.roleLabel}
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-admin-text-muted hidden sm:block truncate">
+              <p className="text-[11px] font-mono text-admin-text-muted hidden md:block truncate">
                 {user.displayName} ({user.login}) · Stockage Cloudflare D1
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button
               type="button"
               onClick={handleToggleTheme}
@@ -351,7 +354,7 @@ export const AdminApp: React.FC = () => {
                   ? 'Passer en mode clair'
                   : 'Passer en mode sombre'
               }
-              className="p-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer shrink-0"
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -362,25 +365,32 @@ export const AdminApp: React.FC = () => {
 
             <a
               href="/"
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text flex items-center gap-1.5 transition-colors"
+              aria-label="Site public"
+              title="Ouvrir le site public"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
-              <span className="hidden xs:inline sm:inline">Site public</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Site public</span>
             </a>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              aria-label="Déconnexion"
+              title="Déconnexion"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>
 
-        {/* Navigation Tabs (uniquement les sections autorisées) */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto pb-2 no-scrollbar">
+        {/* Navigation Tabs (icônes compactes sur mobile, libellés complets sur écrans >= sm) */}
+        <nav
+          aria-label="Navigation administration"
+          className="max-w-6xl mx-auto px-2 sm:px-6 flex items-center justify-between sm:justify-start gap-1 overflow-x-auto pb-2 no-scrollbar"
+        >
           {authorizedTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -388,18 +398,21 @@ export const AdminApp: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => handleSelectTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-display font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                aria-label={tab.label}
+                aria-current={isActive ? 'page' : undefined}
+                title={tab.label}
+                className={`flex-1 sm:flex-initial min-w-[40px] h-9 sm:h-auto px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-display font-semibold flex items-center justify-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'bg-[#c2410c] text-white shadow'
                     : 'text-admin-text-secondary hover:text-admin-text hover:bg-admin-hover'
                 }`}
               >
-                {tab.icon}
-                <span>{tab.label}</span>
+                <span className="shrink-0">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
       </header>
 
       {/* Main Content */}

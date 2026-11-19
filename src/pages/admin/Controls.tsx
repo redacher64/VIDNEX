@@ -21,6 +21,7 @@ interface SystemSettings {
   rate_limit_per_min: number;
   download_limit_per_min: number;
   ads_enabled: boolean;
+  ads_adsterra_enabled: boolean;
 }
 
 interface BlocklistItem {
@@ -42,6 +43,7 @@ export const Controls: React.FC = () => {
     rate_limit_per_min: 30,
     download_limit_per_min: 60,
     ads_enabled: true,
+    ads_adsterra_enabled: true,
   });
   const [blocklist, setBlocklist] = useState<BlocklistItem[]>([]);
   const [blockType, setBlockType] = useState<'ip_hash' | 'domain' | 'url'>('domain');
@@ -70,6 +72,8 @@ export const Controls: React.FC = () => {
           rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 30,
           download_limit_per_min: Number(settingsJson.settings.download_limit_per_min) || 60,
           ads_enabled: settingsJson.settings.ads_enabled !== false,
+          ads_adsterra_enabled:
+            settingsJson.settings.ads_adsterra_enabled !== false,
         });
       }
       if (blockRes.ok && blockJson.ok) {
@@ -110,6 +114,8 @@ export const Controls: React.FC = () => {
           rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 30,
           download_limit_per_min: Number(data.settings.download_limit_per_min) || 60,
           ads_enabled: data.settings.ads_enabled !== false,
+          ads_adsterra_enabled:
+            data.settings.ads_adsterra_enabled !== false,
         });
         setStatusMessage('Paramètres enregistrés dans Cloudflare D1.');
         await fetchPublicConfig();
@@ -214,17 +220,55 @@ export const Controls: React.FC = () => {
           </button>
         </div>
 
-        {/* AdSense */}
+        {/* Adsterra (ads_adsterra_enabled) */}
         <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-admin-accent" />
               <h3 className="font-display text-sm font-bold text-admin-text">
-                Monétisation Google AdSense
+                Monétisation Adsterra (`ads_adsterra_enabled`)
               </h3>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Active ou masque instantanément les emplacements publicitaires via adsenseService.ts.
+              Active ou masque les bannières iframe Adsterra, la Native Banner et la Social Bar sur les pages publiques.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Monétisation Adsterra"
+            aria-checked={settings.ads_adsterra_enabled}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                ads_adsterra_enabled: !settings.ads_adsterra_enabled,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.ads_adsterra_enabled
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
+                settings.ads_adsterra_enabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* AdSense (ads_enabled) */}
+        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs md:col-span-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-admin-accent" />
+              <h3 className="font-display text-sm font-bold text-admin-text">
+                Monétisation Google AdSense (`ads_enabled`)
+              </h3>
+            </div>
+            <p className="text-xs text-admin-text-muted">
+              Active ou masque instantanément les emplacements publicitaires Google AdSense via adsenseService.ts (en attente d’approbation).
             </p>
           </div>
           <button

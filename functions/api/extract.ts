@@ -595,7 +595,9 @@ async function handleExtract(
         ? `instagram_${profileUsername}_profile.jpg`
         : `instagram_${profileUsername}_story_${idx}.${ext}`
       : isLinkedInProfile
-      ? `linkedin_${profileUsername}_profile.jpg`
+      ? (result.items || []).length > 1
+        ? `linkedin_${profileUsername}_candidat_${idx + 1}.${ext}`
+        : `linkedin_${profileUsername}_profile.${ext}`
       : result.platform === 'tiktok' && item.kind === 'audio'
       ? `tiktok_${tweetOrMediaId}.${ext}`
       : result.platform === 'facebook'
@@ -622,7 +624,9 @@ async function handleExtract(
                 ? `instagram_${profileUsername}_profile.jpg`
                 : `instagram_${profileUsername}_story_thumb_${idx}.jpg`
               : isLinkedInProfile
-              ? `linkedin_${profileUsername}_profile.jpg`
+              ? (result.items || []).length > 1
+                ? `linkedin_${profileUsername}_thumb_${idx + 1}.${ext}`
+                : `linkedin_${profileUsername}_profile.${ext}`
               : result.platform === 'facebook'
               ? `facebook_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : result.platform === 'x'
@@ -635,7 +639,7 @@ async function handleExtract(
       url: wrapDownloadUrl(item.url, safeFilename, false, {
         cookie: itemCookie,
         backupUrl: item.backupUrl,
-        sourceUrl: detection.cleanUrl,
+        sourceUrl: item.sourceUrl || detection.cleanUrl,
       }),
     };
   });
@@ -689,5 +693,7 @@ async function handleExtract(
     author: transformedAuthor,
     thumbnail: proxyThumbnail,
     items: transformedItems,
+    unverifiedFallback: result.unverifiedFallback,
+    unverifiedLabel: result.unverifiedLabel,
   });
 }

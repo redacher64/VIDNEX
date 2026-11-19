@@ -289,10 +289,10 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         </div>
       </section>
 
-      {/* ZERO-CLS ADSENSE BANNER HOOK */}
+      {/* MILIEU : 728x90 desktop OU 320x50 mobile (via matchMedia) */}
       <AdSlot
-        slotId="vidnex-pre-faq-rectangle"
-        format="rectangle"
+        slotId="vidnex-pre-faq-leaderboard"
+        format="leaderboard"
         language={language}
       />
 
@@ -437,6 +437,15 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Native Banner : sous les sections SEO de la home */}
+      {pageKey === 'home' && (
+        <AdSlot
+          slotId="vidnex-home-native-banner"
+          format="native"
+          language={language}
+        />
+      )}
     </div>
   );
 };

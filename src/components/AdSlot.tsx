@@ -34,6 +34,7 @@ interface AdSlotProps {
   language?: LanguageCode;
   className?: string;
   hideOnMobile?: boolean;
+  hideOnDesktop?: boolean;
 }
 
 export { resolveAdsterraBannerUnit };
@@ -57,6 +58,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   language = 'fr',
   className = '',
   hideOnMobile = false,
+  hideOnDesktop = false,
 }) => {
   const isBrowser = typeof window !== 'undefined';
   const [adsEnabled, setAdsEnabled] = useState<boolean>(() => isAdSenseEnabled());
@@ -114,18 +116,20 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   }, [isBrowser, adsterraEnabled]);
 
   const isSuppressedOnMobile = hideOnMobile && !isDesktopMd;
+  const isSuppressedOnDesktop = hideOnDesktop && isDesktopMd;
+  const isSuppressedByViewport = isSuppressedOnMobile || isSuppressedOnDesktop;
   const canRenderLiveAd =
-    adsEnabled && IS_ADSENSE_CONFIGURED && !isSuppressedOnMobile;
+    adsEnabled && IS_ADSENSE_CONFIGURED && !isSuppressedByViewport;
   const canRenderDevDemo =
     adsEnabled &&
     !IS_ADSENSE_CONFIGURED &&
     isAdSenseDemoMode() &&
-    !isSuppressedOnMobile;
+    !isSuppressedByViewport;
   const canRenderAdsterra =
     isBrowser &&
     !isAdminRoutePath() &&
     adsterraEnabled &&
-    !isSuppressedOnMobile &&
+    !isSuppressedByViewport &&
     format !== 'column' &&
     (format !== 'skyscraper' || isDesktopXl);
 
@@ -151,8 +155,8 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     }
   }, [canRenderAdsterra, deferredReady, format]);
 
-  // Aucune pub dans le prerender/SEO, sur /admin, ni lorsqu'un second 300x250 est masqué sur mobile
-  if (!isBrowser || isAdminRoutePath() || isSuppressedOnMobile) {
+  // Aucune pub dans le prerender/SEO, sur /admin, ni lorsque le slot est masqué sur le viewport courant
+  if (!isBrowser || isAdminRoutePath() || isSuppressedByViewport) {
     return null;
   }
 

@@ -9,10 +9,11 @@
  *    - og-facebook.<hash>.jpg
  *    All text/wordmarks ("VIDNEX", "MP4", "HD") are pure SVG vector paths (zero system font dependency).
  *    All focal elements stay strictly inside the central 80% safe zone (10%+ margin on all sides).
- * 2. Favicons & App Icons in `public/`:
- *    - favicon.svg
- *    - favicon-48x48.png (48x48 for Google Search)
- *    - favicon.ico (multi-size 32x32 + 48x48 ICO container)
+ * 2. Logos, Favicons & App Icons in `public/`:
+ *    - logo.webp (512x512)
+ *    - logo.png (512x512)
+ *    - favicon-32x32.png (32x32)
+ *    - favicon.ico (32x32 ICO container)
  *    - apple-touch-icon.png (180x180)
  *    - icon-192.png (192x192)
  *    - icon-512.png (512x512)
@@ -189,15 +190,7 @@ function buildOgSvg({
 
   <!-- Left Side: VIDNEX Emblem + Vector Wordmark + Generic Transport Bar -->
   <g transform="translate(205, 155)">
-    <!-- VIDNEX Official Logo Mark (84x84) -->
-    <g transform="translate(0, 0)">
-      <rect width="84" height="84" rx="22" fill="url(#accent-grad)" />
-      <rect x="13" y="13" width="58" height="58" rx="9" stroke="#ffffff" stroke-width="5" fill="none" />
-      <path d="M26 29 L42 52 L58 29" stroke="#ffffff" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" fill="none" />
-      <line x1="26" y1="60" x2="58" y2="60" stroke="#ffffff" stroke-width="5" />
-    </g>
-
-    <!-- VIDNEX Vector Wordmark -->
+    <!-- VIDNEX Vector Wordmark (positioned to the right of the 84x84 composited logo) -->
     <g transform="translate(108, 24)">
       ${renderVidnexVectorWordmark('#fffaf5')}
     </g>
@@ -238,24 +231,6 @@ function buildOgSvg({
     <rect x="-25" y="-25" width="210" height="210" rx="44" fill="#0f0a07" stroke="url(#accent-grad)" stroke-width="3" />
     ${renderVariantPictogram(variant, primaryColor, secondaryColor)}
   </g>
-</svg>`;
-}
-
-/**
- * Builds the square VIDNEX icon SVG for favicons and PWA icons.
- */
-function buildSquareIconSvg(size = 512) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-  <defs>
-    <linearGradient id="vidnex-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ea580c"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="7" fill="url(#vidnex-glow)"/>
-  <rect x="5" y="5" width="22" height="22" rx="3.5" stroke="#ffffff" stroke-width="2" fill="none"/>
-  <path d="M10 11L16 20L22 11" stroke="#ffffff" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
-  <line x1="10" y1="23" x2="22" y2="23" stroke="#ffffff" stroke-width="2.1"/>
 </svg>`;
 }
 
@@ -349,6 +324,12 @@ async function main() {
     },
   ];
 
+  const logoMasterPath = path.join(PUBLIC_DIR, 'logo.png');
+  const ogLogo84 = await sharp(logoMasterPath)
+    .resize(84, 84, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toBuffer();
+
   const manifest = {};
 
   for (const v of variants) {
@@ -363,6 +344,7 @@ async function main() {
 
     const jpgBuffer = await sharp(Buffer.from(svg))
       .resize(1200, 630, { fit: 'cover' })
+      .composite([{ input: ogLogo84, left: 205, top: 155 }])
       .jpeg({ quality: 84, mozjpeg: true })
       .toBuffer();
 
@@ -388,43 +370,35 @@ async function main() {
   const defaultPngBuf = await sharp(defaultJpgPath).png({ compressionLevel: 9 }).toBuffer();
   fs.writeFileSync(path.join(PUBLIC_DIR, 'og-default.png'), defaultPngBuf);
 
-  // Generate Favicons & App Icons (ÉTAPE 3)
-  const iconSvg512 = buildSquareIconSvg(512);
-  fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.svg'), buildSquareIconSvg(32), 'utf8');
+  // Generate Favicons & App Icons from public/logo.png (512x512 master)
+  const webp512 = await sharp(logoMasterPath)
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .webp({ quality: 90, alphaQuality: 95, effort: 6 })
+    .toBuffer();
+  const png32 = await sharp(logoMasterPath)
+    .resize(32, 32, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, palette: true, quality: 95, effort: 10 })
+    .toBuffer();
+  const png180 = await sharp(logoMasterPath)
+    .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, palette: true, quality: 92, effort: 10 })
+    .toBuffer();
+  const png192 = await sharp(logoMasterPath)
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, palette: true, quality: 92, effort: 10 })
+    .toBuffer();
+  const png512 = fs.readFileSync(logoMasterPath);
 
-  const png32 = await sharp(Buffer.from(iconSvg512))
-    .resize(32, 32)
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-  const png48 = await sharp(Buffer.from(iconSvg512))
-    .resize(48, 48)
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-  const png180 = await sharp(Buffer.from(iconSvg512))
-    .resize(180, 180)
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-  const png192 = await sharp(Buffer.from(iconSvg512))
-    .resize(192, 192)
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-  const png512 = await sharp(Buffer.from(iconSvg512))
-    .resize(512, 512)
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-
-  fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon-48x48.png'), png48);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'logo.webp'), webp512);
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon-32x32.png'), png32);
   fs.writeFileSync(path.join(PUBLIC_DIR, 'apple-touch-icon.png'), png180);
   fs.writeFileSync(path.join(PUBLIC_DIR, 'icon-192.png'), png192);
   fs.writeFileSync(path.join(PUBLIC_DIR, 'icon-512.png'), png512);
 
-  const icoBuf = buildIcoFromPngBuffers([
-    { size: 32, png: png32 },
-    { size: 48, png: png48 },
-  ]);
+  const icoBuf = buildIcoFromPngBuffers([{ size: 32, png: png32 }]);
   fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), icoBuf);
 
-  console.log('✓ Generated favicons: favicon.svg, favicon.ico, favicon-48x48.png, apple-touch-icon.png, icon-192.png, icon-512.png');
+  console.log('✓ Generated logos & favicons: logo.webp, logo.png, favicon.ico, favicon-32x32.png, apple-touch-icon.png, icon-192.png, icon-512.png');
   console.log('Manifest:', JSON.stringify(manifest, null, 2));
 }
 

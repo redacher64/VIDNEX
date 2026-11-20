@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   KeyRound,
-  Lock,
   LogOut,
   ShieldAlert,
   CheckCircle2,
@@ -12,6 +11,7 @@ import {
   Sun,
   Moon,
 } from './AdminIcons';
+import { VidnexLogoMark } from '../../components/icons/PlatformIcons';
 import { type AdminUserProfile } from './Login';
 import { type AdminTheme } from './adminTheme';
 
@@ -116,9 +116,7 @@ export const Account: React.FC<AccountProps> = ({
           <div className="bg-admin-surface border border-admin-border rounded-lg p-6 sm:p-8 shadow-xl space-y-6">
             <div className="flex items-center justify-between gap-3 pb-4 border-b border-admin-border">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow shrink-0">
-                  <Lock className="w-5 h-5" />
-                </div>
+                <VidnexLogoMark className="w-10 h-10 rounded-lg" />
                 <div className="min-w-0">
                   <h1 className="font-display text-lg font-bold text-admin-text truncate">
                     Changement de mot de passe obligatoire

@@ -14,12 +14,12 @@ export const CONTACT_EMAIL = 'compliance@vidnex.space';
  * générées par `scripts/generate-og.mjs` et commitées dans `public/og/`.
  */
 export const OG_IMAGES = {
-  default: '/og/og-default.922f9d8e.jpg',
-  tiktok: '/og/og-tiktok.ff988d6c.jpg',
-  instagram: '/og/og-instagram.ba9cd0f7.jpg',
-  x: '/og/og-x.02de4119.jpg',
-  facebook: '/og/og-facebook.0a720bf6.jpg',
-  linkedin: '/og/og-linkedin.08770587.jpg',
+  default: '/og/og-default.7d77937b.jpg',
+  tiktok: '/og/og-tiktok.c6e657f9.jpg',
+  instagram: '/og/og-instagram.e46ecd0e.jpg',
+  x: '/og/og-x.dbac0e39.jpg',
+  facebook: '/og/og-facebook.c773a946.jpg',
+  linkedin: '/og/og-linkedin.d586e6dc.jpg',
 } as const;
 
 export const DEFAULT_OG_IMAGE = OG_IMAGES.default;

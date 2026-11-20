@@ -123,9 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="min-h-[44px] px-1 flex items-center gap-2 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-xl"
         >
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-[0_2px_10px_rgba(234,88,12,0.35)] transition-transform duration-150 group-hover:scale-95">
-            <VidnexLogoMark className="w-4 h-4" />
-          </div>
+          <VidnexLogoMark className="w-8 h-8 rounded-lg transition-transform duration-150 group-hover:scale-95" />
           <span className="font-display font-bold text-base sm:text-lg tracking-tight text-[#1f130b] dark:text-[#fffaf5] whitespace-nowrap">
             VIDNEX
           </span>

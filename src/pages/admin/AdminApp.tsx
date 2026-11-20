@@ -5,7 +5,6 @@ import {
   Sliders,
   ListOrdered,
   LogOut,
-  Shield,
   ShieldAlert,
   ExternalLink,
   Sun,
@@ -15,6 +14,7 @@ import {
   FileText,
   Globe,
 } from './AdminIcons';
+import { VidnexLogoMark } from '../../components/icons/PlatformIcons';
 import { Login, type AdminUserProfile } from './Login';
 import { Dashboard } from './Dashboard';
 import { Visitors } from './Visitors';
@@ -215,8 +215,14 @@ export const AdminApp: React.FC = () => {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-admin-bg text-admin-text-muted text-xs">
-        Vérification de la session administrateur…
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-admin-bg text-admin-text-muted text-xs">
+        <div className="flex items-center gap-2">
+          <VidnexLogoMark className="w-8 h-8 rounded-lg" />
+          <span className="font-display font-bold text-base text-admin-text">
+            VIDNEX
+          </span>
+        </div>
+        <span>Vérification de la session administrateur…</span>
       </div>
     );
   }
@@ -321,9 +327,9 @@ export const AdminApp: React.FC = () => {
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div
               title={`VIDNEX Admin · ${user.displayName} (${user.login})`}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow shrink-0"
+              className="shrink-0"
             >
-              <Shield className="w-4 h-4" />
+              <VidnexLogoMark className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">

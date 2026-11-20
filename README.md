@@ -178,9 +178,15 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   ├── _headers                 # En-têtes Cloudflare Pages (CSP, HSTS, X-Frame-Options, cache long pour assets)
 │   ├── 4df937b019694aa285d6c53683447329.txt # Clé de vérification IndexNow (Bing / Yandex)
 │   ├── ads.txt                  # Déclaration publicitaire Google AdSense
-│   ├── favicon.svg              # Icône vectorielle VIDNEX
+│   ├── apple-touch-icon.png     # Icône iOS / Apple Touch (180x180 PNG)
+│   ├── favicon-32x32.png        # Favicon navigateur (32x32 PNG)
+│   ├── favicon.ico              # Favicon ICO multi-navigateurs (32x32)
+│   ├── icon-192.png             # Icône Web App Manifest (192x192 PNG)
+│   ├── icon-512.png             # Icône Web App Manifest (512x512 PNG)
 │   ├── llms.txt                 # Fichier descriptif structuré pour les moteurs IA
-│   ├── manifest.webmanifest     # Manifeste Web App
+│   ├── logo.png                 # Logo VIDNEX détouré à coins arrondis transparents (512x512 PNG)
+│   ├── logo.webp                # Logo VIDNEX optimisé (512x512 WebP)
+│   ├── site.webmanifest         # Manifeste Web App
 │   ├── robots.txt               # Règles d'exploration (Autorise /, bloque /admin et /api/)
 │   ├── sitemap.xml              # Sitemap XML généré avec balises xhtml:link hreflang pour les 75 routes
 │   └── og/                      # Images OpenGraph 1200x630 JPG (avec noms hashés anti-cache)

@@ -105,9 +105,10 @@ function readImageDimensions(buf) {
 
 function verifyFaviconsInDist() {
   const requiredFiles = [
-    { rel: 'favicon.svg', minBytes: 100 },
+    { rel: 'logo.webp', minBytes: 1000 },
+    { rel: 'logo.png', width: 512, height: 512 },
     { rel: 'favicon.ico', minBytes: 200 },
-    { rel: 'favicon-48x48.png', width: 48, height: 48 },
+    { rel: 'favicon-32x32.png', width: 32, height: 32 },
     { rel: 'apple-touch-icon.png', width: 180, height: 180 },
     { rel: 'icon-192.png', width: 192, height: 192 },
     { rel: 'icon-512.png', width: 512, height: 512 },
@@ -172,8 +173,7 @@ function main() {
 
     // Check favicon <link> tags in <head>
     for (const requiredHref of [
-      '/favicon.svg',
-      '/favicon-48x48.png',
+      '/favicon-32x32.png',
       '/favicon.ico',
       '/apple-touch-icon.png',
       '/site.webmanifest',

@@ -65,9 +65,7 @@ export const Footer: React.FC<FooterProps> = ({
             onClick={(e) => handlePageClick(e, 'home')}
             className="min-h-[44px] inline-flex items-center gap-2.5 group focus:outline-none w-fit"
           >
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.3)] transition-transform duration-150 group-hover:scale-95">
-              <VidnexLogoMark className="w-3.5 h-3.5" />
-            </div>
+            <VidnexLogoMark className="w-7 h-7 rounded-lg transition-transform duration-150 group-hover:scale-95" />
             <span className="font-display font-bold text-base tracking-tight text-[#1f130b] dark:text-[#fffaf5]">
               VIDNEX
             </span>

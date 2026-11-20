@@ -387,8 +387,25 @@ export function App({ initialPath }: AppProps = {}) {
         <SeoSchemaInjector pageKey="admin" language="fr" />
         <Suspense
           fallback={
-            <div className="min-h-[100dvh] flex items-center justify-center bg-admin-bg text-admin-text-muted font-mono text-xs">
-              Chargement du panneau d’administration…
+            <div className="min-h-[100dvh] flex flex-col items-center justify-center gap-3 bg-admin-bg text-admin-text-muted text-xs">
+              <div className="flex items-center gap-2">
+                <picture className="inline-flex shrink-0">
+                  <source srcSet="/logo.webp" type="image/webp" />
+                  <img
+                    src="/logo.png"
+                    alt=""
+                    width={32}
+                    height={32}
+                    decoding="async"
+                    aria-hidden="true"
+                    className="w-8 h-8 rounded-lg object-contain select-none"
+                  />
+                </picture>
+                <span className="font-display font-bold text-base text-admin-text">
+                  VIDNEX
+                </span>
+              </div>
+              <span>Chargement du panneau d’administration…</span>
             </div>
           }
         >

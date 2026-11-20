@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Lock,
   ShieldAlert,
   ArrowRight,
   Eye,
@@ -10,6 +9,7 @@ import {
   Sun,
   Moon,
 } from './AdminIcons';
+import { VidnexLogoMark } from '../../components/icons/PlatformIcons';
 import { AdminTheme } from './adminTheme';
 
 export type AdminPermission =
@@ -108,9 +108,7 @@ export const Login: React.FC<LoginProps> = ({
         <div className="bg-admin-surface border border-admin-border rounded-lg p-6 sm:p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-admin-border gap-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow-md shrink-0">
-                <Lock className="w-5 h-5" />
-              </div>
+              <VidnexLogoMark className="w-10 h-10 rounded-lg" />
               <div className="min-w-0">
                 <h1 className="font-display text-lg font-bold tracking-tight text-admin-text truncate">
                   VIDNEX · Console Admin

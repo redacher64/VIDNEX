@@ -5,39 +5,19 @@ interface IconProps {
   className?: string;
 }
 
-export const VidnexLogoMark: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    aria-hidden="true"
-  >
-    {/* Outer precision frame */}
-    <rect
-      x="2"
-      y="2"
-      width="20"
-      height="20"
-      stroke="currentColor"
-      strokeWidth="2"
+export const VidnexLogoMark: React.FC<IconProps> = ({ className = 'w-8 h-8' }) => (
+  <picture className="inline-flex shrink-0">
+    <source srcSet="/logo.webp" type="image/webp" />
+    <img
+      src="/logo.png"
+      alt=""
+      width={32}
+      height={32}
+      decoding="async"
+      aria-hidden="true"
+      className={`${className} object-contain select-none`}
     />
-    {/* Geometric V-Vector Extraction Mark */}
-    <path
-      d="M7.5 8.5L12 15.5L16.5 8.5"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="square"
-    />
-    <line
-      x1="7.5"
-      y1="17.5"
-      x2="16.5"
-      y2="17.5"
-      stroke="currentColor"
-      strokeWidth="1.75"
-    />
-  </svg>
+  </picture>
 );
 
 export const PlatformIcon: React.FC<{

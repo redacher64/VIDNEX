@@ -418,7 +418,9 @@ export function buildHeadMetadataForRoute(
           url: SITE_URL,
           logo: {
             '@type': 'ImageObject',
-            url: buildAbsoluteUrl('/icon-512.png'),
+            url: buildAbsoluteUrl('/logo.png'),
+            width: 512,
+            height: 512,
           },
         },
         blogPost: articlesInLocale.map((item) => ({
@@ -544,7 +546,9 @@ export function buildHeadMetadataForRoute(
           url: SITE_URL,
           logo: {
             '@type': 'ImageObject',
-            url: buildAbsoluteUrl('/icon-512.png'),
+            url: buildAbsoluteUrl('/logo.png'),
+            width: 512,
+            height: 512,
           },
         },
       },
@@ -659,7 +663,7 @@ export function buildHeadMetadataForRoute(
         url: SITE_URL,
         description:
           'VIDNEX is a free, browser-based web utility for saving strictly public media (MP4 video, MP3/M4A audio, and JPG photos) from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures without login or server-side file storage.',
-        logo: buildAbsoluteUrl('/icon-512.png'),
+        logo: buildAbsoluteUrl('/logo.png'),
       },
       {
         '@type': 'FAQPage',

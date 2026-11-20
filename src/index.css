@@ -8,32 +8,32 @@
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Tahoma', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-    /* Admin Light Theme Tokens (WCAG AA compliant, warm VIDNEX identity) */
-    --admin-bg: #fffaf5;
-    --admin-surface: #ffffff;
-    --admin-surface-muted: #faf3ec;
-    --admin-surface-hover: #f5e9dc;
-    --admin-border: #e2cbb8;
-    --admin-border-strong: #c49e85;
-    --admin-text: #1c1008;
-    --admin-text-secondary: #4a2f1d;
-    --admin-text-muted: #6b4730;
+    /* Admin Light Theme Tokens (Neutral Zinc palette + orange accent) */
+    --admin-bg: #fafafa;
+    --admin-surface: #fff;
+    --admin-surface-muted: #f4f4f5;
+    --admin-surface-hover: #e4e4e7;
+    --admin-border: #e4e4e7;
+    --admin-border-strong: #d4d4d8;
+    --admin-text: #18181b;
+    --admin-text-secondary: #3f3f46;
+    --admin-text-muted: #71717a;
     --admin-accent: #c2410c;
     --admin-accent-bg: #ffedd5;
     --admin-accent-border: #fdba74;
   }
 
   .dark {
-    /* Admin Dark Theme Tokens (WCAG AA compliant, warm VIDNEX identity) */
-    --admin-bg: #140e0a;
-    --admin-surface: #1c140e;
-    --admin-surface-muted: #120c08;
-    --admin-surface-hover: #2a1d14;
-    --admin-border: #4d2c19;
-    --admin-border-strong: #7c4324;
-    --admin-text: #fffaf5;
-    --admin-text-secondary: #f3d5b5;
-    --admin-text-muted: #c89d7c;
+    /* Admin Dark Theme Tokens (Neutral Zinc palette + orange accent) */
+    --admin-bg: #09090b;
+    --admin-surface: #18181b;
+    --admin-surface-muted: #111113;
+    --admin-surface-hover: #27272a;
+    --admin-border: #27272a;
+    --admin-border-strong: #3f3f46;
+    --admin-text: #fafafa;
+    --admin-text-secondary: #d4d4d8;
+    --admin-text-muted: #a1a1aa;
     --admin-accent: #fb923c;
     --admin-accent-bg: #431407;
     --admin-accent-border: #9a3412;

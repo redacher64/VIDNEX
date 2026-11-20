@@ -355,10 +355,10 @@ export const Visitors: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header + Sélecteur de période */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-admin-surface border border-admin-border rounded-2xl p-5 shadow-2xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
         <div>
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
+            <div className="w-9 h-9 rounded-lg bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
               <Globe className="w-5 h-5" />
             </div>
             <div>
@@ -384,7 +384,7 @@ export const Visitors: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Sélecteur de période 24h / 7j / 30j */}
           <div
-            className="inline-flex items-center bg-admin-muted border border-admin-border rounded-xl p-1"
+            className="inline-flex items-center bg-admin-muted border border-admin-border rounded-lg p-1"
             role="tablist"
             aria-label="Sélecteur de période"
           >
@@ -397,7 +397,7 @@ export const Visitors: React.FC = () => {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setSelectedPeriod(opt.key)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-md text-xs font-mono font-semibold transition-all cursor-pointer ${
                     active
                       ? 'bg-admin-accent text-white shadow-2xs'
                       : 'text-admin-text-secondary hover:text-admin-text hover:bg-admin-hover'
@@ -413,7 +413,7 @@ export const Visitors: React.FC = () => {
             type="button"
             onClick={fetchVisitors}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-admin-muted hover:bg-admin-hover text-admin-text border border-admin-border-strong text-xs font-mono font-medium transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover text-admin-text border border-admin-border-strong text-xs font-mono font-medium transition-colors disabled:opacity-50 cursor-pointer"
             title="Actualiser les données"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-admin-accent ${loading ? 'animate-spin' : ''}`} />
@@ -426,10 +426,10 @@ export const Visitors: React.FC = () => {
       {error && (
         <div
           role="alert"
-          className="bg-red-50 dark:bg-rose-950/45 border border-red-300 dark:border-rose-500/40 rounded-2xl p-5 text-red-950 dark:text-rose-100 shadow-2xs"
+          className="bg-red-50 dark:bg-rose-950/45 border border-red-300 dark:border-rose-500/40 rounded-lg p-5 text-red-950 dark:text-rose-100 shadow-2xs"
         >
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-rose-500/15 border border-red-300 dark:border-rose-500/30 flex items-center justify-center text-red-700 dark:text-rose-400 shrink-0 mt-0.5">
+            <div className="w-9 h-9 rounded-lg bg-red-100 dark:bg-rose-500/15 border border-red-300 dark:border-rose-500/30 flex items-center justify-center text-red-700 dark:text-rose-400 shrink-0 mt-0.5">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0 space-y-2">
@@ -451,7 +451,7 @@ export const Visitors: React.FC = () => {
                   type="button"
                   onClick={fetchVisitors}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 dark:bg-rose-500/25 dark:hover:bg-rose-500/35 border border-red-800 dark:border-rose-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-700 hover:bg-red-800 dark:bg-rose-500/25 dark:hover:bg-rose-500/35 border border-red-800 dark:border-rose-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   Réessayer
@@ -471,7 +471,7 @@ export const Visitors: React.FC = () => {
 
       {/* Avertissement non bloquant en cas de quota GraphQL temporaire (affiche le cache ou le repli D1) */}
       {!error && data?.rateLimitedWarning && (
-        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 rounded-2xl p-4 text-amber-950 dark:text-amber-100 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 rounded-lg p-4 text-amber-950 dark:text-amber-100 flex items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" />
             <p className="text-xs font-mono leading-relaxed">{data.rateLimitedWarning}</p>
@@ -480,7 +480,7 @@ export const Visitors: React.FC = () => {
             type="button"
             onClick={fetchVisitors}
             disabled={loading}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 dark:bg-amber-500/25 dark:hover:bg-amber-500/35 border border-amber-800 dark:border-amber-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-700 hover:bg-amber-800 dark:bg-amber-500/25 dark:hover:bg-amber-500/35 border border-amber-800 dark:border-amber-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Réessayer
@@ -499,7 +499,7 @@ export const Visitors: React.FC = () => {
                 key={opt.key}
                 type="button"
                 onClick={() => setSelectedPeriod(opt.key)}
-                className={`text-left rounded-2xl p-4 border transition-all cursor-pointer shadow-2xs ${
+                className={`text-left rounded-lg p-4 border transition-all cursor-pointer shadow-2xs ${
                   isSelected
                     ? 'bg-admin-surface border-admin-accent ring-1 ring-admin-accent/40'
                     : 'bg-admin-surface/80 border-admin-border hover:border-admin-border-strong'
@@ -548,7 +548,7 @@ export const Visitors: React.FC = () => {
       {/* Bandeau des 6 cartes de métriques Cloudflare (comme sur Workers & Pages > vidnex > Metrics) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* 1. Asset Requests / Visites */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Visites (Requêtes)</span>
             <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
@@ -565,7 +565,7 @@ export const Visitors: React.FC = () => {
         </div>
 
         {/* 2. Visiteurs uniques */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Visiteurs uniques</span>
             <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
@@ -586,7 +586,7 @@ export const Visitors: React.FC = () => {
         </div>
 
         {/* 3. Asset Cache Hit Rate */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Taux de cache Edge</span>
             <TrendingUp className="w-3.5 h-3.5 text-sky-700 dark:text-sky-400" />
@@ -603,7 +603,7 @@ export const Visitors: React.FC = () => {
         </div>
 
         {/* 4. Invocations Worker / Pages Functions */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Invocations Worker</span>
             <Activity className="w-3.5 h-3.5 text-admin-accent" />
@@ -618,7 +618,7 @@ export const Visitors: React.FC = () => {
         </div>
 
         {/* 5. Subrequests (Sous-requêtes sortantes) */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Sous-requêtes</span>
             <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
@@ -635,7 +635,7 @@ export const Visitors: React.FC = () => {
         </div>
 
         {/* 6. Errors & Median CPU Time */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
             <span>Erreurs &amp; CPU médian</span>
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
@@ -665,7 +665,7 @@ export const Visitors: React.FC = () => {
 
       {/* 4 Cartes de Métriques Avancées Edge, Engagement & Concentration Géographique */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 space-y-1 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
             <span>Disponibilité HTTP &amp; Origin</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
@@ -684,7 +684,7 @@ export const Visitors: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 space-y-1 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
             <span>Bande passante économisée</span>
             <TrendingUp className="w-3.5 h-3.5 text-sky-700 dark:text-sky-400" />
@@ -702,7 +702,7 @@ export const Visitors: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 space-y-1 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
             <span>Intensité par Visiteur Unique</span>
             <Users className="w-3.5 h-3.5 text-admin-accent" />
@@ -720,7 +720,7 @@ export const Visitors: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-4 space-y-1 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
             <span>Concentration Géo &amp; CPU P99</span>
             <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
@@ -741,7 +741,7 @@ export const Visitors: React.FC = () => {
       </div>
 
       {/* Barre d'état du déploiement actif */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
         <div className="flex flex-wrap items-center gap-6">
           <div>
             <div className="text-[11px] font-mono text-admin-text-muted">Période analysée</div>
@@ -794,7 +794,7 @@ export const Visitors: React.FC = () => {
       {/* Graphique d'évolution temporelle + Répartition par Code HTTP & Domaines */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Colonne gauche (7 cols) : Courbe / Histogramme chronologique (Invocations / Visites) */}
-        <div className="lg:col-span-7 bg-admin-surface border border-admin-border rounded-2xl p-5 flex flex-col justify-between shadow-2xs">
+        <div className="lg:col-span-7 bg-admin-surface border border-admin-border rounded-lg p-5 flex flex-col justify-between shadow-2xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="font-display text-sm font-bold text-admin-text">
@@ -804,7 +804,7 @@ export const Visitors: React.FC = () => {
                 {activePeriodMeta.subtitle} — Survolez une barre pour voir le détail
               </p>
             </div>
-            <div className="inline-flex items-center bg-admin-muted border border-admin-border rounded-xl p-1">
+            <div className="inline-flex items-center bg-admin-muted border border-admin-border rounded-lg p-1">
               {(
                 [
                   { id: 'requests', label: 'Visites & Cache' },
@@ -816,7 +816,7 @@ export const Visitors: React.FC = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setChartMode(tab.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold transition-colors cursor-pointer ${
                     chartMode === tab.id
                       ? 'bg-admin-accent text-white shadow-2xs'
                       : 'text-admin-text-secondary hover:text-admin-text'
@@ -829,14 +829,14 @@ export const Visitors: React.FC = () => {
           </div>
 
           {timeseries.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-xs font-mono text-admin-text-muted border border-dashed border-admin-border rounded-xl">
+            <div className="h-48 flex items-center justify-center text-xs font-mono text-admin-text-muted border border-dashed border-admin-border rounded-lg">
               {loading
                 ? 'Chargement de l’historique temporel…'
                 : 'Série temporelle agrégée sur la période sélectionnée'}
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="h-48 flex items-end gap-1.5 pt-6 px-2 border-b border-admin-border bg-admin-muted/50 rounded-t-xl">
+              <div className="h-48 flex items-end gap-1.5 pt-6 px-2 border-b border-admin-border bg-admin-muted/50 rounded-t-lg">
                 {timeseries.map((pt, idx) => {
                   const primaryVal =
                     chartMode === 'uniques'
@@ -862,7 +862,7 @@ export const Visitors: React.FC = () => {
                       className="group relative flex-1 h-full flex flex-col justify-end items-center"
                     >
                       {/* Tooltip au survol */}
-                      <div className="opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-20 bg-[#140e0a] border border-admin-border-strong rounded-xl px-2.5 py-2 text-[11px] font-mono text-[#fffaf5] shadow-xl whitespace-nowrap">
+                      <div className="opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-20 bg-[#140e0a] border border-admin-border-strong rounded-lg px-2.5 py-2 text-[11px] font-mono text-[#fffaf5] shadow-xl whitespace-nowrap">
                         <div className="font-bold text-orange-300 mb-0.5">
                           {pt.label || pt.timestamp}
                         </div>
@@ -886,7 +886,7 @@ export const Visitors: React.FC = () => {
                             ? 'bg-emerald-600 dark:bg-emerald-500/85 group-hover:bg-emerald-500'
                             : chartMode === 'invocations'
                             ? 'bg-amber-600 dark:bg-amber-500/85 group-hover:bg-amber-500'
-                            : 'bg-[#c2410c] dark:bg-orange-500/85 group-hover:bg-orange-500'
+                            : 'bg-admin-accent dark:bg-orange-500/85 group-hover:bg-orange-500'
                         }`}
                       >
                         {chartMode === 'requests' && cachePctOfBar > 0 && (
@@ -917,7 +917,7 @@ export const Visitors: React.FC = () => {
                 {chartMode === 'requests' && (
                   <>
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-[#c2410c] dark:bg-orange-500" />
+                      <span className="w-2.5 h-2.5 rounded-sm bg-admin-accent dark:bg-orange-500" />
                       Requêtes dynamiques (Origin / Worker)
                     </span>
                     <span className="inline-flex items-center gap-1.5">
@@ -946,7 +946,7 @@ export const Visitors: React.FC = () => {
         {/* Colonne droite (5 cols) : Codes de statut HTTP (2xx, 3xx, 4xx, 5xx) + Top Hostnames */}
         <div className="lg:col-span-5 space-y-5">
           {/* Asset requests by status code */}
-          <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 shadow-2xs">
+          <div className="bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
             <h2 className="font-display text-sm font-bold text-admin-text mb-1">
               Requêtes par code de statut HTTP
             </h2>
@@ -1041,7 +1041,7 @@ export const Visitors: React.FC = () => {
                   return (
                     <span
                       key={st.code}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono ${badgeColor}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-mono ${badgeColor}`}
                     >
                       <span className="font-bold">HTTP {st.code}</span>
                       <span className="opacity-85">
@@ -1055,7 +1055,7 @@ export const Visitors: React.FC = () => {
           </div>
 
           {/* Top asset hostnames & Navigateurs */}
-          <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 shadow-2xs">
+          <div className="bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
             <h2 className="font-display text-sm font-bold text-admin-text mb-3">
               Domaines actifs &amp; Navigateurs
             </h2>
@@ -1087,7 +1087,7 @@ export const Visitors: React.FC = () => {
                   {browsers.slice(0, 5).map((br) => (
                     <span
                       key={br.browser}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-admin-muted border border-admin-border text-xs font-mono text-admin-text-secondary"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-admin-muted border border-admin-border text-xs font-mono text-admin-text-secondary"
                     >
                       <span className="font-semibold text-admin-text">{br.browser}</span>
                       <span className="text-[11px] text-admin-accent font-bold">
@@ -1104,7 +1104,7 @@ export const Visitors: React.FC = () => {
 
       {/* Sous-requêtes sortantes par hôte & Durée moyenne */}
       {subrequestHosts.length > 0 && (
-        <div className="bg-admin-surface border border-admin-border rounded-2xl overflow-hidden shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg overflow-hidden shadow-2xs">
           <div className="px-5 py-4 border-b border-admin-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-display text-sm font-bold text-admin-text">
@@ -1207,7 +1207,7 @@ export const Visitors: React.FC = () => {
       />
 
       {/* Tableau trié par pays : Drapeau + Pays + Visites + Bande passante + % */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg overflow-hidden shadow-2xs">
         <div className="px-5 py-4 border-b border-admin-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-sm font-bold text-admin-text">
@@ -1224,7 +1224,7 @@ export const Visitors: React.FC = () => {
               value={countrySearch}
               onChange={(e) => setCountrySearch(e.target.value)}
               placeholder="Filtrer un pays (ex: France, FR, Maroc)…"
-              className="w-full sm:w-64 px-3 py-1.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
+              className="w-full sm:w-64 px-3 py-1.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
             />
           </div>
         </div>

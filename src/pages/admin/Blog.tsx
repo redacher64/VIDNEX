@@ -284,7 +284,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-admin-border pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-mono text-admin-text-muted">
-            <FileText className="w-4 h-4 text-[#c2410c]" />
+            <FileText className="w-4 h-4 text-admin-accent" />
             <span>CMS Éditorial Multilingue</span>
             <span aria-hidden="true">·</span>
             <span>Droits actifs : {activePermissionsLabels.join(' · ')}</span>
@@ -303,7 +303,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
           <div
             role="group"
             aria-label="Mode d'affichage du blog"
-            className="flex items-center gap-1 p-1 rounded-xl bg-admin-muted border border-admin-border-strong"
+            className="flex items-center gap-1 p-1 rounded-lg bg-admin-muted border border-admin-border-strong"
           >
             <button
               type="button"
@@ -311,9 +311,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 setViewMode('list');
                 setPreviewArticleSlug(null);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-display font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-display font-semibold transition-colors cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-[#c2410c] text-white shadow-sm'
+                  ? 'bg-admin-accent text-white shadow-sm'
                   : 'text-admin-text-secondary hover:text-admin-text'
               }`}
             >
@@ -323,9 +323,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               type="button"
               data-testid="admin-blog-preview-toggle"
               onClick={() => handleOpenIndexPreview(previewLocale, null)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-display font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-display font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 viewMode === 'preview'
-                  ? 'bg-[#c2410c] text-white shadow-sm'
+                  ? 'bg-admin-accent text-white shadow-sm'
                   : 'text-admin-text-secondary hover:text-admin-text'
               }`}
             >
@@ -342,10 +342,10 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 setPreviewArticleSlug(null);
                 setViewMode(viewMode === 'editor' ? 'list' : 'editor');
               }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-display font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`px-3.5 py-2 rounded-md text-xs font-display font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
                 viewMode === 'editor'
-                  ? 'bg-[#9a3412] text-white shadow'
-                  : 'bg-[#c2410c] hover:bg-[#9a3412] text-white shadow'
+                  ? 'bg-admin-accent text-white shadow'
+                  : 'bg-admin-accent hover:opacity-90 text-white shadow'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -358,7 +358,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               type="button"
               onClick={handleImportExistingToD1}
               disabled={syncingD1}
-              className="px-3 py-2 rounded-xl bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text transition-colors cursor-pointer disabled:opacity-50"
+              className="px-3 py-2 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text transition-colors cursor-pointer disabled:opacity-50"
             >
               {syncingD1 ? 'Synchronisation D1…' : 'Synchroniser D1'}
             </button>
@@ -370,7 +370,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
             disabled={loadingD1}
             aria-label="Actualiser la liste des articles"
             title="Actualiser la liste des articles"
-            className="p-2 rounded-xl bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer disabled:opacity-50"
+            className="p-2 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw
               className={`w-4 h-4 ${loadingD1 ? 'animate-spin' : ''}`}
@@ -382,7 +382,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
       {feedback && (
         <div
           role="status"
-          className={`rounded-xl p-3.5 text-xs font-mono border flex items-center justify-between gap-3 ${
+          className={`rounded-lg p-3.5 text-xs font-mono border flex items-center justify-between gap-3 ${
             feedback.type === 'success'
               ? 'bg-emerald-950/30 border-emerald-700/50 text-emerald-300'
               : 'bg-red-950/30 border-red-700/50 text-red-300'
@@ -401,7 +401,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
 
       {/* Synthèse statistique */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-1">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
           <p className="text-[11px] font-mono text-admin-text-muted">
             Total articles
           </p>
@@ -413,7 +413,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
           </p>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-1">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
           <p className="text-[11px] font-mono text-admin-text-muted">
             Articles publiés
           </p>
@@ -425,7 +425,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
           </p>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-1">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
           <p className="text-[11px] font-mono text-admin-text-muted">
             Articles en brouillon
           </p>
@@ -437,7 +437,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
           </p>
         </div>
 
-        <div className="bg-admin-surface border border-admin-border rounded-xl p-4 space-y-1">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
           <p className="text-[11px] font-mono text-admin-text-muted">
             Traductions (Publiées / Brouillons)
           </p>
@@ -471,7 +471,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
         <section
           aria-label="Aperçu interactif BlogIndexView"
           data-testid="admin-blog-index-preview"
-          className="bg-admin-surface border border-admin-border rounded-2xl overflow-hidden"
+          className="bg-admin-surface border border-admin-border rounded-lg overflow-hidden"
         >
           {/* Barre d'outils d'aperçu */}
           <div className="px-4 sm:px-6 py-3.5 bg-admin-muted border-b border-admin-border flex flex-wrap items-center justify-between gap-3">
@@ -487,7 +487,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 <button
                   type="button"
                   onClick={() => setPreviewArticleSlug(null)}
-                  className="px-2.5 py-1 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+                  className="px-2.5 py-1 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
                 >
                   ← Retour à BlogIndexView
                 </button>
@@ -508,9 +508,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                       setPreviewLocale(loc);
                       setPreviewArticleSlug(null);
                     }}
-                    className={`px-2.5 py-1 rounded text-xs font-mono font-semibold cursor-pointer transition-colors ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold cursor-pointer transition-colors ${
                       previewLocale === loc
-                        ? 'bg-[#c2410c] text-white'
+                        ? 'bg-admin-accent text-white'
                         : 'text-admin-text-secondary hover:text-admin-text'
                     }`}
                   >
@@ -521,7 +521,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
 
               <a
                 href={getBlogHomePath(previewLocale as BlogLocale)}
-                className="px-3 py-1.5 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors"
               >
                 <span>Ouvrir {getBlogHomePath(previewLocale as BlogLocale)}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -533,7 +533,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   setViewMode('list');
                   setPreviewArticleSlug(null);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
               >
                 Retour à la liste
               </button>
@@ -562,11 +562,11 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
         /* Vue Liste des articles (publiés et brouillons) */
         <section className="space-y-4">
           {/* Barre de filtres */}
-          <div className="bg-admin-surface border border-admin-border rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="bg-admin-surface border border-admin-border rounded-lg p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             <div
               role="group"
               aria-label="Filtrer par statut de publication"
-              className="flex items-center gap-1 p-1 rounded-xl bg-admin-muted border border-admin-border"
+              className="flex items-center gap-1 p-1 rounded-lg bg-admin-muted border border-admin-border"
             >
               {(
                 [
@@ -580,9 +580,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   type="button"
                   onClick={() => setStatusFilter(tab.id)}
                   aria-pressed={statusFilter === tab.id}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-colors cursor-pointer ${
                     statusFilter === tab.id
-                      ? 'bg-[#c2410c] text-white shadow-sm'
+                      ? 'bg-admin-accent text-white shadow-sm'
                       : 'text-admin-text-secondary hover:text-admin-text'
                   }`}
                 >
@@ -599,7 +599,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 id="admin-blog-category-filter"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+                className="px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
               >
                 <option value="all">Toutes les catégories</option>
                 {BLOG_CATEGORY_KEYS.map((catKey) => (
@@ -618,14 +618,14 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filtrer par titre, slug ou ID…"
-                className="flex-1 px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+                className="flex-1 px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
               />
             </div>
           </div>
 
           {/* Liste des articles */}
           {filteredArticles.length === 0 ? (
-            <div className="bg-admin-surface border border-admin-border rounded-2xl p-8 text-center space-y-2">
+            <div className="bg-admin-surface border border-admin-border rounded-lg p-8 text-center space-y-2">
               <p className="font-display text-sm font-bold text-admin-text">
                 Aucun article ne correspond aux filtres sélectionnés
               </p>
@@ -651,7 +651,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   <article
                     key={art.id}
                     data-testid={`admin-blog-article-${art.id}`}
-                    className="bg-admin-surface border border-admin-border rounded-xl p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-admin-border-strong transition-colors"
+                    className="bg-admin-surface border border-admin-border rounded-lg p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-admin-border-strong transition-colors"
                   >
                     <div className="space-y-2 min-w-0 flex-1">
                       {/* Métadonnées typographiques sans pilules */}
@@ -757,9 +757,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                             null
                           )
                         }
-                        className="px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#c2410c]" />
+                        <Eye className="w-3.5 h-3.5 text-admin-accent" />
                         <span>Aperçu BlogIndexView</span>
                       </button>
 
@@ -769,7 +769,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleOpenIndexPreview('en', enTr.slug)
                           }
-                          className="px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <span>Aperçu EN</span>
                         </button>
@@ -781,7 +781,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleOpenIndexPreview('fr', frTr.slug)
                           }
-                          className="px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <span>Aperçu FR</span>
                         </button>
@@ -790,7 +790,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                       {isPublished && enTr && enTr.status === 'published' && (
                         <a
                           href={`/blog/${enTr.slug}`}
-                          className="px-2.5 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1 transition-colors"
+                          className="px-2.5 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1 transition-colors"
                           title={`Ouvrir /blog/${enTr.slug}`}
                         >
                           <span>/blog</span>
@@ -805,7 +805,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleToggleArticleStatus(art.id, art.status)
                           }
-                          className="px-3 py-1.5 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] text-white text-xs font-mono font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                          className="px-3 py-1.5 rounded-md bg-admin-accent hover:opacity-90 text-white text-xs font-mono font-semibold transition-colors cursor-pointer disabled:opacity-50"
                         >
                           {togglingId === art.id
                             ? '…'

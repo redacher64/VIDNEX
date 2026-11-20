@@ -113,10 +113,10 @@ export const Account: React.FC<AccountProps> = ({
     return (
       <div className="min-h-screen flex items-center justify-center bg-admin-bg text-admin-text px-4 py-12 relative overflow-hidden transition-colors duration-150">
         <div className="w-full max-w-lg relative z-10">
-          <div className="bg-admin-surface border border-admin-border rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+          <div className="bg-admin-surface border border-admin-border rounded-lg p-6 sm:p-8 shadow-xl space-y-6">
             <div className="flex items-center justify-between gap-3 pb-4 border-b border-admin-border">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-[#c2410c] flex items-center justify-center text-white shadow shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow shrink-0">
                   <Lock className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -139,19 +139,19 @@ export const Account: React.FC<AccountProps> = ({
                         ? 'Passer en mode clair'
                         : 'Passer en mode sombre'
                     }
-                    className="p-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
+                    className="p-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
                   >
                     {theme === 'dark' ? (
                       <Sun className="w-4 h-4 text-amber-400" />
                     ) : (
-                      <Moon className="w-4 h-4 text-[#c2410c]" />
+                      <Moon className="w-4 h-4 text-admin-accent" />
                     )}
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="px-3 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Déconnexion</span>
@@ -159,7 +159,7 @@ export const Account: React.FC<AccountProps> = ({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/70 text-amber-950 dark:text-amber-200 text-xs leading-relaxed">
+            <div className="p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/70 text-amber-950 dark:text-amber-200 text-xs leading-relaxed">
               Pour votre sécurité, vous devez définir un mot de passe personnel
               (<strong>12 caractères minimum</strong>, différent du mot de passe
               temporaire) avant d’accéder à votre espace.
@@ -168,7 +168,7 @@ export const Account: React.FC<AccountProps> = ({
             {error && (
               <div
                 role="alert"
-                className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
+                className="p-3.5 rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
               >
                 <ShieldAlert className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                 <span>{error}</span>
@@ -191,7 +191,7 @@ export const Account: React.FC<AccountProps> = ({
                   required
                   autoComplete="current-password"
                   placeholder="Saisissez le mot de passe temporaire reçu…"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
                 />
               </div>
 
@@ -211,7 +211,7 @@ export const Account: React.FC<AccountProps> = ({
                   minLength={12}
                   autoComplete="new-password"
                   placeholder="Minimum 12 caractères…"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
                 />
               </div>
 
@@ -231,7 +231,7 @@ export const Account: React.FC<AccountProps> = ({
                   minLength={12}
                   autoComplete="new-password"
                   placeholder="Répétez votre nouveau mot de passe…"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
                 />
               </div>
 
@@ -265,7 +265,7 @@ export const Account: React.FC<AccountProps> = ({
                   newPassword.length < 12 ||
                   !confirmPassword
                 }
-                className="w-full py-3 px-4 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] disabled:opacity-50 text-white font-display font-semibold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                className="w-full py-3 px-4 rounded-md bg-admin-accent hover:opacity-90 disabled:opacity-50 text-white font-display font-semibold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>
@@ -295,7 +295,7 @@ export const Account: React.FC<AccountProps> = ({
         <button
           type="button"
           onClick={onLogout}
-          className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-semibold text-red-900 dark:text-red-200 flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-semibold text-red-900 dark:text-red-200 flex items-center gap-2 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Se déconnecter</span>
@@ -303,10 +303,10 @@ export const Account: React.FC<AccountProps> = ({
       </div>
 
       {/* Résumé du profil */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl p-6 space-y-4 shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg p-6 space-y-4 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent">
+            <div className="w-11 h-11 rounded-lg bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent">
               <UserCircle className="w-6 h-6" />
             </div>
             <div>
@@ -320,7 +320,7 @@ export const Account: React.FC<AccountProps> = ({
             </div>
           </div>
 
-          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-lg bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
+          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
             {user.isOwner ? 'PROPRIÉTAIRE (TOUS LES DROITS)' : user.roleLabel}
           </span>
         </div>
@@ -357,7 +357,7 @@ export const Account: React.FC<AccountProps> = ({
       </div>
 
       {/* Changement de mot de passe */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl p-6 space-y-4 shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg p-6 space-y-4 shadow-2xs">
         <div className="flex items-center gap-2.5">
           <KeyRound className="w-4 h-4 text-admin-accent" />
           <h3 className="font-display text-base font-bold text-admin-text">
@@ -366,7 +366,7 @@ export const Account: React.FC<AccountProps> = ({
         </div>
 
         {user.isOwner ? (
-          <div className="p-4 rounded-xl bg-admin-muted border border-admin-border text-xs text-admin-text-secondary font-mono leading-relaxed">
+          <div className="p-4 rounded-lg bg-admin-muted border border-admin-border text-xs text-admin-text-secondary font-mono leading-relaxed">
             Le compte propriétaire principal utilise le secret d’environnement
             Cloudflare{' '}
             <code className="text-admin-accent font-semibold">
@@ -383,7 +383,7 @@ export const Account: React.FC<AccountProps> = ({
             {error && (
               <div
                 role="alert"
-                className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
+                className="p-3.5 rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
               >
                 <ShieldAlert className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                 <span>{error}</span>
@@ -391,7 +391,7 @@ export const Account: React.FC<AccountProps> = ({
             )}
 
             {successMsg && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 text-xs flex items-start gap-2.5">
+              <div className="p-3.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 text-xs flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>{successMsg}</span>
               </div>
@@ -411,7 +411,7 @@ export const Account: React.FC<AccountProps> = ({
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
               />
             </div>
 
@@ -431,7 +431,7 @@ export const Account: React.FC<AccountProps> = ({
                   required
                   minLength={12}
                   autoComplete="new-password"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
                 />
               </div>
 
@@ -450,7 +450,7 @@ export const Account: React.FC<AccountProps> = ({
                   required
                   minLength={12}
                   autoComplete="new-password"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono focus:outline-none focus:border-orange-600"
                 />
               </div>
             </div>
@@ -481,7 +481,7 @@ export const Account: React.FC<AccountProps> = ({
                   newPassword.length < 12 ||
                   !confirmPassword
                 }
-                className="px-5 py-2.5 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] disabled:opacity-50 text-white font-display font-semibold text-xs flex items-center gap-2 shadow transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-md bg-admin-accent hover:opacity-90 disabled:opacity-50 text-white font-display font-semibold text-xs flex items-center gap-2 shadow transition-colors cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 <span>

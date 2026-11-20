@@ -104,13 +104,11 @@ export const Login: React.FC<LoginProps> = ({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-admin-bg text-admin-text px-4 py-12 relative overflow-hidden transition-colors duration-150">
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-gradient-to-b from-orange-500/15 via-amber-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-6 sm:p-8 shadow-xl">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-6 sm:p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-admin-border gap-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#c2410c] flex items-center justify-center text-white shadow-md shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow-md shrink-0">
                 <Lock className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -132,12 +130,12 @@ export const Login: React.FC<LoginProps> = ({
                       ? 'Passer en mode clair'
                       : 'Passer en mode sombre'
                   }
-                  className="p-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
+                  className="p-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
                 >
                   {theme === 'dark' ? (
                     <Sun className="w-4 h-4 text-amber-400" />
                   ) : (
-                    <Moon className="w-4 h-4 text-[#c2410c]" />
+                    <Moon className="w-4 h-4 text-admin-accent" />
                   )}
                 </button>
               )}
@@ -153,7 +151,7 @@ export const Login: React.FC<LoginProps> = ({
           {error && (
             <div
               role="alert"
-              className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
+              className="mb-5 p-3.5 rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800/70 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5"
             >
               <ShieldAlert className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
@@ -185,7 +183,7 @@ export const Login: React.FC<LoginProps> = ({
                   placeholder="admin ou votre identifiant…"
                   autoComplete="username"
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text placeholder-admin-text-muted/70 focus:outline-none focus:border-orange-600 transition-colors font-mono"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text placeholder-admin-text-muted/70 focus:outline-none focus:border-orange-600 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -207,7 +205,7 @@ export const Login: React.FC<LoginProps> = ({
                   placeholder="Saisissez votre mot de passe…"
                   autoComplete="current-password"
                   required
-                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text placeholder-admin-text-muted/70 focus:outline-none focus:border-orange-600 transition-colors font-mono"
+                  className="w-full pl-10 pr-10 py-3 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text placeholder-admin-text-muted/70 focus:outline-none focus:border-orange-600 transition-colors font-mono"
                 />
                 <button
                   type="button"
@@ -223,7 +221,7 @@ export const Login: React.FC<LoginProps> = ({
             <button
               type="submit"
               disabled={loading || !login.trim() || !password.trim()}
-              className="w-full py-3 px-4 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] disabled:opacity-50 text-white font-display font-semibold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+              className="w-full py-3 px-4 rounded-md bg-admin-accent hover:opacity-90 disabled:opacity-50 text-white font-display font-semibold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
               <span>{loading ? 'Vérification cryptographique…' : 'Se connecter'}</span>
               <ArrowRight className="w-4 h-4" />

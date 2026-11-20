@@ -176,7 +176,7 @@ export const Controls: React.FC = () => {
           </p>
         </div>
         {statusMessage && (
-          <div className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200 text-xs font-mono flex items-center gap-2">
+          <div className="px-3.5 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200 text-xs font-mono flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>{statusMessage}</span>
           </div>
@@ -186,7 +186,7 @@ export const Controls: React.FC = () => {
       {/* Interrupteurs globaux */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Maintenance */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <AlertOctagon className="w-4 h-4 text-amber-700 dark:text-amber-400" />
@@ -209,7 +209,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.maintenance
                 ? 'bg-amber-600 dark:bg-amber-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -221,7 +221,7 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Adsterra (ads_adsterra_enabled) */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-admin-accent" />
@@ -247,7 +247,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.ads_adsterra_enabled
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -259,7 +259,7 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* AdSense (ads_enabled) */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs md:col-span-2">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs md:col-span-2">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-admin-accent" />
@@ -282,7 +282,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.ads_enabled
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -294,24 +294,24 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Services tiers (allow_third_party) */}
-        <div className="bg-[#1c140e] border border-orange-900/50 rounded-2xl p-5 flex items-center justify-between gap-4 md:col-span-2">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 md:col-span-2 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-amber-400" />
-              <h3 className="font-display text-sm font-bold text-white">
+              <Sliders className="w-4 h-4 text-admin-accent" />
+              <h3 className="font-display text-sm font-bold text-admin-text">
                 Services tiers (`allow_third_party` : tikwm.com, vxinstagram.com, ddinstagram.com)
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-md border ${
                   settings.allow_third_party !== false
-                    ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                    : 'bg-red-950/60 border-red-700/60 text-red-300'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
                 {settings.allow_third_party !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
               </span>
             </div>
-            <p className="text-xs text-orange-200/65">
+            <p className="text-xs text-admin-text-muted">
               Désactivé, plus aucun appel vers tikwm.com, vxinstagram.com ou ddinstagram.com : seuls les niveaux directs sont utilisés et ces hôtes sont refusés dans l’allowlist de /api/download (sans redéploiement).
             </p>
           </div>
@@ -328,8 +328,8 @@ export const Controls: React.FC = () => {
             }
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.allow_third_party !== false
-                ? 'bg-emerald-500'
-                : 'bg-[#120c08] border border-orange-900/80'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -341,14 +341,14 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* TikTok Toggle */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur TikTok
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_tiktok
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -375,7 +375,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_tiktok
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -387,14 +387,14 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Instagram Toggle */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur Instagram
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_instagram
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -421,7 +421,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_instagram
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -433,14 +433,14 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* X (Twitter) Toggle */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur X (Twitter)
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_x !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -467,7 +467,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_x !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -479,14 +479,14 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* Facebook Toggle */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur Facebook
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_facebook !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -513,7 +513,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_facebook !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -525,14 +525,14 @@ export const Controls: React.FC = () => {
         </div>
 
         {/* LinkedIn Toggle */}
-        <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display text-sm font-bold text-admin-text">
                 Extracteur LinkedIn (Photo de profil)
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_linkedin !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -559,7 +559,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_linkedin !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-[#120c08] border border-stone-400 dark:border-orange-900/80'
+                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
             }`}
           >
             <span
@@ -572,7 +572,7 @@ export const Controls: React.FC = () => {
       </div>
 
       {/* Limite de requêtes / minute (Extractions & Téléchargements) */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-4 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-display text-sm font-bold text-admin-text">
@@ -595,7 +595,7 @@ export const Controls: React.FC = () => {
                   rate_limit_per_min: Math.max(1, parseInt(e.target.value || '1', 10)),
                 })
               }
-              className="w-24 px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
+              className="w-24 px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
             />
             <span className="text-xs font-mono text-admin-text-secondary">req / min</span>
           </div>
@@ -623,14 +623,14 @@ export const Controls: React.FC = () => {
                   download_limit_per_min: Math.max(1, parseInt(e.target.value || '1', 10)),
                 })
               }
-              className="w-24 px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
+              className="w-24 px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
             />
             <span className="text-xs font-mono text-admin-text-secondary">fichiers / min</span>
             <button
               type="button"
               disabled={saving}
               onClick={() => persistSettings(settings)}
-              className="px-4 py-2 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] text-white font-display font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-4 py-2 rounded-md bg-admin-accent hover:opacity-90 text-white font-display font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Enregistrer</span>
@@ -640,7 +640,7 @@ export const Controls: React.FC = () => {
       </div>
 
       {/* Liste de blocage (Blocklist D1) */}
-      <div className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-4 shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-4 shadow-2xs">
         <div className="flex items-center gap-2">
           <ShieldBan className="w-4 h-4 text-red-700 dark:text-red-400" />
           <h3 className="font-display text-sm font-bold text-admin-text">
@@ -652,7 +652,7 @@ export const Controls: React.FC = () => {
           <select
             value={blockType}
             onChange={(e) => setBlockType(e.target.value as 'ip_hash' | 'domain' | 'url')}
-            className="px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
+            className="px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
           >
             <option value="domain">Domaine (ex: example.com)</option>
             <option value="url">URL ou fragment d’URL</option>
@@ -664,12 +664,12 @@ export const Controls: React.FC = () => {
             value={blockValue}
             onChange={(e) => setBlockValue(e.target.value)}
             placeholder="Valeur à bloquer…"
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder-admin-text-muted/70 font-mono focus:outline-none focus:border-orange-600"
+            className="flex-1 px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder-admin-text-muted/70 font-mono focus:outline-none focus:border-orange-600"
           />
 
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-colors"
+            className="px-4 py-2.5 rounded-md bg-red-700 hover:bg-red-800 text-white font-display font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Bloquer</span>
@@ -681,14 +681,14 @@ export const Controls: React.FC = () => {
             Aucune règle de blocage active dans D1.
           </p>
         ) : (
-          <div className="divide-y divide-admin-border border border-admin-border rounded-xl overflow-hidden bg-admin-muted">
+          <div className="divide-y divide-admin-border border border-admin-border rounded-lg overflow-hidden bg-admin-muted">
             {blocklist.map((item) => (
               <div
                 key={item.id}
                 className="px-4 py-2.5 flex items-center justify-between gap-3 text-xs font-mono"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/70 border border-red-300 dark:border-red-800/60 text-red-900 dark:text-red-300 font-semibold uppercase text-[10px] shrink-0">
+                  <span className="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/70 border border-red-300 dark:border-red-800/60 text-red-900 dark:text-red-300 font-semibold uppercase text-[10px] shrink-0">
                     {item.type}
                   </span>
                   <span className="text-admin-text truncate">{item.value}</span>

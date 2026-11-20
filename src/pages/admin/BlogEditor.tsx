@@ -188,9 +188,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     return (
       <div
         data-testid="admin-blog-editor-denied"
-        className="bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-2xl p-6 text-center space-y-3"
+        className="bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-lg p-6 text-center space-y-3"
       >
-        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-400 flex items-center justify-center mx-auto">
+        <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-400 flex items-center justify-center mx-auto">
           <ShieldAlert className="w-5 h-5" />
         </div>
         <h2 className="font-display text-base font-bold text-admin-text">
@@ -204,7 +204,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+          className="px-4 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
         >
           Retourner à la liste des articles
         </button>
@@ -219,12 +219,12 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     <section
       aria-label="Éditeur de brouillon Blog D1"
       data-testid="admin-blog-editor"
-      className="bg-admin-surface border border-admin-border rounded-2xl p-5 sm:p-6 space-y-6"
+      className="bg-admin-surface border border-admin-border rounded-lg p-5 sm:p-6 space-y-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-border pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-mono text-admin-text-muted">
-            <Edit3 className="w-3.5 h-3.5 text-[#c2410c]" />
+            <Edit3 className="w-3.5 h-3.5 text-admin-accent" />
             <span>Éditeur Blog D1</span>
             <span aria-hidden="true">·</span>
             <span>Statut cible : Brouillon (draft)</span>
@@ -239,7 +239,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
         >
           Annuler et fermer
         </button>
@@ -249,7 +249,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <div
           role="alert"
           data-testid="admin-blog-editor-error"
-          className="rounded-xl p-3.5 bg-red-950/30 border border-red-700/60 text-xs font-mono text-red-300 flex items-center gap-2.5"
+          className="rounded-lg p-3.5 bg-red-950/30 border border-red-700/60 text-xs font-mono text-red-300 flex items-center gap-2.5"
         >
           <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
           <span>{serverError}</span>
@@ -273,7 +273,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Ex. : Comment vérifier le débit binaire d’une vidéo TikTok"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
@@ -288,7 +288,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-locale"
               value={locale}
               onChange={(e) => setLocale(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {SUPPORTED_EDITOR_LOCALES.map((loc) => (
                 <option key={loc.code} value={loc.code}>
@@ -318,7 +318,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 setSlug(e.target.value.toLowerCase());
               }}
               placeholder="verifier-debit-binaire-video-tiktok"
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
@@ -339,7 +339,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 setArticleId(e.target.value.toLowerCase());
               }}
               placeholder="verifier-debit-binaire-video-tiktok"
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
@@ -354,7 +354,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-category"
               value={category}
               onChange={(e) => setCategory(e.target.value as BlogCategoryId)}
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {BLOG_CATEGORY_KEYS.map((catKey) => (
                 <option key={catKey} value={catKey}>
@@ -375,7 +375,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-tool"
               value={toolRoute}
               onChange={(e) => setToolRoute(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {TOOL_ROUTE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -413,7 +413,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
               placeholder="Débit binaire vidéo TikTok : Guide qualité MP4"
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
@@ -430,7 +430,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={primaryKeyword}
               onChange={(e) => setPrimaryKeyword(e.target.value)}
               placeholder="debit binaire video tiktok mp4"
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
         </div>
@@ -462,7 +462,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={metaDescription}
               onChange={(e) => setMetaDescription(e.target.value)}
               placeholder="Apprenez à analyser le débit binaire et la résolution d’une vidéo TikTok publique afin de sauvegarder un fichier MP4 net sans recompression."
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
@@ -480,7 +480,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Résumé affiché sur les cartes de BlogIndexView et en introduction…"
-              className="w-full px-3.5 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
         </div>
@@ -503,7 +503,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     '## Nouvelle section technique\n\nDéveloppez votre explication ici.'
                   )
                 }
-                className="px-2.5 py-1 rounded-lg bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
               >
                 + H2
               </button>
@@ -514,7 +514,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     '### Sous-section détaillée\n\nPrécisez le comportement par appareil.'
                   )
                 }
-                className="px-2.5 py-1 rounded-lg bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
               >
                 + H3
               </button>
@@ -525,7 +525,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     ':::conseil\nAstuce technique importante à retenir.\n:::'
                   )
                 }
-                className="px-2.5 py-1 rounded-lg bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
               >
                 + Conseil
               </button>
@@ -541,13 +541,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             required
             value={bodyMarkdown}
             onChange={(e) => setBodyMarkdown(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#c2410c]"
+            className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text leading-relaxed focus:outline-none focus:ring-2 focus:ring-admin-accent"
           />
         </div>
 
         {/* État de validation SEO en direct */}
         {(attemptedSubmit || title.trim().length > 0) && (
-          <div className="rounded-xl bg-admin-muted/70 border border-admin-border p-3.5 space-y-2 text-xs font-mono">
+          <div className="rounded-lg bg-admin-muted/70 border border-admin-border p-3.5 space-y-2 text-xs font-mono">
             {draftCheck.valid ? (
               <div className="flex items-center gap-2 text-emerald-500 font-semibold">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -576,7 +576,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+            className="px-4 py-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
           >
             Annuler
           </button>
@@ -584,7 +584,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             type="submit"
             disabled={submitting}
             data-testid="admin-blog-editor-submit"
-            className="px-5 py-2.5 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] text-white text-xs font-display font-semibold inline-flex items-center gap-2 shadow cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 rounded-md bg-admin-accent hover:opacity-90 text-white text-xs font-display font-semibold inline-flex items-center gap-2 shadow cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>

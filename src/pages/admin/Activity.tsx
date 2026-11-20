@@ -134,7 +134,7 @@ export const Activity: React.FC = () => {
               setPlatformFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:border-orange-600"
+            className="px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:border-orange-600"
           >
             {PLATFORM_FILTER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -150,7 +150,7 @@ export const Activity: React.FC = () => {
               setErrorCodeFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:border-orange-600"
+            className="px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:border-orange-600"
           >
             {ERROR_CODE_FILTER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -163,7 +163,7 @@ export const Activity: React.FC = () => {
             type="button"
             onClick={() => loadActivity(page, platformFilter, errorCodeFilter)}
             disabled={loading}
-            className="px-3.5 py-2 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text flex items-center gap-2 cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text flex items-center gap-2 cursor-pointer transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-admin-accent ${loading ? 'animate-spin' : ''}`} />
             <span>Actualiser ({total})</span>
@@ -171,7 +171,7 @@ export const Activity: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-admin-surface border border-admin-border rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-admin-surface border border-admin-border rounded-lg overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -223,7 +223,7 @@ export const Activity: React.FC = () => {
                       <td className="py-3 px-4 tabular-nums whitespace-nowrap">
                         {row.http_status != null ? (
                           <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                            className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${
                               row.http_status >= 200 && row.http_status < 300
                                 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                                 : row.http_status === 404
@@ -249,7 +249,7 @@ export const Activity: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleCopyRowJson(row)}
-                            className="px-2 py-1 rounded-lg bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-[11px] font-medium text-admin-text flex items-center gap-1 cursor-pointer transition-colors"
+                            className="px-2 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-[11px] font-medium text-admin-text flex items-center gap-1 cursor-pointer transition-colors"
                             title="Copier le JSON de la ligne (sans URL)"
                           >
                             {copiedId === row.id ? (
@@ -284,7 +284,7 @@ export const Activity: React.FC = () => {
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-2.5 py-1.5 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text disabled:opacity-40 flex items-center gap-1 cursor-pointer transition-colors"
+              className="px-2.5 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text disabled:opacity-40 flex items-center gap-1 cursor-pointer transition-colors"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Préc.</span>
@@ -293,7 +293,7 @@ export const Activity: React.FC = () => {
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="px-2.5 py-1.5 rounded-lg bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text disabled:opacity-40 flex items-center gap-1 cursor-pointer transition-colors"
+              className="px-2.5 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-admin-text disabled:opacity-40 flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Suiv.</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -303,7 +303,7 @@ export const Activity: React.FC = () => {
       </div>
 
       {/* Note explicite sur l'absence de formulaire de contact */}
-      <div className="p-4 rounded-2xl bg-admin-surface border border-admin-border text-xs text-admin-text-secondary font-mono flex items-start gap-2.5 shadow-2xs">
+      <div className="p-4 rounded-lg bg-admin-surface border border-admin-border text-xs text-admin-text-secondary font-mono flex items-start gap-2.5 shadow-2xs">
         <Info className="w-4 h-4 text-admin-accent shrink-0 mt-0.5" />
         <span>
           <strong>Messages de contact :</strong> Le site public VIDNEX ne comporte pas de formulaire

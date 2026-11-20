@@ -321,7 +321,7 @@ export const AdminApp: React.FC = () => {
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div
               title={`VIDNEX Admin · ${user.displayName} (${user.login})`}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#c2410c] flex items-center justify-center text-white shadow shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-admin-accent flex items-center justify-center text-white shadow shrink-0"
             >
               <Shield className="w-4 h-4" />
             </div>
@@ -330,7 +330,7 @@ export const AdminApp: React.FC = () => {
                 <span className="font-display font-bold text-sm sm:text-base text-admin-text whitespace-nowrap truncate">
                   VIDNEX<span className="hidden xs:inline sm:inline"> Admin</span>
                 </span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
                   {user.isOwner ? 'Propriétaire' : user.roleLabel}
                 </span>
               </div>
@@ -354,12 +354,12 @@ export const AdminApp: React.FC = () => {
                   ? 'Passer en mode clair'
                   : 'Passer en mode sombre'
               }
-              className="w-9 h-9 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-9 h-9 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer shrink-0"
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-[#c2410c]" />
+                <Moon className="w-4 h-4 text-admin-accent" />
               )}
             </button>
 
@@ -367,7 +367,7 @@ export const AdminApp: React.FC = () => {
               href="/"
               aria-label="Site public"
               title="Ouvrir le site public"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-xl bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
               <ExternalLink className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Site public</span>
@@ -378,7 +378,7 @@ export const AdminApp: React.FC = () => {
               onClick={handleLogout}
               aria-label="Déconnexion"
               title="Déconnexion"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
             >
               <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Déconnexion</span>
@@ -401,9 +401,9 @@ export const AdminApp: React.FC = () => {
                 aria-label={tab.label}
                 aria-current={isActive ? 'page' : undefined}
                 title={tab.label}
-                className={`flex-1 sm:flex-initial min-w-[40px] h-9 sm:h-auto px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-display font-semibold flex items-center justify-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex-1 sm:flex-initial min-w-[40px] h-9 sm:h-auto px-2.5 sm:px-3.5 py-2 rounded-md text-xs font-display font-semibold flex items-center justify-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-[#c2410c] text-white shadow'
+                    ? 'bg-admin-accent text-white shadow'
                     : 'text-admin-text-secondary hover:text-admin-text hover:bg-admin-hover'
                 }`}
               >
@@ -420,9 +420,9 @@ export const AdminApp: React.FC = () => {
         {!isCurrentTabAuthorized ? (
           <div
             data-testid="admin-access-denied"
-            className="max-w-lg mx-auto bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-md"
+            className="max-w-lg mx-auto bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-lg p-6 sm:p-8 text-center space-y-4 shadow-md"
           >
-            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/70 border border-red-300 dark:border-red-800/70 text-red-700 dark:text-red-400 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-950/70 border border-red-300 dark:border-red-800/70 text-red-700 dark:text-red-400 flex items-center justify-center mx-auto">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <h2 className="font-display text-lg font-bold text-admin-text">
@@ -435,7 +435,7 @@ export const AdminApp: React.FC = () => {
             <button
               type="button"
               onClick={() => handleSelectTab(fallbackTab)}
-              className="px-4 py-2.5 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] text-white font-display font-semibold text-xs cursor-pointer transition-colors"
+              className="px-4 py-2.5 rounded-md bg-admin-accent hover:opacity-90 text-white font-display font-semibold text-xs cursor-pointer transition-colors"
             >
               Retourner à mon espace autorisé
             </button>

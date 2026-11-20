@@ -167,12 +167,12 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
   return (
     <section
       aria-label="Carte mondiale des origines visiteurs D1"
-      className="bg-admin-surface border border-admin-border rounded-2xl p-5 space-y-5 shadow-2xs"
+      className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-5 shadow-2xs"
     >
       {/* En-tête VisitorsMap */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
+          <div className="w-9 h-9 rounded-lg bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
             <Globe className="w-4 h-4" />
           </div>
           <div>
@@ -206,7 +206,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           <div
             role="group"
             aria-label="Période de la carte des visiteurs"
-            className="inline-flex rounded-xl bg-admin-muted p-1 border border-admin-border"
+            className="inline-flex rounded-lg bg-admin-muted p-1 border border-admin-border"
           >
             {(
               [
@@ -219,7 +219,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setPeriod(tab.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold transition-colors cursor-pointer ${
                   period === tab.id
                     ? 'bg-admin-accent text-white shadow-2xs'
                     : 'text-admin-text-secondary hover:text-admin-text'
@@ -234,7 +234,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
 
       {/* Bandeau KPI des régions les plus actives */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
             <span>RÉGION LA PLUS ACTIVE</span>
             <TrendingUp className="w-3.5 h-3.5 text-admin-accent" />
@@ -248,7 +248,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           </p>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
             <span>PAYS D’ORIGINE #1</span>
             <span className="text-base leading-none">{summary.mostActiveCountry.flag}</span>
@@ -262,7 +262,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           </p>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
             <span>VISITEURS TOTAUX (D1)</span>
             <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
@@ -275,7 +275,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           </p>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-admin-muted border border-admin-border space-y-1">
+        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
             <span>SUCCÈS GÉOGRAPHIQUE MOYEN</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
@@ -294,7 +294,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
         <button
           type="button"
           onClick={() => setSelectedRegionId('all')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold border transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold border transition-colors cursor-pointer ${
             selectedRegionId === 'all'
               ? 'bg-admin-accent text-white border-admin-accent'
               : 'bg-admin-muted text-admin-text-secondary border-admin-border hover:text-admin-text'
@@ -311,7 +311,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
               onClick={() =>
                 setSelectedRegionId((prev) => (prev === reg.regionId ? 'all' : reg.regionId))
               }
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                 active
                   ? 'bg-admin-accent text-white border-admin-accent'
                   : 'bg-admin-muted text-admin-text-secondary border-admin-border hover:text-admin-text'
@@ -328,7 +328,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
       {/* Carte Mondiale SVG + Classement des Régions les plus actives */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Canvas SVG Carte Mondiale avec régions surlignées par intensité d'activité */}
-        <div className="lg:col-span-8 rounded-2xl bg-[#16100c] border border-admin-border p-3.5 flex flex-col justify-between text-[#fffaf5]">
+        <div className="lg:col-span-8 rounded-lg bg-[#16100c] border border-admin-border p-3.5 flex flex-col justify-between text-[#fffaf5]">
           <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-[11px] font-mono text-[#c89d7c]">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
@@ -451,7 +451,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                       width="92"
                       height="16"
                       rx="4"
-                      fill="#120c08"
+                      fill="var(--admin-surface-muted)"
                       fillOpacity="0.92"
                       stroke={reg.isTopRegion ? '#f97316' : '#f59e0b'}
                       strokeWidth="1"
@@ -555,7 +555,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
         {/* Colonne droite (4 cols) : Classement des Régions les plus actives + Pays inspecté */}
         <div className="lg:col-span-4 flex flex-col justify-between gap-4">
           {/* Classement des Régions par activité */}
-          <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-3">
+          <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
                 Régions les plus actives (D1)
@@ -578,7 +578,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                         prev === reg.regionId ? 'all' : reg.regionId
                       )
                     }
-                    className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`w-full text-left p-2.5 rounded-md border transition-all cursor-pointer ${
                       selectedRegionId === reg.regionId
                         ? 'bg-admin-surface border-admin-accent shadow-2xs'
                         : 'bg-admin-surface/60 border-admin-border hover:border-admin-border-strong'
@@ -629,7 +629,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
 
           {/* Fiche du pays d'origine inspecté */}
           {activeCountry && (
-            <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-2.5">
+            <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-admin-text-muted">
                   Pays d’origine sélectionné
@@ -686,7 +686,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
       </div>
 
       {/* Grille des principaux pays d'origine D1 */}
-      <div className="p-4 rounded-xl bg-admin-muted border border-admin-border space-y-3">
+      <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
             Top Origines des Visiteurs par Pays ({filteredCountries.length} pays)
@@ -704,7 +704,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 key={c.countryCode}
                 type="button"
                 onClick={() => setActiveCountryCode(c.countryCode)}
-                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                className={`p-3 rounded-md border text-left transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-admin-surface border-admin-accent shadow-2xs'
                     : 'bg-admin-surface/70 border-admin-border hover:border-admin-border-strong'

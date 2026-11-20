@@ -26,7 +26,8 @@ export type AdSlotFormat =
   | 'rectangle'
   | 'skyscraper'
   | 'column'
-  | 'native';
+  | 'native'
+  | 'mobile-banner';
 
 interface AdSlotProps {
   slotId: string;
@@ -193,16 +194,22 @@ export const AdSlot: React.FC<AdSlotProps> = ({
       isDesktopMd
     );
 
+    const isMobileBanner = format === 'mobile-banner';
+
     const adsterraWrapperClass =
       format === 'skyscraper'
         ? `hidden xl:block w-[176px] shrink-0 ${className}`
+        : isMobileBanner
+        ? `w-full max-w-[340px] mx-auto px-2 my-1.5 flex justify-center ${className}`
         : format === 'leaderboard'
         ? `w-full max-w-md md:max-w-4xl mx-auto px-3 sm:px-6 my-3 sm:my-4 flex justify-center ${className}`
         : `w-full max-w-md mx-auto px-3 sm:px-6 my-4 flex justify-center ${className}`;
 
-    // Taille réservée fixe (CLS = 0) correspondant exactement à la bannière active (728x90 desktop OU 300x250 mobile centré, 300x250, 160x600)
+    // Taille réservée fixe (CLS = 0) correspondant exactement à la bannière active (320x50 top mobile, 728x90 desktop OU 300x250 mobile centré, 300x250, 160x600)
     const reservedBoxClass =
-      format === 'leaderboard'
+      isMobileBanner
+        ? 'w-[320px] h-[50px] mx-auto'
+        : format === 'leaderboard'
         ? 'w-[300px] h-[250px] md:w-[728px] md:h-[90px] mx-auto'
         : format === 'skyscraper'
         ? 'w-[160px] h-[600px] mx-auto'
@@ -217,9 +224,23 @@ export const AdSlot: React.FC<AdSlotProps> = ({
         data-ad-slot={slotId}
         className={adsterraWrapperClass}
       >
-        <div className="w-full bg-white/95 dark:bg-[#1c140e]/95 border border-orange-200/80 dark:border-orange-900/60 rounded-2xl p-2.5 shadow-sm flex flex-col items-center">
-          <div className="w-full flex items-center justify-between gap-1.5 pb-1.5 mb-1.5 border-b border-orange-100 dark:border-orange-900/40">
-            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-orange-800/75 dark:text-orange-200/70 whitespace-nowrap">
+        <div
+          className={`w-full bg-white/95 dark:bg-[#1c140e]/95 border border-orange-200/80 dark:border-orange-900/60 shadow-sm flex flex-col items-center ${
+            isMobileBanner ? 'rounded-xl px-2 py-1.5' : 'rounded-2xl p-2.5'
+          }`}
+        >
+          <div
+            className={`w-full flex items-center justify-between gap-1.5 ${
+              isMobileBanner
+                ? 'pb-1 mb-1 border-b border-orange-100/80 dark:border-orange-900/40'
+                : 'pb-1.5 mb-1.5 border-b border-orange-100 dark:border-orange-900/40'
+            }`}
+          >
+            <span
+              className={`font-mono font-semibold uppercase tracking-wider text-orange-800/75 dark:text-orange-200/70 whitespace-nowrap ${
+                isMobileBanner ? 'text-[9px] leading-none' : 'text-[10px]'
+              }`}
+            >
               {sponsoredLabel}
             </span>
           </div>
@@ -246,7 +267,11 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   }
 
   // ÉTAPE 1: Zero ad slots or reserved space in production/prerender unless real AdSense ID + ads_enabled are active
-  if ((!canRenderLiveAd && !canRenderDevDemo) || format === 'native') {
+  if (
+    (!canRenderLiveAd && !canRenderDevDemo) ||
+    format === 'native' ||
+    format === 'mobile-banner'
+  ) {
     return null;
   }
 

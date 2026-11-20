@@ -28,7 +28,6 @@ interface HeroOmniboxProps {
   onSubmitUrl: (url: string, detected: DetectedUrlInfo) => void;
   onEscapeClear?: () => void;
   isExtracting?: boolean;
-  hasActiveResult?: boolean;
   language: SupportedLocale;
 }
 
@@ -55,7 +54,6 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   onSubmitUrl,
   onEscapeClear,
   isExtracting = false,
-  hasActiveResult = false,
   language,
 }) => {
   const [urlInput, setUrlInput] = useState('');
@@ -253,14 +251,14 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             </nav>
           )}
 
-          {/* Mobile (< 768px) : slot 300x250 tout en haut de la home, au-dessus de la ligne specs */}
-          {pageKey === 'home' && !hasActiveResult && (
+          {/* Mobile (< 768px) : slot 320x50 tout en haut de la home, au-dessus de la ligne specs */}
+          {pageKey === 'home' && (
             <AdSlot
-              slotId="vidnex-home-hero-leaderboard"
-              format="leaderboard"
+              slotId="vidnex-home-top-mobile-320x50"
+              format="mobile-banner"
               language={language}
               hideOnDesktop={true}
-              className="!my-0 mb-3 !px-0"
+              className="!my-0 mb-2.5 !px-0"
             />
           )}
 

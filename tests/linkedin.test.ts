@@ -2023,6 +2023,11 @@ test('Adsterra integration: verifies centralized config, srcdoc iframe atOptions
   assert.equal(isDesktopViewportForSocialBar(mobileWin), false);
   assert.equal(isDesktopViewportForSocialBar(desktopWin), true);
 
+  const topMobileUnit = resolveAdsterraBannerUnit('mobile-banner', false);
+  assert.equal(topMobileUnit.key, 'be0d8adcee443989a07b21cca9731553');
+  assert.equal(topMobileUnit.width, 320);
+  assert.equal(topMobileUnit.height, 50);
+
   const mobileLeaderboardUnit = resolveAdsterraBannerUnit('leaderboard', false);
   assert.equal(mobileLeaderboardUnit.key, '5c421075520bced3f83caf40d4bb3a71');
   assert.equal(mobileLeaderboardUnit.width, 300);

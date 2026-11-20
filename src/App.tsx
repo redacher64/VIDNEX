@@ -506,9 +506,6 @@ export function App({ initialPath }: AppProps = {}) {
               onSubmitUrl={handleSubmitUrl}
               onEscapeClear={handleCloseDrawer}
               isExtracting={isExtracting}
-              hasActiveResult={Boolean(
-                isExtracting || extractionError || mediaResult
-              )}
               language={language}
             />
 
@@ -516,7 +513,9 @@ export function App({ initialPath }: AppProps = {}) {
               slotId="vidnex-home-hero-leaderboard"
               format="leaderboard"
               language={language}
-              hideOnMobile={true}
+              hideOnMobile={Boolean(
+                isExtracting || extractionError || mediaResult
+              )}
             />
 
             <ResultDrawer

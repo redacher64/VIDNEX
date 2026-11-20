@@ -116,9 +116,12 @@ export function isDesktopViewportForSocialBar(
 }
 
 export function resolveAdsterraBannerUnit(
-  format: 'leaderboard' | 'rectangle' | 'skyscraper',
+  format: 'leaderboard' | 'rectangle' | 'skyscraper' | 'mobile-banner',
   isDesktopMd: boolean
 ): AdsterraBannerUnit {
+  if (format === 'mobile-banner') {
+    return ADSTERRA_CONFIG.banners['320x50'];
+  }
   if (format === 'leaderboard') {
     return isDesktopMd
       ? ADSTERRA_CONFIG.banners['728x90']

@@ -115,7 +115,7 @@ export const Login: React.FC<LoginProps> = ({
                 <h1 className="font-display text-lg font-bold tracking-tight text-admin-text truncate">
                   VIDNEX · Console Admin
                 </h1>
-                <p className="text-xs text-admin-text-muted font-mono truncate">
+                <p className="text-xs text-admin-text-muted truncate">
                   Cloudflare D1 · Session HMAC-SHA256
                 </p>
               </div>
@@ -141,7 +141,7 @@ export const Login: React.FC<LoginProps> = ({
               )}
               <a
                 href="/"
-                className="text-xs font-mono font-medium text-admin-accent hover:underline transition-colors"
+                className="text-xs font-medium text-admin-accent hover:underline transition-colors"
               >
                 ← Site public
               </a>
@@ -157,7 +157,7 @@ export const Login: React.FC<LoginProps> = ({
               <div className="space-y-1">
                 <p className="font-medium leading-relaxed">{error}</p>
                 {lockedSeconds !== null && (
-                  <p className="font-mono text-[11px] text-red-800 dark:text-red-300">
+                  <p className="text-xs text-red-800 dark:text-red-300">
                     Protection anti-brute-force active (fenêtre 15 min après 5 échecs).
                   </p>
                 )}
@@ -169,7 +169,7 @@ export const Login: React.FC<LoginProps> = ({
             <div>
               <label
                 htmlFor="admin-login-input"
-                className="block text-xs font-mono font-semibold uppercase tracking-wider text-admin-text-secondary mb-2"
+                className="block text-xs font-semibold text-admin-text-secondary mb-2"
               >
                 Identifiant
               </label>
@@ -191,7 +191,7 @@ export const Login: React.FC<LoginProps> = ({
             <div>
               <label
                 htmlFor="admin-password-input"
-                className="block text-xs font-mono font-semibold uppercase tracking-wider text-admin-text-secondary mb-2"
+                className="block text-xs font-semibold text-admin-text-secondary mb-2"
               >
                 Mot de passe
               </label>
@@ -228,7 +228,7 @@ export const Login: React.FC<LoginProps> = ({
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-admin-border flex items-center justify-between text-[11px] text-admin-text-muted font-mono">
+          <div className="mt-6 pt-4 border-t border-admin-border flex items-center justify-between text-xs text-admin-text-muted">
             <span>Cookie HttpOnly · SameSite=Strict</span>
             <span>Expiration 12h</span>
           </div>

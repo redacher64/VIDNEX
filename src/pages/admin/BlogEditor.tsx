@@ -196,15 +196,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <h2 className="font-display text-base font-bold text-admin-text">
           Droit d’écriture requis
         </h2>
-        <p className="text-xs font-mono text-admin-text-secondary max-w-md mx-auto">
-          Votre compte ({user.login}) ne dispose pas des permissions{' '}
-          <code>blog.write</code> ou <code>blog.edit_all</code> nécessaires pour
+        <p className="text-xs text-admin-text-secondary max-w-md mx-auto">
+          Votre compte (<span className="font-mono">{user.login}</span>) ne dispose pas des permissions{' '}
+          <code className="font-mono">blog.write</code> ou <code className="font-mono">blog.edit_all</code> nécessaires pour
           créer un nouveau brouillon dans D1.
         </p>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+          className="px-4 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
         >
           Retourner à la liste des articles
         </button>
@@ -223,13 +223,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-border pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-mono text-admin-text-muted">
-            <Edit3 className="w-3.5 h-3.5 text-admin-accent" />
+          <div className="flex items-center gap-2 text-xs text-admin-text-muted">
+            <Edit3 className="w-3.5 h-3.5 text-admin-text-muted" />
             <span>Éditeur Blog D1</span>
             <span aria-hidden="true">·</span>
-            <span>Statut cible : Brouillon (draft)</span>
+            <span>Statut cible : Brouillon (<span className="font-mono">draft</span>)</span>
             <span aria-hidden="true">·</span>
-            <span>Auteur : {user.login}</span>
+            <span>Auteur : <span className="font-mono">{user.login}</span></span>
           </div>
           <h2 className="font-display text-lg font-bold text-admin-text">
             Nouveau brouillon d’article
@@ -239,7 +239,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
         >
           Annuler et fermer
         </button>
@@ -249,9 +249,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         <div
           role="alert"
           data-testid="admin-blog-editor-error"
-          className="rounded-lg p-3.5 bg-red-950/30 border border-red-700/60 text-xs font-mono text-red-300 flex items-center gap-2.5"
+          className="rounded-lg p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-700/60 text-xs text-red-900 dark:text-red-300 flex items-center gap-2.5"
         >
-          <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+          <AlertTriangle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />
           <span>{serverError}</span>
         </div>
       )}
@@ -262,7 +262,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="md:col-span-3 space-y-1.5">
             <label
               htmlFor="admin-blog-editor-title"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
               Titre de l’article (H1) *
             </label>
@@ -273,14 +273,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Ex. : Comment vérifier le débit binaire d’une vidéo TikTok"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-locale"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
               Langue du brouillon *
             </label>
@@ -288,7 +288,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-locale"
               value={locale}
               onChange={(e) => setLocale(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {SUPPORTED_EDITOR_LOCALES.map((loc) => (
                 <option key={loc.code} value={loc.code}>
@@ -304,7 +304,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-slug"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
               Slug URL (sans année) *
             </label>
@@ -325,9 +325,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-id"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
-              Identifiant D1 (articleId) *
+              Identifiant D1 (<span className="font-mono">articleId</span>) *
             </label>
             <input
               id="admin-blog-editor-id"
@@ -346,7 +346,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-category"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
               Catégorie *
             </label>
@@ -354,7 +354,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-category"
               value={category}
               onChange={(e) => setCategory(e.target.value as BlogCategoryId)}
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {BLOG_CATEGORY_KEYS.map((catKey) => (
                 <option key={catKey} value={catKey}>
@@ -367,7 +367,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-tool"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
               Outil associé
             </label>
@@ -375,7 +375,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               id="admin-blog-editor-tool"
               value={toolRoute}
               onChange={(e) => setToolRoute(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
             >
               {TOOL_ROUTE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -389,7 +389,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         {/* Ligne 3 : Meta Title & Mot-clé principal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center justify-between text-xs">
               <label
                 htmlFor="admin-blog-editor-meta-title"
                 className="font-semibold text-admin-text"
@@ -397,10 +397,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 Meta Title SEO (max 60 car.) *
               </label>
               <span
-                className={`tabular-nums ${
+                className={`font-mono tabular-nums ${
                   metaTitleLen > 0 && metaTitleLen <= 60
-                    ? 'text-emerald-500'
-                    : 'text-amber-500'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-amber-600 dark:text-amber-400'
                 }`}
               >
                 {metaTitleLen} / 60
@@ -413,16 +413,16 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
               placeholder="Débit binaire vidéo TikTok : Guide qualité MP4"
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-keyword"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
-              Mot-clé principal (primaryKeyword)
+              Mot-clé principal (<span className="font-mono">primaryKeyword</span>)
             </label>
             <input
               id="admin-blog-editor-keyword"
@@ -430,7 +430,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={primaryKeyword}
               onChange={(e) => setPrimaryKeyword(e.target.value)}
               placeholder="debit binaire video tiktok mp4"
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
         </div>
@@ -438,7 +438,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         {/* Ligne 4 : Meta Description (90-150 car.) & Extrait */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center justify-between text-xs">
               <label
                 htmlFor="admin-blog-editor-meta-desc"
                 className="font-semibold text-admin-text"
@@ -446,10 +446,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 Meta Description SEO (90 à 150 car.) *
               </label>
               <span
-                className={`tabular-nums ${
+                className={`font-mono tabular-nums ${
                   metaDescLen >= 90 && metaDescLen <= 150
-                    ? 'text-emerald-500'
-                    : 'text-amber-500'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-amber-600 dark:text-amber-400'
                 }`}
               >
                 {metaDescLen} / 150 (min 90)
@@ -462,16 +462,16 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={metaDescription}
               onChange={(e) => setMetaDescription(e.target.value)}
               placeholder="Apprenez à analyser le débit binaire et la résolution d’une vidéo TikTok publique afin de sauvegarder un fichier MP4 net sans recompression."
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
 
           <div className="space-y-1.5">
             <label
               htmlFor="admin-blog-editor-excerpt"
-              className="block text-xs font-mono font-semibold text-admin-text"
+              className="block text-xs font-semibold text-admin-text"
             >
-              Extrait / Chapeau de l’article (excerpt) *
+              Extrait / Chapeau de l’article (<span className="font-mono">excerpt</span>) *
             </label>
             <textarea
               id="admin-blog-editor-excerpt"
@@ -480,7 +480,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Résumé affiché sur les cartes de BlogIndexView et en introduction…"
-              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="w-full px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
             />
           </div>
         </div>
@@ -490,7 +490,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label
               htmlFor="admin-blog-editor-body"
-              className="text-xs font-mono font-semibold text-admin-text"
+              className="text-xs font-semibold text-admin-text"
             >
               Corps de l’article (Markdown restreint : H2 ##, H3 ###, listes,
               tableaux, liens HTTPS, :::conseil) *
@@ -503,7 +503,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     '## Nouvelle section technique\n\nDéveloppez votre explication ici.'
                   )
                 }
-                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs text-admin-text cursor-pointer"
               >
                 + H2
               </button>
@@ -514,7 +514,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     '### Sous-section détaillée\n\nPrécisez le comportement par appareil.'
                   )
                 }
-                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs text-admin-text cursor-pointer"
               >
                 + H3
               </button>
@@ -525,12 +525,12 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     ':::conseil\nAstuce technique importante à retenir.\n:::'
                   )
                 }
-                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-[11px] font-mono text-admin-text cursor-pointer"
+                className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs text-admin-text cursor-pointer"
               >
                 + Conseil
               </button>
-              <span className="text-[11px] font-mono text-admin-text-muted tabular-nums ml-1">
-                {draftCheck.wordCount} mots
+              <span className="text-xs text-admin-text-muted tabular-nums ml-1">
+                <span className="font-mono">{draftCheck.wordCount}</span> mots
               </span>
             </div>
           </div>
@@ -547,9 +547,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
         {/* État de validation SEO en direct */}
         {(attemptedSubmit || title.trim().length > 0) && (
-          <div className="rounded-lg bg-admin-muted/70 border border-admin-border p-3.5 space-y-2 text-xs font-mono">
+          <div className="rounded-lg border border-admin-border p-3.5 space-y-2 text-xs">
             {draftCheck.valid ? (
-              <div className="flex items-center gap-2 text-emerald-500 font-semibold">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>
                   Validation SEO et Markdown conforme — prêt à enregistrer en
@@ -557,9 +557,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 </span>
               </div>
             ) : (
-              <div className="space-y-1 text-amber-500">
+              <div className="space-y-1 text-amber-600 dark:text-amber-400">
                 <p className="font-semibold">
-                  Critères requis avant enregistrement ({draftCheck.errors.length}) :
+                  Critères requis avant enregistrement (<span className="font-mono">{draftCheck.errors.length}</span>) :
                 </p>
                 <ul className="list-disc list-inside space-y-0.5 text-admin-text-secondary">
                   {draftCheck.errors.map((err, i) => (
@@ -576,7 +576,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+            className="px-4 py-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
           >
             Annuler
           </button>

@@ -417,7 +417,7 @@ export const Users: React.FC = () => {
           <h2 className="font-display text-xl font-bold text-admin-text">
             Comptes & Droits par personne
           </h2>
-          <p className="text-xs text-admin-text-muted font-mono">
+          <p className="text-xs text-admin-text-muted">
             Gestion RBAC 100 % native Cloudflare D1 · PBKDF2-SHA256 (100 000 itérations) · Journal d’audit
           </p>
         </div>
@@ -425,10 +425,10 @@ export const Users: React.FC = () => {
           type="button"
           onClick={loadUsers}
           disabled={loading}
-          className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center gap-2 transition-colors cursor-pointer"
         >
           <RefreshCw
-            className={`w-3.5 h-3.5 text-admin-accent ${loading ? 'animate-spin' : ''}`}
+            className={`w-3.5 h-3.5 text-admin-text-muted ${loading ? 'animate-spin' : ''}`}
           />
           <span>Actualiser</span>
         </button>
@@ -459,12 +459,12 @@ export const Users: React.FC = () => {
                   : `Mot de passe temporaire réinitialisé pour « ${oneTimeCredentials.login} »`}
               </h3>
             </div>
-            <span className="text-[11px] font-mono font-semibold uppercase px-2.5 py-0.5 rounded-md bg-emerald-200/80 dark:bg-emerald-900 text-emerald-950 dark:text-emerald-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-emerald-200/80 dark:bg-emerald-900 text-emerald-950 dark:text-emerald-200">
               Affiché une seule fois
             </span>
           </div>
 
-          <p className="text-xs font-mono leading-relaxed">
+          <p className="text-xs leading-relaxed">
             Copiez et transmettez ce mot de passe temporaire à la personne. Il ne
             sera <strong>plus jamais affiché</strong>. À sa première connexion,
             elle devra obligatoirement choisir un nouveau mot de passe d’au
@@ -474,7 +474,7 @@ export const Users: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <code
               data-testid="generated-temp-password"
-              className="px-4 py-2.5 rounded-lg bg-white dark:bg-admin-muted border border-emerald-400 dark:border-emerald-700 font-mono text-sm font-bold tracking-wider text-emerald-950 dark:text-emerald-200 select-all"
+              className="px-4 py-2.5 rounded-lg border border-emerald-400 dark:border-emerald-700 font-mono text-sm font-bold tracking-wider text-emerald-950 dark:text-emerald-200 select-all"
             >
               {oneTimeCredentials.password}
             </code>
@@ -482,7 +482,7 @@ export const Users: React.FC = () => {
             <button
               type="button"
               onClick={handleCopyOneTimePassword}
-              className="px-4 py-2.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-mono font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-4 py-2.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               {copiedOneTime ? (
                 <>
@@ -500,7 +500,7 @@ export const Users: React.FC = () => {
             <button
               type="button"
               onClick={() => setOneTimeCredentials(null)}
-              className="px-3.5 py-2.5 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/70 dark:hover:bg-emerald-800 text-xs font-mono text-emerald-950 dark:text-emerald-200 cursor-pointer"
+              className="px-3.5 py-2.5 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/70 dark:hover:bg-emerald-800 text-xs text-emerald-950 dark:text-emerald-200 cursor-pointer"
             >
               Fermer définitivement
             </button>
@@ -511,7 +511,7 @@ export const Users: React.FC = () => {
       {/* Formulaire de création d'un utilisateur */}
       <div className="bg-admin-surface border border-admin-border rounded-lg p-6 space-y-5 shadow-2xs">
         <div className="flex items-center gap-2.5">
-          <Plus className="w-4 h-4 text-admin-accent" />
+          <Plus className="w-4 h-4 text-admin-text-muted" />
           <h3 className="font-display text-base font-bold text-admin-text">
             Créer un nouveau compte
           </h3>
@@ -522,9 +522,9 @@ export const Users: React.FC = () => {
             <div>
               <label
                 htmlFor="new-user-display-name"
-                className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
               >
-                Nom affiché (display_name)
+                Nom affiché (<span className="font-mono">display_name</span>)
               </label>
               <input
                 id="new-user-display-name"
@@ -533,16 +533,16 @@ export const Users: React.FC = () => {
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="ex. Sarah Martin"
                 required
-                className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:border-orange-600"
               />
             </div>
 
             <div>
               <label
                 htmlFor="new-user-login"
-                className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
               >
-                Identifiant (login)
+                Identifiant (<span className="font-mono">login</span>)
               </label>
               <input
                 id="new-user-login"
@@ -558,9 +558,9 @@ export const Users: React.FC = () => {
             <div>
               <label
                 htmlFor="new-user-role-label"
-                className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
               >
-                Intitulé du rôle (role_label)
+                Intitulé du rôle (<span className="font-mono">role_label</span>)
               </label>
               <input
                 id="new-user-role-label"
@@ -569,14 +569,14 @@ export const Users: React.FC = () => {
                 onChange={(e) => setRoleLabel(e.target.value)}
                 placeholder="ex. Rédacteur blog, Observateur…"
                 required
-                className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:border-orange-600"
               />
             </div>
           </div>
 
           {/* Modèles de rôles (Presets) */}
           <div className="space-y-2">
-            <span className="block text-xs font-mono font-semibold text-admin-text-secondary">
+            <span className="block text-xs font-semibold text-admin-text-secondary">
               Modèles rapides de droits (ou cochez au choix ci-dessous) :
             </span>
             <div className="flex flex-wrap gap-2">
@@ -585,15 +585,15 @@ export const Users: React.FC = () => {
                   key={preset.id}
                   type="button"
                   onClick={() => applyPresetToCreate(preset)}
-                  className="px-3.5 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text transition-colors cursor-pointer"
                 >
-                  Modèle « {preset.label} » ({preset.permissions.join(', ')})
+                  Modèle « {preset.label} » (<span className="font-mono">{preset.permissions.join(', ')}</span>)
                 </button>
               ))}
               <button
                 type="button"
                 onClick={() => setSelectedPermissions([])}
-                className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs font-mono text-admin-text-muted cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs text-admin-text-muted cursor-pointer"
               >
                 Tout décocher
               </button>
@@ -601,13 +601,13 @@ export const Users: React.FC = () => {
           </div>
 
           {/* Cases à cocher des droits assignables */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-lg bg-admin-muted border border-admin-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-lg border border-admin-border">
             {ALL_ASSIGNABLE_PERMISSIONS.map((perm) => {
               const checked = selectedPermissions.includes(perm.id);
               return (
                 <label
                   key={perm.id}
-                  className="flex items-start gap-2.5 text-xs font-mono text-admin-text cursor-pointer select-none"
+                  className="flex items-start gap-2.5 text-xs text-admin-text cursor-pointer select-none"
                 >
                   <input
                     type="checkbox"
@@ -617,8 +617,8 @@ export const Users: React.FC = () => {
                   />
                   <div>
                     <span className="font-semibold block">{perm.label}</span>
-                    <span className="text-[10px] text-admin-text-muted">
-                      {perm.id} · {perm.group}
+                    <span className="text-xs text-admin-text-muted">
+                      <span className="font-mono">{perm.id}</span> · {perm.group}
                     </span>
                   </div>
                 </label>
@@ -631,7 +631,7 @@ export const Users: React.FC = () => {
             <div className="flex-1">
               <label
                 htmlFor="new-user-temp-password"
-                className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
               >
                 Mot de passe temporaire (laisser vide pour générer 16 caractères automatiquement)
               </label>
@@ -649,7 +649,7 @@ export const Users: React.FC = () => {
                   onClick={() =>
                     setTempPasswordInput(generateClientTempPassword(16))
                   }
-                  className="px-3.5 py-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text whitespace-nowrap cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text whitespace-nowrap cursor-pointer"
                 >
                   Générer 16 car.
                 </button>
@@ -672,20 +672,20 @@ export const Users: React.FC = () => {
       <div className="bg-admin-surface border border-admin-border rounded-lg p-6 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <UsersIcon className="w-4 h-4 text-admin-accent" />
+            <UsersIcon className="w-4 h-4 text-admin-text-muted" />
             <h3 className="font-display text-base font-bold text-admin-text">
-              Comptes enregistrés ({users.length + 1})
+              Comptes enregistrés (<span className="font-mono">{users.length + 1}</span>)
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-admin-text-muted">
+          <span className="text-xs text-admin-text-muted">
             Réservés au propriétaire : Contrôles, Utilisateurs, Réglages, Services tiers, Secrets, Audit
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs font-mono">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-admin-border text-[11px] text-admin-text-secondary uppercase">
+              <tr className="border-b border-admin-border text-xs font-semibold text-admin-text-secondary">
                 <th className="py-3 pr-4">Utilisateur</th>
                 <th className="py-3 px-3">Rôle</th>
                 <th className="py-3 px-3">Droits</th>
@@ -696,13 +696,13 @@ export const Users: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-admin-border">
               {/* Ligne Propriétaire permanente (non supprimable / non désactivable) */}
-              <tr className="bg-admin-accent-bg/30">
+              <tr>
                 <td className="py-3.5 pr-4">
                   <div className="font-display font-bold text-admin-text">
                     Propriétaire
                   </div>
-                  <div className="text-[11px] text-admin-text-muted">
-                    login : <strong>admin</strong> (ADMIN_PASSWORD)
+                  <div className="text-xs text-admin-text-muted">
+                    login : <strong className="font-mono">admin</strong> (<span className="font-mono">ADMIN_PASSWORD</span>)
                   </div>
                 </td>
                 <td className="py-3.5 px-3">
@@ -721,8 +721,8 @@ export const Users: React.FC = () => {
                     Actif permanent
                   </span>
                 </td>
-                <td className="py-3.5 px-3 text-admin-text-muted">—</td>
-                <td className="py-3.5 pl-3 text-right text-[11px] text-admin-text-muted">
+                <td className="py-3.5 px-3 font-mono text-admin-text-muted">—</td>
+                <td className="py-3.5 pl-3 text-right text-xs text-admin-text-muted">
                   Protégé
                 </td>
               </tr>
@@ -737,12 +737,12 @@ export const Users: React.FC = () => {
                         <div className="font-display font-bold text-admin-text">
                           {u.display_name}
                         </div>
-                        <div className="text-[11px] text-admin-text-muted">
-                          login : <strong>{u.login}</strong> · v{u.session_version}
+                        <div className="text-xs text-admin-text-muted">
+                          login : <strong className="font-mono">{u.login}</strong> · <span className="font-mono">v{u.session_version}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-3">
-                        <span className="px-2.5 py-0.5 rounded-md bg-admin-muted border border-admin-border-strong text-admin-text">
+                        <span className="px-2.5 py-0.5 rounded-md border border-admin-border-strong text-admin-text">
                           {u.role_label}
                         </span>
                       </td>
@@ -752,7 +752,7 @@ export const Users: React.FC = () => {
                             {u.permissions.map((p) => (
                               <span
                                 key={p}
-                                className="px-2 py-0.5 rounded-md bg-admin-muted border border-admin-border text-[11px] text-admin-text"
+                                className="px-2 py-0.5 rounded-md border border-admin-border text-xs font-mono text-admin-text"
                               >
                                 {p}
                               </span>
@@ -765,7 +765,7 @@ export const Users: React.FC = () => {
                       <td className="py-3.5 px-3">
                         <div className="flex flex-col gap-1 items-start">
                           <span
-                            className={`px-2 py-0.5 rounded-md border text-[11px] font-semibold ${
+                            className={`px-2 py-0.5 rounded-md border text-xs font-semibold ${
                               u.active
                                 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                                 : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -774,13 +774,13 @@ export const Users: React.FC = () => {
                             {u.active ? 'Actif' : 'Désactivé'}
                           </span>
                           {u.must_change_password && (
-                            <span className="text-[10px] text-amber-800 dark:text-amber-300">
+                            <span className="text-xs text-amber-800 dark:text-amber-300">
                               MDP temporaire à changer
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-admin-text-secondary whitespace-nowrap">
+                      <td className="py-3.5 px-3 font-mono text-admin-text-secondary whitespace-nowrap">
                         {formatDate(u.last_login_at)}
                       </td>
                       <td className="py-3.5 pl-3 text-right">
@@ -859,12 +859,12 @@ export const Users: React.FC = () => {
                     </tr>
 
                     {isEditing && (
-                      <tr className="bg-admin-muted/70">
+                      <tr>
                         <td colSpan={6} className="p-4">
                           <div className="space-y-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <h4 className="font-display text-xs font-bold text-admin-text">
-                                Modifier le compte « {u.login} » (invalidera sa session en cours)
+                                Modifier le compte « <span className="font-mono">{u.login}</span> » (invalidera sa session en cours)
                               </h4>
                               <div className="flex flex-wrap gap-1.5">
                                 {ROLE_PRESET_BUTTONS.map((preset) => (
@@ -877,7 +877,7 @@ export const Users: React.FC = () => {
                                         ...preset.permissions,
                                       ]);
                                     }}
-                                    className="px-2.5 py-1 rounded-md bg-admin-surface border border-admin-border-strong text-[11px] text-admin-text cursor-pointer"
+                                    className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
                                   >
                                     Modèle « {preset.label} »
                                   </button>
@@ -887,7 +887,7 @@ export const Users: React.FC = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-[11px] text-admin-text-secondary mb-1">
+                                <label className="block text-xs text-admin-text-secondary mb-1">
                                   Nom affiché
                                 </label>
                                 <input
@@ -896,11 +896,11 @@ export const Users: React.FC = () => {
                                   onChange={(e) =>
                                     setEditDisplayName(e.target.value)
                                   }
-                                  className="w-full px-3 py-2 rounded-lg bg-admin-surface border border-admin-border-strong text-xs text-admin-text"
+                                  className="w-full px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text"
                                 />
                               </div>
                               <div>
-                                <label className="block text-[11px] text-admin-text-secondary mb-1">
+                                <label className="block text-xs text-admin-text-secondary mb-1">
                                   Intitulé du rôle
                                 </label>
                                 <input
@@ -909,12 +909,12 @@ export const Users: React.FC = () => {
                                   onChange={(e) =>
                                     setEditRoleLabel(e.target.value)
                                   }
-                                  className="w-full px-3 py-2 rounded-lg bg-admin-surface border border-admin-border-strong text-xs text-admin-text"
+                                  className="w-full px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text"
                                 />
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-lg bg-admin-surface border border-admin-border">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-lg border border-admin-border">
                               {ALL_ASSIGNABLE_PERMISSIONS.map((perm) => (
                                 <label
                                   key={perm.id}
@@ -937,7 +937,7 @@ export const Users: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setEditingUserId(null)}
-                                className="px-3.5 py-2 rounded-md bg-admin-surface border border-admin-border text-xs text-admin-text-secondary cursor-pointer"
+                                className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border text-xs text-admin-text-secondary cursor-pointer"
                               >
                                 Annuler
                               </button>
@@ -971,29 +971,29 @@ export const Users: React.FC = () => {
       <div className="bg-admin-surface border border-admin-border rounded-lg p-6 space-y-4 shadow-2xs">
         <div>
           <h3 className="font-display text-base font-bold text-admin-text">
-            Journal d’audit des comptes et connexions (audit_log)
+            Journal d’audit des comptes et connexions (<span className="font-mono">audit_log</span>)
           </h3>
-          <p className="text-xs text-admin-text-muted font-mono">
+          <p className="text-xs text-admin-text-muted">
             Historique immuable des connexions réussies/échouées, créations, modifications de droits, réinitialisations et suppressions
           </p>
         </div>
 
         {auditLog.length === 0 ? (
-          <p className="text-xs font-mono text-admin-text-muted py-4">
+          <p className="text-xs text-admin-text-muted py-4">
             Aucune entrée dans le journal d’audit pour le moment.
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs font-mono">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-admin-border text-[11px] text-admin-text-secondary uppercase">
+                <tr className="border-b border-admin-border text-xs font-semibold text-admin-text-secondary">
                   <th className="py-2.5 pr-4">Date</th>
-                  <th className="py-2.5 px-3">Qui (actor)</th>
+                  <th className="py-2.5 px-3">Qui (<span className="font-mono">actor</span>)</th>
                   <th className="py-2.5 px-3">Action</th>
                   <th className="py-2.5 pl-3">Cible / Détail</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-admin-border">
+              <tbody className="divide-y divide-admin-border font-mono">
                 {auditLog.map((entry) => (
                   <tr key={entry.id}>
                     <td className="py-2.5 pr-4 whitespace-nowrap text-admin-text-secondary">
@@ -1003,7 +1003,7 @@ export const Users: React.FC = () => {
                       {entry.actor}
                     </td>
                     <td className="py-2.5 px-3">
-                      <span className="px-2 py-0.5 rounded-md bg-admin-muted border border-admin-border-strong text-admin-accent">
+                      <span className="px-2 py-0.5 rounded-md border border-admin-border-strong text-admin-accent">
                         {entry.action}
                       </span>
                     </td>

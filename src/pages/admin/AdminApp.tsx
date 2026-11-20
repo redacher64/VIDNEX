@@ -215,7 +215,7 @@ export const AdminApp: React.FC = () => {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-admin-bg text-admin-text-muted font-mono text-xs">
+      <div className="min-h-screen flex items-center justify-center bg-admin-bg text-admin-text-muted text-xs">
         Vérification de la session administrateur…
       </div>
     );
@@ -330,12 +330,12 @@ export const AdminApp: React.FC = () => {
                 <span className="font-display font-bold text-sm sm:text-base text-admin-text whitespace-nowrap truncate">
                   VIDNEX<span className="hidden xs:inline sm:inline"> Admin</span>
                 </span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
                   {user.isOwner ? 'Propriétaire' : user.roleLabel}
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-admin-text-muted hidden md:block truncate">
-                {user.displayName} ({user.login}) · Stockage Cloudflare D1
+              <p className="text-xs text-admin-text-muted hidden md:block truncate">
+                {user.displayName} (<span className="font-mono">{user.login}</span>) · Stockage Cloudflare D1
               </p>
             </div>
           </div>
@@ -367,7 +367,7 @@ export const AdminApp: React.FC = () => {
               href="/"
               aria-label="Site public"
               title="Ouvrir le site public"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
               <ExternalLink className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Site public</span>
@@ -378,7 +378,7 @@ export const AdminApp: React.FC = () => {
               onClick={handleLogout}
               aria-label="Déconnexion"
               title="Déconnexion"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
             >
               <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Déconnexion</span>
@@ -428,8 +428,8 @@ export const AdminApp: React.FC = () => {
             <h2 className="font-display text-lg font-bold text-admin-text">
               Accès refusé
             </h2>
-            <p className="text-xs font-mono text-admin-text-secondary leading-relaxed">
-              Votre compte ({user.login}) ne dispose pas des droits nécessaires
+            <p className="text-xs text-admin-text-secondary leading-relaxed">
+              Votre compte (<span className="font-mono">{user.login}</span>) ne dispose pas des droits nécessaires
               pour consulter cette section.
             </p>
             <button

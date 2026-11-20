@@ -366,15 +366,12 @@ export const Visitors: React.FC = () => {
                 <h1 className="font-display text-lg font-bold text-admin-text tracking-tight">
                   Visiteurs &amp; Métriques Cloudflare
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Production · vidnex.space
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-admin-accent-bg text-admin-accent border border-admin-accent-border">
-                  Ressource : {sourceLabel}
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Production · <span className="font-mono">vidnex.space</span>
                 </span>
               </div>
-              <p className="text-xs text-admin-text-muted font-mono mt-0.5">
+              <p className="text-xs text-admin-text-muted mt-0.5">
                 Trafic Edge, taux de cache, invocations Worker, sous-requêtes, codes HTTP et distribution géographique (cache serveur 5 min)
               </p>
             </div>
@@ -384,7 +381,7 @@ export const Visitors: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Sélecteur de période 24h / 7j / 30j */}
           <div
-            className="inline-flex items-center bg-admin-muted border border-admin-border rounded-lg p-1"
+            className="inline-flex items-center border border-admin-border rounded-lg p-1"
             role="tablist"
             aria-label="Sélecteur de période"
           >
@@ -397,7 +394,7 @@ export const Visitors: React.FC = () => {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setSelectedPeriod(opt.key)}
-                  className={`px-3.5 py-1.5 rounded-md text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     active
                       ? 'bg-admin-accent text-white shadow-2xs'
                       : 'text-admin-text-secondary hover:text-admin-text hover:bg-admin-hover'
@@ -413,10 +410,10 @@ export const Visitors: React.FC = () => {
             type="button"
             onClick={fetchVisitors}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover text-admin-text border border-admin-border-strong text-xs font-mono font-medium transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover text-admin-text border border-admin-border-strong text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
             title="Actualiser les données"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-admin-accent ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-admin-text-muted ${loading ? 'animate-spin' : ''}`} />
             <span>Actualiser</span>
           </button>
         </div>
@@ -438,7 +435,7 @@ export const Visitors: React.FC = () => {
                   Impossible de charger les statistiques Cloudflare
                 </h2>
                 {error.code && (
-                  <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-rose-900/60 border border-red-300 dark:border-rose-500/30 text-[11px] font-mono font-semibold text-red-800 dark:text-rose-200">
+                  <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-rose-900/60 border border-red-300 dark:border-rose-500/30 text-xs font-mono font-semibold text-red-800 dark:text-rose-200">
                     {error.code}
                   </span>
                 )}
@@ -451,12 +448,12 @@ export const Visitors: React.FC = () => {
                   type="button"
                   onClick={fetchVisitors}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-700 hover:bg-red-800 dark:bg-rose-500/25 dark:hover:bg-rose-500/35 border border-red-800 dark:border-rose-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-700 hover:bg-red-800 dark:bg-rose-500/25 dark:hover:bg-rose-500/35 border border-red-800 dark:border-rose-500/40 text-xs font-semibold text-white transition-colors cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   Réessayer
                 </button>
-                <span className="text-[11px] font-mono text-red-800 dark:text-rose-300/85">
+                <span className="text-xs text-red-800 dark:text-rose-300/85">
                   Secrets Pages requis :{' '}
                   <code className="font-mono font-semibold">CF_API_TOKEN</code> (ou{' '}
                   <code className="font-mono font-semibold">CF_API</code>) +{' '}
@@ -474,13 +471,13 @@ export const Visitors: React.FC = () => {
         <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 rounded-lg p-4 text-amber-950 dark:text-amber-100 flex items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" />
-            <p className="text-xs font-mono leading-relaxed">{data.rateLimitedWarning}</p>
+            <p className="text-xs leading-relaxed">{data.rateLimitedWarning}</p>
           </div>
           <button
             type="button"
             onClick={fetchVisitors}
             disabled={loading}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-700 hover:bg-amber-800 dark:bg-amber-500/25 dark:hover:bg-amber-500/35 border border-amber-800 dark:border-amber-500/40 text-xs font-mono font-semibold text-white transition-colors cursor-pointer"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-700 hover:bg-amber-800 dark:bg-amber-500/25 dark:hover:bg-amber-500/35 border border-amber-800 dark:border-amber-500/40 text-xs font-semibold text-white transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Réessayer
@@ -510,10 +507,10 @@ export const Visitors: React.FC = () => {
                     {opt.fullLabel}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    className={`px-2 py-0.5 rounded-md text-xs font-bold ${
                       isSelected
                         ? 'bg-admin-accent text-white'
-                        : 'bg-admin-muted text-admin-text-secondary border border-admin-border'
+                        : 'text-admin-text-secondary border border-admin-border'
                     }`}
                   >
                     {opt.shortLabel}
@@ -521,20 +518,20 @@ export const Visitors: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <div className="text-[11px] font-mono text-admin-text-muted">Visites</div>
+                    <div className="text-xs text-admin-text-muted">Visites</div>
                     <div className="text-base font-bold text-admin-text font-mono mt-0.5 tabular-nums">
                       {formatCompactNumber(summary?.totalRequests ?? 0)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[11px] font-mono text-admin-text-muted">Uniques</div>
+                    <div className="text-xs text-admin-text-muted">Uniques</div>
                     <div className="text-base font-bold text-emerald-800 dark:text-emerald-400 font-mono mt-0.5 tabular-nums">
                       {formatCompactNumber(summary?.uniqueVisitors ?? 0)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[11px] font-mono text-admin-text-muted">Cache Hit</div>
-                    <div className="text-base font-bold text-sky-800 dark:text-sky-400 font-mono mt-0.5 tabular-nums">
+                    <div className="text-xs text-admin-text-muted">Cache Hit</div>
+                    <div className="text-base font-bold text-admin-text font-mono mt-0.5 tabular-nums">
                       {formatPercentage(summary?.cacheHitRate ?? 0)}
                     </div>
                   </div>
@@ -549,16 +546,16 @@ export const Visitors: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* 1. Asset Requests / Visites */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Visites (Requêtes)</span>
-            <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
+            <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="text-xl font-bold text-admin-text font-mono tabular-nums">
             {loading && !data ? '—' : formatNumber(activeSummary.totalRequests)}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
-            <span>Pages : {formatCompactNumber(activeSummary.pageViews)}</span>
-            <span className="text-admin-accent font-semibold">
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
+            <span>Pages : <span className="font-mono">{formatCompactNumber(activeSummary.pageViews)}</span></span>
+            <span className="font-mono text-admin-text-secondary font-semibold">
               {activeSummary.requestsPerSecond ?? 0} req/s
             </span>
           </div>
@@ -566,16 +563,16 @@ export const Visitors: React.FC = () => {
 
         {/* 2. Visiteurs uniques */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Visiteurs uniques</span>
-            <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <Users className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="text-xl font-bold text-emerald-800 dark:text-emerald-400 font-mono tabular-nums">
             {loading && !data ? '—' : formatNumber(activeSummary.uniqueVisitors)}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
-            <span>{activeSummary.countries.length} pays actifs</span>
-            <span className="text-emerald-800 dark:text-emerald-300 font-semibold">
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
+            <span><span className="font-mono">{activeSummary.countries.length}</span> pays actifs</span>
+            <span className="font-mono text-emerald-800 dark:text-emerald-300 font-semibold">
               {activeSummary.uniqueVisitors > 0
                 ? `${(
                     activeSummary.totalRequests / activeSummary.uniqueVisitors
@@ -587,16 +584,16 @@ export const Visitors: React.FC = () => {
 
         {/* 3. Asset Cache Hit Rate */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Taux de cache Edge</span>
-            <TrendingUp className="w-3.5 h-3.5 text-sky-700 dark:text-sky-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <div className="text-xl font-bold text-sky-800 dark:text-sky-400 font-mono tabular-nums">
+          <div className="text-xl font-bold text-admin-text font-mono tabular-nums">
             {loading && !data ? '—' : formatPercentage(activeSummary.cacheHitRate)}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
-            <span>Cache : {formatCompactNumber(activeSummary.cachedRequests)}</span>
-            <span className="text-sky-800 dark:text-sky-300 font-semibold">
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
+            <span>Cache : <span className="font-mono">{formatCompactNumber(activeSummary.cachedRequests)}</span></span>
+            <span className="font-mono text-admin-text-secondary font-semibold">
               {formatBytes(activeSummary.totalBytes)}
             </span>
           </div>
@@ -604,31 +601,31 @@ export const Visitors: React.FC = () => {
 
         {/* 4. Invocations Worker / Pages Functions */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Invocations Worker</span>
-            <Activity className="w-3.5 h-3.5 text-admin-accent" />
+            <Activity className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="text-xl font-bold text-admin-text font-mono tabular-nums">
             {loading && !data ? '—' : formatNumber(workerMetrics.invocations)}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
             <span>Exécutions API</span>
-            <span className="text-admin-accent font-semibold">100% trafic</span>
+            <span className="font-mono text-admin-text-secondary font-semibold">100% trafic</span>
           </div>
         </div>
 
         {/* 5. Subrequests (Sous-requêtes sortantes) */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Sous-requêtes</span>
-            <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+            <Globe className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <div className="text-xl font-bold text-amber-800 dark:text-amber-300 font-mono tabular-nums">
+          <div className="text-xl font-bold text-admin-text font-mono tabular-nums">
             {loading && !data ? '—' : formatNumber(workerMetrics.subrequests)}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
             <span>Moteurs sociaux</span>
-            <span className="text-amber-800 dark:text-amber-300 font-semibold">
+            <span className="font-mono text-admin-text-secondary font-semibold">
               {subrequestHosts.length} hôtes
             </span>
           </div>
@@ -636,9 +633,9 @@ export const Visitors: React.FC = () => {
 
         {/* 6. Errors & Median CPU Time */}
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-1.5">
             <span>Erreurs &amp; CPU médian</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between gap-2">
             <span
@@ -654,10 +651,10 @@ export const Visitors: React.FC = () => {
               CPU {workerMetrics.cpuTimeP50Ms} ms
             </span>
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
-            <span>Erreur : {formatPercentage(workerMetrics.errorRate)}</span>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-admin-text-muted">
+            <span>Erreur : <span className="font-mono">{formatPercentage(workerMetrics.errorRate)}</span></span>
             <span className="text-admin-text-secondary">
-              Menaces : {formatNumber(activeSummary.threats)}
+              Menaces : <span className="font-mono">{formatNumber(activeSummary.threats)}</span>
             </span>
           </div>
         </div>
@@ -666,9 +663,9 @@ export const Visitors: React.FC = () => {
       {/* 4 Cartes de Métriques Avancées Edge, Engagement & Concentration Géographique */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
             <span>Disponibilité HTTP &amp; Origin</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-lg font-bold font-mono text-emerald-800 dark:text-emerald-400 tabular-nums">
@@ -679,63 +676,63 @@ export const Visitors: React.FC = () => {
               {extendedMetrics.originRatePct}%)
             </span>
           </div>
-          <div className="text-[11px] font-mono text-admin-text-muted">
+          <div className="text-xs text-admin-text-muted">
             Disponibilité Edge sans erreur 5xx
           </div>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
             <span>Bande passante économisée</span>
-            <TrendingUp className="w-3.5 h-3.5 text-sky-700 dark:text-sky-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg font-bold font-mono text-sky-800 dark:text-sky-400 tabular-nums">
+            <span className="text-lg font-bold font-mono text-admin-text tabular-nums">
               {formatBytes(extendedMetrics.savedBytes)}
             </span>
             <span className="text-xs font-mono text-admin-text-secondary tabular-nums">
               {formatBytes(extendedMetrics.avgBytesPerRequest)} / req
             </span>
           </div>
-          <div className="text-[11px] font-mono text-admin-text-muted">
-            Trafic Origin : {formatBytes(extendedMetrics.originBytes)}
+          <div className="text-xs text-admin-text-muted">
+            Trafic Origin : <span className="font-mono">{formatBytes(extendedMetrics.originBytes)}</span>
           </div>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
             <span>Intensité par Visiteur Unique</span>
-            <Users className="w-3.5 h-3.5 text-admin-accent" />
+            <Users className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-lg font-bold font-mono text-admin-text tabular-nums">
               {extendedMetrics.requestsPerUniqueVisitor} req/vis.
             </span>
-            <span className="text-xs font-mono text-admin-accent font-semibold tabular-nums">
+            <span className="text-xs font-mono text-admin-text-secondary font-semibold tabular-nums">
               {extendedMetrics.pageViewsPerUniqueVisitor} pages/vis.
             </span>
           </div>
-          <div className="text-[11px] font-mono text-admin-text-muted">
-            Ratio sous-requêtes/invocation : {extendedMetrics.subrequestsPerInvocation}x
+          <div className="text-xs text-admin-text-muted">
+            Ratio sous-requêtes/invocation : <span className="font-mono">{extendedMetrics.subrequestsPerInvocation}x</span>
           </div>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
             <span>Concentration Géo &amp; CPU P99</span>
-            <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+            <Globe className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg font-bold font-mono text-amber-800 dark:text-amber-300 tabular-nums">
+            <span className="text-lg font-bold font-mono text-admin-text tabular-nums">
               Top 3 : {formatPercentage(extendedMetrics.top3ConcentrationPct)}
             </span>
             <span className="text-xs font-mono text-admin-text-secondary tabular-nums">
               P99 : {workerMetrics.cpuTimeP99Ms} ms
             </span>
           </div>
-          <div className="text-[11px] font-mono text-admin-text-muted">
-            Pays #1 : {formatPercentage(extendedMetrics.topCountrySharePct)} · Menaces :{' '}
-            {extendedMetrics.threatRatePct}%
+          <div className="text-xs text-admin-text-muted">
+            Pays #1 : <span className="font-mono">{formatPercentage(extendedMetrics.topCountrySharePct)}</span> · Menaces :{' '}
+            <span className="font-mono">{extendedMetrics.threatRatePct}%</span>
           </div>
         </div>
       </div>
@@ -744,34 +741,34 @@ export const Visitors: React.FC = () => {
       <div className="bg-admin-surface border border-admin-border rounded-lg px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
         <div className="flex flex-wrap items-center gap-6">
           <div>
-            <div className="text-[11px] font-mono text-admin-text-muted">Période analysée</div>
+            <div className="text-xs text-admin-text-muted">Période analysée</div>
             <div className="text-xs font-display font-bold text-admin-text mt-0.5">
               {activePeriodMeta.fullLabel}
             </div>
           </div>
           <div>
-            <div className="text-[11px] font-mono text-admin-text-muted">Trafic routé</div>
+            <div className="text-xs text-admin-text-muted">Trafic routé</div>
             <div className="flex items-center gap-2 mt-0.5">
-              <div className="w-20 h-1.5 rounded-full bg-admin-muted border border-admin-border overflow-hidden">
+              <div className="w-20 h-1.5 rounded-full border border-admin-border overflow-hidden">
                 <div className="h-full bg-admin-accent rounded-full w-full" />
               </div>
               <span className="text-xs font-mono font-bold text-admin-text">100%</span>
             </div>
           </div>
           <div>
-            <div className="text-[11px] font-mono text-admin-text-muted">
+            <div className="text-xs text-admin-text-muted">
               Bande passante (Totale / Cache)
             </div>
             <div className="text-xs font-mono text-admin-text font-semibold mt-0.5">
               {formatBytes(activeSummary.totalBytes)}{' '}
-              <span className="text-sky-800 dark:text-sky-400">
+              <span className="text-admin-text-secondary">
                 ({formatBytes(activeSummary.cachedBytes)} en cache ·{' '}
                 {formatPercentage(activeSummary.bandwidthCacheRate)})
               </span>
             </div>
           </div>
           <div>
-            <div className="text-[11px] font-mono text-admin-text-muted">
+            <div className="text-xs text-admin-text-muted">
               Temps CPU / Wall Time médian
             </div>
             <div className="text-xs font-mono text-admin-text font-semibold mt-0.5">
@@ -781,11 +778,11 @@ export const Visitors: React.FC = () => {
         </div>
 
         {data?.fetchedAt && (
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-admin-text-muted">
+          <div className="inline-flex items-center gap-1.5 text-xs text-admin-text-muted">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>
               {data.cached ? 'Cache serveur (5 min)' : 'Données fraîches Cloudflare'} ·{' '}
-              {new Date(data.fetchedAt).toLocaleTimeString('fr-FR')}
+              <span className="font-mono">{new Date(data.fetchedAt).toLocaleTimeString('fr-FR')}</span>
             </span>
           </div>
         )}
@@ -800,11 +797,11 @@ export const Visitors: React.FC = () => {
               <h2 className="font-display text-sm font-bold text-admin-text">
                 Évolution du trafic ({activePeriodMeta.shortLabel})
               </h2>
-              <p className="text-xs font-mono text-admin-text-muted mt-0.5">
+              <p className="text-xs text-admin-text-muted mt-0.5">
                 {activePeriodMeta.subtitle} — Survolez une barre pour voir le détail
               </p>
             </div>
-            <div className="inline-flex items-center bg-admin-muted border border-admin-border rounded-lg p-1">
+            <div className="inline-flex items-center border border-admin-border rounded-lg p-1">
               {(
                 [
                   { id: 'requests', label: 'Visites & Cache' },
@@ -816,7 +813,7 @@ export const Visitors: React.FC = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setChartMode(tab.id)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     chartMode === tab.id
                       ? 'bg-admin-accent text-white shadow-2xs'
                       : 'text-admin-text-secondary hover:text-admin-text'
@@ -829,14 +826,14 @@ export const Visitors: React.FC = () => {
           </div>
 
           {timeseries.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-xs font-mono text-admin-text-muted border border-dashed border-admin-border rounded-lg">
+            <div className="h-48 flex items-center justify-center text-xs text-admin-text-muted border border-dashed border-admin-border rounded-lg">
               {loading
                 ? 'Chargement de l’historique temporel…'
                 : 'Série temporelle agrégée sur la période sélectionnée'}
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="h-48 flex items-end gap-1.5 pt-6 px-2 border-b border-admin-border bg-admin-muted/50 rounded-t-lg">
+              <div className="h-48 flex items-end gap-1.5 pt-6 px-2 border-b border-admin-border rounded-t-lg">
                 {timeseries.map((pt, idx) => {
                   const primaryVal =
                     chartMode === 'uniques'
@@ -862,7 +859,7 @@ export const Visitors: React.FC = () => {
                       className="group relative flex-1 h-full flex flex-col justify-end items-center"
                     >
                       {/* Tooltip au survol */}
-                      <div className="opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-20 bg-[#140e0a] border border-admin-border-strong rounded-lg px-2.5 py-2 text-[11px] font-mono text-[#fffaf5] shadow-xl whitespace-nowrap">
+                      <div className="opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-20 bg-[#140e0a] border border-admin-border-strong rounded-lg px-2.5 py-2 text-xs font-mono text-[#fffaf5] shadow-xl whitespace-nowrap">
                         <div className="font-bold text-orange-300 mb-0.5">
                           {pt.label || pt.timestamp}
                         </div>
@@ -902,7 +899,7 @@ export const Visitors: React.FC = () => {
               </div>
 
               {/* Axe X (étiquettes début / milieu / fin) */}
-              <div className="flex items-center justify-between text-[11px] font-mono text-admin-text-muted px-1">
+              <div className="flex items-center justify-between text-xs font-mono text-admin-text-muted px-1">
                 <span>{timeseries[0]?.label || ''}</span>
                 {timeseries.length > 2 && (
                   <span>
@@ -913,7 +910,7 @@ export const Visitors: React.FC = () => {
               </div>
 
               {/* Légende */}
-              <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-admin-text-secondary pt-1">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-admin-text-secondary pt-1">
                 {chartMode === 'requests' && (
                   <>
                     <span className="inline-flex items-center gap-1.5">
@@ -950,8 +947,8 @@ export const Visitors: React.FC = () => {
             <h2 className="font-display text-sm font-bold text-admin-text mb-1">
               Requêtes par code de statut HTTP
             </h2>
-            <p className="text-xs font-mono text-admin-text-muted mb-4">
-              Répartition Edge (`2xx`, `3xx`, `4xx`, `5xx`) sur {activePeriodMeta.shortLabel}
+            <p className="text-xs text-admin-text-muted mb-4">
+              Répartition Edge (<code className="font-mono">2xx</code>, <code className="font-mono">3xx</code>, <code className="font-mono">4xx</code>, <code className="font-mono">5xx</code>) sur {activePeriodMeta.shortLabel}
             </p>
 
             {/* Légende chiffrée */}
@@ -1080,17 +1077,17 @@ export const Visitors: React.FC = () => {
 
             {browsers.length > 0 && (
               <div className="mt-4 pt-3 border-t border-admin-border">
-                <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-admin-text-muted mb-2">
+                <div className="text-xs font-semibold text-admin-text-secondary mb-2">
                   Top Navigateurs (Pages vues)
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {browsers.slice(0, 5).map((br) => (
                     <span
                       key={br.browser}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-admin-muted border border-admin-border text-xs font-mono text-admin-text-secondary"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-admin-border text-xs text-admin-text-secondary"
                     >
                       <span className="font-semibold text-admin-text">{br.browser}</span>
-                      <span className="text-[11px] text-admin-accent font-bold">
+                      <span className="font-mono text-xs text-admin-accent font-bold">
                         {br.percentage}%
                       </span>
                     </span>
@@ -1110,18 +1107,18 @@ export const Visitors: React.FC = () => {
               <h2 className="font-display text-sm font-bold text-admin-text">
                 Sous-requêtes sortantes par hôte (Subrequests)
               </h2>
-              <p className="text-xs font-mono text-admin-text-muted mt-0.5">
+              <p className="text-xs text-admin-text-muted mt-0.5">
                 Appels sortants des moteurs d’extraction vers les plateformes sociales et CDN médias ({activePeriodMeta.shortLabel})
               </p>
             </div>
-            <span className="text-xs font-mono font-semibold text-admin-accent">
-              {subrequestHosts.length} hôtes actifs
+            <span className="text-xs font-semibold text-admin-accent">
+              <span className="font-mono">{subrequestHosts.length}</span> hôtes actifs
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-admin-border bg-admin-muted text-[11px] font-mono font-semibold uppercase tracking-wider text-admin-text-secondary">
+                <tr className="border-b border-admin-border text-xs font-semibold text-admin-text-secondary">
                   <th className="py-3 pl-5 pr-3">Hôte (Host)</th>
                   <th className="py-3 px-3">Plateforme</th>
                   <th className="py-3 px-3">Requêtes par statut</th>
@@ -1132,19 +1129,19 @@ export const Visitors: React.FC = () => {
                 {subrequestHosts.map((sh) => (
                   <tr
                     key={sh.host}
-                    className="hover:bg-admin-muted/60 transition-colors"
+                    className="hover:bg-admin-hover/40 transition-colors"
                   >
                     <td className="py-3 pl-5 pr-3 font-mono text-xs font-semibold text-admin-accent underline decoration-admin-accent/30">
                       {sh.host}
                     </td>
-                    <td className="py-3 px-3 text-xs font-mono text-admin-text-secondary">
+                    <td className="py-3 px-3 text-xs text-admin-text-secondary">
                       {sh.platform}
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
                         {sh.status2xx > 0 && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 text-[11px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 text-xs font-bold">
                               2xx
                             </span>
                             <span className="text-admin-text font-semibold">
@@ -1154,7 +1151,7 @@ export const Visitors: React.FC = () => {
                         )}
                         {sh.status3xx > 0 && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-500/20 text-sky-900 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-500/20 text-sky-900 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 text-xs font-bold">
                               3xx
                             </span>
                             <span className="text-admin-text font-semibold">
@@ -1164,7 +1161,7 @@ export const Visitors: React.FC = () => {
                         )}
                         {sh.status4xx > 0 && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 text-[11px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 text-xs font-bold">
                               4xx
                             </span>
                             <span className="text-admin-text font-semibold">
@@ -1174,7 +1171,7 @@ export const Visitors: React.FC = () => {
                         )}
                         {sh.status5xx > 0 && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 rounded bg-red-50 dark:bg-rose-500/20 text-red-900 dark:text-rose-300 border border-red-300 dark:border-rose-500/30 text-[11px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-red-50 dark:bg-rose-500/20 text-red-900 dark:text-rose-300 border border-red-300 dark:border-rose-500/30 text-xs font-bold">
                               5xx
                             </span>
                             <span className="text-admin-text font-semibold">
@@ -1213,7 +1210,7 @@ export const Visitors: React.FC = () => {
             <h2 className="font-display text-sm font-bold text-admin-text">
               Distribution géographique par pays ({activePeriodMeta.shortLabel})
             </h2>
-            <p className="text-xs font-mono text-admin-text-muted mt-0.5">
+            <p className="text-xs text-admin-text-muted mt-0.5">
               Trié par nombre de visites décroissant — Drapeau, pays, visites, bande passante et part du trafic (%)
             </p>
           </div>
@@ -1224,21 +1221,21 @@ export const Visitors: React.FC = () => {
               value={countrySearch}
               onChange={(e) => setCountrySearch(e.target.value)}
               placeholder="Filtrer un pays (ex: France, FR, Maroc)…"
-              className="w-full sm:w-64 px-3 py-1.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
+              className="w-full sm:w-64 px-3 py-1.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
             />
           </div>
         </div>
 
         {loading && !data ? (
           <div className="p-10 text-center space-y-3">
-            <RefreshCw className="w-6 h-6 text-admin-accent animate-spin mx-auto" />
-            <p className="text-xs font-mono text-admin-text-muted">
+            <RefreshCw className="w-6 h-6 text-admin-text-muted animate-spin mx-auto" />
+            <p className="text-xs text-admin-text-muted">
               Interrogation de l’API GraphQL Analytics de Cloudflare…
             </p>
           </div>
         ) : filteredCountries.length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-sm font-mono text-admin-text-muted">
+            <p className="text-sm text-admin-text-muted">
               {error
                 ? 'Aucune donnée à afficher en raison de l’erreur ci-dessus.'
                 : countrySearch
@@ -1250,7 +1247,7 @@ export const Visitors: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-admin-border bg-admin-muted text-[11px] font-mono font-semibold uppercase tracking-wider text-admin-text-secondary">
+                <tr className="border-b border-admin-border text-xs font-semibold text-admin-text-secondary">
                   <th className="py-3 pl-5 pr-2 w-12">#</th>
                   <th className="py-3 px-3">Pays</th>
                   <th className="py-3 px-4 text-right">Visites</th>
@@ -1269,7 +1266,7 @@ export const Visitors: React.FC = () => {
                   return (
                     <tr
                       key={`${row.countryCode}-${index}`}
-                      className="hover:bg-admin-muted/60 transition-colors"
+                      className="hover:bg-admin-hover/40 transition-colors"
                     >
                       <td className="py-3 pl-5 pr-2 text-xs font-mono text-admin-text-muted tabular-nums">
                         {index + 1}
@@ -1287,7 +1284,7 @@ export const Visitors: React.FC = () => {
                             <span className="font-display font-semibold text-admin-text truncate">
                               {row.countryName}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded bg-admin-muted border border-admin-border text-[10px] font-mono text-admin-text-secondary uppercase">
+                            <span className="px-1.5 py-0.5 rounded-md border border-admin-border text-xs font-mono text-admin-text-secondary">
                               {row.countryCode}
                             </span>
                           </div>

@@ -171,12 +171,12 @@ export const Controls: React.FC = () => {
           <h2 className="font-display text-xl font-bold text-admin-text">
             Contrôles Opérationnels & Sécurité
           </h2>
-          <p className="text-xs text-admin-text-muted font-mono">
-            Modifications appliquées en temps réel sur /api/extract, /api/download et /api/public-config
+          <p className="text-xs text-admin-text-muted">
+            Modifications appliquées en temps réel sur <code className="font-mono">/api/extract</code>, <code className="font-mono">/api/download</code> et <code className="font-mono">/api/public-config</code>
           </p>
         </div>
         {statusMessage && (
-          <div className="px-3.5 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200 text-xs font-mono flex items-center gap-2">
+          <div className="px-3.5 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>{statusMessage}</span>
           </div>
@@ -195,7 +195,7 @@ export const Controls: React.FC = () => {
               </h3>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Suspend toutes les extractions (/api/extract renvoie MAINTENANCE · 503) et affiche une bannière sur le site.
+              Suspend toutes les extractions (<code className="font-mono">/api/extract</code> renvoie <code className="font-mono">MAINTENANCE · 503</code>) et affiche une bannière sur le site.
             </p>
           </div>
           <button
@@ -209,7 +209,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.maintenance
                 ? 'bg-amber-600 dark:bg-amber-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -224,9 +224,9 @@ export const Controls: React.FC = () => {
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-admin-accent" />
+              <Sliders className="w-4 h-4 text-admin-text-muted" />
               <h3 className="font-display text-sm font-bold text-admin-text">
-                Monétisation Adsterra (`ads_adsterra_enabled`)
+                Monétisation Adsterra (<code className="font-mono">ads_adsterra_enabled</code>)
               </h3>
             </div>
             <p className="text-xs text-admin-text-muted">
@@ -247,7 +247,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.ads_adsterra_enabled
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -262,13 +262,13 @@ export const Controls: React.FC = () => {
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 shadow-2xs md:col-span-2">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-admin-accent" />
+              <Sliders className="w-4 h-4 text-admin-text-muted" />
               <h3 className="font-display text-sm font-bold text-admin-text">
-                Monétisation Google AdSense (`ads_enabled`)
+                Monétisation Google AdSense (<code className="font-mono">ads_enabled</code>)
               </h3>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Active ou masque instantanément les emplacements publicitaires Google AdSense via adsenseService.ts (en attente d’approbation).
+              Active ou masque instantanément les emplacements publicitaires Google AdSense via <code className="font-mono">adsenseService.ts</code> (en attente d’approbation).
             </p>
           </div>
           <button
@@ -282,7 +282,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.ads_enabled
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -297,22 +297,22 @@ export const Controls: React.FC = () => {
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 flex items-center justify-between gap-4 md:col-span-2 shadow-2xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-admin-accent" />
+              <Sliders className="w-4 h-4 text-admin-text-muted" />
               <h3 className="font-display text-sm font-bold text-admin-text">
-                Services tiers (`allow_third_party` : tikwm.com, vxinstagram.com, ddinstagram.com)
+                Services tiers (<code className="font-mono">allow_third_party</code> : tikwm.com, vxinstagram.com, ddinstagram.com)
               </h3>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.allow_third_party !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.allow_third_party !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.allow_third_party !== false ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Désactivé, plus aucun appel vers tikwm.com, vxinstagram.com ou ddinstagram.com : seuls les niveaux directs sont utilisés et ces hôtes sont refusés dans l’allowlist de /api/download (sans redéploiement).
+              Désactivé, plus aucun appel vers tikwm.com, vxinstagram.com ou ddinstagram.com : seuls les niveaux directs sont utilisés et ces hôtes sont refusés dans l’allowlist de <code className="font-mono">/api/download</code> (sans redéploiement).
             </p>
           </div>
           <button
@@ -329,7 +329,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.allow_third_party !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -348,17 +348,17 @@ export const Controls: React.FC = () => {
                 Extracteur TikTok
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_tiktok
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.platform_tiktok ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.platform_tiktok ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Désactive uniquement TikTok (renvoie PLATFORM_DISABLED et grise TikTok côté public).
+              Désactive uniquement TikTok (renvoie <code className="font-mono">PLATFORM_DISABLED</code> et grise TikTok côté public).
             </p>
           </div>
           <button
@@ -375,7 +375,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_tiktok
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -394,17 +394,17 @@ export const Controls: React.FC = () => {
                 Extracteur Instagram
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_instagram
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.platform_instagram ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.platform_instagram ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Désactive uniquement Instagram (renvoie PLATFORM_DISABLED et grise Instagram côté public).
+              Désactive uniquement Instagram (renvoie <code className="font-mono">PLATFORM_DISABLED</code> et grise Instagram côté public).
             </p>
           </div>
           <button
@@ -421,7 +421,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_instagram
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -440,17 +440,17 @@ export const Controls: React.FC = () => {
                 Extracteur X (Twitter)
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_x !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.platform_x !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.platform_x !== false ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Désactive uniquement X (Twitter) (renvoie PLATFORM_DISABLED et grise X (Twitter) côté public).
+              Désactive uniquement X (Twitter) (renvoie <code className="font-mono">PLATFORM_DISABLED</code> et grise X (Twitter) côté public).
             </p>
           </div>
           <button
@@ -467,7 +467,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_x !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -486,17 +486,17 @@ export const Controls: React.FC = () => {
                 Extracteur Facebook
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_facebook !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.platform_facebook !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.platform_facebook !== false ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Désactive uniquement Facebook (renvoie PLATFORM_DISABLED et grise Facebook côté public).
+              Désactive uniquement Facebook (renvoie <code className="font-mono">PLATFORM_DISABLED</code> et grise Facebook côté public).
             </p>
           </div>
           <button
@@ -513,7 +513,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_facebook !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -532,17 +532,17 @@ export const Controls: React.FC = () => {
                 Extracteur LinkedIn (Photo de profil)
               </h3>
               <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                   settings.platform_linkedin !== false
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                     : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
                 }`}
               >
-                {settings.platform_linkedin !== false ? 'ACTIF' : 'DÉSACTIVÉ'}
+                {settings.platform_linkedin !== false ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <p className="text-xs text-admin-text-muted">
-              Active ou désactive l’extraction de la photo de profil publique LinkedIn (/in/&#123;slug&#125;).
+              Active ou désactive l’extraction de la photo de profil publique LinkedIn (<code className="font-mono">/in/&#123;slug&#125;</code>).
             </p>
           </div>
           <button
@@ -559,7 +559,7 @@ export const Controls: React.FC = () => {
             className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
               settings.platform_linkedin !== false
                 ? 'bg-emerald-600 dark:bg-emerald-500'
-                : 'bg-stone-300 dark:bg-admin-muted border border-stone-400 dark:border-admin-border-strong'
+                : 'bg-admin-muted border border-admin-border-strong'
             }`}
           >
             <span
@@ -652,7 +652,7 @@ export const Controls: React.FC = () => {
           <select
             value={blockType}
             onChange={(e) => setBlockType(e.target.value as 'ip_hash' | 'domain' | 'url')}
-            className="px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text font-mono focus:outline-none focus:border-orange-600"
+            className="px-3.5 py-2.5 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:border-orange-600"
           >
             <option value="domain">Domaine (ex: example.com)</option>
             <option value="url">URL ou fragment d’URL</option>
@@ -677,18 +677,18 @@ export const Controls: React.FC = () => {
         </form>
 
         {blocklist.length === 0 ? (
-          <p className="text-xs font-mono text-admin-text-muted py-3 text-center">
+          <p className="text-xs text-admin-text-muted py-3 text-center">
             Aucune règle de blocage active dans D1.
           </p>
         ) : (
-          <div className="divide-y divide-admin-border border border-admin-border rounded-lg overflow-hidden bg-admin-muted">
+          <div className="divide-y divide-admin-border border border-admin-border rounded-lg overflow-hidden">
             {blocklist.map((item) => (
               <div
                 key={item.id}
                 className="px-4 py-2.5 flex items-center justify-between gap-3 text-xs font-mono"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/70 border border-red-300 dark:border-red-800/60 text-red-900 dark:text-red-300 font-semibold uppercase text-[10px] shrink-0">
+                  <span className="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/70 border border-red-300 dark:border-red-800/60 text-red-900 dark:text-red-300 font-semibold text-xs shrink-0">
                     {item.type}
                   </span>
                   <span className="text-admin-text truncate">{item.value}</span>

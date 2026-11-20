@@ -283,17 +283,17 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
       {/* En-tête et actions principales */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-admin-border pb-5">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-mono text-admin-text-muted">
-            <FileText className="w-4 h-4 text-admin-accent" />
+          <div className="flex items-center gap-2 text-xs text-admin-text-muted">
+            <FileText className="w-4 h-4 text-admin-text-muted" />
             <span>CMS Éditorial Multilingue</span>
             <span aria-hidden="true">·</span>
-            <span>Droits actifs : {activePermissionsLabels.join(' · ')}</span>
+            <span>Droits actifs : <span className="font-mono">{activePermissionsLabels.join(' · ')}</span></span>
           </div>
           <h1 className="font-display text-xl sm:text-2xl font-bold text-admin-text">
-            Gestion du Blog ({stats.publishedCount} publiés · {stats.draftCount}{' '}
+            Gestion du Blog (<span className="font-mono">{stats.publishedCount}</span> publiés · <span className="font-mono">{stats.draftCount}</span>{' '}
             brouillons)
           </h1>
-          <p className="text-xs font-mono text-admin-text-secondary">
+          <p className="text-xs text-admin-text-secondary">
             Consultez les articles publiés et en brouillon, vérifiez les
             traductions par langue et prévisualisez le hub via BlogIndexView.
           </p>
@@ -317,7 +317,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   : 'text-admin-text-secondary hover:text-admin-text'
               }`}
             >
-              Articles ({allArticles.length})
+              Articles (<span className="font-mono">{allArticles.length}</span>)
             </button>
             <button
               type="button"
@@ -358,7 +358,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               type="button"
               onClick={handleImportExistingToD1}
               disabled={syncingD1}
-              className="px-3 py-2 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text transition-colors cursor-pointer disabled:opacity-50"
+              className="px-3 py-2 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text transition-colors cursor-pointer disabled:opacity-50"
             >
               {syncingD1 ? 'Synchronisation D1…' : 'Synchroniser D1'}
             </button>
@@ -382,10 +382,10 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
       {feedback && (
         <div
           role="status"
-          className={`rounded-lg p-3.5 text-xs font-mono border flex items-center justify-between gap-3 ${
+          className={`rounded-lg p-3.5 text-xs border flex items-center justify-between gap-3 ${
             feedback.type === 'success'
-              ? 'bg-emerald-950/30 border-emerald-700/50 text-emerald-300'
-              : 'bg-red-950/30 border-red-700/50 text-red-300'
+              ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/50 text-emerald-900 dark:text-emerald-300'
+              : 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700/50 text-red-900 dark:text-red-300'
           }`}
         >
           <span>{feedback.message}</span>
@@ -402,43 +402,43 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
       {/* Synthèse statistique */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
-          <p className="text-[11px] font-mono text-admin-text-muted">
+          <p className="text-xs text-admin-text-muted">
             Total articles
           </p>
           <p className="font-mono text-2xl font-bold text-admin-text tabular-nums">
             {stats.total}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-secondary">
+          <p className="text-xs text-admin-text-secondary">
             Catalogue éditorial complet
           </p>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
-          <p className="text-[11px] font-mono text-admin-text-muted">
+          <p className="text-xs text-admin-text-muted">
             Articles publiés
           </p>
-          <p className="font-mono text-2xl font-bold text-emerald-500 tabular-nums">
+          <p className="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
             {stats.publishedCount}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-secondary">
-            Indexés dans sitemap.xml & llms.txt
+          <p className="text-xs text-admin-text-secondary">
+            Indexés dans <span className="font-mono">sitemap.xml</span> & <span className="font-mono">llms.txt</span>
           </p>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
-          <p className="text-[11px] font-mono text-admin-text-muted">
+          <p className="text-xs text-admin-text-muted">
             Articles en brouillon
           </p>
-          <p className="font-mono text-2xl font-bold text-amber-500 tabular-nums">
+          <p className="font-mono text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
             {stats.draftCount}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-secondary">
+          <p className="text-xs text-admin-text-secondary">
             Non indexés publiquement
           </p>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-1">
-          <p className="text-[11px] font-mono text-admin-text-muted">
+          <p className="text-xs text-admin-text-muted">
             Traductions (Publiées / Brouillons)
           </p>
           <p className="font-mono text-2xl font-bold text-admin-text tabular-nums">
@@ -447,7 +447,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               / {stats.draftTranslationsCount}
             </span>
           </p>
-          <p className="text-[11px] font-mono text-admin-text-secondary">
+          <p className="text-xs text-admin-text-secondary">
             EN & FR publiées · AR, ES, DE en brouillon
           </p>
         </div>
@@ -474,20 +474,20 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
           className="bg-admin-surface border border-admin-border rounded-lg overflow-hidden"
         >
           {/* Barre d'outils d'aperçu */}
-          <div className="px-4 sm:px-6 py-3.5 bg-admin-muted border-b border-admin-border flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 sm:px-6 py-3.5 border-b border-admin-border flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="font-display text-xs font-bold text-admin-text">
                 Aperçu en direct :{' '}
                 {previewArticleSlug ? 'BlogArticleView' : 'BlogIndexView'}
               </span>
-              <span className="text-xs font-mono text-admin-text-muted">
-                · Langue : {previewLocale.toUpperCase()}
+              <span className="text-xs text-admin-text-muted">
+                · Langue : <span className="font-mono">{previewLocale.toUpperCase()}</span>
               </span>
               {previewArticleSlug && (
                 <button
                   type="button"
                   onClick={() => setPreviewArticleSlug(null)}
-                  className="px-2.5 py-1 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+                  className="px-2.5 py-1 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
                 >
                   ← Retour à BlogIndexView
                 </button>
@@ -498,7 +498,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               <div
                 role="group"
                 aria-label="Langue de l'aperçu"
-                className="flex items-center gap-1 p-1 rounded-lg bg-admin-surface border border-admin-border"
+                className="flex items-center gap-1 p-1 rounded-lg border border-admin-border"
               >
                 {(['en', 'fr'] as const).map((loc) => (
                   <button
@@ -508,22 +508,22 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                       setPreviewLocale(loc);
                       setPreviewArticleSlug(null);
                     }}
-                    className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold cursor-pointer transition-colors ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors ${
                       previewLocale === loc
                         ? 'bg-admin-accent text-white'
                         : 'text-admin-text-secondary hover:text-admin-text'
                     }`}
                   >
-                    {loc.toUpperCase()} ({getBlogHomePath(loc as BlogLocale)})
+                    {loc.toUpperCase()} (<span className="font-mono">{getBlogHomePath(loc as BlogLocale)}</span>)
                   </button>
                 ))}
               </div>
 
               <a
                 href={getBlogHomePath(previewLocale as BlogLocale)}
-                className="px-3 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text inline-flex items-center gap-1.5 transition-colors"
               >
-                <span>Ouvrir {getBlogHomePath(previewLocale as BlogLocale)}</span>
+                <span>Ouvrir <span className="font-mono">{getBlogHomePath(previewLocale as BlogLocale)}</span></span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
 
@@ -533,7 +533,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   setViewMode('list');
                   setPreviewArticleSlug(null);
                 }}
-                className="px-3 py-1.5 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text cursor-pointer"
+                className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs text-admin-text cursor-pointer"
               >
                 Retour à la liste
               </button>
@@ -566,7 +566,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
             <div
               role="group"
               aria-label="Filtrer par statut de publication"
-              className="flex items-center gap-1 p-1 rounded-lg bg-admin-muted border border-admin-border"
+              className="flex items-center gap-1 p-1 rounded-lg border border-admin-border"
             >
               {(
                 [
@@ -580,7 +580,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   type="button"
                   onClick={() => setStatusFilter(tab.id)}
                   aria-pressed={statusFilter === tab.id}
-                  className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     statusFilter === tab.id
                       ? 'bg-admin-accent text-white shadow-sm'
                       : 'text-admin-text-secondary hover:text-admin-text'
@@ -599,7 +599,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 id="admin-blog-category-filter"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+                className="px-3 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
               >
                 <option value="all">Toutes les catégories</option>
                 {BLOG_CATEGORY_KEYS.map((catKey) => (
@@ -618,7 +618,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filtrer par titre, slug ou ID…"
-                className="flex-1 px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
+                className="flex-1 px-3.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-xs text-admin-text placeholder:text-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
               />
             </div>
           </div>
@@ -629,7 +629,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
               <p className="font-display text-sm font-bold text-admin-text">
                 Aucun article ne correspond aux filtres sélectionnés
               </p>
-              <p className="text-xs font-mono text-admin-text-secondary">
+              <p className="text-xs text-admin-text-secondary">
                 Essayez de réinitialiser le filtre de statut ou la recherche.
               </p>
             </div>
@@ -655,12 +655,12 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                   >
                     <div className="space-y-2 min-w-0 flex-1">
                       {/* Métadonnées typographiques sans pilules */}
-                      <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
                         <span
                           className={
                             isPublished
-                              ? 'text-emerald-500 font-bold'
-                              : 'text-amber-500 font-bold'
+                              ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                              : 'text-amber-600 dark:text-amber-400 font-bold'
                           }
                         >
                           {isPublished ? 'Publié' : 'Brouillon'}
@@ -675,7 +675,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           ·
                         </span>
                         <span className="text-admin-text-muted tabular-nums">
-                          Mis à jour le {art.updatedAt}
+                          Mis à jour le <span className="font-mono">{art.updatedAt}</span>
                         </span>
                         <span aria-hidden="true" className="text-admin-text-muted">
                           ·
@@ -691,7 +691,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                             >
                               ·
                             </span>
-                            <span className="text-emerald-400 inline-flex items-center gap-1">
+                            <span className="text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />
                               <span>D1</span>
                             </span>
@@ -703,15 +703,15 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                         {primaryTr ? primaryTr.title : art.id}
                       </h2>
 
-                      <p className="text-[11px] font-mono text-admin-text-muted truncate">
-                        ID : {art.id}
+                      <p className="text-xs text-admin-text-muted truncate">
+                        ID : <span className="font-mono">{art.id}</span>
                         {art.primaryToolRoute
-                          ? ` · Outil cible : ${art.primaryToolRoute}`
+                          ? <> · Outil cible : <span className="font-mono">{art.primaryToolRoute}</span></>
                           : ''}
                       </p>
 
                       {/* État des traductions par langue */}
-                      <div className="pt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono">
+                      <div className="pt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                         <span className="text-admin-text-muted">
                           Traductions :
                         </span>
@@ -731,12 +731,12 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                               <span
                                 className={
                                   trPublished
-                                    ? 'text-emerald-500 font-semibold'
+                                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
                                     : 'text-admin-text-muted'
                                 }
                                 title={`${tr.locale.toUpperCase()} — ${tr.slug} (${tr.status})`}
                               >
-                                {tr.locale.toUpperCase()}:{' '}
+                                <span className="font-mono">{tr.locale.toUpperCase()}</span>:{' '}
                                 {tr.status === 'published'
                                   ? 'publié'
                                   : 'brouillon'}
@@ -757,9 +757,9 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                             null
                           )
                         }
-                        className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5 text-admin-accent" />
+                        <Eye className="w-3.5 h-3.5 text-admin-text-muted" />
                         <span>Aperçu BlogIndexView</span>
                       </button>
 
@@ -769,7 +769,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleOpenIndexPreview('en', enTr.slug)
                           }
-                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <span>Aperçu EN</span>
                         </button>
@@ -781,7 +781,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleOpenIndexPreview('fr', frTr.slug)
                           }
-                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <span>Aperçu FR</span>
                         </button>
@@ -805,7 +805,7 @@ export const Blog: React.FC<BlogAdminProps> = ({ user }) => {
                           onClick={() =>
                             handleToggleArticleStatus(art.id, art.status)
                           }
-                          className="px-3 py-1.5 rounded-md bg-admin-accent hover:opacity-90 text-white text-xs font-mono font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                          className="px-3 py-1.5 rounded-md bg-admin-accent hover:opacity-90 text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                         >
                           {togglingId === art.id
                             ? '…'

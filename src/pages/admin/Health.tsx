@@ -293,7 +293,7 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
         <h2 className="font-display text-xl font-bold text-admin-text">
           Santé des moteurs d’extraction
         </h2>
-        <p className="text-xs text-admin-text-muted font-mono">
+        <p className="text-xs text-admin-text-muted">
           Vérification en direct sur l’URL saisie par l’administrateur (TikTok, Instagram, Profil Instagram, X, Facebook et LinkedIn)
         </p>
       </div>
@@ -383,14 +383,14 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
                       <h3 className="font-display text-base font-bold text-admin-text truncate">
                         Moteur {platformLabel}
                       </h3>
-                      <span className="text-[10px] font-mono text-admin-text-muted block truncate">
-                        Plateforme: {platform} · {engineDesc}
+                      <span className="text-xs text-admin-text-muted block truncate">
+                        Plateforme: <span className="font-mono">{platform}</span> · {engineDesc}
                       </span>
                     </div>
                   </div>
 
                   <span
-                    className={`text-xs font-mono font-semibold px-2.5 py-1 rounded-md border shrink-0 ${
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-md border shrink-0 ${
                       isHealthy
                         ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                         : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -401,16 +401,16 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs font-mono bg-admin-muted p-3.5 rounded-lg border border-admin-border">
+                <div className="grid grid-cols-2 gap-3 text-xs p-3.5 rounded-lg border border-admin-border">
                   <div>
-                    <span className="text-admin-text-muted block text-[10px] font-semibold">DERNIÈRE RÉUSSITE</span>
-                    <span className="text-admin-text font-medium">
+                    <span className="text-admin-text-secondary block text-xs font-medium">Dernière réussite</span>
+                    <span className="text-admin-text font-mono font-medium">
                       {formatTs(info?.last_success_ts)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-admin-text-muted block text-[10px] font-semibold">DERNIER TEST MANUEL</span>
-                    <span className="text-admin-text font-medium">
+                    <span className="text-admin-text-secondary block text-xs font-medium">Dernier test manuel</span>
+                    <span className="text-admin-text font-mono font-medium">
                       {formatTs(info?.last_test_ts)}
                     </span>
                   </div>
@@ -419,7 +419,7 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
 
               {!readOnly && (
                 <div className="space-y-2.5">
-                  <label className="block text-xs font-mono font-medium text-admin-text-secondary">
+                  <label className="block text-xs font-medium text-admin-text-secondary">
                     URL de test {platformLabel} (saisie admin)
                   </label>
                   <div className="flex flex-col gap-2">
@@ -477,9 +477,9 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
             </div>
             <div>
               <h3 className="font-display text-sm font-bold text-admin-text">
-                Statut du secret Cookie Instagram (IG_SESSION_ID / IG_COOKIES)
+                Statut du secret Cookie Instagram (<code className="font-mono">IG_SESSION_ID</code> / <code className="font-mono">IG_COOKIES</code>)
               </h3>
-              <p className="text-xs text-admin-text-muted font-mono">
+              <p className="text-xs text-admin-text-muted">
                 La valeur du secret n’est jamais exposée ni renvoyée par l’API
               </p>
             </div>
@@ -487,7 +487,7 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
 
           <div className="flex items-center gap-2.5">
             <span
-              className={`text-xs font-mono font-semibold px-3 py-1 rounded-md border ${
+              className={`text-xs font-semibold px-3 py-1 rounded-md border ${
                 igCookieConfigured
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                   : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
@@ -501,9 +501,9 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
                 type="button"
                 onClick={handleTestIgCookie}
                 disabled={cookieTesting}
-                className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                <Activity className="w-3.5 h-3.5 text-admin-accent" />
+                <Activity className="w-3.5 h-3.5 text-admin-text-muted" />
                 <span>{cookieTesting ? 'Vérification…' : 'Tester la session IG'}</span>
               </button>
             )}
@@ -512,7 +512,7 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
 
         {cookieProbeResult && (
           <div
-            className={`p-3 rounded-lg text-xs font-mono flex items-center gap-2 border ${
+            className={`p-3 rounded-lg text-xs flex items-center gap-2 border ${
               cookieProbeResult.valid
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200'
                 : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/60 text-amber-900 dark:text-amber-200'
@@ -523,8 +523,8 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
           </div>
         )}
 
-        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border text-xs text-admin-text-secondary flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-admin-accent shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-lg border border-admin-border text-xs text-admin-text-secondary flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-admin-text-muted shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             <strong>Note de sécurité Cloudflare :</strong> Une Pages Function / Worker ne peut pas
             modifier ses propres secrets d’environnement au runtime. Pour ajouter ou renouveler{' '}

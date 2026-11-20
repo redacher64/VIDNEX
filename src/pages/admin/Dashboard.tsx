@@ -222,24 +222,20 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             <Activity className="w-4 h-4" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
-                Synthèse Quotidienne API, Taux d’Extraction &amp; Carte Globale (D1)
+                Synthèse API
               </h3>
-              <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
-                  summary.dbConnected
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
-                    : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
-                }`}
-              >
-                {summary.dbConnected ? 'D1 Connecté' : 'D1 Local / Mémoire'}
-              </span>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
-                Ressource : D1 · daily_metrics + request_log
+              <span className="inline-flex items-center gap-1.5 text-xs text-admin-text-secondary">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    summary.dbConnected ? 'bg-emerald-500' : 'bg-amber-500'
+                  }`}
+                />
+                <span>{summary.dbConnected ? 'D1 Connecté' : 'D1 Local / Mémoire'}</span>
               </span>
             </div>
-            <p className="text-xs text-admin-text-muted font-mono">
+            <p className="text-xs text-admin-text-muted">
               Usage quotidien des moteurs d’extraction, conversion téléchargements, heatmap 30j et carte mondiale
             </p>
           </div>
@@ -249,7 +245,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
           <div
             role="group"
             aria-label="Sélecteur de période du widget D1"
-            className="inline-flex rounded-lg bg-admin-muted p-1 border border-admin-border"
+            className="inline-flex rounded-lg p-1 border border-admin-border"
           >
             {(
               [
@@ -262,7 +258,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setPeriod(tab.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                   period === tab.id
                     ? 'bg-admin-accent text-white shadow-2xs'
                     : 'text-admin-text-secondary hover:text-admin-text'
@@ -276,7 +272,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
           <div
             role="group"
             aria-label="Mode de visualisation"
-            className="inline-flex flex-wrap rounded-lg bg-admin-muted p-1 border border-admin-border"
+            className="inline-flex flex-wrap rounded-lg p-1 border border-admin-border"
           >
             {(
               [
@@ -290,9 +286,9 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                 key={mode.id}
                 type="button"
                 onClick={() => setViewMode(mode.id)}
-                className={`px-2 py-1 rounded-md text-[11px] font-mono font-medium transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   viewMode === mode.id
-                    ? 'bg-admin-surface text-admin-text border border-admin-border-strong'
+                    ? 'bg-admin-muted text-admin-text border border-admin-border-strong'
                     : 'text-admin-text-muted hover:text-admin-text'
                 }`}
               >
@@ -306,7 +302,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             onClick={handleExportCsv}
             disabled={summary.last7d.days.length === 0}
             title="Exporter les métriques quotidiennes au format CSV"
-            className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-semibold text-admin-text transition-colors cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-semibold text-admin-text transition-colors cursor-pointer disabled:opacity-50"
           >
             Export CSV
           </button>
@@ -319,7 +315,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             className="p-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text transition-colors cursor-pointer"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 text-admin-accent ${isLoading ? 'animate-spin' : ''}`}
+              className={`w-3.5 h-3.5 text-admin-text-muted ${isLoading ? 'animate-spin' : ''}`}
             />
           </button>
         </div>
@@ -333,23 +329,23 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
 
       {/* Ligne 1 : 4 cartes de synthèse principales pour la période sélectionnée */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>APPELS API ({period === 'today' ? '24H UTC' : period.toUpperCase()})</span>
-            <TrendingUp className="w-3.5 h-3.5 text-admin-accent" />
+        <div className="p-4 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Appels API ({period === 'today' ? '24h UTC' : period})</span>
+            <TrendingUp className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-display text-2xl font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-2xl font-bold text-admin-text tabular-nums">
             {selectedMetrics.total}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted truncate">
+          <p className="text-xs text-admin-text-muted truncate">
             {selectedMetrics.avgOrSub}
           </p>
         </div>
 
-        <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>TAUX DE SUCCÈS</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md border ${rateBadgeClass}`}>
+        <div className="p-4 rounded-lg border border-admin-border space-y-1.5">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Taux de succès</span>
+            <span className={`text-xs px-1.5 py-0.5 rounded-md border ${rateBadgeClass}`}>
               {selectedMetrics.total === 0
                 ? 'Aucun flux'
                 : selectedMetrics.successRate >= 85
@@ -359,10 +355,10 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                 : 'Dégradé'}
             </span>
           </div>
-          <p className={`font-display text-2xl font-bold tabular-nums ${rateColorClass}`}>
+          <p className={`font-mono text-2xl font-bold tabular-nums ${rateColorClass}`}>
             {selectedMetrics.successRate}%
           </p>
-          <div className="w-full h-1.5 rounded-full bg-admin-surface border border-admin-border overflow-hidden">
+          <div className="w-full h-1.5 rounded-full border border-admin-border overflow-hidden">
             <div
               className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300"
               style={{ width: `${Math.min(100, Math.max(0, selectedMetrics.successRate))}%` }}
@@ -370,35 +366,35 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>SUCCÈS / ÉCHECS</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+        <div className="p-4 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Succès / Échecs</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
               {selectedMetrics.success}
             </span>
             <span className="text-xs font-mono text-admin-text-muted">/</span>
-            <span className="font-display text-lg font-bold text-red-800 dark:text-red-400 tabular-nums">
+            <span className="font-mono text-lg font-bold text-red-800 dark:text-red-400 tabular-nums">
               {selectedMetrics.error} err
             </span>
           </div>
-          <p className="text-[11px] font-mono text-admin-text-muted">
-            {selectedMetrics.downloads} téléchargement(s) complet(s)
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{selectedMetrics.downloads}</span> téléchargement(s) complet(s)
           </p>
         </div>
 
-        <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>PIC JOURNALIER (30J)</span>
-            <BarChart3 className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+        <div className="p-4 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Pic journalier (30j)</span>
+            <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-display text-2xl font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-2xl font-bold text-admin-text tabular-nums">
             {summary.last30d.peakTotal}
-            <span className="text-xs font-mono font-normal text-admin-text-muted ml-1">req</span>
+            <span className="text-xs font-normal text-admin-text-muted ml-1">req</span>
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted">
+          <p className="text-xs text-admin-text-muted">
             {summary.last30d.peakDay
               ? `Record : ${summary.last30d.peakDay} (${summary.last30d.activeDaysCount}j actifs)`
               : 'Aucun pic enregistré'}
@@ -408,65 +404,65 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
 
       {/* Ligne 2 : 4 nouvelles métriques opérationnelles D1 (Conversion DL, Sélections, Direct vs Tiers, Vélocité) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-lg bg-admin-muted/70 border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
-            <span>CONVERSION TÉLÉCHARGEMENT</span>
-            <span className="text-emerald-700 dark:text-emerald-400 font-bold">
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Conversion téléchargement</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-mono font-bold">
               {summary.last30d.downloadCompletionRate}% complétés
             </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+            <span className="font-mono text-lg font-bold text-admin-text tabular-nums">
               {summary.last30d.downloadConversionRate}%
             </span>
-            <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+            <span className="text-xs font-mono text-admin-text-muted tabular-nums">
               {selectedMetrics.downloads}/{selectedMetrics.downloadsStarted || selectedMetrics.downloads} flux
             </span>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted/70 border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
-            <span>CARROUSELS &amp; STORIES (ZIP)</span>
-            <span className="text-admin-accent font-bold">
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Carrousels &amp; Stories (ZIP)</span>
+            <span className="text-admin-text-secondary font-mono font-bold">
               {summary.last30d.selectionConversionRate}% conv.
             </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+            <span className="font-mono text-lg font-bold text-admin-text tabular-nums">
               {selectedMetrics.selectionsDownloaded}
-              <span className="text-xs font-mono font-normal text-admin-text-muted ml-1">
+              <span className="text-xs font-normal text-admin-text-muted ml-1">
                 / {selectedMetrics.selectionsStarted} sélections
               </span>
             </span>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted/70 border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
-            <span>MOTEURS DIRECT VS TIERS (7J)</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Moteurs Direct vs Tiers (7j)</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="font-display text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+            <span className="font-mono text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
               {summary.last7d.directSharePct}% Direct
             </span>
-            <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+            <span className="text-xs font-mono text-admin-text-muted tabular-nums">
               {summary.last7d.directExtractions} dir. / {summary.last7d.thirdPartyExtractions} tiers
             </span>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted/70 border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-admin-text-secondary">
-            <span>VÉLOCITÉ HORAIRE &amp; TOP ERREUR</span>
-            <Globe className="w-3.5 h-3.5 text-admin-accent" />
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Vélocité horaire &amp; Top erreur</span>
+            <Globe className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-display text-lg font-bold text-admin-text tabular-nums">
+            <span className="font-mono text-lg font-bold text-admin-text tabular-nums">
               {summary.today.hourlyVelocity} req/h
             </span>
-            <span className="text-[11px] font-mono text-admin-text-muted truncate">
+            <span className="text-xs font-mono text-admin-text-muted truncate">
               {summary.topErrors[0]
                 ? `${summary.topErrors[0].code} (${summary.topErrors[0].count})`
                 : '0 erreur critique'}
@@ -491,21 +487,21 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             <div
               className={`${
                 viewMode === 'both' ? 'lg:col-span-7' : 'lg:col-span-12'
-              } p-4 rounded-lg bg-admin-muted border border-admin-border space-y-3 overflow-x-auto`}
+              } p-4 rounded-lg border border-admin-border space-y-3 overflow-x-auto`}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+                <h4 className="font-display text-xs font-bold text-admin-text-secondary">
                   Tableau de performance quotidienne (7 derniers jours UTC)
                 </h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono text-admin-text-muted tabular-nums">
+                  <span className="text-xs font-mono text-admin-text-muted tabular-nums">
                     Total 7j : {summary.last7d.total} req ({summary.last7d.successRate}% OK)
                   </span>
                   <button
                     type="button"
                     onClick={handleExportCsv}
                     disabled={summary.last7d.days.length === 0}
-                    className="px-2.5 py-1 rounded-md bg-admin-surface hover:bg-admin-hover border border-admin-border-strong text-[11px] font-mono font-semibold text-admin-accent transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-2.5 py-1 rounded-md hover:bg-admin-hover border border-admin-border-strong text-xs font-semibold text-admin-accent transition-colors cursor-pointer disabled:opacity-50"
                   >
                     Export CSV
                   </button>
@@ -513,13 +509,13 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               </div>
 
               {summary.last7d.days.length === 0 ? (
-                <p className="text-xs font-mono text-admin-text-muted py-4 text-center">
+                <p className="text-xs text-admin-text-muted py-4 text-center">
                   Aucune donnée quotidienne disponible dans D1.
                 </p>
               ) : (
-                <table className="w-full text-left border-collapse text-xs font-mono">
+                <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="border-b border-admin-border text-[10px] uppercase text-admin-text-muted">
+                    <tr className="border-b border-admin-border text-xs text-admin-text-muted">
                       <th className="py-2 pr-2 font-semibold">Date (UTC)</th>
                       <th className="py-2 px-2 text-right font-semibold">Appels API</th>
                       <th className="py-2 px-2 text-right font-semibold">Succès</th>
@@ -530,16 +526,16 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                       <th className="py-2 pl-2 text-right font-semibold">Taux de succès</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-admin-border/60">
+                  <tbody className="divide-y divide-admin-border/60 font-mono">
                     {summary.last7d.days.map((dayItem, idx) => {
                       const isToday = idx === 0;
                       return (
-                        <tr key={dayItem.day} className="hover:bg-admin-surface/50 transition-colors">
+                        <tr key={dayItem.day} className="hover:bg-admin-hover/40 transition-colors">
                           <td className="py-2 pr-2 font-semibold text-admin-text tabular-nums">
                             <div className="flex items-center gap-1.5">
                               <span>{dayItem.day}</span>
                               {isToday && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent font-semibold">
+                                <span className="font-sans text-xs px-1.5 py-0.2 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent font-semibold">
                                   Auj.
                                 </span>
                               )}
@@ -559,7 +555,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                           </td>
                           <td className="py-2 pl-2 text-right tabular-nums">
                             <span
-                              className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded ${
+                              className={`inline-block text-xs font-bold px-2 py-0.5 rounded-md ${
                                 dayItem.total === 0
                                   ? 'text-admin-text-muted'
                                   : dayItem.successRate >= 85
@@ -582,11 +578,11 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               {/* Heatmap Calendrier 30 jours (Intensité & Taux de succès par jour) */}
               {daily30Raw.length > 0 && (
                 <div className="pt-3 border-t border-admin-border/70 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-admin-text-secondary">
+                  <div className="flex items-center justify-between text-xs text-admin-text-secondary">
                     <span className="font-semibold">
                       Carte Thermique Quotidienne (Heatmap 30 jours UTC)
                     </span>
-                    <span className="text-[10px] text-admin-text-muted">
+                    <span className="text-xs text-admin-text-muted">
                       Survolez une case pour le détail du jour
                     </span>
                   </div>
@@ -596,7 +592,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                       const okRate = d.total > 0 ? Math.round((d.success / d.total) * 100) : 0;
                       const cellClass =
                         d.total === 0
-                          ? 'bg-admin-surface border-admin-border text-admin-text-muted opacity-50'
+                          ? 'border-admin-border text-admin-text-muted opacity-50'
                           : okRate < 60
                           ? 'bg-red-500/30 border-red-500/50 text-red-900 dark:text-red-200'
                           : ratio >= 0.65
@@ -608,7 +604,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                         <div
                           key={d.day}
                           title={`${d.day} : ${d.total} req (${okRate}% succès)`}
-                          className={`h-7 rounded-md border flex flex-col items-center justify-center text-[9px] font-mono font-bold tabular-nums transition-transform hover:scale-105 ${cellClass}`}
+                          className={`h-7 rounded-md border flex flex-col items-center justify-center text-xs font-mono font-bold tabular-nums transition-transform hover:scale-105 ${cellClass}`}
                         >
                           <span>{d.day.slice(8, 10)}</span>
                         </div>
@@ -624,18 +620,18 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             <div
               className={`${
                 viewMode === 'both' ? 'lg:col-span-5' : 'lg:col-span-12'
-              } p-4 rounded-lg bg-admin-muted border border-admin-border space-y-4 flex flex-col justify-between`}
+              } p-4 rounded-lg border border-admin-border space-y-4 flex flex-col justify-between`}
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+                  <h4 className="font-display text-xs font-bold text-admin-text-secondary">
                     Graphique quotidien (7j) &amp; Fiabilité par moteur
                   </h4>
-                  <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
+                  <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
                 </div>
 
                 {/* Graphique à barres quotidien (7 jours) */}
-                <div className="h-28 pt-3 pb-1 px-2 rounded-lg bg-admin-surface border border-admin-border flex items-end gap-2">
+                <div className="h-28 pt-3 pb-1 px-2 rounded-lg border border-admin-border flex items-end gap-2">
                   {chronological7d.map((dayItem) => {
                     const barHeightPct =
                       dayItem.total > 0 ? Math.max(12, Math.round((dayItem.total / max7dTotal) * 100)) : 4;
@@ -680,15 +676,15 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               <div className="space-y-2 pt-1">
                 {summary.platforms.map((plat) => (
                   <div key={plat.key} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-admin-text truncate">
                         {plat.label}{' '}
-                        <span className="text-[10px] text-admin-text-muted font-normal">
+                        <span className="text-xs font-mono text-admin-text-muted font-normal">
                           ({plat.sharePct}%)
                         </span>
                       </span>
-                      <div className="flex items-center gap-2 tabular-nums shrink-0">
-                        <span className="text-[11px] text-admin-text-muted">
+                      <div className="flex items-center gap-2 font-mono tabular-nums shrink-0">
+                        <span className="text-xs text-admin-text-muted">
                           {plat.success}/{plat.total} req
                         </span>
                         <span
@@ -706,7 +702,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                         </span>
                       </div>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-admin-surface border border-admin-border overflow-hidden flex">
+                    <div className="w-full h-1.5 rounded-full border border-admin-border overflow-hidden flex">
                       <div
                         className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all"
                         style={{ width: `${plat.total > 0 ? plat.successRate : 0}%` }}
@@ -940,17 +936,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           <h2 className="font-display text-xl font-bold text-admin-text">
             Vue d’ensemble & Télémétrie D1
           </h2>
-          <p className="text-xs text-admin-text-muted font-mono">
-            Compteurs agrégés daily_metrics (0 identifiant personnel) & erreurs détaillées request_log (30j)
+          <p className="text-xs text-admin-text-muted">
+            Compteurs agrégés <span className="font-mono">daily_metrics</span> (0 identifiant personnel) &amp; erreurs détaillées <span className="font-mono">request_log</span> (30j)
           </p>
         </div>
         <button
           type="button"
           onClick={loadStats}
           disabled={loading}
-          className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-mono font-medium text-admin-text flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-3.5 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center gap-2 transition-colors cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-admin-accent ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 text-admin-text-muted ${loading ? 'animate-spin' : ''}`} />
           <span>Actualiser</span>
         </button>
       </div>
@@ -964,40 +960,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       {/* KPI Cards: Aujourd'hui / 7 jours / 30 jours */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-2">
-            <span>EXTRACTIONS AUJOURD’HUI</span>
-            <TrendingUp className="w-4 h-4 text-admin-accent" />
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-2">
+            <span>Extractions aujourd’hui</span>
+            <TrendingUp className="w-4 h-4 text-admin-text-muted" />
           </div>
-          <p className="font-display text-3xl font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-3xl font-bold text-admin-text tabular-nums">
             {counts.today}
           </p>
-          <p className="mt-1 text-[11px] text-admin-text-muted font-mono">
+          <p className="mt-1 text-xs text-admin-text-muted">
             Depuis 00:00 UTC
           </p>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-2">
-            <span>7 DERNIERS JOURS</span>
-            <BarChart3 className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-2">
+            <span>7 derniers jours</span>
+            <BarChart3 className="w-4 h-4 text-admin-text-muted" />
           </div>
-          <p className="font-display text-3xl font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-3xl font-bold text-admin-text tabular-nums">
             {counts.last7d}
           </p>
-          <p className="mt-1 text-[11px] text-admin-text-muted font-mono">
+          <p className="mt-1 text-xs text-admin-text-muted">
             Fenêtre glissante 7j
           </p>
         </div>
 
         <div className="bg-admin-surface border border-admin-border rounded-lg p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs font-mono font-semibold text-admin-text-secondary mb-2">
-            <span>30 DERNIERS JOURS</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary mb-2">
+            <span>30 derniers jours</span>
+            <CheckCircle2 className="w-4 h-4 text-admin-text-muted" />
           </div>
-          <p className="font-display text-3xl font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-3xl font-bold text-admin-text tabular-nums">
             {counts.last30d}
           </p>
-          <p className="mt-1 text-[11px] text-admin-text-muted font-mono">
+          <p className="mt-1 text-xs text-admin-text-muted">
             Rétention maximale D1 (30j)
           </p>
         </div>
@@ -1016,61 +1012,61 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             <h3 className="font-display text-sm font-bold text-admin-text">
               Entonnoir Extraction → Téléchargement (30 jours)
             </h3>
-            <p className="text-xs text-admin-text-muted font-mono">
-              Suivi agrégé sans identifiant : extract_started → extract_success → download_started → download_success
+            <p className="text-xs text-admin-text-muted">
+              Suivi agrégé sans identifiant : <span className="font-mono">extract_started → extract_success → download_started → download_success</span>
             </p>
           </div>
-          <span className="text-xs font-mono font-semibold text-emerald-900 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 px-2.5 py-1 rounded-md tabular-nums">
-            Conversion globale : {funnel.downloadConversionRate}%
+          <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 px-2.5 py-1 rounded-md tabular-nums">
+            Conversion globale : <span className="font-mono">{funnel.downloadConversionRate}%</span>
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border">
-            <span className="text-[11px] font-mono font-semibold text-admin-text-secondary block">
+          <div className="p-3.5 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
               1. Extractions démarrées
             </span>
-            <span className="font-display text-2xl font-bold text-admin-text tabular-nums">
+            <span className="font-mono text-2xl font-bold text-admin-text tabular-nums">
               {funnel.extract_started}
             </span>
-            <span className="text-[11px] font-mono text-admin-text-muted block">
-              extract_started ({funnel.extract_error} échec(s))
+            <span className="text-xs text-admin-text-muted block">
+              <span className="font-mono">extract_started</span> ({funnel.extract_error} échec(s))
             </span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-emerald-50/70 dark:bg-admin-muted border border-emerald-300 dark:border-emerald-900/70">
-            <span className="text-[11px] font-mono font-semibold text-emerald-900 dark:text-emerald-300 block">
+          <div className="p-3.5 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
               2. Extractions réussies
             </span>
-            <span className="font-display text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
               {funnel.extract_success}
             </span>
-            <span className="text-[11px] font-mono text-emerald-800 dark:text-emerald-200/80 block">
-              extract_success ({funnel.extractSuccessRate}%)
+            <span className="text-xs text-admin-text-muted block">
+              <span className="font-mono">extract_success</span> ({funnel.extractSuccessRate}%)
             </span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-amber-50/70 dark:bg-admin-muted border border-amber-300 dark:border-amber-900/70">
-            <span className="text-[11px] font-mono font-semibold text-amber-900 dark:text-amber-300 block">
+          <div className="p-3.5 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
               3. Téléchargements lancés
             </span>
-            <span className="font-display text-2xl font-bold text-amber-900 dark:text-amber-300 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-admin-text tabular-nums">
               {funnel.download_started}
             </span>
-            <span className="text-[11px] font-mono text-amber-800 dark:text-amber-200/80 block">
-              download_started (1x / fichier / min)
+            <span className="text-xs text-admin-text-muted block">
+              <span className="font-mono">download_started</span> (1x / fichier / min)
             </span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-emerald-50/70 dark:bg-admin-muted border border-emerald-300 dark:border-emerald-900/70">
-            <span className="text-[11px] font-mono font-semibold text-emerald-900 dark:text-emerald-300 block">
+          <div className="p-3.5 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
               4. Flux terminés sans erreur
             </span>
-            <span className="font-display text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
               {funnel.download_success}
             </span>
-            <span className="text-[11px] font-mono text-emerald-800 dark:text-emerald-200/80 block">
-              download_success ({funnel.downloadCompletionRate}% des flux)
+            <span className="text-xs text-admin-text-muted block">
+              <span className="font-mono">download_success</span> ({funnel.downloadCompletionRate}% des flux)
             </span>
           </div>
         </div>
@@ -1080,19 +1076,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
       <div className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-4 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <HeartPulse className="w-4 h-4 text-admin-accent" />
+            <HeartPulse className="w-4 h-4 text-admin-text-muted" />
             <h3 className="font-display text-sm font-bold text-admin-text">
               Santé des moteurs
             </h3>
-            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-muted border border-admin-border text-admin-text-secondary">
-              Ressource : D1 · engine_health
-            </span>
           </div>
           {onNavigateTab && (
             <button
               type="button"
               onClick={() => onNavigateTab('health')}
-              className="text-xs font-mono font-semibold text-admin-accent hover:underline underline-offset-4 cursor-pointer"
+              className="text-xs font-semibold text-admin-accent hover:underline underline-offset-4 cursor-pointer"
             >
               Ouvrir les tests de santé →
             </button>
@@ -1115,7 +1108,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             return (
               <div
                 key={key}
-                className="p-3.5 rounded-lg bg-admin-muted border border-admin-border flex items-center justify-between gap-3"
+                className="p-3.5 rounded-lg border border-admin-border flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
@@ -1129,13 +1122,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
                     <span className="font-display text-xs font-bold text-admin-text block truncate">
                       {label}
                     </span>
-                    <span className="font-mono text-[10px] text-admin-text-muted block truncate">
+                    <span className="text-xs text-admin-text-muted block truncate">
                       {sub}
                     </span>
                   </div>
                 </div>
                 <span
-                  className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border shrink-0 ${
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-md border shrink-0 ${
                     isOk
                       ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
                       : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700/60 text-red-900 dark:text-red-300'
@@ -1176,53 +1169,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="p-3 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800/40">
-                  <span className="text-[11px] font-mono font-semibold text-emerald-900 dark:text-emerald-300 block">
+                <div className="p-3 rounded-lg border border-admin-border">
+                  <span className="text-xs font-medium text-admin-text-secondary block">
                     Taux de succès
                   </span>
-                  <span className="font-display text-xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+                  <span className="font-mono text-xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
                     {stats.successRate}%
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-800 dark:text-emerald-200/75 block">
-                    {stats.success} réussie(s)
+                  <span className="text-xs text-admin-text-muted block">
+                    <span className="font-mono">{stats.success}</span> réussie(s)
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-red-50/80 dark:bg-red-950/30 border border-red-300 dark:border-red-800/40">
-                  <span className="text-[11px] font-mono font-semibold text-red-900 dark:text-red-300 block">
+                <div className="p-3 rounded-lg border border-admin-border">
+                  <span className="text-xs font-medium text-admin-text-secondary block">
                     Taux d’échec
                   </span>
-                  <span className="font-display text-xl font-bold text-red-800 dark:text-red-400 tabular-nums">
+                  <span className="font-mono text-xl font-bold text-red-800 dark:text-red-400 tabular-nums">
                     {failRate}%
                   </span>
-                  <span className="text-[11px] font-mono text-red-800 dark:text-red-200/75 block">
-                    {stats.error} échec(s)
+                  <span className="text-xs text-admin-text-muted block">
+                    <span className="font-mono">{stats.error}</span> échec(s)
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] font-mono text-admin-text-secondary px-1">
-                <span>Téléchargements : {dlStarted} lancés</span>
-                <span className="font-semibold text-emerald-800 dark:text-emerald-300">{dlSuccess} terminés</span>
+              <div className="flex items-center justify-between text-xs text-admin-text-secondary px-1">
+                <span>Téléchargements : <span className="font-mono">{dlStarted}</span> lancés</span>
+                <span className="font-semibold text-emerald-800 dark:text-emerald-300"><span className="font-mono">{dlSuccess}</span> terminés</span>
               </div>
 
               {(key === 'tiktok' || key === 'instagram') && (
-                <div className="p-2.5 rounded-lg bg-admin-muted border border-admin-border space-y-1.5 text-[11px] font-mono">
+                <div className="p-2.5 rounded-lg border border-admin-border space-y-1.5 text-xs">
                   <div className="flex items-center justify-between text-admin-text-secondary">
-                    <span>Succès Direct (`stage: direct`) :</span>
-                    <span className="text-emerald-800 dark:text-emerald-300 font-semibold tabular-nums">
+                    <span>Succès Direct (<code className="font-mono">stage: direct</code>) :</span>
+                    <span className="text-emerald-800 dark:text-emerald-300 font-mono font-semibold tabular-nums">
                       {stats.stage?.direct ?? stats.direct ?? 0} (7j : {stats.stage?.direct7d ?? stats.direct7d ?? 0})
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-admin-text-secondary">
-                    <span>Succès Tiers (`stage: tiers`) :</span>
-                    <span className="text-amber-800 dark:text-amber-300 font-semibold tabular-nums">
+                    <span>Succès Tiers (<code className="font-mono">stage: tiers</code>) :</span>
+                    <span className="text-amber-800 dark:text-amber-300 font-mono font-semibold tabular-nums">
                       {stats.stage?.tiers ?? stats.tiers ?? 0} (7j : {stats.stage?.tiers7d ?? stats.tiers7d ?? 0})
                     </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-admin-border pt-1 text-admin-text">
                     <span>Part services tiers (7 jours) :</span>
-                    <span className="font-bold tabular-nums">
+                    <span className="font-mono font-bold tabular-nums">
                       {stats.stage?.thirdPartyRate7d ?? stats.thirdPartyRate7d ?? 0}%
                     </span>
                   </div>
@@ -1230,7 +1223,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               )}
 
               {/* Barre de progression SVG/CSS */}
-              <div className="w-full h-2.5 rounded-full bg-admin-muted border border-admin-border overflow-hidden flex">
+              <div className="w-full h-2.5 rounded-full border border-admin-border overflow-hidden flex">
                 <div
                   className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-300"
                   style={{ width: `${stats.total > 0 ? stats.successRate : 0}%` }}
@@ -1252,11 +1245,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             <h3 className="font-display text-sm font-bold text-admin-text">
               Historique des extractions (30 derniers jours)
             </h3>
-            <p className="text-xs text-admin-text-muted font-mono">
+            <p className="text-xs text-admin-text-muted">
               Graphique natif SVG/CSS sans dépendance externe (Succès vs Échecs par jour UTC)
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs font-mono font-semibold">
+          <div className="flex items-center gap-4 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-400">
               <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-500 inline-block" />
               Succès
@@ -1268,7 +1261,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
           </div>
         </div>
 
-        <div className="h-48 pt-4 pb-2 px-2 bg-admin-muted rounded-lg border border-admin-border flex items-end gap-1 sm:gap-1.5">
+        <div className="h-48 pt-4 pb-2 px-2 rounded-lg border border-admin-border flex items-end gap-1 sm:gap-1.5">
           {daily.map((bucket) => {
             const totalHeightPct = Math.round((bucket.total / maxDaily) * 100);
             const successPct =
@@ -1318,13 +1311,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               Répartition des erreurs (30 jours)
             </h3>
           </div>
-          <span className="text-xs font-mono text-admin-text-muted tabular-nums">
-            Total erreurs : {totalErrors}
+          <span className="text-xs text-admin-text-muted tabular-nums">
+            Total erreurs : <span className="font-mono">{totalErrors}</span>
           </span>
         </div>
 
         {!data?.errors || data.errors.length === 0 ? (
-          <p className="text-xs font-mono text-admin-text-muted py-4 text-center">
+          <p className="text-xs text-admin-text-muted py-4 text-center">
             Aucune erreur enregistrée sur les 30 derniers jours.
           </p>
         ) : (

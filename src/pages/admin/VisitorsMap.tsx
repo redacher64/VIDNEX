@@ -180,22 +180,11 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
               <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
                 Carte Mondiale des Origines Visiteurs (D1 Analytics)
               </h3>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
-                Région #1 : {summary.mostActiveRegion.shortName} ({summary.mostActiveRegion.sharePct}%)
-              </span>
-              <span
-                className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
-                  summary.source === 'd1-scaled-mock'
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
-                    : 'bg-admin-muted border-admin-border text-admin-text-secondary'
-                }`}
-              >
-                {summary.source === 'd1-scaled-mock'
-                  ? 'Ressource : D1 · daily_metrics (Calibré)'
-                  : 'Ressource : D1 · Modèle Régional'}
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
+                Région #1 : {summary.mostActiveRegion.shortName} (<span className="font-mono">{summary.mostActiveRegion.sharePct}%</span>)
               </span>
             </div>
-            <p className="text-xs text-admin-text-muted font-mono">
+            <p className="text-xs text-admin-text-muted">
               Visualisation SVG des origines géographiques et mise en évidence des régions à plus forte activité D1
             </p>
           </div>
@@ -206,7 +195,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           <div
             role="group"
             aria-label="Période de la carte des visiteurs"
-            className="inline-flex rounded-lg bg-admin-muted p-1 border border-admin-border"
+            className="inline-flex rounded-lg p-1 border border-admin-border"
           >
             {(
               [
@@ -219,7 +208,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setPeriod(tab.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                   period === tab.id
                     ? 'bg-admin-accent text-white shadow-2xs'
                     : 'text-admin-text-secondary hover:text-admin-text'
@@ -234,57 +223,57 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
 
       {/* Bandeau KPI des régions les plus actives */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>RÉGION LA PLUS ACTIVE</span>
-            <TrendingUp className="w-3.5 h-3.5 text-admin-accent" />
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Région la plus active</span>
+            <TrendingUp className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
           <p className="font-display text-lg font-bold text-admin-text truncate">
             {summary.mostActiveRegion.shortName}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted">
-            {summary.mostActiveRegion.visitors.toLocaleString('fr-FR')} visiteurs (
-            {summary.mostActiveRegion.sharePct}%)
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{summary.mostActiveRegion.visitors.toLocaleString('fr-FR')}</span> visiteurs (
+            <span className="font-mono">{summary.mostActiveRegion.sharePct}%</span>)
           </p>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>PAYS D’ORIGINE #1</span>
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Pays d’origine #1</span>
             <span className="text-base leading-none">{summary.mostActiveCountry.flag}</span>
           </div>
           <p className="font-display text-lg font-bold text-admin-text truncate">
-            {summary.mostActiveCountry.countryName} ({summary.mostActiveCountry.countryCode})
+            {summary.mostActiveCountry.countryName} (<span className="font-mono">{summary.mostActiveCountry.countryCode}</span>)
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted">
-            {summary.mostActiveCountry.visitors.toLocaleString('fr-FR')} vis. ·{' '}
-            {summary.mostActiveCountry.sharePct}% du trafic
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{summary.mostActiveCountry.visitors.toLocaleString('fr-FR')}</span> vis. ·{' '}
+            <span className="font-mono">{summary.mostActiveCountry.sharePct}%</span> du trafic
           </p>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>VISITEURS TOTAUX (D1)</span>
-            <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Visiteurs totaux (D1)</span>
+            <Users className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-display text-lg font-bold text-admin-text tabular-nums">
+          <p className="font-mono text-lg font-bold text-admin-text tabular-nums">
             {summary.totalVisitors.toLocaleString('fr-FR')}
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted">
-            {summary.totalExtractions.toLocaleString('fr-FR')} extractions médias
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{summary.totalExtractions.toLocaleString('fr-FR')}</span> extractions médias
           </p>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-admin-muted border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-admin-text-secondary">
-            <span>SUCCÈS GÉOGRAPHIQUE MOYEN</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Succès géographique moyen</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-display text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+          <p className="font-mono text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
             {summary.globalSuccessRate}%
           </p>
-          <p className="text-[11px] font-mono text-admin-text-muted">
-            {summary.countries.length} pays actifs sur 5 régions
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{summary.countries.length}</span> pays actifs sur <span className="font-mono">5</span> régions
           </p>
         </div>
       </div>
@@ -294,10 +283,10 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
         <button
           type="button"
           onClick={() => setSelectedRegionId('all')}
-          className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold border transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
             selectedRegionId === 'all'
               ? 'bg-admin-accent text-white border-admin-accent'
-              : 'bg-admin-muted text-admin-text-secondary border-admin-border hover:text-admin-text'
+              : 'text-admin-text-secondary border-admin-border hover:text-admin-text'
           }`}
         >
           Toutes les régions (5)
@@ -311,15 +300,15 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
               onClick={() =>
                 setSelectedRegionId((prev) => (prev === reg.regionId ? 'all' : reg.regionId))
               }
-              className={`px-3 py-1.5 rounded-md text-xs font-mono font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                 active
                   ? 'bg-admin-accent text-white border-admin-accent'
-                  : 'bg-admin-muted text-admin-text-secondary border-admin-border hover:text-admin-text'
+                  : 'text-admin-text-secondary border-admin-border hover:text-admin-text'
               }`}
             >
-              <span>#{reg.rank}</span>
+              <span className="font-mono">#{reg.rank}</span>
               <span>{reg.shortName}</span>
-              <span className="opacity-80">({reg.sharePct}%)</span>
+              <span className="font-mono opacity-80">({reg.sharePct}%)</span>
             </button>
           );
         })}
@@ -329,7 +318,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Canvas SVG Carte Mondiale avec régions surlignées par intensité d'activité */}
         <div className="lg:col-span-8 rounded-lg bg-[#16100c] border border-admin-border p-3.5 flex flex-col justify-between text-[#fffaf5]">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-[11px] font-mono text-[#c89d7c]">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-xs text-[#c89d7c]">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
               Zones thermiques D1 : les régions les plus actives sont illuminées en orange/ambre
@@ -533,7 +522,7 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
           </div>
 
           {/* Légende d'intensité thermique */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 border-t border-[#2c1d13] text-[11px] font-mono text-[#c89d7c]">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 border-t border-[#2c1d13] text-xs text-[#c89d7c]">
             <div className="flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
@@ -555,12 +544,12 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
         {/* Colonne droite (4 cols) : Classement des Régions les plus actives + Pays inspecté */}
         <div className="lg:col-span-4 flex flex-col justify-between gap-4">
           {/* Classement des Régions par activité */}
-          <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-3">
+          <div className="p-4 rounded-lg border border-admin-border space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+              <h4 className="font-display text-xs font-bold text-admin-text-secondary">
                 Régions les plus actives (D1)
               </h4>
-              <BarChart3 className="w-3.5 h-3.5 text-admin-accent" />
+              <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
             </div>
 
             <div className="space-y-2.5">
@@ -580,14 +569,14 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                     }
                     className={`w-full text-left p-2.5 rounded-md border transition-all cursor-pointer ${
                       selectedRegionId === reg.regionId
-                        ? 'bg-admin-surface border-admin-accent shadow-2xs'
-                        : 'bg-admin-surface/60 border-admin-border hover:border-admin-border-strong'
+                        ? 'border-admin-accent shadow-2xs'
+                        : 'border-admin-border hover:border-admin-border-strong'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 text-xs font-mono">
+                    <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${colors.badge}`}
+                          className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded-md border ${colors.badge}`}
                         >
                           #{reg.rank}
                         </span>
@@ -595,12 +584,12 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                           {reg.shortName}
                         </span>
                       </div>
-                      <span className="font-bold text-admin-text tabular-nums shrink-0">
+                      <span className="font-mono font-bold text-admin-text tabular-nums shrink-0">
                         {reg.visitors.toLocaleString('fr-FR')} vis. ({reg.sharePct}%)
                       </span>
                     </div>
 
-                    <div className="mt-1.5 w-full h-1.5 rounded-full bg-admin-muted border border-admin-border overflow-hidden">
+                    <div className="mt-1.5 w-full h-1.5 rounded-full border border-admin-border overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${
                           reg.heatTier === 'hot'
@@ -613,11 +602,11 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                       />
                     </div>
 
-                    <div className="mt-1 flex items-center justify-between text-[10px] font-mono text-admin-text-muted">
+                    <div className="mt-1 flex items-center justify-between text-xs text-admin-text-muted">
                       <span>
                         Top : {reg.topCountryFlag} {reg.topCountry}
                       </span>
-                      <span>
+                      <span className="font-mono">
                         {reg.extractions.toLocaleString('fr-FR')} extr. · {reg.avgSuccessRate}% OK
                       </span>
                     </div>
@@ -629,13 +618,13 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
 
           {/* Fiche du pays d'origine inspecté */}
           {activeCountry && (
-            <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-2.5">
+            <div className="p-4 rounded-lg border border-admin-border space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-admin-text-muted">
+                <span className="text-xs font-semibold text-admin-text-secondary">
                   Pays d’origine sélectionné
                 </span>
                 <span
-                  className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
                     getHeatTierColors(activeCountry.heatTier, true).badge
                   }`}
                 >
@@ -648,34 +637,34 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                   <span className="text-2xl leading-none">{activeCountry.flag}</span>
                   <div>
                     <div className="font-display text-sm font-bold text-admin-text">
-                      {activeCountry.countryName} ({activeCountry.countryCode})
+                      {activeCountry.countryName} (<span className="font-mono">{activeCountry.countryCode}</span>)
                     </div>
-                    <div className="text-[11px] font-mono text-admin-text-muted">
+                    <div className="text-xs text-admin-text-muted">
                       Moteur favori : {activeCountry.topPlatform}
                     </div>
                   </div>
                 </div>
-                <span className="font-display text-lg font-bold text-admin-accent tabular-nums">
+                <span className="font-mono text-lg font-bold text-admin-accent tabular-nums">
                   {activeCountry.sharePct}%
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-1 text-center font-mono text-xs">
-                <div className="p-2 rounded-lg bg-admin-surface border border-admin-border">
-                  <div className="text-[10px] text-admin-text-muted">Visiteurs</div>
-                  <div className="font-bold text-admin-text tabular-nums">
+              <div className="grid grid-cols-3 gap-2 pt-1 text-center text-xs">
+                <div className="p-2 rounded-lg border border-admin-border">
+                  <div className="text-xs text-admin-text-muted">Visiteurs</div>
+                  <div className="font-mono font-bold text-admin-text tabular-nums">
                     {activeCountry.visitors.toLocaleString('fr-FR')}
                   </div>
                 </div>
-                <div className="p-2 rounded-lg bg-admin-surface border border-admin-border">
-                  <div className="text-[10px] text-admin-text-muted">Extractions</div>
-                  <div className="font-bold text-admin-text tabular-nums">
+                <div className="p-2 rounded-lg border border-admin-border">
+                  <div className="text-xs text-admin-text-muted">Extractions</div>
+                  <div className="font-mono font-bold text-admin-text tabular-nums">
                     {activeCountry.extractions.toLocaleString('fr-FR')}
                   </div>
                 </div>
-                <div className="p-2 rounded-lg bg-admin-surface border border-admin-border">
-                  <div className="text-[10px] text-admin-text-muted">Succès</div>
-                  <div className="font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                <div className="p-2 rounded-lg border border-admin-border">
+                  <div className="text-xs text-admin-text-muted">Succès</div>
+                  <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {activeCountry.successRate}%
                   </div>
                 </div>
@@ -686,12 +675,12 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
       </div>
 
       {/* Grille des principaux pays d'origine D1 */}
-      <div className="p-4 rounded-lg bg-admin-muted border border-admin-border space-y-3">
+      <div className="p-4 rounded-lg border border-admin-border space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="font-display text-xs font-bold uppercase tracking-wider text-admin-text-secondary">
+          <h4 className="font-display text-xs font-bold text-admin-text-secondary">
             Top Origines des Visiteurs par Pays ({filteredCountries.length} pays)
           </h4>
-          <span className="text-[11px] font-mono text-admin-text-muted">
+          <span className="text-xs text-admin-text-muted">
             Cliquez sur une carte pays pour la localiser sur la mappemonde
           </span>
         </div>
@@ -706,22 +695,22 @@ export const VisitorsMap: React.FC<VisitorsMapProps> = ({
                 onClick={() => setActiveCountryCode(c.countryCode)}
                 className={`p-3 rounded-md border text-left transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-admin-surface border-admin-accent shadow-2xs'
-                    : 'bg-admin-surface/70 border-admin-border hover:border-admin-border-strong'
+                    ? 'border-admin-accent shadow-2xs'
+                    : 'border-admin-border hover:border-admin-border-strong'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-lg leading-none">{c.flag}</span>
                     <span className="font-display text-xs font-bold text-admin-text truncate">
-                      #{idx + 1} {c.countryName}
+                      <span className="font-mono">#{idx + 1}</span> {c.countryName}
                     </span>
                   </div>
                   <span className="font-mono text-xs font-bold text-admin-accent tabular-nums">
                     {c.sharePct}%
                   </span>
                 </div>
-                <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-admin-text-muted">
+                <div className="mt-1.5 flex items-center justify-between text-xs font-mono text-admin-text-muted">
                   <span>{c.visitors.toLocaleString('fr-FR')} vis.</span>
                   <span>{c.extractions.toLocaleString('fr-FR')} extr.</span>
                 </div>

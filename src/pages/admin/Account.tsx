@@ -123,8 +123,8 @@ export const Account: React.FC<AccountProps> = ({
                   <h1 className="font-display text-lg font-bold text-admin-text truncate">
                     Changement de mot de passe obligatoire
                   </h1>
-                  <p className="text-xs font-mono text-admin-text-muted truncate">
-                    Compte : {user.displayName} ({user.login}) · {user.roleLabel}
+                  <p className="text-xs text-admin-text-muted truncate">
+                    Compte : {user.displayName} (<span className="font-mono">{user.login}</span>) · {user.roleLabel}
                   </p>
                 </div>
               </div>
@@ -151,7 +151,7 @@ export const Account: React.FC<AccountProps> = ({
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="px-3 py-1.5 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-medium text-red-900 dark:text-red-200 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Déconnexion</span>
@@ -179,7 +179,7 @@ export const Account: React.FC<AccountProps> = ({
               <div>
                 <label
                   htmlFor="forced-current-password"
-                  className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                  className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
                 >
                   Mot de passe temporaire actuel
                 </label>
@@ -198,7 +198,7 @@ export const Account: React.FC<AccountProps> = ({
               <div>
                 <label
                   htmlFor="forced-new-password"
-                  className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                  className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
                 >
                   Nouveau mot de passe (12 caractères min., différent du temporaire)
                 </label>
@@ -218,7 +218,7 @@ export const Account: React.FC<AccountProps> = ({
               <div>
                 <label
                   htmlFor="forced-confirm-password"
-                  className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                  className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
                 >
                   Confirmer le nouveau mot de passe
                 </label>
@@ -239,7 +239,7 @@ export const Account: React.FC<AccountProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPasswords((v) => !v)}
-                  className="text-xs font-mono text-admin-text-secondary hover:text-admin-text flex items-center gap-1.5 cursor-pointer"
+                  className="text-xs text-admin-text-secondary hover:text-admin-text flex items-center gap-1.5 cursor-pointer"
                 >
                   {showPasswords ? (
                     <EyeOff className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export const Account: React.FC<AccountProps> = ({
                       : 'Afficher les mots de passe'}
                   </span>
                 </button>
-                <span className="text-[11px] font-mono text-admin-text-muted">
+                <span className="text-xs font-mono text-admin-text-muted">
                   {newPassword.length}/12 caractères min.
                 </span>
               </div>
@@ -288,14 +288,14 @@ export const Account: React.FC<AccountProps> = ({
           <h2 className="font-display text-xl font-bold text-admin-text">
             Mon compte
           </h2>
-          <p className="text-xs text-admin-text-muted font-mono">
+          <p className="text-xs text-admin-text-muted">
             Profil, droits attribués et sécurité de votre session
           </p>
         </div>
         <button
           type="button"
           onClick={onLogout}
-          className="px-4 py-2 rounded-md bg-red-100 hover:bg-red-200 dark:bg-red-950/80 dark:hover:bg-red-900/80 border border-red-300 dark:border-red-800/70 text-xs font-mono font-semibold text-red-900 dark:text-red-200 flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-2 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Se déconnecter</span>
@@ -313,24 +313,24 @@ export const Account: React.FC<AccountProps> = ({
               <h3 className="font-display text-base font-bold text-admin-text">
                 {user.displayName}
               </h3>
-              <p className="text-xs font-mono text-admin-text-muted">
-                Identifiant : <strong className="text-admin-text">{user.login}</strong> · Rôle :{' '}
+              <p className="text-xs text-admin-text-muted">
+                Identifiant : <strong className="text-admin-text font-mono">{user.login}</strong> · Rôle :{' '}
                 <strong className="text-admin-accent">{user.roleLabel}</strong>
               </p>
             </div>
           </div>
 
-          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
-            {user.isOwner ? 'PROPRIÉTAIRE (TOUS LES DROITS)' : user.roleLabel}
+          <span className="text-xs font-semibold px-3 py-1 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
+            {user.isOwner ? 'Propriétaire (tous les droits)' : user.roleLabel}
           </span>
         </div>
 
         <div className="pt-3 border-t border-admin-border">
-          <span className="block text-[11px] font-mono font-semibold uppercase text-admin-text-secondary mb-2">
+          <span className="block text-xs font-semibold text-admin-text-secondary mb-2">
             Droits actifs sur ce compte
           </span>
           {user.isOwner ? (
-            <p className="text-xs font-mono text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+            <p className="text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>
                 Accès intégral propriétaire (Dashboard, Santé, Contrôles,
@@ -342,14 +342,14 @@ export const Account: React.FC<AccountProps> = ({
               {user.permissions.map((perm) => (
                 <span
                   key={perm}
-                  className="text-xs font-mono px-2.5 py-1 rounded-md bg-admin-muted border border-admin-border-strong text-admin-text"
+                  className="text-xs px-2.5 py-1 rounded-md border border-admin-border-strong text-admin-text"
                 >
                   {PERMISSION_LABELS[perm] || perm}
                 </span>
               ))}
             </div>
           ) : (
-            <p className="text-xs font-mono text-admin-text-muted">
+            <p className="text-xs text-admin-text-muted">
               Aucun droit spécifique attribué. Contactez le propriétaire.
             </p>
           )}
@@ -366,14 +366,14 @@ export const Account: React.FC<AccountProps> = ({
         </div>
 
         {user.isOwner ? (
-          <div className="p-4 rounded-lg bg-admin-muted border border-admin-border text-xs text-admin-text-secondary font-mono leading-relaxed">
+          <div className="p-4 rounded-lg border border-admin-border text-xs text-admin-text-secondary leading-relaxed">
             Le compte propriétaire principal utilise le secret d’environnement
             Cloudflare{' '}
-            <code className="text-admin-accent font-semibold">
+            <code className="text-admin-accent font-mono font-semibold">
               ADMIN_PASSWORD
             </code>
             . Pour le modifier en production, exécutez{' '}
-            <code className="text-admin-accent font-semibold">
+            <code className="text-admin-accent font-mono font-semibold">
               npx wrangler pages secret put ADMIN_PASSWORD --project-name=vidnex
             </code>
             .
@@ -400,7 +400,7 @@ export const Account: React.FC<AccountProps> = ({
             <div>
               <label
                 htmlFor="account-current-password"
-                className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
               >
                 Mot de passe actuel
               </label>
@@ -419,7 +419,7 @@ export const Account: React.FC<AccountProps> = ({
               <div>
                 <label
                   htmlFor="account-new-password"
-                  className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                  className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
                 >
                   Nouveau mot de passe (12 car. min.)
                 </label>
@@ -438,7 +438,7 @@ export const Account: React.FC<AccountProps> = ({
               <div>
                 <label
                   htmlFor="account-confirm-password"
-                  className="block text-xs font-mono font-semibold text-admin-text-secondary mb-1.5"
+                  className="block text-xs font-semibold text-admin-text-secondary mb-1.5"
                 >
                   Confirmer le nouveau mot de passe
                 </label>
@@ -459,7 +459,7 @@ export const Account: React.FC<AccountProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPasswords((v) => !v)}
-                className="text-xs font-mono text-admin-text-secondary hover:text-admin-text flex items-center gap-1.5 cursor-pointer"
+                className="text-xs text-admin-text-secondary hover:text-admin-text flex items-center gap-1.5 cursor-pointer"
               >
                 {showPasswords ? (
                   <EyeOff className="w-3.5 h-3.5" />

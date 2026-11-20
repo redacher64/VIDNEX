@@ -6,6 +6,7 @@ import {
 import {
   getAdsterraNativeBannerScriptUrl,
   getAdsterraSocialBarScriptUrl,
+  isDesktopViewportForSocialBar,
 } from '../config/adsterraConfig';
 import { setRuntimePlatformStates } from '../utils/urlDetector';
 
@@ -200,10 +201,14 @@ export function onDeferredAdReady(callback: () => void): () => void {
 const ADSTERRA_SOCIAL_BAR_SCRIPT_ID = 'vidnex-adsterra-social-bar';
 const ADSTERRA_NATIVE_BANNER_SCRIPT_ID = 'vidnex-adsterra-native-banner';
 
+export { isDesktopViewportForSocialBar };
+
 function injectAdsterraSocialBarNow(): void {
   if (
+    typeof window === 'undefined' ||
     typeof document === 'undefined' ||
     !isAdsterraEnabled() ||
+    !isDesktopViewportForSocialBar(window) ||
     document.getElementById(ADSTERRA_SOCIAL_BAR_SCRIPT_ID)
   ) {
     return;
@@ -219,10 +224,15 @@ function injectAdsterraSocialBarNow(): void {
 
 /**
  * Injecte le script Adsterra Social Bar une seule fois globalement sur les pages publiques
- * après le déclenchement différé (idle ou 1er scroll). Jamais sur /admin ni en prerender.
+ * uniquement sur desktop (>= 768px via matchMedia) après le déclenchement différé (idle ou 1er scroll).
+ * Jamais chargé sur mobile (< 768px), sur /admin ni en prerender.
  */
 export function ensureAdsterraSocialBarLoaded(): () => void {
-  if (typeof window === 'undefined' || !isAdsterraEnabled()) {
+  if (
+    typeof window === 'undefined' ||
+    !isAdsterraEnabled() ||
+    !isDesktopViewportForSocialBar(window)
+  ) {
     return () => {};
   }
   return onDeferredAdReady(() => {

@@ -103,3 +103,30 @@ export function buildAdsterraBannerSrcDoc(
     '</body></html>',
   ].join('');
 }
+
+export function isDesktopViewportForSocialBar(
+  win: Pick<Window, 'matchMedia'> | undefined = typeof window !== 'undefined'
+    ? window
+    : undefined
+): boolean {
+  if (!win || typeof win.matchMedia !== 'function') {
+    return false;
+  }
+  return win.matchMedia('(min-width: 768px)').matches;
+}
+
+export function resolveAdsterraBannerUnit(
+  format: 'leaderboard' | 'rectangle' | 'skyscraper',
+  isDesktopMd: boolean
+): AdsterraBannerUnit {
+  if (format === 'leaderboard') {
+    return isDesktopMd
+      ? ADSTERRA_CONFIG.banners['728x90']
+      : ADSTERRA_CONFIG.banners['300x250'];
+  }
+  if (format === 'skyscraper') {
+    return ADSTERRA_CONFIG.banners['160x600'];
+  }
+  return ADSTERRA_CONFIG.banners['300x250'];
+}
+

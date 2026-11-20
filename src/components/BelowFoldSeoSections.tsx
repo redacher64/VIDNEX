@@ -289,7 +289,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
         </div>
       </section>
 
-      {/* MILIEU : 728x90 desktop OU 320x50 mobile (via matchMedia) */}
+      {/* MILIEU : 728x90 desktop OU 300x250 mobile (via matchMedia) */}
       <AdSlot
         slotId="vidnex-pre-faq-leaderboard"
         format="leaderboard"

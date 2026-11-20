@@ -513,6 +513,9 @@ export function App({ initialPath }: AppProps = {}) {
               slotId="vidnex-home-hero-leaderboard"
               format="leaderboard"
               language={language}
+              hideOnMobile={Boolean(
+                isExtracting || extractionError || mediaResult
+              )}
             />
 
             <ResultDrawer

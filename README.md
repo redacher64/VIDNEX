@@ -674,12 +674,12 @@ npm run indexnow
 
 - **Configuration centralisée Adsterra (`src/config/adsterraConfig.ts`)** :
   - `ADSTERRA_DOMAIN = 'https://bellnewyork.org'` : constante unique modifiable pour changer le domaine de diffusion Adsterra.
-  - **Bannières isolées en `iframe` (`srcdoc` avec `window.atOptions` + script `/22/<key>`, taille réservée fixe, CLS = 0, chargement différé au 1er scroll ou navigateur idle)** :
-    - **Accueil hero + milieu** (`format="leaderboard"`) : `728x90` sur desktop (`≥ 768px`, clé `88fab04888526875ad70d3600cd20552`) **OU** `320x50` sur mobile (`< 768px`, clé `be0d8adcee443989a07b21cca9731553`) — un seul des deux est chargé via `window.matchMedia('(min-width: 768px)')`.
-    - **Sous la carte de résultat** (`format="rectangle"`) : `300x250` (clé `5c421075520bced3f83caf40d4bb3a71`).
+  - **Bannières isolées en `iframe` (`srcdoc` avec `window.atOptions` + script `/22/<key>`, taille réservée fixe, CLS = 0, chargement différé au 1er scroll ou navigateur idle, placées sous la zone de téléchargement avec label `"SPONSORISÉ"`)** :
+    - **Accueil hero + milieu** (`format="leaderboard"`) : `728x90` sur desktop (`≥ 768px`, clé `88fab04888526875ad70d3600cd20552`) **OU** `300x250` sur mobile (`< 768px`, clé `5c421075520bced3f83caf40d4bb3a71`, hauteur réservée `250px` centrée sans CLS) — un seul des deux est chargé via `window.matchMedia('(min-width: 768px)')`.
+    - **Sous la carte de résultat** (`format="rectangle"`) : `300x250` (clé `5c421075520bced3f83caf40d4bb3a71`). Sur mobile (`< 768px`), un seul `300x250` est chargé à la fois dans le viewport (lorsque la carte de résultat est affichée, le slot hero mobile est masqué au profit de celui sous la carte de résultat).
     - **Rails latéraux (`≥ 1280px`)** (`format="skyscraper"`) : `160x600` (clé `d64ffc8510f6f1d20e3d96b787b7ff34`), chargés uniquement si `window.matchMedia('(min-width: 1280px)')` correspond.
   - **Native Banner** (`format="native"`, sous les sections SEO de la page d'accueil) : script async `${ADSTERRA_DOMAIN}/21/b6b738ed32552f1fb5a38165c5c7ee4a` (`data-cfasync="false"`) + `<div id="container-b6b738ed32552f1fb5a38165c5c7ee4a">`.
-  - **Social Bar** : script `${ADSTERRA_DOMAIN}/14/d0aaec22d250227f3813abba951b9e0a` (`data-cfasync="false"`), injecté une seule fois globalement sur les pages publiques.
+  - **Social Bar** : script `${ADSTERRA_DOMAIN}/14/d0aaec22d250227f3813abba951b9e0a` (`data-cfasync="false"`), injecté une seule fois globalement sur les pages publiques uniquement sur desktop (`≥ 768px` vérifié via `window.matchMedia('(min-width: 768px)')` avant injection ; non chargé sur mobile `< 768px`).
   - **Exclusion stricte** : aucune publicité n'est injectée sur `/admin` ni dans le prérendu statique / SEO (`scripts/prerender.mjs`).
   - **Interrupteurs `/admin` séparés** : `ads_adsterra_enabled` (Adsterra) et `ads_enabled` (Google AdSense) dans `/admin` → **Contrôles**.
 

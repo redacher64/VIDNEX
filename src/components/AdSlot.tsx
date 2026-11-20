@@ -6,6 +6,7 @@ import {
 import {
   ADSTERRA_CONFIG,
   buildAdsterraBannerSrcDoc,
+  resolveAdsterraBannerUnit,
   type AdsterraBannerUnit,
 } from '../config/adsterraConfig';
 import {
@@ -32,7 +33,10 @@ interface AdSlotProps {
   format: AdSlotFormat;
   language?: LanguageCode;
   className?: string;
+  hideOnMobile?: boolean;
 }
+
+export { resolveAdsterraBannerUnit };
 
 const SPONSORED_LABEL_BY_LANG: Partial<Record<LanguageCode, string>> = {
   fr: 'Sponsorisé',
@@ -52,6 +56,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   format,
   language = 'fr',
   className = '',
+  hideOnMobile = false,
 }) => {
   const isBrowser = typeof window !== 'undefined';
   const [adsEnabled, setAdsEnabled] = useState<boolean>(() => isAdSenseEnabled());
@@ -108,12 +113,19 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     });
   }, [isBrowser, adsterraEnabled]);
 
-  const canRenderLiveAd = adsEnabled && IS_ADSENSE_CONFIGURED;
-  const canRenderDevDemo = adsEnabled && !IS_ADSENSE_CONFIGURED && isAdSenseDemoMode();
+  const isSuppressedOnMobile = hideOnMobile && !isDesktopMd;
+  const canRenderLiveAd =
+    adsEnabled && IS_ADSENSE_CONFIGURED && !isSuppressedOnMobile;
+  const canRenderDevDemo =
+    adsEnabled &&
+    !IS_ADSENSE_CONFIGURED &&
+    isAdSenseDemoMode() &&
+    !isSuppressedOnMobile;
   const canRenderAdsterra =
     isBrowser &&
     !isAdminRoutePath() &&
     adsterraEnabled &&
+    !isSuppressedOnMobile &&
     format !== 'column' &&
     (format !== 'skyscraper' || isDesktopXl);
 
@@ -139,8 +151,8 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     }
   }, [canRenderAdsterra, deferredReady, format]);
 
-  // Aucune pub dans le prerender/SEO ni sur /admin
-  if (!isBrowser || isAdminRoutePath()) {
+  // Aucune pub dans le prerender/SEO, sur /admin, ni lorsqu'un second 300x250 est masqué sur mobile
+  if (!isBrowser || isAdminRoutePath() || isSuppressedOnMobile) {
     return null;
   }
 
@@ -172,29 +184,25 @@ export const AdSlot: React.FC<AdSlotProps> = ({
       );
     }
 
-    const bannerUnit: AdsterraBannerUnit =
-      format === 'leaderboard'
-        ? isDesktopMd
-          ? ADSTERRA_CONFIG.banners['728x90']
-          : ADSTERRA_CONFIG.banners['320x50']
-        : format === 'skyscraper'
-        ? ADSTERRA_CONFIG.banners['160x600']
-        : ADSTERRA_CONFIG.banners['300x250'];
+    const bannerUnit: AdsterraBannerUnit = resolveAdsterraBannerUnit(
+      format,
+      isDesktopMd
+    );
 
     const adsterraWrapperClass =
       format === 'skyscraper'
         ? `hidden xl:block w-[176px] shrink-0 ${className}`
         : format === 'leaderboard'
-        ? `w-full max-w-4xl mx-auto px-3 sm:px-6 my-3 sm:my-4 ${className}`
-        : `w-full max-w-md mx-auto px-3 sm:px-6 my-4 ${className}`;
+        ? `w-full max-w-md md:max-w-4xl mx-auto px-3 sm:px-6 my-3 sm:my-4 flex justify-center ${className}`
+        : `w-full max-w-md mx-auto px-3 sm:px-6 my-4 flex justify-center ${className}`;
 
-    // Taille réservée fixe (CLS = 0) correspondant exactement à la bannière active (728x90 desktop OU 320x50 mobile, 300x250, 160x600)
+    // Taille réservée fixe (CLS = 0) correspondant exactement à la bannière active (728x90 desktop OU 300x250 mobile centré, 300x250, 160x600)
     const reservedBoxClass =
       format === 'leaderboard'
-        ? 'w-[320px] h-[50px] md:w-[728px] md:h-[90px]'
+        ? 'w-[300px] h-[250px] md:w-[728px] md:h-[90px] mx-auto'
         : format === 'skyscraper'
-        ? 'w-[160px] h-[600px]'
-        : 'w-[300px] h-[250px]';
+        ? 'w-[160px] h-[600px] mx-auto'
+        : 'w-[300px] h-[250px] mx-auto';
 
     const srcDoc = deferredReady ? buildAdsterraBannerSrcDoc(bannerUnit) : undefined;
 
@@ -205,7 +213,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
         data-ad-slot={slotId}
         className={adsterraWrapperClass}
       >
-        <div className="bg-white/95 dark:bg-[#1c140e]/95 border border-orange-200/80 dark:border-orange-900/60 rounded-2xl p-2.5 shadow-sm flex flex-col items-center">
+        <div className="w-full bg-white/95 dark:bg-[#1c140e]/95 border border-orange-200/80 dark:border-orange-900/60 rounded-2xl p-2.5 shadow-sm flex flex-col items-center">
           <div className="w-full flex items-center justify-between gap-1.5 pb-1.5 mb-1.5 border-b border-orange-100 dark:border-orange-900/40">
             <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-orange-800/75 dark:text-orange-200/70 whitespace-nowrap">
               {sponsoredLabel}

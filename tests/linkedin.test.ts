@@ -2004,4 +2004,32 @@ test('Adsterra integration: verifies centralized config, srcdoc iframe atOptions
   const pubJson: any = await pubRes.json();
   assert.equal(pubJson.ads_adsterra_enabled, false);
   assert.equal(pubJson.ads_enabled, true);
+
+  // 4. Mobile (< 768px) vs Desktop (>= 768px) Social Bar matchMedia & 300x250 hero/mid resolution
+  const {
+    isDesktopViewportForSocialBar,
+    resolveAdsterraBannerUnit,
+  } = await import('../src/config/adsterraConfig.ts');
+
+  const mobileWin = {
+    matchMedia: (q: string) =>
+      ({ matches: q === '(min-width: 768px)' ? false : false } as MediaQueryList),
+  };
+  const desktopWin = {
+    matchMedia: (q: string) =>
+      ({ matches: q === '(min-width: 768px)' ? true : false } as MediaQueryList),
+  };
+
+  assert.equal(isDesktopViewportForSocialBar(mobileWin), false);
+  assert.equal(isDesktopViewportForSocialBar(desktopWin), true);
+
+  const mobileLeaderboardUnit = resolveAdsterraBannerUnit('leaderboard', false);
+  assert.equal(mobileLeaderboardUnit.key, '5c421075520bced3f83caf40d4bb3a71');
+  assert.equal(mobileLeaderboardUnit.width, 300);
+  assert.equal(mobileLeaderboardUnit.height, 250);
+
+  const desktopLeaderboardUnit = resolveAdsterraBannerUnit('leaderboard', true);
+  assert.equal(desktopLeaderboardUnit.key, '88fab04888526875ad70d3600cd20552');
+  assert.equal(desktopLeaderboardUnit.width, 728);
+  assert.equal(desktopLeaderboardUnit.height, 90);
 });

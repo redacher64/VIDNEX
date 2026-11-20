@@ -849,30 +849,39 @@ const ProfileDpResultView: React.FC<{
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+
+  useEffect(() => {
+    setPreviewError(false);
+    setHasTriggeredDownload(false);
+  }, [data.id, data.hdOriginalUrl]);
 
   const isMiniature =
-    data.quality === 'Miniature' ||
-    Boolean(data.isThumbnail) ||
-    data.platform === 'linkedin';
+    data.quality === 'Miniature' || Boolean(data.isThumbnail);
   const qualityBadge = isMiniature
     ? 'Miniature'
     : data.quality === 'Standard'
     ? 'Standard'
     : 'HD';
+  const formatUpper = data.format || 'JPG';
+  const formatExt = formatUpper.toLowerCase();
   const cleanUsername = data.creatorHandle
     .replace(/^@/, '')
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, '');
 
   const handleDownloadDp = () => {
+    if (previewError && data.platform === 'linkedin') {
+      return;
+    }
     setDownloading(true);
     setHasTriggeredDownload(true);
     const filename =
       data.platform === 'instagram'
-        ? `instagram_${cleanUsername || 'user'}_profile.jpg`
+        ? `instagram_${cleanUsername || 'user'}_profile.${formatExt}`
         : data.platform === 'linkedin'
-        ? `linkedin_${cleanUsername || 'user'}_profile.jpg`
-        : `VIDNEX_${cleanUsername || 'user'}_HD_DP.jpg`;
+        ? `linkedin_${cleanUsername || 'user'}_profile.${formatExt}`
+        : `VIDNEX_${cleanUsername || 'user'}_HD_DP.${formatExt}`;
     triggerNativeBackendDownload(filename, data.hdOriginalUrl);
     setTimeout(() => setDownloading(false), 1000);
   };
@@ -940,6 +949,10 @@ const ProfileDpResultView: React.FC<{
           decoding="async"
           referrerPolicy="no-referrer"
           onError={(e) => {
+            if (data.platform === 'linkedin') {
+              setPreviewError(true);
+              setHasTriggeredDownload(false);
+            }
             const img = e.currentTarget;
             if (img.src !== STUDIO_FALLBACK_THUMB) {
               img.src = STUDIO_FALLBACK_THUMB;
@@ -948,41 +961,56 @@ const ProfileDpResultView: React.FC<{
           className="w-full h-full object-cover"
         />
         <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-stone-900/85 text-white font-mono text-[11px] font-bold">
-          {qualityBadge} · JPG
+          {qualityBadge} · {formatUpper}
         </span>
       </div>
 
-      {/* Action Buttons: Full-width on mobile, >= 48px */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full sm:w-auto">
-        <button
-          type="button"
-          onClick={handleDownloadDp}
-          className="w-full sm:w-auto min-w-[240px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
-        >
-          {downloading
-            ? t.fetchingOriginalJpg
-            : isMiniature
-            ? 'Télécharger la miniature (JPG)'
-            : t.downloadFullSizePhoto}
-        </button>
+      {previewError && data.platform === 'linkedin' ? (
+        <div className="w-full max-w-xl space-y-3">
+          <div
+            role="alert"
+            data-testid="linkedin-preview-error-banner"
+            className="w-full px-4 py-3 rounded-xl bg-red-50/95 dark:bg-red-950/50 border border-red-300 dark:border-red-900/70 text-xs sm:text-sm font-medium text-red-900 dark:text-red-100"
+          >
+            Le lien de cette photo LinkedIn a expiré ou l’image renvoyée est invalide. Vous pouvez déposer une image manuellement ci-dessous.
+          </div>
+          <LinkedInManualUploadBox />
+        </div>
+      ) : (
+        <>
+          {/* Action Buttons: Full-width on mobile, >= 48px */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleDownloadDp}
+              className="w-full sm:w-auto min-w-[240px] min-h-[48px] px-7 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:to-amber-600 text-white shadow-[0_4px_16px_rgba(234,88,12,0.35)] text-sm font-bold transition-all cursor-pointer"
+            >
+              {downloading
+                ? t.fetchingOriginalJpg
+                : isMiniature
+                ? `Télécharger la miniature (${formatUpper})`
+                : t.downloadFullSizePhoto}
+            </button>
 
-        <button
-          type="button"
-          onClick={() => setIsZoomed((prev) => !prev)}
-          aria-pressed={isZoomed}
-          className="w-full sm:w-auto min-h-[48px] px-5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950/80 text-orange-950 dark:text-orange-100 font-display text-sm font-semibold transition-all cursor-pointer"
-        >
-          {t.hdZoomBtn}
-        </button>
-      </div>
+            <button
+              type="button"
+              onClick={() => setIsZoomed((prev) => !prev)}
+              aria-pressed={isZoomed}
+              className="w-full sm:w-auto min-h-[48px] px-5 rounded-xl bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 hover:bg-orange-100 dark:hover:bg-orange-950/80 text-orange-950 dark:text-orange-100 font-display text-sm font-semibold transition-all cursor-pointer"
+            >
+              {t.hdZoomBtn}
+            </button>
+          </div>
 
-      {hasTriggeredDownload && t.iosFilesHint && (
-        <p
-          data-testid="ios-files-hint"
-          className="w-full max-w-md px-3.5 py-2.5 rounded-xl bg-orange-50/90 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50 text-xs text-[#6c4e40] dark:text-orange-200/85 leading-relaxed"
-        >
-          {t.iosFilesHint}
-        </p>
+          {hasTriggeredDownload && t.iosFilesHint && (
+            <p
+              data-testid="ios-files-hint"
+              className="w-full max-w-md px-3.5 py-2.5 rounded-xl bg-orange-50/90 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50 text-xs text-[#6c4e40] dark:text-orange-200/85 leading-relaxed"
+            >
+              {t.iosFilesHint}
+            </p>
+          )}
+        </>
       )}
     </div>
   );

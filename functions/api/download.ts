@@ -18,7 +18,11 @@ import { extractTikTok } from '../_lib/tiktok.ts';
 import { extractInstagram } from '../_lib/instagram.ts';
 import { extractX } from '../_lib/x.ts';
 import { extractFacebook } from '../_lib/facebook.ts';
-import { extractLinkedIn } from '../_lib/linkedin.ts';
+import {
+  extractLinkedIn,
+  detectImageMagicBytes,
+  isLinkedInImageUrlExpired,
+} from '../_lib/linkedin.ts';
 import {
   type AdminEnv,
   type ExecutionContextLike,
@@ -133,6 +137,7 @@ function inferMimeType(
   if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
   if (lower.endsWith('.png')) return 'image/png';
   if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.gif')) return 'image/gif';
   if (lower.endsWith('.zip')) return 'application/zip';
   return isInline ? 'image/jpeg' : 'video/mp4';
 }
@@ -169,6 +174,8 @@ interface StreamAttemptResult {
   response: Response | null;
   forbiddenHost?: string;
   tooLarge?: boolean;
+  invalidMedia?: boolean;
+  httpStatus?: number;
 }
 
 /**
@@ -239,29 +246,42 @@ async function fetchMediaStreamWithManualRedirects(
       ) {
         const location = res.headers.get('Location');
         if (!location) {
-          return { response: null };
+          return { response: null, httpStatus: res.status };
         }
         try {
           const nextUrl = new URL(location, parsed);
           if (!isAllowedMediaHost(nextUrl.hostname, allowThirdParty)) {
-            return { response: null, forbiddenHost: nextUrl.hostname };
+            return { response: null, forbiddenHost: nextUrl.hostname, httpStatus: res.status };
           }
           currentUrlStr = nextUrl.toString();
           continue;
         } catch {
-          return { response: null };
+          return { response: null, httpStatus: res.status };
         }
       }
 
       if (res.ok || res.status === 206) {
+        const upstreamCt = (res.headers.get('Content-Type') || '').toLowerCase();
+        if (
+          upstreamCt.includes('text/html') ||
+          upstreamCt.includes('application/xhtml')
+        ) {
+          try {
+            await res.body?.cancel();
+          } catch {
+            // Ignorer
+          }
+          return { response: null, invalidMedia: true, httpStatus: res.status };
+        }
+
         const lenStr = res.headers.get('Content-Length');
         if (lenStr) {
           const byteLen = Number(lenStr);
           if (Number.isFinite(byteLen) && byteLen > MAX_CONTENT_LENGTH_BYTES) {
-            return { response: null, tooLarge: true };
+            return { response: null, tooLarge: true, httpStatus: res.status };
           }
         }
-        return { response: res };
+        return { response: res, httpStatus: res.status };
       }
 
       // En cas de 403, réessayer une fois avec l'en-tête Origin explicite
@@ -273,15 +293,28 @@ async function fetchMediaStreamWithManualRedirects(
           redirect: 'manual',
         });
         if (retryRes.ok || retryRes.status === 206) {
+          const retryCt = (retryRes.headers.get('Content-Type') || '').toLowerCase();
+          if (
+            retryCt.includes('text/html') ||
+            retryCt.includes('application/xhtml')
+          ) {
+            try {
+              await retryRes.body?.cancel();
+            } catch {
+              // Ignorer
+            }
+            return { response: null, invalidMedia: true, httpStatus: retryRes.status };
+          }
           const lenStr = retryRes.headers.get('Content-Length');
           if (lenStr && Number(lenStr) > MAX_CONTENT_LENGTH_BYTES) {
-            return { response: null, tooLarge: true };
+            return { response: null, tooLarge: true, httpStatus: retryRes.status };
           }
-          return { response: retryRes };
+          return { response: retryRes, httpStatus: retryRes.status };
         }
+        return { response: null, httpStatus: retryRes.status };
       }
 
-      return { response: null };
+      return { response: null, httpStatus: res.status };
     } catch {
       return { response: null };
     }
@@ -546,7 +579,10 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
           }
         }
       } else if (detection.isValid && detection.platform === 'linkedin') {
-        const fresh = await extractLinkedIn(detection.identifier || '');
+        const fresh = await extractLinkedIn(detection.identifier || '', {
+          bypassCache: true,
+          allowFallbackSearch: false,
+        });
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];
           if (freshItem?.url) {
@@ -564,8 +600,55 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     }
   }
 
+  const downloadPlatform = inferDownloadPlatform(
+    sourcePageUrl,
+    rawTargetUrl,
+    safeFilename
+  );
+
   const upstreamRes = attempt.response;
   if (!upstreamRes) {
+    if (attempt.invalidMedia) {
+      return new Response(
+        JSON.stringify({
+          errorCode: 'INVALID_IMAGE',
+          error:
+            'Le serveur distant a renvoyé une page HTML au lieu d’un fichier image valide.',
+        }),
+        {
+          status: 422,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    const isExpiredLinkedInUrl =
+      downloadPlatform === 'linkedin' &&
+      (isLinkedInImageUrlExpired(rawTargetUrl) ||
+        attempt.httpStatus === 401 ||
+        attempt.httpStatus === 403 ||
+        attempt.httpStatus === 410);
+
+    if (isExpiredLinkedInUrl) {
+      return new Response(
+        JSON.stringify({
+          errorCode: 'IMAGE_EXPIRED',
+          error:
+            'Le lien signé de la photo de profil LinkedIn a expiré. Veuillez relancer l\'extraction.',
+        }),
+        {
+          status: 410,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
     return new Response(
       JSON.stringify({
         error:
@@ -581,11 +664,98 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
   }
 
-  const contentType = inferMimeType(
+  let contentType = inferMimeType(
     safeFilename,
     upstreamRes.headers.get('Content-Type'),
     isInline
   );
+
+  let verifiedBodyStream: ReadableStream<Uint8Array> | null = upstreamRes.body;
+
+  // Pour les images LinkedIn (ou tout flux image/* LinkedIn), vérifier les magic bytes du premier bloc avant d'envoyer 200 OK
+  if (
+    downloadPlatform === 'linkedin' &&
+    method !== 'HEAD' &&
+    !rangeHeader &&
+    upstreamRes.body
+  ) {
+    const reader = upstreamRes.body.getReader();
+    const headChunks: Uint8Array[] = [];
+    let headLen = 0;
+
+    while (headLen < 16) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value && value.byteLength > 0) {
+        headChunks.push(value);
+        headLen += value.byteLength;
+      }
+    }
+
+    const headBuffer = new Uint8Array(headLen);
+    let offset = 0;
+    for (const c of headChunks) {
+      headBuffer.set(c, offset);
+      offset += c.byteLength;
+    }
+
+    const detectedMagic = detectImageMagicBytes(headBuffer);
+    if (!detectedMagic) {
+      try {
+        await reader.cancel();
+      } catch {
+        // Ignorer
+      }
+      return new Response(
+        JSON.stringify({
+          errorCode: 'INVALID_IMAGE',
+          error:
+            'Le fichier récupéré depuis le CDN n’est pas une image valide (signature binaire invalide).',
+        }),
+        {
+          status: 422,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    contentType =
+      detectedMagic === 'png'
+        ? 'image/png'
+        : detectedMagic === 'webp'
+        ? 'image/webp'
+        : detectedMagic === 'gif'
+        ? 'image/gif'
+        : 'image/jpeg';
+
+    verifiedBodyStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        if (headBuffer.byteLength > 0) {
+          controller.enqueue(headBuffer);
+        }
+      },
+      async pull(controller) {
+        const { done, value } = await reader.read();
+        if (done) {
+          controller.close();
+          return;
+        }
+        if (value) {
+          controller.enqueue(value);
+        }
+      },
+      async cancel() {
+        try {
+          await reader.cancel();
+        } catch {
+          // Ignorer
+        }
+      },
+    });
+  }
 
   const responseHeaders = new Headers({
     'Access-Control-Allow-Origin': '*',
@@ -596,15 +766,39 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     'X-Content-Type-Options': 'nosniff',
   });
 
+  let finalFilename = safeFilename;
+  const requestedExt = (reqUrl.searchParams.get('ext') || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+  if (
+    requestedExt &&
+    !/\.[a-z0-9]{2,5}$/i.test(finalFilename)
+  ) {
+    finalFilename = `${finalFilename}.${requestedExt}`;
+  } else if (
+    contentType.startsWith('image/') &&
+    !/\.(?:jpg|jpeg|png|webp|gif)$/i.test(finalFilename)
+  ) {
+    const inferredExt = contentType.includes('png')
+      ? 'png'
+      : contentType.includes('webp')
+      ? 'webp'
+      : contentType.includes('gif')
+      ? 'gif'
+      : 'jpg';
+    finalFilename = `${finalFilename}.${inferredExt}`;
+  }
+
   if (isInline) {
     responseHeaders.set(
       'Content-Disposition',
-      `inline; filename="${safeFilename}"`
+      `inline; filename="${finalFilename}"`
     );
   } else {
     responseHeaders.set(
       'Content-Disposition',
-      `attachment; filename="${safeFilename}"`
+      `attachment; filename="${finalFilename}"`
     );
   }
 
@@ -634,11 +828,6 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const isSelectionDownload = reqUrl.searchParams.get('sel') === '1';
 
   if (shouldTrackDownloadMetric) {
-    const downloadPlatform = inferDownloadPlatform(
-      sourcePageUrl,
-      rawTargetUrl,
-      safeFilename
-    );
     scheduleBackground(
       context,
       incrementDailyMetrics(
@@ -650,12 +839,12 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       )
     );
 
-    if (upstreamRes.body) {
+    if (verifiedBodyStream) {
       const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>(
         undefined,
         new CountQueuingStrategy({ highWaterMark: 16 })
       );
-      const streamTask = upstreamRes.body
+      const streamTask = verifiedBodyStream
         .pipeTo(writable)
         .then(() =>
           incrementDailyMetrics(context.env, downloadPlatform, ['download_success'])
@@ -674,7 +863,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     );
   }
 
-  return new Response(upstreamRes.body, {
+  return new Response(verifiedBodyStream, {
     status: upstreamRes.status,
     headers: responseHeaders,
   });

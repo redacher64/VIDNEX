@@ -216,17 +216,18 @@ const REJECTED_MIRROR_DOMAINS = [
 ];
 
 export const LINKEDIN_ALLOWED_HOST_REGEX =
-  /^(?:(?:www|[a-z]{2})\.)?linkedin\.com$/i;
+  /^(?:(?:www|m|mobile|[a-z]{2})\.)?linkedin\.com$/i;
 
 export const LINKEDIN_ANY_HOST_REGEX =
   /(?:^|\.)linkedin\.com$|^(?:www\.)?lnkd\.in$/i;
 
-export const LINKEDIN_PROFILE_PATH_REGEX = /^\/in\/([^/]+)\/?$/i;
+export const LINKEDIN_PROFILE_PATH_REGEX =
+  /^\/in\/([^/]+)(?:\/([a-z]{2}(?:[-_][a-z]{2})?))?\/?$/i;
 
 export const LINKEDIN_SLUG_REGEX = /^[\p{L}\p{N}._-]{2,100}$/u;
 
 export const LINKEDIN_PROFILE_URL_REGEX =
-  /^(?:https?:\/\/)?(?:(?:www|[a-z]{2})\.)?linkedin\.com\/in\/([^/?#]+)\/?(?:\?[^#]*)?(?:#.*)?$/i;
+  /^(?:https?:\/\/)?(?:(?:www|m|mobile|[a-z]{2})\.)?linkedin\.com\/in\/([^/?#]+)(?:\/[a-z]{2}(?:[-_][a-z]{2})?)?\/?(?:\?[^#]*)?(?:#.*)?$/i;
 
 export const RESERVED_LINKEDIN_SLUGS: ReadonlySet<string> = new Set([
   'login',

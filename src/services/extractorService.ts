@@ -86,7 +86,7 @@ export interface ProfileDpMediaResult extends BaseMediaResult {
   isThumbnail?: boolean;
   dimensions?: string;
   fileSize?: string;
-  format: 'JPG';
+  format: 'JPG' | 'PNG' | 'WEBP';
 }
 
 export interface CarouselMediaResult extends BaseMediaResult {
@@ -226,6 +226,8 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     PROFILE_NOT_FOUND: string;
     PHOTO_NOT_AVAILABLE: string;
     INVALID_IMAGE: string;
+    IMAGE_EXPIRED: string;
+    NETWORK_ERROR: string;
     NOT_FOUND: string;
     BLOCKED_BY_PLATFORM: string;
     PRIVATE_OR_LOGIN_REQUIRED: string;
@@ -243,6 +245,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Aucune photo de profil publique n’est disponible sur ce compte LinkedIn (avatar absent ou par défaut).',
     INVALID_IMAGE:
       'Le fichier récupéré n’est pas une image valide (type MIME, signature binaire ou taille hors limite).',
+    IMAGE_EXPIRED:
+      'Le lien signé de la photo de profil LinkedIn a expiré. Relancez l’extraction pour obtenir un nouveau lien valide.',
+    NETWORK_ERROR:
+      'Impossible de contacter LinkedIn en raison d’une erreur réseau. Vérifiez votre connexion ou utilisez l’import manuel ci-dessous.',
     NOT_FOUND:
       'Ce profil LinkedIn est introuvable ou a été supprimé (404). Vérifiez l’identifiant du profil dans l’URL.',
     BLOCKED_BY_PLATFORM:
@@ -263,6 +269,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'No public profile photo is available for this LinkedIn account (missing or default avatar).',
     INVALID_IMAGE:
       'The retrieved file is not a valid image (invalid MIME type, magic bytes, or file size).',
+    IMAGE_EXPIRED:
+      'The signed LinkedIn profile photo link has expired. Please run the extraction again to obtain a fresh link.',
+    NETWORK_ERROR:
+      'Unable to reach LinkedIn due to a network error. Please check your connection or use manual upload below.',
     NOT_FOUND:
       'Profile not found. This LinkedIn profile does not exist or has been removed.',
     BLOCKED_BY_PLATFORM:
@@ -283,6 +293,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'لا توجد صورة ملف شخصي عامة متاحة لحساب لينكدإن هذا.',
     INVALID_IMAGE:
       'الملف المستلم ليس صورة صالحة (نوع الملف أو البصمة الثنائية أو الحجم غير صالح).',
+    IMAGE_EXPIRED:
+      'انتهت صلاحية رابط صورة الملف الشخصي في لينكدإن. يرجى إعادة الاستخراج للحصول على رابط جديد.',
+    NETWORK_ERROR:
+      'تعذر الاتصال بلينكدإن بسبب خطأ في الشبكة. تحقق من اتصالك أو ارفع صورة يدوياً أدناه.',
     NOT_FOUND: 'الملف الشخصي غير موجود. حساب لينكدإن هذا غير موجود أو تم حذفه.',
     BLOCKED_BY_PLATFORM:
       'يعرض لينكدإن جدار تسجيل دخول لهذا الحساب. استخدم نتائج البحث عن الصور البديلة أو ارفع صورة يدوياً أدناه.',
@@ -301,6 +315,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'No hay ninguna foto de perfil pública disponible en esta cuenta de LinkedIn.',
     INVALID_IMAGE:
       'El archivo obtenido no es una imagen válida (tipo MIME, firma binaria o tamaño no válido).',
+    IMAGE_EXPIRED:
+      'El enlace firmado de la foto de perfil de LinkedIn ha caducado. Vuelve a extraer para obtener un enlace nuevo.',
+    NETWORK_ERROR:
+      'No se pudo conectar con LinkedIn por un error de red. Verifica tu conexión o sube una imagen manualmente abajo.',
     NOT_FOUND:
       'Perfil no encontrado. Este perfil de LinkedIn no existe o fue eliminado.',
     BLOCKED_BY_PLATFORM:
@@ -321,6 +339,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Nenhuma foto de perfil pública está disponível nesta conta do LinkedIn.',
     INVALID_IMAGE:
       'O arquivo obtido não é uma imagem válida (tipo MIME, assinatura binária ou tamanho inválido).',
+    IMAGE_EXPIRED:
+      'O link assinado da foto de perfil do LinkedIn expirou. Execute a extração novamente para obter um novo link.',
+    NETWORK_ERROR:
+      'Não foi possível conectar ao LinkedIn devido a um erro de rede. Verifique sua conexão ou envie uma imagem manualmente abaixo.',
     NOT_FOUND:
       'Perfil não encontrado. Este perfil do LinkedIn não existe ou foi removido.',
     BLOCKED_BY_PLATFORM:
@@ -341,6 +363,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Für dieses LinkedIn-Konto ist kein öffentliches Profilbild verfügbar.',
     INVALID_IMAGE:
       'Die abgerufene Datei ist kein gültiges Bild (MIME-Typ, Magic Bytes oder Größe ungültig).',
+    IMAGE_EXPIRED:
+      'Der signierte Link zum LinkedIn-Profilbild ist abgelaufen. Bitte starten Sie die Extraktion erneut.',
+    NETWORK_ERROR:
+      'Verbindung zu LinkedIn wegen eines Netzwerkfehlers fehlgeschlagen. Prüfen Sie Ihre Verbindung oder nutzen Sie den manuellen Bildupload.',
     NOT_FOUND:
       'Profil nicht gefunden. Dieses LinkedIn-Profil existiert nicht oder wurde gelöscht.',
     BLOCKED_BY_PLATFORM:
@@ -361,6 +387,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Bu LinkedIn hesabında herkese açık bir profil fotoğrafı bulunmuyor.',
     INVALID_IMAGE:
       'Alınan dosya geçerli bir görsel değil (MIME türü, ikili imza veya boyut geçersiz).',
+    IMAGE_EXPIRED:
+      'LinkedIn profil fotoğrafı bağlantısının süresi doldu. Yeni bir bağlantı almak için işlemi tekrarlayın.',
+    NETWORK_ERROR:
+      'Ağ hatası nedeniyle LinkedIn’e ulaşılamadı. Bağlantınızı kontrol edin veya aşağıdan manuel görsel yükleyin.',
     NOT_FOUND:
       'Profil bulunamadı. Bu LinkedIn profili mevcut değil veya silinmiş.',
     BLOCKED_BY_PLATFORM:
@@ -381,6 +411,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Tidak ada foto profil publik yang tersedia untuk akun LinkedIn ini.',
     INVALID_IMAGE:
       'File yang diambil bukan gambar yang valid (tipe MIME, magic bytes, atau ukuran tidak valid).',
+    IMAGE_EXPIRED:
+      'Tautan foto profil LinkedIn telah kedaluwarsa. Silakan ulangi ekstraksi untuk mendapatkan tautan baru.',
+    NETWORK_ERROR:
+      'Tidak dapat menghubungi LinkedIn karena kesalahan jaringan. Periksa koneksi Anda atau unggah gambar secara manual di bawah.',
     NOT_FOUND:
       'Profil tidak ditemukan. Profil LinkedIn ini tidak ada atau telah dihapus.',
     BLOCKED_BY_PLATFORM:
@@ -401,6 +435,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Nessuna foto del profilo pubblica disponibile per questo account LinkedIn.',
     INVALID_IMAGE:
       'Il file recuperato non è un’immagine valida (tipo MIME, magic bytes o dimensione non valida).',
+    IMAGE_EXPIRED:
+      'Il link firmato della foto del profilo LinkedIn è scaduto. Ripeti l’estrazione per ottenere un nuovo link.',
+    NETWORK_ERROR:
+      'Impossibile contattare LinkedIn a causa di un errore di rete. Verifica la connessione o carica un’immagine manualmente qui sotto.',
     NOT_FOUND:
       'Profilo non trovato. Questo profilo LinkedIn non esiste o è stato rimosso.',
     BLOCKED_BY_PLATFORM:
@@ -421,6 +459,10 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'Для этого аккаунта LinkedIn нет доступного публичного фото профиля.',
     INVALID_IMAGE:
       'Полученный файл не является допустимым изображением (неверный MIME-тип, сигнатура или размер).',
+    IMAGE_EXPIRED:
+      'Срок действия подписанной ссылки на фото профиля LinkedIn истёк. Повторите извлечение для получения новой ссылки.',
+    NETWORK_ERROR:
+      'Не удалось связаться с LinkedIn из-за ошибки сети. Проверьте подключение или загрузите изображение вручную ниже.',
     NOT_FOUND:
       'Профиль не найден. Этот профиль LinkedIn не существует или был удалён.',
     BLOCKED_BY_PLATFORM:
@@ -1090,6 +1132,12 @@ export function getLocalizedErrorMessage(
     if (effectiveCode === 'INVALID_IMAGE') {
       return liDict.INVALID_IMAGE;
     }
+    if (effectiveCode === 'IMAGE_EXPIRED') {
+      return liDict.IMAGE_EXPIRED;
+    }
+    if (effectiveCode === 'NETWORK_ERROR' || normalizedProfileCode === 'NETWORK_ERROR') {
+      return liDict.NETWORK_ERROR;
+    }
     if (normalizedProfileCode === 'BLOCKED_BY_PLATFORM') {
       return liDict.BLOCKED_BY_PLATFORM;
     }
@@ -1212,7 +1260,14 @@ export async function extractMediaFromUrl(
         }),
       });
     } catch {
-      throw new Error(getLocalizedErrorMessage('NETWORK_ERROR', language));
+      throw new Error(
+        getLocalizedErrorMessage('NETWORK_ERROR', language, {
+          platform: detected.platform,
+          mediaType: detected.mediaType,
+          isProfile:
+            detected.mediaType === 'profile' || detected.platform === 'linkedin',
+        })
+      );
     }
   }
 
@@ -1310,6 +1365,9 @@ export function mapExtractResponseToMediaResult(
       : rawQuality === 'standard'
       ? 'Standard'
       : 'HD';
+    const rawExt = String(dpItem?.ext || 'jpg').toLowerCase();
+    const itemFormat: 'JPG' | 'PNG' | 'WEBP' =
+      rawExt === 'png' ? 'PNG' : rawExt === 'webp' ? 'WEBP' : 'JPG';
 
     return {
       id: `dp-${Date.now()}`,
@@ -1334,7 +1392,7 @@ export function mapExtractResponseToMediaResult(
       isThumbnail: isThumb,
       dimensions: realDimensions,
       fileSize: dpItem?.size || undefined,
-      format: 'JPG',
+      format: itemFormat,
     };
   }
 

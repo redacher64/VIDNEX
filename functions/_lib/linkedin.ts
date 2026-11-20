@@ -2,28 +2,38 @@ import { BROWSER_USER_AGENT } from './http.ts';
 import { isAllowedMediaUrl } from './allowlist.ts';
 import type { ErrorCode, ExtractMediaItem, ExtractResponse } from './normalize.ts';
 
-const LINKEDIN_ATTEMPT_TIMEOUT_MS = 4500;
-const IMAGE_VALIDATION_TIMEOUT_MS = 3500;
+const LINKEDIN_ATTEMPT_TIMEOUT_MS = 6500;
+const IMAGE_VALIDATION_TIMEOUT_MS = 4500;
 const FALLBACK_SEARCH_TIMEOUT_MS = 4500;
 const MAX_REDIRECT_HOPS = 4;
+const LINKEDIN_CACHE_DEFAULT_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const LINKEDIN_CACHE_MAX_ENTRIES = 250;
 
 export const MAX_LINKEDIN_IMAGE_BYTES = 10 * 1024 * 1024; // 10 Mo max
-export const MIN_LINKEDIN_IMAGE_BYTES = 16; // Au moins 16 octets pour l'en-tête binaire
+export const MIN_LINKEDIN_IMAGE_BYTES = 12; // Au moins 12 octets pour l'en-tête binaire
 export const MAX_FALLBACK_CANDIDATES = 6;
 
 export const LINKEDIN_UNVERIFIED_FALLBACK_LABEL =
   'Résultats non vérifiés, peut-être pas la bonne personne';
 
-const LINKEDIN_ALLOWED_REDIRECT_HOST_REGEX = /^(?:(?:www|[a-z]{2})\.)?linkedin\.com$/i;
+const LINKEDIN_ALLOWED_REDIRECT_HOST_REGEX =
+  /^(?:(?:www|m|mobile|[a-z]{2})\.)?linkedin\.com$/i;
+
+export type LinkedInErrorCode =
+  | 'PROFILE_NOT_FOUND'
+  | 'LOGIN_WALL'
+  | 'RATE_LIMITED'
+  | 'PHOTO_NOT_AVAILABLE'
+  | 'INVALID_IMAGE'
+  | 'IMAGE_EXPIRED'
+  | 'TIMEOUT'
+  | 'NETWORK_ERROR';
 
 /**
  * Messages d'erreur français distincts pour chaque code d'erreur LinkedIn.
  * Pour LOGIN_WALL, ne jamais dire « réessayez » — proposer la solution de repli.
  */
-export const LINKEDIN_FRENCH_ERROR_MESSAGES: Record<
-  'LOGIN_WALL' | 'RATE_LIMITED' | 'PROFILE_NOT_FOUND' | 'PHOTO_NOT_AVAILABLE' | 'INVALID_IMAGE',
-  string
-> = {
+export const LINKEDIN_FRENCH_ERROR_MESSAGES: Record<LinkedInErrorCode, string> = {
   LOGIN_WALL:
     'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
   RATE_LIMITED:
@@ -34,7 +44,134 @@ export const LINKEDIN_FRENCH_ERROR_MESSAGES: Record<
     'Aucune photo de profil publique n’est disponible sur ce compte LinkedIn (avatar absent ou par défaut).',
   INVALID_IMAGE:
     'Le fichier récupéré n’est pas une image valide (type MIME, signature binaire ou taille hors limite).',
+  IMAGE_EXPIRED:
+    'Le lien signé de la photo de profil LinkedIn a expiré. Relancez l’extraction pour obtenir un nouveau lien valide.',
+  TIMEOUT:
+    'La récupération du profil LinkedIn a dépassé le délai maximum autorisé.',
+  NETWORK_ERROR:
+    'Impossible de contacter LinkedIn en raison d’une erreur réseau. Vérifiez la connexion ou utilisez l’import manuel ci-dessous.',
 };
+
+interface CachedLinkedInEntry {
+  response: ExtractResponse;
+  cachedAtMs: number;
+  expiresAtMs: number;
+  signedUrlExpiryMs: number | null;
+}
+
+const linkedInMemoryCache = new Map<string, CachedLinkedInEntry>();
+const inFlightLinkedInExtractions = new Map<string, Promise<ExtractResponse>>();
+let lastObservedFetchRef: typeof fetch | null = null;
+
+function syncCacheWithFetchEnv(): void {
+  if (lastObservedFetchRef !== globalThis.fetch) {
+    linkedInMemoryCache.clear();
+    inFlightLinkedInExtractions.clear();
+    lastObservedFetchRef = globalThis.fetch;
+  }
+}
+
+export function clearLinkedInCache(): void {
+  linkedInMemoryCache.clear();
+  inFlightLinkedInExtractions.clear();
+}
+
+/**
+ * Extrait le timestamp d'expiration (en ms) du paramètre signé `?e=` sur `media.licdn.com`.
+ */
+export function getLinkedInSignedUrlExpiryMs(rawUrl: string): number | null {
+  if (!rawUrl) return null;
+  try {
+    const parsed = new URL(rawUrl);
+    if (!parsed.hostname.toLowerCase().endsWith('.licdn.com')) return null;
+    const eParam = parsed.searchParams.get('e');
+    if (!eParam || !/^\d{9,11}$/.test(eParam.trim())) return null;
+    const epochSec = Number(eParam.trim());
+    if (!Number.isFinite(epochSec) || epochSec <= 0) return null;
+    return epochSec * 1000;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Indique si une URL signée `media.licdn.com` possède un paramètre `e=` arrivé à expiration.
+ */
+export function isLinkedInImageUrlExpired(
+  rawUrl: string,
+  nowMs = Date.now()
+): boolean {
+  const expiryMs = getLinkedInSignedUrlExpiryMs(rawUrl);
+  if (expiryMs === null) return false;
+  return expiryMs <= nowMs;
+}
+
+export function getCachedLinkedInResult(
+  slug: string,
+  nowMs = Date.now()
+): ExtractResponse | null {
+  syncCacheWithFetchEnv();
+  const key = slug.trim().toLowerCase();
+  const entry = linkedInMemoryCache.get(key);
+  if (!entry) return null;
+
+  if (nowMs >= entry.expiresAtMs) {
+    linkedInMemoryCache.delete(key);
+    return null;
+  }
+
+  // Si l'URL signée était valide au moment de la mise en cache mais a expiré depuis, évincer
+  if (
+    entry.signedUrlExpiryMs !== null &&
+    entry.signedUrlExpiryMs > entry.cachedAtMs &&
+    nowMs >= entry.signedUrlExpiryMs - 5000
+  ) {
+    linkedInMemoryCache.delete(key);
+    return null;
+  }
+
+  return entry.response;
+}
+
+export function setCachedLinkedInResult(
+  slug: string,
+  response: ExtractResponse,
+  nowMs = Date.now()
+): void {
+  syncCacheWithFetchEnv();
+  // Ne jamais mettre en cache un échec ou une réponse sans image validée
+  if (!response.ok || !response.items || response.items.length === 0) {
+    return;
+  }
+
+  const key = slug.trim().toLowerCase();
+  const primaryUrl = response.items[0]?.url || response.thumbnail || '';
+  const signedUrlExpiryMs = getLinkedInSignedUrlExpiryMs(primaryUrl);
+
+  // Si l'URL possède un timestamp futur, caler le TTL avant son expiration
+  let expiresAtMs = nowMs + LINKEDIN_CACHE_DEFAULT_TTL_MS;
+  if (signedUrlExpiryMs !== null && signedUrlExpiryMs > nowMs) {
+    const safeExpiry = signedUrlExpiryMs - 15_000;
+    if (safeExpiry <= nowMs) {
+      return;
+    }
+    expiresAtMs = Math.min(expiresAtMs, safeExpiry);
+  }
+
+  if (linkedInMemoryCache.size >= LINKEDIN_CACHE_MAX_ENTRIES) {
+    const oldestKey = linkedInMemoryCache.keys().next().value;
+    if (oldestKey) {
+      linkedInMemoryCache.delete(oldestKey);
+    }
+  }
+
+  linkedInMemoryCache.set(key, {
+    response,
+    cachedAtMs: nowMs,
+    expiresAtMs,
+    signedUrlExpiryMs,
+  });
+}
 
 function errorResponse(
   platform: 'linkedin',
@@ -65,7 +202,9 @@ function decodeHtmlEntities(input: string): string {
     .replace(/&#39;/g, "'")
     .replace(/&#x27;/gi, "'")
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/\\u0026/gi, '&')
+    .replace(/\\\//g, '/');
 }
 
 export function isGhostOrDefaultLinkedInImage(url: string): boolean {
@@ -74,6 +213,7 @@ export function isGhostOrDefaultLinkedInImage(url: string): boolean {
     lower.includes('static.licdn.com') ||
     lower.includes('ghost-person') ||
     lower.includes('ghost_person') ||
+    lower.includes('ghost-organization') ||
     lower.includes('default-avatar') ||
     lower.includes('/aero-v1/sc/h/') ||
     lower.includes('/sc/h/')
@@ -81,6 +221,49 @@ export function isGhostOrDefaultLinkedInImage(url: string): boolean {
     return true;
   }
   return false;
+}
+
+export function isBannerOrNonProfileLinkedInImage(url: string): boolean {
+  const lower = url.toLowerCase();
+  return (
+    lower.includes('profile-displaybackgroundimage') ||
+    lower.includes('company-logo') ||
+    lower.includes('organization-logo') ||
+    lower.includes('feedshare-') ||
+    lower.includes('article-cover_')
+  );
+}
+
+/**
+ * Attribue un score de résolution aux URLs d'images de profil LinkedIn
+ * pour privilégier la meilleure résolution réellement disponible (`800x800` > `400x400` > `200x200` > `100x100`).
+ */
+export function scoreLinkedInImageResolution(url: string): number {
+  const lower = url.toLowerCase();
+  if (lower.includes('800_800') || lower.includes('original')) return 800;
+  if (lower.includes('400_400')) return 400;
+  if (lower.includes('200_200')) return 200;
+  if (lower.includes('100_100')) return 100;
+  const shrinkMatch = lower.match(/(?:shrink|scale)_(\d{2,4})_(\d{2,4})/);
+  if (shrinkMatch) {
+    return Math.max(Number(shrinkMatch[1]), Number(shrinkMatch[2]));
+  }
+  return 300;
+}
+
+export function inferDimensionsFromLinkedInUrl(
+  url: string
+): { width?: number; height?: number } {
+  const lower = url.toLowerCase();
+  const match = lower.match(/(?:shrink|scale)_(\d{2,4})_(\d{2,4})/);
+  if (match) {
+    const w = Number(match[1]);
+    const h = Number(match[2]);
+    if (w >= 50 && w <= 4096 && h >= 50 && h <= 4096) {
+      return { width: w, height: h };
+    }
+  }
+  return {};
 }
 
 /**
@@ -92,7 +275,7 @@ export function extractOgImageFromHtml(html: string): string | null {
   while ((match = metaRegex.exec(html)) !== null) {
     const tag = match[0];
     const isOgImage =
-      /\b(?:property|name)\s*=\s*["']og:image(?::secure_url)?["']/i.test(tag) ||
+      /\b(?:property|name)\s*=\s*["']og:image(?::secure_url|:url)?["']/i.test(tag) ||
       /\bitemprop\s*=\s*["']image["']/i.test(tag);
     if (!isOgImage) continue;
     const contentMatch = tag.match(/\bcontent\s*=\s*["']([^"']+)["']/i);
@@ -128,6 +311,38 @@ export function extractTwitterImageFromHtml(html: string): string | null {
   return null;
 }
 
+function extractImageUrlFromJsonLdValue(img: unknown): string | null {
+  if (!img) return null;
+  if (typeof img === 'string' && (img.startsWith('https://') || img.startsWith('http://'))) {
+    return decodeHtmlEntities(img.trim());
+  }
+  if (Array.isArray(img)) {
+    let best: string | null = null;
+    let bestScore = -1;
+    for (const item of img) {
+      const url = extractImageUrlFromJsonLdValue(item);
+      if (url) {
+        const s = scoreLinkedInImageResolution(url);
+        if (s > bestScore) {
+          best = url;
+          bestScore = s;
+        }
+      }
+    }
+    return best;
+  }
+  if (typeof img === 'object') {
+    const imgObj = img as Record<string, unknown>;
+    const rawUrl =
+      (typeof imgObj.contentUrl === 'string' && imgObj.contentUrl) ||
+      (typeof imgObj.url === 'string' && imgObj.url);
+    if (rawUrl && (rawUrl.startsWith('https://') || rawUrl.startsWith('http://'))) {
+      return decodeHtmlEntities(rawUrl.trim());
+    }
+  }
+  return null;
+}
+
 function findImageInJsonLdNode(node: unknown): string | null {
   if (!node || typeof node !== 'object') return null;
   if (Array.isArray(node)) {
@@ -147,19 +362,8 @@ function findImageInJsonLdNode(node: unknown): string | null {
       (typeVal.includes('Person') || typeVal.includes('ProfilePage')));
 
   if (isPersonOrProfile && record.image) {
-    const img = record.image;
-    if (typeof img === 'string' && (img.startsWith('https://') || img.startsWith('http://'))) {
-      return decodeHtmlEntities(img.trim());
-    }
-    if (img && typeof img === 'object') {
-      const imgObj = img as Record<string, unknown>;
-      const rawUrl =
-        (typeof imgObj.contentUrl === 'string' && imgObj.contentUrl) ||
-        (typeof imgObj.url === 'string' && imgObj.url);
-      if (rawUrl && (rawUrl.startsWith('https://') || rawUrl.startsWith('http://'))) {
-        return decodeHtmlEntities(rawUrl.trim());
-      }
-    }
+    const extracted = extractImageUrlFromJsonLdValue(record.image);
+    if (extracted) return extracted;
   }
 
   if (record.mainEntity) {
@@ -195,6 +399,152 @@ export function extractJsonLdImageFromHtml(html: string): string | null {
   return null;
 }
 
+function findBestVectorImageInObject(node: unknown): string | null {
+  if (!node || typeof node !== 'object') return null;
+  if (Array.isArray(node)) {
+    let best: string | null = null;
+    let bestScore = -1;
+    for (const item of node) {
+      const candidate = findBestVectorImageInObject(item);
+      if (candidate) {
+        const score = scoreLinkedInImageResolution(candidate);
+        if (score > bestScore) {
+          best = candidate;
+          bestScore = score;
+        }
+      }
+    }
+    return best;
+  }
+
+  const rec = node as Record<string, unknown>;
+  if (typeof rec.rootUrl === 'string' && Array.isArray(rec.artifacts)) {
+    const rootUrl = decodeHtmlEntities(rec.rootUrl.trim());
+    if (
+      rootUrl.startsWith('https://') &&
+      rootUrl.includes('licdn.com') &&
+      !isBannerOrNonProfileLinkedInImage(rootUrl)
+    ) {
+      let bestSegment = '';
+      let bestArea = -1;
+      for (const art of rec.artifacts) {
+        if (!art || typeof art !== 'object') continue;
+        const artRec = art as Record<string, unknown>;
+        const seg =
+          typeof artRec.fileIdentifyingUrlPathSegment === 'string'
+            ? decodeHtmlEntities(artRec.fileIdentifyingUrlPathSegment.trim())
+            : '';
+        if (!seg || isBannerOrNonProfileLinkedInImage(seg)) continue;
+        const w = typeof artRec.width === 'number' ? artRec.width : 0;
+        const h = typeof artRec.height === 'number' ? artRec.height : 0;
+        const area = w > 0 && h > 0 ? w * h : scoreLinkedInImageResolution(seg);
+        if (area > bestArea) {
+          bestArea = area;
+          bestSegment = seg;
+        }
+      }
+      if (bestSegment) {
+        const joined =
+          rootUrl.endsWith('/') ||
+          rootUrl.endsWith('-') ||
+          rootUrl.endsWith('_') ||
+          bestSegment.startsWith('/')
+            ? `${rootUrl}${bestSegment}`
+            : `${rootUrl}/${bestSegment}`;
+        if (
+          joined.includes('profile-displayphoto') ||
+          joined.includes('profile-framedphoto') ||
+          !isBannerOrNonProfileLinkedInImage(joined)
+        ) {
+          return joined;
+        }
+      }
+    }
+  }
+
+  let bestNested: string | null = null;
+  let bestNestedScore = -1;
+  for (const val of Object.values(rec)) {
+    if (val && typeof val === 'object') {
+      const found = findBestVectorImageInObject(val);
+      if (found) {
+        const s = scoreLinkedInImageResolution(found);
+        if (s > bestNestedScore) {
+          bestNested = found;
+          bestNestedScore = s;
+        }
+      }
+    }
+  }
+  return bestNested;
+}
+
+/**
+ * 1d. Extraction depuis les métadonnées publiques embarquées dans le DOM LinkedIn :
+ * - Blocs `<code>` JSON (`rootUrl` + `artifacts[].fileIdentifyingUrlPathSegment`)
+ * - Attributs `data-delayed-url` / `src` / `srcset` contenant `media.licdn.com/dms/image/.../profile-displayphoto...`
+ * Retourne toujours la variante de plus haute résolution disponible.
+ */
+export function extractEmbeddedProfileImageFromHtml(html: string): string | null {
+  const candidates: string[] = [];
+
+  // 1. Parcourir les blocs <code ...>...</code> contenant du JSON Voyager public
+  const codeRegex = /<code\b[^>]*>([\s\S]*?)<\/code>/gi;
+  let codeMatch: RegExpExecArray | null;
+  while ((codeMatch = codeRegex.exec(html)) !== null) {
+    const rawContent = decodeHtmlEntities((codeMatch[1] || '').trim());
+    if (
+      !rawContent ||
+      (!rawContent.includes('profile-displayphoto') &&
+        !rawContent.includes('profile-framedphoto') &&
+        !rawContent.includes('fileIdentifyingUrlPathSegment'))
+    ) {
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(rawContent);
+      const vectorCandidate = findBestVectorImageInObject(parsed);
+      if (vectorCandidate) {
+        candidates.push(vectorCandidate);
+      }
+    } catch {
+      // Continuer vers l'analyse regex directe
+    }
+  }
+
+  // 2. Rechercher les URLs directes media.licdn.com/dms/image/.../profile-displayphoto...
+  const decodedHtml = decodeHtmlEntities(html);
+  const directUrlRegex =
+    /https:\/\/(?:[a-z0-9-]+\.)?media\.licdn\.com\/dms\/image\/[^\s"'<>\\)]+/gi;
+  let urlMatch: RegExpExecArray | null;
+  while ((urlMatch = directUrlRegex.exec(decodedHtml)) !== null) {
+    const rawCandidate = urlMatch[0].replace(/[;,]+$/, '');
+    const lower = rawCandidate.toLowerCase();
+    if (
+      (lower.includes('profile-displayphoto') ||
+        lower.includes('profile-framedphoto')) &&
+      !isBannerOrNonProfileLinkedInImage(rawCandidate) &&
+      !isGhostOrDefaultLinkedInImage(rawCandidate)
+    ) {
+      candidates.push(rawCandidate);
+    }
+  }
+
+  if (candidates.length === 0) return null;
+
+  let bestUrl = candidates[0];
+  let bestScore = scoreLinkedInImageResolution(bestUrl);
+  for (let i = 1; i < candidates.length; i++) {
+    const score = scoreLinkedInImageResolution(candidates[i]);
+    if (score > bestScore) {
+      bestScore = score;
+      bestUrl = candidates[i];
+    }
+  }
+
+  return bestUrl;
+}
+
 export function isLoginOrAuthwallRedirect(location: string): boolean {
   const lower = location.toLowerCase();
   return (
@@ -215,6 +565,41 @@ export function isAuthwallHtml(html: string): boolean {
     lower.includes('/checkpoint/challenge') ||
     (lower.includes('trkcode=') && lower.includes('trkinfo=') && !lower.includes('og:image'))
   );
+}
+
+export function isProfileNotFoundHtml(html: string): boolean {
+  const lower = html.toLowerCase();
+  if (isAuthwallHtml(html)) return false;
+  return (
+    lower.includes('profile-not-found') ||
+    lower.includes('page-not-found') ||
+    lower.includes('exact-match-404') ||
+    lower.includes('this page doesn’t exist') ||
+    lower.includes("this page doesn't exist") ||
+    lower.includes('ce profil n’est pas disponible') ||
+    lower.includes("ce profil n'est pas disponible") ||
+    lower.includes('cette page n’existe pas') ||
+    lower.includes("cette page n'existe pas")
+  );
+}
+
+export function isPublicProfileWithoutPhotoHtml(html: string): boolean {
+  const lower = html.toLowerCase();
+  if (isAuthwallHtml(html) || isProfileNotFoundHtml(html)) return false;
+  if (
+    lower.includes('ghost-person') ||
+    lower.includes('ghost_person') ||
+    lower.includes('244xhbkr7g40x6bsu4gi6q4ry')
+  ) {
+    return true;
+  }
+  const hasPublicProfileMarkers =
+    lower.includes('top-card-layout') ||
+    lower.includes('pv-top-card') ||
+    lower.includes('public_profile_') ||
+    lower.includes('"@type":"profilepage"') ||
+    lower.includes('"@type": "profilepage"');
+  return hasPublicProfileMarkers;
 }
 
 /**
@@ -245,7 +630,7 @@ export function extractPersonNameFromSlugOrHtml(slug: string, html?: string): st
         cleaned &&
         cleaned.length >= 2 &&
         cleaned.length <= 70 &&
-        !/^(?:linkedin|sign\s*in|sign\s*up|log\s*in|s['’]identifier|s['’]inscrire|rejoindre|authwall|security\s*verification)/i.test(
+        !/^(?:linkedin|sign\s*in|sign\s*up|log\s*in|s['’]identifier|s['’]inscrire|rejoindre|authwall|security\s*verification|page\s*not\s*found|404)/i.test(
           cleaned
         )
       ) {
@@ -350,7 +735,8 @@ export function detectImageMagicBytes(
 }
 
 /**
- * Extrait les dimensions (largeur x hauteur) depuis les premiers octets binaires de l'image si disponibles.
+ * Extrait les dimensions (largeur x hauteur) depuis les premiers octets binaires de l'image
+ * (PNG, GIF, JPEG tous marqueurs SOF, et WebP VP8 / VP8L / VP8X).
  */
 export function parseImageDimensionsFromBytes(
   bytes: Uint8Array,
@@ -371,6 +757,43 @@ export function parseImageDimensionsFromBytes(
       if (width > 0 && height > 0) {
         return { width, height };
       }
+    } else if (format === 'webp' && bytes.length >= 30) {
+      const chunkFourCC = String.fromCharCode(
+        bytes[12],
+        bytes[13],
+        bytes[14],
+        bytes[15]
+      );
+      if (chunkFourCC === 'VP8 ' && bytes.length >= 30) {
+        // Sync code 0x9D 0x01 0x2A aux octets 23..25
+        if (bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a) {
+          const width = ((bytes[27] << 8) | bytes[26]) & 0x3fff;
+          const height = ((bytes[29] << 8) | bytes[28]) & 0x3fff;
+          if (width > 0 && height > 0 && width <= 20000 && height <= 20000) {
+            return { width, height };
+          }
+        }
+      } else if (chunkFourCC === 'VP8L' && bytes.length >= 25) {
+        // Signature 0x2F à l'octet 20
+        if (bytes[20] === 0x2f) {
+          const b1 = bytes[21];
+          const b2 = bytes[22];
+          const b3 = bytes[23];
+          const b4 = bytes[24];
+          const width = 1 + (((b2 & 0x3f) << 8) | b1);
+          const height =
+            1 + (((b4 & 0x0f) << 10) | (b3 << 2) | ((b2 & 0xc0) >> 6));
+          if (width > 0 && height > 0 && width <= 20000 && height <= 20000) {
+            return { width, height };
+          }
+        }
+      } else if (chunkFourCC === 'VP8X' && bytes.length >= 30) {
+        const width = 1 + (bytes[24] | (bytes[25] << 8) | (bytes[26] << 16));
+        const height = 1 + (bytes[27] | (bytes[28] << 8) | (bytes[29] << 16));
+        if (width > 0 && height > 0 && width <= 20000 && height <= 20000) {
+          return { width, height };
+        }
+      }
     } else if (format === 'jpg' && bytes.length > 4) {
       let offset = 2;
       while (offset + 9 < bytes.length) {
@@ -389,10 +812,12 @@ export function parseImageDimensionsFromBytes(
         }
         const segLen = (bytes[offset + 2] << 8) | bytes[offset + 3];
         if (segLen < 2) break;
-        if (
-          (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) &&
-          offset + 8 < bytes.length
-        ) {
+        const isSofMarker =
+          (marker >= 0xc0 && marker <= 0xc3) ||
+          (marker >= 0xc5 && marker <= 0xc7) ||
+          (marker >= 0xc9 && marker <= 0xcb) ||
+          (marker >= 0xcd && marker <= 0xcf);
+        if (isSofMarker && offset + 8 < bytes.length) {
           const height = (bytes[offset + 5] << 8) | bytes[offset + 6];
           const width = (bytes[offset + 7] << 8) | bytes[offset + 8];
           if (width > 0 && height > 0 && width <= 20000 && height <= 20000) {
@@ -420,6 +845,9 @@ export function isSmallOrThumbnailImage(
     lower.includes('shrink_100_100') ||
     lower.includes('shrink_200_200') ||
     lower.includes('shrink_400_400') ||
+    lower.includes('scale_100_100') ||
+    lower.includes('scale_200_200') ||
+    lower.includes('scale_400_400') ||
     lower.includes('/thumb/') ||
     lower.includes('pithumbsize') ||
     lower.includes('iiurlwidth') ||
@@ -433,6 +861,14 @@ export function isSmallOrThumbnailImage(
     (typeof height === 'number' && height > 0 && height <= 450)
   ) {
     return true;
+  }
+  if (
+    typeof width === 'number' &&
+    width >= 600 &&
+    typeof height === 'number' &&
+    height >= 600
+  ) {
+    return false;
   }
   if (typeof byteLength === 'number' && byteLength > 0 && byteLength < 45_000) {
     return true;
@@ -461,11 +897,12 @@ export interface ValidatedImageInfo {
 /**
  * Valide rigoureusement une URL d'image avant de la retourner :
  * - Suit jusqu'à 4 redirections en vérifiant l'allowlist anti-SSRF
- * - Vérifie le statut HTTP 200 (ou 206 si Range est accepté)
+ * - Vérifie le statut HTTP 200 (ou 206 si Range est accepté), avec repli sans Range si le CDN refuse Range
+ * - Détecte les URLs d'images signées expirées (`IMAGE_EXPIRED`)
  * - Vérifie l'en-tête `Content-Type: image/*` (ne retourne jamais une page HTML)
  * - Vérifie la limite de taille (`MIN_LINKEDIN_IMAGE_BYTES` .. `MAX_LINKEDIN_IMAGE_BYTES`)
  * - Vérifie les vrais magic bytes de l'image (JPEG, PNG, WebP, GIF)
- * - Indique `"Miniature"` lorsqu'une seule petite version est disponible (ne prétend jamais être en pleine résolution)
+ * - Extrait ou déduit les dimensions (PNG, GIF, JPEG, WebP)
  */
 export async function validateLinkedInImageUrl(
   rawUrl: string,
@@ -490,6 +927,16 @@ export async function validateLinkedInImageUrl(
   const onExternalAbort = () => controller.abort();
   options?.signal?.addEventListener('abort', onExternalAbort, { once: true });
 
+  const buildImageHeaders = (targetUrl: string, useRange: boolean): Record<string, string> => {
+    const isLicdn = targetUrl.toLowerCase().includes('.licdn.com');
+    return {
+      'User-Agent': BROWSER_USER_AGENT,
+      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      ...(isLicdn ? { Referer: 'https://www.linkedin.com/' } : {}),
+      ...(useRange ? { Range: 'bytes=0-16383' } : {}),
+    };
+  };
+
   try {
     let res: Response | null = null;
     for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
@@ -497,12 +944,23 @@ export async function validateLinkedInImageUrl(
         method: 'GET',
         redirect: 'manual',
         signal: controller.signal,
-        headers: {
-          'User-Agent': BROWSER_USER_AGENT,
-          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-          Range: 'bytes=0-16383',
-        },
+        headers: buildImageHeaders(currentUrl, true),
       });
+
+      // Certains nœuds CDN rejettent l'en-tête Range avec 400 ou 416 : réessayer sans Range
+      if (res.status === 400 || res.status === 416) {
+        try {
+          await res.body?.cancel();
+        } catch {
+          // Ignorer
+        }
+        res = await fetch(currentUrl, {
+          method: 'GET',
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: buildImageHeaders(currentUrl, false),
+        });
+      }
 
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get('location') || '';
@@ -556,6 +1014,23 @@ export async function validateLinkedInImageUrl(
       return { ok: false, httpStatus: 429, errorCode: 'RATE_LIMITED' };
     }
 
+    // Détection explicite des URLs d'images LinkedIn expirées (HTTP 401/403/410 sur CDN ou signature e= expirée)
+    const isLicdnUrl = currentUrl.toLowerCase().includes('.licdn.com');
+    const hasExpiredTimestamp = isLinkedInImageUrlExpired(currentUrl);
+    if (
+      status === 401 ||
+      status === 403 ||
+      (status === 410 && (isLicdnUrl || hasExpiredTimestamp)) ||
+      (status === 404 && hasExpiredTimestamp)
+    ) {
+      try {
+        await res.body?.cancel();
+      } catch {
+        // Ignorer
+      }
+      return { ok: false, httpStatus: status, errorCode: 'IMAGE_EXPIRED' };
+    }
+
     if (status === 404 || status === 410) {
       try {
         await res.body?.cancel();
@@ -571,7 +1046,11 @@ export async function validateLinkedInImageUrl(
       } catch {
         // Ignorer
       }
-      return { ok: false, httpStatus: status, errorCode: 'INVALID_IMAGE' };
+      return {
+        ok: false,
+        httpStatus: status,
+        errorCode: hasExpiredTimestamp ? 'IMAGE_EXPIRED' : 'INVALID_IMAGE',
+      };
     }
 
     const contentType = (res.headers.get('content-type') || '').toLowerCase().trim();
@@ -671,11 +1150,18 @@ export async function validateLinkedInImageUrl(
       return { ok: false, httpStatus: status, errorCode: 'INVALID_IMAGE' };
     }
 
-    const dims = parseImageDimensionsFromBytes(sample, ext);
+    const parsedDims = parseImageDimensionsFromBytes(sample, ext);
+    const inferredDims =
+      !parsedDims.width || !parsedDims.height
+        ? inferDimensionsFromLinkedInUrl(currentUrl)
+        : {};
+    const width = parsedDims.width ?? inferredDims.width;
+    const height = parsedDims.height ?? inferredDims.height;
+
     const isThumbnail = isSmallOrThumbnailImage(
       currentUrl,
-      dims.width,
-      dims.height,
+      width,
+      height,
       effectiveSize
     );
 
@@ -685,17 +1171,22 @@ export async function validateLinkedInImageUrl(
       ext,
       contentType,
       byteLength: effectiveSize,
-      width: dims.width,
-      height: dims.height,
+      width,
+      height,
       isThumbnail,
       qualityLabel: isThumbnail ? 'Miniature' : 'Standard',
       httpStatus: 200,
     };
-  } catch {
+  } catch (err) {
+    const isAbort =
+      err instanceof Error &&
+      (err.name === 'AbortError' ||
+        err.name === 'TimeoutError' ||
+        /abort|timeout/i.test(err.message));
     return {
       ok: false,
       httpStatus: null,
-      errorCode: 'INVALID_IMAGE',
+      errorCode: isAbort ? 'TIMEOUT' : 'INVALID_IMAGE',
     };
   } finally {
     clearTimeout(timeoutId);
@@ -732,10 +1223,14 @@ function collectResponseCookies(headers: Headers, cookieJar: Map<string, string>
 }
 
 /**
- * Analyse le HTML d'un profil public LinkedIn dans l'ordre strict :
+ * Analyse le HTML d'un profil public LinkedIn dans l'ordre de priorité :
  * 1. `og:image`
  * 2. `twitter:image`
  * 3. JSON-LD `"image"`
+ * 4. Métadonnées publiques embarquées (`<code>` / `media.licdn.com/dms/image/.../profile-displayphoto...`)
+ *
+ * Si plusieurs variantes de la photo de profil publique sont exposées dans la page,
+ * sélectionne la meilleure résolution disponible.
  */
 export function parseLinkedInProfileHtml(
   html: string,
@@ -752,19 +1247,52 @@ export function parseLinkedInProfileHtml(
     );
   }
 
-  // Ordre strict demandé : og:image -> twitter:image -> JSON-LD "image"
+  // Ordre de priorité : og:image -> twitter:image -> JSON-LD "image" -> embedded public metadata
   const ogImage = extractOgImageFromHtml(html);
   const twitterImage = !ogImage ? extractTwitterImageFromHtml(html) : null;
   const jsonLdImage = !ogImage && !twitterImage ? extractJsonLdImageFromHtml(html) : null;
-  const candidateUrl = ogImage || twitterImage || jsonLdImage;
+  const embeddedImage = extractEmbeddedProfileImageFromHtml(html);
+
+  let candidateUrl = ogImage || twitterImage || jsonLdImage || embeddedImage;
+
+  // Si og:image / twitter:image / JSON-LD pointe vers un avatar fantôme mais qu'une vraie photo publique est embarquée
+  if (
+    candidateUrl &&
+    isGhostOrDefaultLinkedInImage(candidateUrl) &&
+    embeddedImage &&
+    !isGhostOrDefaultLinkedInImage(embeddedImage)
+  ) {
+    candidateUrl = embeddedImage;
+  }
+
+  // Si une variante embarquée offre une meilleure résolution de la photo de profil, la privilégier
+  if (
+    candidateUrl &&
+    embeddedImage &&
+    embeddedImage !== candidateUrl &&
+    !isGhostOrDefaultLinkedInImage(embeddedImage) &&
+    isAllowedMediaUrl(embeddedImage) &&
+    scoreLinkedInImageResolution(embeddedImage) >
+      scoreLinkedInImageResolution(candidateUrl)
+  ) {
+    candidateUrl = embeddedImage;
+  }
 
   if (!candidateUrl) {
-    if (isAuthwallHtml(html)) {
+    if (isProfileNotFoundHtml(html)) {
       return errorResponse(
         'linkedin',
-        'LOGIN_WALL',
-        LINKEDIN_FRENCH_ERROR_MESSAGES.LOGIN_WALL,
-        { engineStage: 'authwall', httpStatus, engineFn: 'linkedin.profile' }
+        'PROFILE_NOT_FOUND',
+        LINKEDIN_FRENCH_ERROR_MESSAGES.PROFILE_NOT_FOUND,
+        { engineStage: 'direct', httpStatus: 404, engineFn: 'linkedin.profile' }
+      );
+    }
+    if (isPublicProfileWithoutPhotoHtml(html)) {
+      return errorResponse(
+        'linkedin',
+        'PHOTO_NOT_AVAILABLE',
+        LINKEDIN_FRENCH_ERROR_MESSAGES.PHOTO_NOT_AVAILABLE,
+        { engineStage: 'direct', httpStatus, engineFn: 'linkedin.profile' }
       );
     }
     return errorResponse(
@@ -797,9 +1325,12 @@ export function parseLinkedInProfileHtml(
     ? 'og_image'
     : twitterImage
     ? 'twitter_image'
-    : 'jsonld';
+    : jsonLdImage
+    ? 'jsonld'
+    : 'embedded_meta';
   const isThumb = isSmallOrThumbnailImage(candidateUrl);
   const qualityLabel = isThumb ? 'Miniature' : 'Standard';
+  const inferredDims = inferDimensionsFromLinkedInUrl(candidateUrl);
 
   return {
     ok: true,
@@ -820,6 +1351,8 @@ export function parseLinkedInProfileHtml(
         ext: 'jpg',
         quality: qualityLabel,
         isThumbnail: isThumb,
+        ...(inferredDims.width ? { width: inferredDims.width } : {}),
+        ...(inferredDims.height ? { height: inferredDims.height } : {}),
       },
     ],
     engineStage,
@@ -848,7 +1381,7 @@ function formatBytesHuman(bytes?: number): string | undefined {
  * Étape 2 — Recherche d'images de repli via des sources publiques gratuites compatibles Worker
  * (Wikimedia Commons API + Wikipedia PageImages API, sans clé payante ni scraping illégitime).
  * Valide chaque image (HTTP 200, image/*, magic bytes, limite de taille, redirections) et retourne
- * jusqu'à 6 candidats avec miniature + lien source.
+ * jusqu'à 6 candidats avec miniature + lien source, marqués comme non vérifiés.
  */
 export async function searchLinkedInFallbackImages(
   personName: string,
@@ -996,16 +1529,67 @@ export async function searchLinkedInFallbackImages(
   }
 }
 
+export interface ExtractLinkedInOptions {
+  bypassCache?: boolean;
+  allowFallbackSearch?: boolean;
+}
+
 /**
- * Extracteur de photo de profil LinkedIn en 3 niveaux :
- * 1. Primaire : requête de la page publique avec en-têtes navigateur normaux (`og:image` -> `twitter:image` -> JSON-LD `"image"`).
- *    Si mur de connexion (`/authwall`, `/login`, statut 999 ou absence de métadonnées), arrêt immédiat sans contournement et passage à l'étape 2.
- * 2. Repli (recherche d'images) : extrait le nom depuis le slug ou le titre de la page, cherche jusqu'à 6 images candidates via une source gratuite compatible Worker, valide chaque image (HTTP 200, `image/*`, magic bytes, limite de taille, redirections) et les affiche dans l'écran de sélection avec la mention `"Résultats non vérifiés, peut-être pas la bonne personne"`.
- * 3. Dernier recours : en cas d'absence de candidat ou d'échec, retourne un code d'erreur précis (`LOGIN_WALL`, `RATE_LIMITED`, `PROFILE_NOT_FOUND`, `PHOTO_NOT_AVAILABLE`, `INVALID_IMAGE`) permettant l'import manuel (drag & drop / sélecteur de fichier) avec aperçu.
+ * Extracteur de photo de profil LinkedIn en 3 niveaux avec cache intelligent :
+ * 1. Primaire : requête de la page publique avec en-têtes navigateur normaux (`og:image` -> `twitter:image` -> JSON-LD -> métadonnées embarquées).
+ *    Si mur de connexion (`/authwall`, `/login`, statut 999), arrêt immédiat sans contournement et passage à l'étape 2.
+ * 2. Repli (recherche d'images optionnelle) : extrait le nom depuis le slug ou le titre de la page, cherche jusqu'à 6 images candidates via Wikimedia/Wikipedia, valide chaque image (HTTP 200, `image/*`, magic bytes, limite de taille) et les marque explicitement comme non vérifiées (`unverifiedFallback: true`).
+ * 3. Dernier recours : en cas d'absence de candidat ou d'échec, retourne un code d'erreur précis (`PROFILE_NOT_FOUND`, `LOGIN_WALL`, `RATE_LIMITED`, `PHOTO_NOT_AVAILABLE`, `INVALID_IMAGE`, `IMAGE_EXPIRED`, `TIMEOUT`, `NETWORK_ERROR`).
  */
-export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
+export async function extractLinkedIn(
+  slug: string,
+  options?: ExtractLinkedInOptions
+): Promise<ExtractResponse> {
   const normalizedSlug = slug.trim().toLowerCase();
+  if (!normalizedSlug) {
+    return errorResponse(
+      'linkedin',
+      'PROFILE_NOT_FOUND',
+      LINKEDIN_FRENCH_ERROR_MESSAGES.PROFILE_NOT_FOUND,
+      { engineStage: 'direct', httpStatus: 404, engineFn: 'linkedin.profile' }
+    );
+  }
+
+  syncCacheWithFetchEnv();
+
+  if (!options?.bypassCache) {
+    const cached = getCachedLinkedInResult(normalizedSlug);
+    if (cached) {
+      return cached;
+    }
+    const inFlight = inFlightLinkedInExtractions.get(normalizedSlug);
+    if (inFlight) {
+      return inFlight;
+    }
+  }
+
+  const extractionPromise = performLinkedInExtraction(normalizedSlug, options);
+  if (!options?.bypassCache) {
+    inFlightLinkedInExtractions.set(normalizedSlug, extractionPromise);
+  }
+
+  try {
+    const result = await extractionPromise;
+    if (result.ok && !result.unverifiedFallback) {
+      setCachedLinkedInResult(normalizedSlug, result);
+    }
+    return result;
+  } finally {
+    inFlightLinkedInExtractions.delete(normalizedSlug);
+  }
+}
+
+async function performLinkedInExtraction(
+  normalizedSlug: string,
+  options?: ExtractLinkedInOptions
+): Promise<ExtractResponse> {
   const initialUrl = `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`;
+  const allowFallbackSearch = options?.allowFallbackSearch ?? true;
 
   let blockedStage = 'authwall';
   let lastHttpStatus: number | null = null;
@@ -1020,9 +1604,10 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
     let res: Response | null = null;
     const cookieJar = new Map<string, string>();
     let redirectedToAuthwall = false;
+    let redirectedToNotFound = false;
 
-    // Étape 1 : Requête unique avec en-têtes navigateur normaux (jusqu'à 2 redirections canoniques /in/)
-    for (let hop = 0; hop < 3; hop++) {
+    // Étape 1 : Requête avec en-têtes navigateur normaux (jusqu'à MAX_REDIRECT_HOPS redirections canoniques /in/)
+    for (let hop = 0; hop < MAX_REDIRECT_HOPS; hop++) {
       const cookieHeader =
         cookieJar.size > 0
           ? Array.from(cookieJar.entries())
@@ -1048,6 +1633,16 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
 
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get('location') || '';
+        try {
+          await res.body?.cancel();
+        } catch {
+          // Ignorer
+        }
+        if (location.toLowerCase().includes('/404')) {
+          redirectedToNotFound = true;
+          lastHttpStatus = 404;
+          break;
+        }
         if (!location || isLoginOrAuthwallRedirect(location)) {
           redirectedToAuthwall = true;
           hitLoginWall = true;
@@ -1085,6 +1680,15 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
       break;
     }
 
+    if (redirectedToNotFound) {
+      return errorResponse(
+        'linkedin',
+        'PROFILE_NOT_FOUND',
+        LINKEDIN_FRENCH_ERROR_MESSAGES.PROFILE_NOT_FOUND,
+        { engineStage: 'direct', httpStatus: 404, engineFn: 'linkedin.profile' }
+      );
+    }
+
     if (!redirectedToAuthwall && res) {
       const status = res.status;
       lastHttpStatus = status;
@@ -1117,14 +1721,20 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
         if (parsed.ok && parsed.items && parsed.items[0]) {
           // Valider systématiquement l'image primaire extraite avant de la retourner
           const primaryItem = parsed.items[0];
-          const validation = await validateLinkedInImageUrl(primaryItem.url);
+          const validation = await validateLinkedInImageUrl(primaryItem.url, {
+            signal: controller.signal,
+          });
           if (!validation.ok || !validation.finalUrl) {
-            const errCode = validation.errorCode || 'INVALID_IMAGE';
+            const errCode = (validation.errorCode || 'INVALID_IMAGE') as ErrorCode;
             const errMsg =
               errCode === 'RATE_LIMITED'
                 ? LINKEDIN_FRENCH_ERROR_MESSAGES.RATE_LIMITED
                 : errCode === 'PHOTO_NOT_AVAILABLE'
                 ? LINKEDIN_FRENCH_ERROR_MESSAGES.PHOTO_NOT_AVAILABLE
+                : errCode === 'IMAGE_EXPIRED'
+                ? LINKEDIN_FRENCH_ERROR_MESSAGES.IMAGE_EXPIRED
+                : errCode === 'TIMEOUT'
+                ? LINKEDIN_FRENCH_ERROR_MESSAGES.TIMEOUT
                 : LINKEDIN_FRENCH_ERROR_MESSAGES.INVALID_IMAGE;
             return errorResponse('linkedin', errCode, errMsg, {
               engineStage: parsed.engineStage || 'direct',
@@ -1160,16 +1770,25 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
           };
         }
 
-        if (parsed.error?.code === 'PHOTO_NOT_AVAILABLE') {
-          return parsed;
-        }
-        if (parsed.error?.code === 'INVALID_IMAGE') {
+        if (
+          parsed.error?.code === 'PHOTO_NOT_AVAILABLE' ||
+          parsed.error?.code === 'PROFILE_NOT_FOUND' ||
+          parsed.error?.code === 'INVALID_IMAGE' ||
+          parsed.error?.code === 'IMAGE_EXPIRED'
+        ) {
           return parsed;
         }
 
         // Sinon, c'est un mur de connexion ou une réponse sans métadonnées -> passer à l'étape 2
         hitLoginWall = true;
         blockedStage = parsed.engineStage || 'authwall';
+      } else if (status >= 500 && status <= 599) {
+        return errorResponse(
+          'linkedin',
+          'NETWORK_ERROR',
+          LINKEDIN_FRENCH_ERROR_MESSAGES.NETWORK_ERROR,
+          { engineStage: 'direct', httpStatus: status, engineFn: 'linkedin.profile' }
+        );
       } else {
         hitLoginWall = true;
         blockedStage = 'authwall';
@@ -1185,18 +1804,33 @@ export async function extractLinkedIn(slug: string): Promise<ExtractResponse> {
       return errorResponse(
         'linkedin',
         'TIMEOUT',
-        'La récupération du profil LinkedIn a dépassé le délai maximum.',
+        LINKEDIN_FRENCH_ERROR_MESSAGES.TIMEOUT,
         { engineStage: 'direct', httpStatus: null, engineFn: 'linkedin.profile' }
       );
     }
-    hitLoginWall = true;
-    blockedStage = 'authwall';
+    const isStatus999RangeError =
+      err instanceof RangeError && /status|999/i.test(err.message);
+    if (isStatus999RangeError) {
+      hitLoginWall = true;
+      blockedStage = 'authwall';
+      lastHttpStatus = 999;
+    } else if (lastHttpStatus === null) {
+      return errorResponse(
+        'linkedin',
+        'NETWORK_ERROR',
+        LINKEDIN_FRENCH_ERROR_MESSAGES.NETWORK_ERROR,
+        { engineStage: 'direct', httpStatus: null, engineFn: 'linkedin.profile' }
+      );
+    } else {
+      hitLoginWall = true;
+      blockedStage = 'authwall';
+    }
   } finally {
     clearTimeout(timer);
   }
 
-  // Étape 2 : Repli par recherche d'images gratuites à partir du nom extrait du titre ou du slug
-  if (hitLoginWall) {
+  // Étape 2 : Repli par recherche d'images publiques gratuites à partir du nom extrait du titre ou du slug
+  if (hitLoginWall && allowFallbackSearch) {
     const personName = extractPersonNameFromSlugOrHtml(normalizedSlug, capturedHtml);
     const candidates = await searchLinkedInFallbackImages(personName);
 

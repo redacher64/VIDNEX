@@ -101,7 +101,7 @@ function wrapDownloadUrl(
   if (options?.backupUrl) {
     params.set('alt', options.backupUrl);
   }
-  if (options?.sourceUrl && !inline) {
+  if (options?.sourceUrl) {
     params.set('src', options.sourceUrl);
   }
   return `/api/download?${params.toString()}`;
@@ -489,7 +489,9 @@ async function handleExtract(
   } else if (detection.platform === 'facebook') {
     result = await extractFacebook(detection.cleanUrl, detection.identifier);
   } else if (detection.platform === 'linkedin') {
-    result = await extractLinkedIn(detection.identifier || '');
+    result = await extractLinkedIn(detection.identifier || '', {
+      allowFallbackSearch: settings.allow_third_party !== false,
+    });
   } else {
     return createErrorResponse(
       'UNSUPPORTED_URL',
@@ -585,6 +587,13 @@ async function handleExtract(
     'post'
   ).replace(/[^a-zA-Z0-9_-]/g, '');
 
+  const primaryLinkedInExt =
+    (isLinkedInProfile && result.items?.[0]?.ext) || 'jpg';
+  const linkedInAutoHealSrc =
+    isLinkedInProfile && !result.unverifiedFallback
+      ? detection.cleanUrl
+      : undefined;
+
   const transformedItems = (result.items || []).map((item, idx) => {
     const ext =
       item.ext ||
@@ -633,7 +642,10 @@ async function handleExtract(
               ? `x_${username}_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : `VIDNEX_${result.platform}_${username}_slide_${idx + 1}.jpg`,
             true,
-            { cookie: itemCookie }
+            {
+              cookie: itemCookie,
+              sourceUrl: linkedInAutoHealSrc,
+            }
           )
         : undefined,
       url: wrapDownloadUrl(item.url, safeFilename, false, {
@@ -655,10 +667,13 @@ async function handleExtract(
       isIgProfile
         ? `instagram_${profileUsername}_profile.jpg`
         : isLinkedInProfile
-        ? `linkedin_${profileUsername}_profile.jpg`
+        ? `linkedin_${profileUsername}_profile.${primaryLinkedInExt}`
         : `VIDNEX_${result.platform}_${username}_thumb.jpg`,
       true,
-      { cookie: sharedCookie }
+      {
+        cookie: sharedCookie,
+        sourceUrl: linkedInAutoHealSrc,
+      }
     );
   }
 
@@ -675,10 +690,13 @@ async function handleExtract(
                 isIgProfile
                   ? `instagram_${profileUsername}_profile.jpg`
                   : isLinkedInProfile
-                  ? `linkedin_${profileUsername}_profile.jpg`
+                  ? `linkedin_${profileUsername}_profile.${primaryLinkedInExt}`
                   : `VIDNEX_${result.platform}_${username}_avatar.jpg`,
                 true,
-                { cookie: sharedCookie }
+                {
+                  cookie: sharedCookie,
+                  sourceUrl: linkedInAutoHealSrc,
+                }
               )
             : result.author.avatar,
       }

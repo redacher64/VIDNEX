@@ -11,13 +11,15 @@ export type ErrorCode =
   | 'RATE_LIMITED'
   | 'BLOCKED_BY_PLATFORM'
   | 'TIMEOUT'
+  | 'NETWORK_ERROR'
   | 'MAINTENANCE'
   | 'PLATFORM_DISABLED'
   | 'BLOCKED'
   | 'LOGIN_WALL'
   | 'PROFILE_NOT_FOUND'
   | 'PHOTO_NOT_AVAILABLE'
-  | 'INVALID_IMAGE';
+  | 'INVALID_IMAGE'
+  | 'IMAGE_EXPIRED';
 
 export interface ExtractMediaItem {
   index?: number;
@@ -89,6 +91,8 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'NOT_FOUND':
     case 'PROFILE_NOT_FOUND':
       return 404;
+    case 'IMAGE_EXPIRED':
+      return 410;
     case 'NO_MEDIA':
     case 'PHOTO_NOT_AVAILABLE':
     case 'INVALID_IMAGE':
@@ -99,6 +103,7 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
       return 503;
     case 'TIMEOUT':
       return 504;
+    case 'NETWORK_ERROR':
     case 'BLOCKED_BY_PLATFORM':
     default:
       return 502;

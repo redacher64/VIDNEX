@@ -262,11 +262,13 @@ export function detectUrl(
   const pathname = parsed.pathname;
 
   // =========================================================================
-  // 0. LINKEDIN (linkedin.com/in/{slug} avec www. ou sous-domaine de pays)
+  // 0. LINKEDIN (linkedin.com/in/{slug} avec www., m., mobile. ou sous-domaine de pays, et suffixe de langue optionnel /in/{slug}/fr)
   // =========================================================================
   const isLinkedInAllowedHost =
     rawHost === 'linkedin.com' ||
     rawHost === 'www.linkedin.com' ||
+    rawHost === 'm.linkedin.com' ||
+    rawHost === 'mobile.linkedin.com' ||
     /^[a-z]{2}\.linkedin\.com$/.test(rawHost);
 
   if (
@@ -284,7 +286,12 @@ export function detectUrl(
       };
     }
     const segments = pathname.split('/').filter(Boolean);
-    if (segments.length !== 2 || segments[0].toLowerCase() !== 'in') {
+    const hasValidProfileSegments =
+      (segments.length === 2 ||
+        (segments.length === 3 &&
+          /^[a-z]{2}(?:[-_][a-z]{2})?$/i.test(segments[2]))) &&
+      segments[0].toLowerCase() === 'in';
+    if (!hasValidProfileSegments) {
       return {
         isValid: false,
         platform: null,

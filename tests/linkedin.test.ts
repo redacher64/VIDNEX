@@ -2038,3 +2038,343 @@ test('Adsterra integration: verifies centralized config, srcdoc iframe atOptions
   assert.equal(desktopLeaderboardUnit.width, 728);
   assert.equal(desktopLeaderboardUnit.height, 90);
 });
+
+test('LinkedIn Production 10-Scenario Suite: URL variants, embedded Voyager JSON resolution selection, WebP/JPEG dimensions, caching, IMAGE_EXPIRED, INVALID_IMAGE, RATE_LIMITED, and /api/download preview + download + Auto-Heal', async () => {
+  const {
+    parseLinkedInProfileHtml,
+    parseImageDimensionsFromBytes,
+    validateLinkedInImageUrl,
+    extractLinkedIn,
+    clearLinkedInCache,
+    LINKEDIN_FRENCH_ERROR_MESSAGES,
+  } = await import('../functions/_lib/linkedin.ts');
+  const { onRequestPost: extractPost } = await import('../functions/api/extract.ts');
+  const { onRequestGet: downloadGet } = await import('../functions/api/download.ts');
+  const {
+    mapExtractResponseToMediaResult,
+    getLocalizedErrorMessage,
+  } = await import('../src/services/extractorService.ts');
+
+  const db = createMemoryD1Database();
+  const env = { DB: db, IP_HASH_SALT: 'linkedin-10-scenarios-salt' };
+
+  // Helper 800x800 JPEG binary with SOF2 progressive marker (0xFFC2)
+  const jpeg800x800 = new Uint8Array([
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
+    0xff, 0xc2, 0x00, 0x0b, 0x08, 0x03, 0x20, 0x03, 0x20, 0x01, 0x01, 0x11, 0x00,
+    0xff, 0xd9,
+  ]);
+
+  // Helper 800x800 WebP VP8X binary
+  const webp800x800 = new Uint8Array([
+    0x52, 0x49, 0x46, 0x46, // RIFF
+    0x24, 0x00, 0x00, 0x00,
+    0x57, 0x45, 0x42, 0x50, // WEBP
+    0x56, 0x50, 0x38, 0x58, // VP8X
+    0x0a, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x1f, 0x03, 0x00, // width - 1 = 799 (0x031f) -> 800
+    0x1f, 0x03, 0x00, // height - 1 = 799 (0x031f) -> 800
+  ]);
+
+  const parsedJpegDims = parseImageDimensionsFromBytes(jpeg800x800, 'jpg');
+  assert.deepEqual(parsedJpegDims, { width: 800, height: 800 });
+
+  const parsedWebpDims = parseImageDimensionsFromBytes(webp800x800, 'webp');
+  assert.deepEqual(parsedWebpDims, { width: 800, height: 800 });
+
+  // SCENARIO 1: Valid public LinkedIn profile URL normalization (mobile subdomains + locale subpaths)
+  const validMobileAndLocaleUrls = [
+    { url: 'https://m.linkedin.com/in/ada-lovelace', slug: 'ada-lovelace' },
+    { url: 'https://mobile.linkedin.com/in/ada-lovelace/en', slug: 'ada-lovelace' },
+    { url: 'https://fr.linkedin.com/in/ada-lovelace/fr/', slug: 'ada-lovelace' },
+    { url: 'https://www.linkedin.com/in/ada-lovelace/en-us?trk=public', slug: 'ada-lovelace' },
+  ];
+  for (const item of validMobileAndLocaleUrls) {
+    const b = detectUrl(item.url);
+    assert.equal(b.isValid, true, `Backend should accept ${item.url}`);
+    assert.equal(b.platform, 'linkedin');
+    assert.equal(b.identifier, item.slug);
+    assert.equal(b.cleanUrl, `https://www.linkedin.com/in/${item.slug}`);
+
+    const f = detectMediaUrl(item.url);
+    assert.equal(f.isValid, true, `Frontend should accept ${item.url}`);
+    assert.equal(f.platform, 'linkedin');
+    assert.equal(f.identifier, item.slug);
+  }
+
+  // SCENARIO 2: Profile with publicly available photo metadata (og:image 100x100 vs embedded Voyager 800x800)
+  const htmlWithVoyagerUpgrade = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta property="og:image" content="https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_100_100/0/1700000000000?e=2147483647&amp;v=beta&amp;t=small_sig" />
+      </head>
+      <body>
+        <code>
+          {"data":{"picture":{"rootUrl":"https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-","artifacts":[{"width":100,"height":100,"fileIdentifyingUrlPathSegment":"shrink_100_100/0/1700000000000?e=2147483647&v=beta&t=small_sig"},{"width":800,"height":800,"fileIdentifyingUrlPathSegment":"shrink_800_800/0/1700000000000?e=2147483647&v=beta&t=hd_sig"}]}}}
+        </code>
+      </body>
+    </html>
+  `;
+  const parsedUpgraded = parseLinkedInProfileHtml(htmlWithVoyagerUpgrade, 'ada-lovelace');
+  assert.equal(parsedUpgraded.ok, true);
+  assert.equal(
+    parsedUpgraded.items?.[0]?.url,
+    'https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=2147483647&v=beta&t=hd_sig',
+    'Should select the 800x800 artifact over the 100x100 og:image'
+  );
+
+  // SCENARIO 3: Profile returning a login wall (when fallback search has no candidates -> LOGIN_WALL)
+  const origFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('linkedin.com/in/')) {
+        return new Response('<html><head><title>Sign In | LinkedIn</title></head><body>authwall</body></html>', {
+          status: 999,
+        });
+      }
+      return new Response(JSON.stringify({ query: { pages: {} } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const loginWallRes = await extractLinkedIn('private-executive', {
+      bypassCache: true,
+      allowFallbackSearch: false,
+    });
+    assert.equal(loginWallRes.ok, false);
+    assert.equal(loginWallRes.error?.code, 'LOGIN_WALL');
+
+    // SCENARIO 4: Profile without a publicly accessible photo -> PHOTO_NOT_AVAILABLE
+    const noPhotoHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head><title>Jean SansPhoto | LinkedIn</title></head>
+        <body>
+          <section class="top-card-layout">
+            <h1 class="top-card-layout__title">Jean SansPhoto</h1>
+          </section>
+        </body>
+      </html>
+    `;
+    const parsedNoPhoto = parseLinkedInProfileHtml(noPhotoHtml, 'jean-sansphoto');
+    assert.equal(parsedNoPhoto.ok, false);
+    assert.equal(parsedNoPhoto.error?.code, 'PHOTO_NOT_AVAILABLE');
+
+    // Also verify 404 profile page -> PROFILE_NOT_FOUND
+    const notFoundHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head><title>Profile Not Found | LinkedIn</title></head>
+        <body><h1>This page doesn’t exist</h1></body>
+      </html>
+    `;
+    const parsedNotFound = parseLinkedInProfileHtml(notFoundHtml, 'ghost-profile');
+    assert.equal(parsedNotFound.ok, false);
+    assert.equal(parsedNotFound.error?.code, 'PROFILE_NOT_FOUND');
+
+    // SCENARIO 5: Invalid LinkedIn URL -> rejected by /api/extract with 400 UNSUPPORTED_URL
+    const invalidExtractRes = await extractPost({
+      request: new Request('https://vidnex.space/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: 'https://www.linkedin.com/company/openai' }),
+      }),
+      env,
+    });
+    assert.equal(invalidExtractRes.status, 400);
+    const invalidExtractJson: any = await invalidExtractRes.json();
+    assert.equal(invalidExtractJson.ok, false);
+    assert.equal(invalidExtractJson.error.code, 'UNSUPPORTED_URL');
+
+    // SCENARIO 6: Expired image URL -> IMAGE_EXPIRED (410)
+    globalThis.fetch = (async () => {
+      return new Response('Expired token', { status: 403 });
+    }) as typeof fetch;
+
+    const expiredCheck = await validateLinkedInImageUrl(
+      'https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=1600000000&v=beta&t=old'
+    );
+    assert.equal(expiredCheck.ok, false);
+    assert.equal(expiredCheck.errorCode, 'IMAGE_EXPIRED');
+    assert.equal(expiredCheck.httpStatus, 403);
+
+    // SCENARIO 7: Invalid image response -> INVALID_IMAGE (422) on both /api/extract and /api/download
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('linkedin.com/in/corrupt-photo')) {
+        return new Response(
+          `<!doctype html><html><head><meta property="og:image" content="https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=2147483647&amp;v=beta&amp;t=corrupt" /></head><body></body></html>`,
+          { status: 200, headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+      return new Response('<html>Error page disguised as image</html>', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }) as typeof fetch;
+
+    const invalidImageExtractRes = await extractPost({
+      request: new Request('https://vidnex.space/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: 'https://www.linkedin.com/in/corrupt-photo' }),
+      }),
+      env,
+    });
+    assert.equal(invalidImageExtractRes.status, 422);
+    const invalidImageExtractJson: any = await invalidImageExtractRes.json();
+    assert.equal(invalidImageExtractJson.error.code, 'INVALID_IMAGE');
+
+    const invalidImageDownloadRes = await downloadGet({
+      request: new Request(
+        'https://vidnex.space/api/download?url=' +
+          encodeURIComponent(
+            'https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=2147483647&v=beta&t=corrupt'
+          ) +
+          '&ext=jpg&inline=1'
+      ),
+      env,
+    });
+    assert.equal(invalidImageDownloadRes.status, 422);
+
+    // SCENARIO 8: Rate-limited response -> RATE_LIMITED (429)
+    globalThis.fetch = (async () => {
+      return new Response('Too Many Requests', { status: 429 });
+    }) as typeof fetch;
+
+    const rateLimitedRes = await extractLinkedIn('rate-limited-user', { bypassCache: true });
+    assert.equal(rateLimitedRes.ok, false);
+    assert.equal(rateLimitedRes.error?.code, 'RATE_LIMITED');
+
+    // SCENARIO 9 & 10: Successful image extraction (with caching), preview (/api/download?inline=1), download (/api/download), and Auto-Heal on expired signed URL
+    clearLinkedInCache();
+    let profileFetchHits = 0;
+    const freshImageUrl =
+      'https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=2147483647&v=beta&t=fresh_webp';
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const u = typeof input === 'string' ? input : input.toString();
+      if (u.includes('linkedin.com/in/cached-founder')) {
+        profileFetchHits += 1;
+        return new Response(
+          `<!doctype html><html><head><meta property="og:image" content="${freshImageUrl.replace(/&/g, '&amp;')}" /></head><body></body></html>`,
+          { status: 200, headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+      if (u.includes('t=expired_token')) {
+        return new Response('Forbidden Expired', { status: 403 });
+      }
+      if (u.includes('media.licdn.com')) {
+        return new Response(webp800x800, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/webp',
+            'Content-Length': String(webp800x800.byteLength),
+          },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    }) as typeof fetch;
+
+    const extractSuccessRes = await extractPost({
+      request: new Request('https://vidnex.space/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: 'https://www.linkedin.com/in/cached-founder' }),
+      }),
+      env,
+    });
+    assert.equal(extractSuccessRes.status, 200);
+    const extractSuccessJson: any = await extractSuccessRes.json();
+    assert.equal(extractSuccessJson.ok, true);
+    assert.equal(extractSuccessJson.platform, 'linkedin');
+    assert.equal(extractSuccessJson.items[0].ext, 'webp');
+    assert.equal(extractSuccessJson.items[0].quality, 'Standard');
+    assert.equal(extractSuccessJson.items[0].width, 800);
+    assert.equal(extractSuccessJson.items[0].height, 800);
+    assert.ok(extractSuccessJson.thumbnail.includes('inline=1'));
+    assert.ok(extractSuccessJson.thumbnail.includes('src='));
+    assert.equal(profileFetchHits, 1);
+
+    // Second call uses intelligent cache without hitting LinkedIn again
+    const cachedSecondCall = await extractLinkedIn('cached-founder');
+    assert.equal(cachedSecondCall.ok, true);
+    assert.equal(profileFetchHits, 1, 'Second extraction should hit cache');
+
+    // Frontend mapping preserves WEBP format and Standard quality
+    const mappedUi = mapExtractResponseToMediaResult(
+      extractSuccessJson,
+      'https://www.linkedin.com/in/cached-founder',
+      detectMediaUrl('https://www.linkedin.com/in/cached-founder', 'linkedin')
+    );
+    assert.equal(mappedUi.payloadType, 'profile_dp');
+    if (mappedUi.payloadType === 'profile_dp') {
+      assert.equal(mappedUi.format, 'WEBP');
+      assert.equal(mappedUi.quality, 'Standard');
+      assert.equal(mappedUi.dimensions, '800 × 800');
+    }
+
+    // Scenario 9: Successful inline preview (/api/download?inline=1)
+    const previewRes = await downloadGet({
+      request: new Request(`https://vidnex.space${extractSuccessJson.thumbnail}`),
+      env,
+    });
+    assert.equal(previewRes.status, 200);
+    assert.match(
+      previewRes.headers.get('Content-Disposition') || '',
+      /^inline; filename="linkedin_cached-founder_profile\.webp"/
+    );
+    assert.equal(previewRes.headers.get('Content-Type'), 'image/webp');
+    const previewBytes = new Uint8Array(await previewRes.arrayBuffer());
+    assert.equal(previewBytes.byteLength, webp800x800.byteLength);
+
+    // Scenario 10: Successful attachment download (/api/download) + Auto-Heal when initial signed URL expired
+    const expiredDownloadUrl =
+      'https://vidnex.space/api/download?url=' +
+      encodeURIComponent(
+        'https://media.licdn.com/dms/image/v2/D5603AQG/profile-displayphoto-shrink_800_800/0/1700000000000?e=1600000000&v=beta&t=expired_token'
+      ) +
+      '&filename=linkedin_cached-founder_profile&ext=webp&src=' +
+      encodeURIComponent('https://www.linkedin.com/in/cached-founder');
+
+    const healedDownloadRes = await downloadGet({
+      request: new Request(expiredDownloadUrl),
+      env,
+    });
+    assert.equal(healedDownloadRes.status, 200, 'Auto-Heal should refresh expired signed URL and return 200');
+    assert.match(
+      healedDownloadRes.headers.get('Content-Disposition') || '',
+      /^attachment; filename="linkedin_cached-founder_profile\.webp"/
+    );
+    const downloadedBytes = new Uint8Array(await healedDownloadRes.arrayBuffer());
+    assert.equal(downloadedBytes.byteLength, webp800x800.byteLength);
+
+    // Verify all 8 required LinkedIn error codes have localized messages
+    const all8Codes = [
+      'PROFILE_NOT_FOUND',
+      'LOGIN_WALL',
+      'RATE_LIMITED',
+      'PHOTO_NOT_AVAILABLE',
+      'INVALID_IMAGE',
+      'IMAGE_EXPIRED',
+      'TIMEOUT',
+      'NETWORK_ERROR',
+    ] as const;
+    for (const code of all8Codes) {
+      assert.ok(LINKEDIN_FRENCH_ERROR_MESSAGES[code], `Missing backend French message for ${code}`);
+      const localized = getLocalizedErrorMessage(code, 'fr', {
+        platform: 'linkedin',
+        isProfile: true,
+      });
+      assert.ok(localized && localized.length > 10, `Missing frontend localized message for ${code}`);
+    }
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+

@@ -1,0 +1,312 @@
+{
+  "about": {
+    "metaTitle": "Tentang VIDNEX — Utilitas Web Media Publik",
+    "metaDescription": "Pelajari cara kerja VIDNEX menyelesaikan tautan publik TikTok, Instagram, X, Facebook, dan LinkedIn lewat streaming tanpa penyimpanan server.",
+    "ogTitle": "Tentang VIDNEX — Utilitas Web Media Publik",
+    "ogDescription": "Pelajari cara kerja VIDNEX menyelesaikan tautan publik TikTok, Instagram, X, Facebook, dan LinkedIn lewat streaming tanpa penyimpanan server.",
+    "ogImageAlt": "Tentang VIDNEX — Penyelesaian tautan media publik dan pemotong gambar lokal",
+    "h1": "Tentang VIDNEX",
+    "breadcrumbLabel": "Tentang",
+    "updatedAt": "21 November 2026",
+    "intro": "VIDNEX adalah utilitas web gratis berbasis browser untuk menyelesaikan alamat media sosial yang dapat diakses publik sesuai permintaan dan menyediakan alat penyuntingan gambar lokal tanpa pendaftaran, tanpa akun, dan tanpa penyimpanan berkas di server kami.",
+    "sections": [
+      {
+        "heading": "1. Apa Itu VIDNEX",
+        "paragraphs": [
+          "VIDNEX adalah alat teknis ringan yang dirancang bagi kreator, peneliti, dan pengguna harian yang ingin menyimpan media publik secara langsung melalui browser standar di iPhone, Android, macOS, Windows, atau Linux tanpa harus memasang aplikasi tambahan maupun ekstensi browser.",
+          "VIDNEX bukanlah platform hosting video, bukan jejaring sosial, dan bukan pustaka media yang dapat dicari. Kami tidak mengindeks, mengatalogkan, atau mendistribusikan ulang unggahan pihak ketiga. Setiap proses teknis hanya dimulai ketika pengunjung menempelkan tautan publik secara manual pada kolom input utama."
+        ]
+      },
+      {
+        "heading": "2. Cara Kerja Teknis VIDNEX",
+        "paragraphs": [
+          "Ketika Anda mengirimkan URL publik, antarmuka meneruskan permintaan ke titik akhir ekstraksi sesuai permintaan (/api/extract), yang mendeteksi platform dan membaca metadata media yang terbuka untuk publik dari jaringan asal. Untuk tautan publik TikTok atau Instagram tertentu, server dapat meneruskan hanya URL publik tersebut ke layanan penyelesaian teknis pihak ketiga tanpa akun pengguna maupun cookie pengunjung.",
+          "Saat Anda menekan tombol unduh, titik akhir /api/download beroperasi sebagai proxy streaming langsung tanpa penyimpanan ke disk: byte data mengalir hanya melalui memori sementara (volatile memory) dari server CDN yang diizinkan milik platform asal langsung ke browser Anda. Setiap alamat tujuan diperiksa terhadap daftar izin anti-SSRF yang ketat, dibatasi maksimal empat pengalihan manual, dan dibatasi ukuran teknis hingga 250 MB per berkas.",
+          "Tidak ada video, trek audio, atau berkas gambar yang pernah ditulis ke disk, diarsipkan, atau disimpan dalam cache permanen di infrastruktur VIDNEX. Setelah aliran selesai atau terputus, tidak ada salinan yang tersisa di server kami."
+        ]
+      },
+      {
+        "heading": "3. Platform dan Format yang Didukung",
+        "paragraphs": [
+          "VIDNEX mendukung lima platform sosial khusus untuk konten yang terbuka bagi publik: TikTok (video MP4 publik tanpa tanda air apabila disediakan oleh aliran sumber, trek audio asli MP3 atau M4A/AAC, tayangan slide foto publik dengan pemilihan kotak centang serta pengemasan .ZIP langsung di browser, dan foto profil publik); Instagram (Reels publik MP4 bersuara, unggahan /p/ berisi foto, video, atau karusel banyak slide dengan arsip .ZIP selektif, serta foto profil publik); X / Twitter (video MP4 publik dalam berbagai resolusi yang tersedia, GIF animasi yang dikonversi ke MP4, serta foto tweet publik); Facebook (video publik di /watch/, /videos/, atau fb.watch serta Reels publik MP4 HD/SD bersuara); dan LinkedIn (foto profil publik di /in/{slug} dalam kualitas asli JPG, PNG, atau WebP, dilengkapi metode impor manual lokal seret-dan-lepas apabila LinkedIn menampilkan halaman masuk)."
+        ]
+      },
+      {
+        "heading": "4. Konten yang Tidak Didukung",
+        "paragraphs": [
+          "VIDNEX menetapkan batasan teknis yang jelas dan terbuka. Kami tidak mendukung YouTube maupun Snapchat. Kami juga tidak mendukung akun pribadi, unggahan khusus pengikut, story pribadi, konten berbayar, atau media apa pun yang dilindungi oleh halaman login.",
+          "Instagram Stories, Sorotan (Highlights), dan Facebook Stories umumnya memerlukan akun yang sudah masuk di platform asal; ketika akses masuk diperlukan, VIDNEX menolak permintaan dengan penjelasan yang jelas dan tidak pernah mencoba melewati mekanisme autentikasi. Unggahan foto Facebook (/photo/ atau /photo.php) juga tidak didukung."
+        ]
+      },
+      {
+        "heading": "5. Alat Potong Gambar (100% Lokal)",
+        "paragraphs": [
+          "Selain penyelesaian tautan publik, VIDNEX menyediakan alat [Potong Gambar](/id/tools/split-image) (split-image) untuk membagi foto menjadi kisi 2×2, 3×3, 1×3, 3×1, atau kisi kustom 1 sampai 10 baris dan kolom, lengkap dengan urutan unggah Instagram, ekspor PNG atau JPG dengan pengaturan kualitas 10–100%, serta unduhan arsip .ZIP.",
+          "Seluruh pemrosesan Potong Gambar berjalan 100% lokal di browser Anda menggunakan HTML5 Canvas dan JSZip. Gambar Anda tidak pernah diunggah ke server mana pun, tidak pernah melewati API jarak jauh, dan tetap berada sepenuhnya di perangkat Anda."
+        ]
+      },
+      {
+        "heading": "6. Prinsip Operasional",
+        "paragraphs": [
+          "Khusus konten publik: kami hanya memproses tautan yang dapat diakses publik tanpa kredensial pribadi dan selalu menghormati dinding login yang diterapkan platform asal.",
+          "Tanpa akun dan pendaftaran: Anda dapat menggunakan VIDNEX tanpa membuat akun, tanpa kata sandi, dan tanpa memberikan nama atau alamat email untuk mengunduh media.",
+          "Penghormatan hak cipta dan transparansi: tanggung jawab penggunaan yang sah berada pada masing-masing pengguna sesuai [Ketentuan Layanan](/id/terms), [Kebijakan Privasi](/id/privacy), dan kebijakan [DMCA](/id/dmca) kami. Biaya operasional server dibiayai melalui ruang iklan pihak ketiga yang dipisahkan secara jelas dari tombol unduh."
+        ]
+      },
+      {
+        "heading": "7. Kontak",
+        "paragraphs": [
+          "Apabila Anda menemukan gangguan teknis, memiliki pertanyaan seputar privasi, atau ingin mengajukan permintaan pemblokiran URL terkait hak cipta, silakan kirim email ke compliance@vidnex.space atau kunjungi halaman [Kontak](/id/contact) kami."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Kebijakan Privasi — VIDNEX",
+    "metaDescription": "Pelajari data teknis yang diproses VIDNEX, hash IP SHA-256 bergaram, masa simpan, localStorage, cookie iklan pihak ketiga, dan hak Anda.",
+    "ogTitle": "Kebijakan Privasi — VIDNEX",
+    "ogDescription": "Pelajari data teknis yang diproses VIDNEX, hash IP SHA-256 bergaram, masa simpan, localStorage, cookie iklan pihak ketiga, dan hak Anda.",
+    "ogImageAlt": "Kebijakan Privasi VIDNEX — Transparansi teknis dan pelindungan data",
+    "h1": "Kebijakan Privasi",
+    "breadcrumbLabel": "Privasi",
+    "updatedAt": "21 November 2026",
+    "intro": "Kebijakan Privasi ini menjelaskan secara rinci data teknis apa yang diproses saat Anda mengakses VIDNEX, tujuan pemrosesannya, jangka waktu penyimpanannya, penyedia infrastruktur dan iklan yang terlibat, serta hak yang Anda miliki.",
+    "sections": [
+      {
+        "heading": "1. Pengelola Layanan dan Kontak",
+        "paragraphs": [
+          "VIDNEX dioperasikan sebagai utilitas web independen tanpa sistem akun pengguna dan tanpa basis data profil pribadi. Untuk pertanyaan terkait pelindungan data pribadi atau pengajuan hak Anda, hubungi kami langsung di compliance@vidnex.space."
+        ]
+      },
+      {
+        "heading": "2. Data Teknis yang Diproses di Server",
+        "paragraphs": [
+          "URL publik yang dimasukkan pengunjung: ketika Anda menempelkan tautan pada kolom ekstraksi, alamat tersebut hanya diproses di dalam memori sementara Cloudflare Workers untuk mendeteksi platform dan menyelesaikan aliran media. URL yang dikirimkan tidak pernah disimpan ke dalam log permintaan dan tidak dikaitkan dengan riwayat pribadi.",
+          "Alamat IP dan hash SHA-256 dengan garam (salt): saat permintaan masuk ke /api/extract atau /api/download, sistem membaca alamat IP jaringan (CF-Connecting-IP atau X-Forwarded-For) di memori dan langsung menerapkan fungsi hash kriptografis satu arah SHA-256 yang digabungkan dengan garam rahasia di sisi server (IP_HASH_SALT). Kami tidak pernah menyimpan alamat IP asli dalam basis data Cloudflare D1.",
+          "Pembatasan laju permintaan (rate_limits): kami menggunakan hash SHA-256 bergaram pada penghitung per menit (nilai bawaan 30 ekstraksi per menit dan 60 unduhan berkas per menit per hash) untuk mencegah penyalahgunaan otomatis dan beban berlebih. Catatan yang berusia lebih dari 5 menit dihapus secara otomatis.",
+          "Log kesalahan teknis (request_log): VIDNEX hanya mencatat permintaan yang menghasilkan kesalahan; unduhan yang berhasil tidak dicatat satu per satu. Setiap catatan kesalahan hanya menyimpan stempel waktu, platform terdeteksi, kode kesalahan teknis, durasi dalam milidetik, tahap mesin, status HTTP, jenis konten (misalnya video, unggahan, atau story), nama fungsi yang dijalankan, serta potongan pendek 12 karakter dari hash SHA-256 bergaram. URL yang dimasukkan maupun berkas yang diunduh tidak pernah dicatat.",
+          "Metrik harian agregat (daily_metrics): kami menyimpan penghitung angka anonim per hari dan per platform (jumlah permintaan, keberhasilan, kesalahan, berkas terunduh, dan total byte yang dikirim) guna memantau keandalan sistem. Tabel ini tidak memuat alamat IP, nilai hash, cookie, maupun pengenal pribadi.",
+          "Daftar blokir (blocklist): berdasarkan pemberitahuan hak cipta yang sah atau pencegahan penyalahgunaan, kami dapat menambahkan URL persis, nama domain, atau hash SHA-256 ke dalam tabel blokir internal kami."
+        ]
+      },
+      {
+        "heading": "3. Pemrosesan 100% Lokal di Browser",
+        "paragraphs": [
+          "Alat [Potong Gambar](/id/tools/split-image) (split-image) serta fitur impor manual foto profil LinkedIn bekerja sepenuhnya di dalam browser Anda menggunakan HTML5 Canvas dan JSZip. Berkas gambar yang Anda pilih dari perangkat tidak pernah dikirim ke server VIDNEX maupun pihak ketiga."
+        ]
+      },
+      {
+        "heading": "4. Dasar Hukum Pemrosesan",
+        "paragraphs": [
+          "Mengacu pada Undang-Undang Pelindungan Data Pribadi (UU PDP) di Indonesia serta peraturan pelindungan data lain yang berlaku sesuai yurisdiksi Anda, pemrosesan data teknis minimal didasarkan pada: pemenuhan layanan teknis yang diminta secara langsung oleh pengguna (penyelesaian tautan publik yang ditempelkan), kepentingan sah pengelola (keamanan jaringan, pembatasan laju anti-penyalahgunaan, mitigasi serangan, serta diagnosis gangguan teknis), dan pemenuhan kewajiban hukum (penanganan permintaan pemblokiran hak cipta). Untuk cookie iklan non-esensial dari jaringan pihak ketiga, pengelolaannya mengikuti pengaturan browser Anda dan ketentuan persetujuan yang berlaku."
+        ]
+      },
+      {
+        "heading": "5. Masa Penyimpanan Data",
+        "paragraphs": [
+          "Aliran media (video, audio, dan gambar): 0 detik penyimpanan di disk; hanya diteruskan melalui memori sementara.",
+          "Penghitung batas laju (rate_limits): dibersihkan otomatis setelah melewati 5 menit.",
+          "Log kesalahan (request_log) dan metrik harian agregat (daily_metrics): dihapus secara otomatis oleh rutinitas pembersihan setelah 30 hari.",
+          "Entri daftar blokir (blocklist): disimpan selama diperlukan untuk mempertahankan pemblokiran yang diminta atau mencegah penyalahgunaan berulang hingga dihapus secara manual.",
+          "Korespondensi email ke compliance@vidnex.space: disimpan hanya selama dibutuhkan untuk meninjau, menanggapi, dan mendokumentasikan permintaan Anda."
+        ]
+      },
+      {
+        "heading": "6. Penyimpanan Lokal Browser (localStorage)",
+        "paragraphs": [
+          "VIDNEX tidak menetapkan cookie pelacakan maupun cookie sesi milik sendiri. Untuk mengingat preferensi tampilan tanpa mengirimkannya ke server, kami hanya menyimpan tiga kunci teknis di localStorage browser Anda: vidnex_theme (tema terang atau gelap), vidnex_lang (bahasa pilihan), dan vidnex_lang_banner_dismissed (penutupan bilah saran bahasa). Anda dapat menghapus ketiga kunci ini kapan saja melalui pengaturan browser."
+        ]
+      },
+      {
+        "heading": "7. Infrastruktur, Pengukuran, dan Cookie Iklan Pihak Ketiga",
+        "paragraphs": [
+          "Hosting dan jaringan edge (Cloudflare): situs beserta titik akhir API berjalan di Cloudflare Workers, Cloudflare Static Assets, dan Cloudflare D1. Cloudflare memproses metadata koneksi teknis di tepi jaringan untuk mitigasi DDoS, distribusi konten, dan statistik lalu lintas agregat (negara, keluarga browser, kode status, dan lebar pita). Apabila Cloudflare Web Analytics diaktifkan pada zona, pengukuran kinerja dilakukan tanpa cookie pelacakan.",
+          "Layanan penyelesaian publik pihak ketiga: untuk sebagian tautan publik TikTok atau Instagram, server dapat meneruskan hanya URL publik ke layanan penyelesaian teknis yang kompatibel tanpa cookie maupun data akun pengunjung.",
+          "Jaringan iklan pihak ketiga (Adsterra dan Google AdSense): agar VIDNEX tetap gratis tanpa langganan, situs menampilkan ruang iklan dari Adsterra (banner iframe terisolasi, Native Banner, serta Social Bar khusus perangkat desktop mulai 768 px yang dimuat tertunda setelah interaksi pengguna) dan, apabila diaktifkan dengan ID penayang, Google AdSense (pagead2.googlesyndication.com). Penyedia iklan tersebut dapat menggunakan cookie atau pengenal perangkat mereka sendiri untuk membatasi frekuensi iklan, mencegah kecurangan iklan, atau menayangkan iklan sesuai kebijakan privasi masing-masing. Anda dapat mengatur preferensi iklan Google melalui adssettings.google.com atau memblokir cookie pihak ketiga di browser Anda."
+        ]
+      },
+      {
+        "heading": "8. Transfer Data Lintas Batas",
+        "paragraphs": [
+          "Karena sifat global jaringan Cloudflare serta penyedia iklan dan penyelesaian tautan pihak ketiga, metadata koneksi teknis dapat melewati pusat data yang berlokasi di luar negara tempat tinggal Anda. Masing-masing penyedia menerapkan langkah perlindungan kontraktual dan teknis sendiri untuk transfer lintas batas."
+        ]
+      },
+      {
+        "heading": "9. Privasi Anak",
+        "paragraphs": [
+          "VIDNEX adalah utilitas teknis umum yang tidak ditujukan secara khusus kepada anak di bawah usia 13 tahun (atau usia minimum persetujuan digital sesuai hukum yang berlaku di negara Anda). Kami tidak secara sengaja mengumpulkan data pribadi dari anak-anak. Apabila orang tua atau wali mendapati seorang anak mengirimkan data melalui email, silakan hubungi compliance@vidnex.space agar data tersebut segera dihapus."
+        ]
+      },
+      {
+        "heading": "10. Hak Anda dan Pembaruan Kebijakan",
+        "paragraphs": [
+          "Sesuai UU PDP dan ketentuan pelindungan data yang berlaku di wilayah Anda, Anda dapat mengajukan permintaan informasi, akses, perbaikan, penghapusan, pembatasan, atau keberatan terhadap data pribadi yang Anda kirimkan langsung kepada kami (misalnya melalui email ke compliance@vidnex.space), serta menyampaikan pengaduan ke otoritas pelindungan data berwenang. Karena VIDNEX tidak menyimpan akun maupun alamat IP asli, metrik agregat atau potongan hash singkat secara teknis tidak dapat dikaitkan kembali kepada individu tertentu.",
+          "Kami dapat memperbarui Kebijakan Privasi ini sewaktu-waktu apabila arsitektur teknis, masa simpan, atau daftar penyedia berubah. Tanggal di bagian atas menunjukkan revisi terakhir yang berlaku. Untuk pertanyaan tambahan, kirim email ke compliance@vidnex.space atau kunjungi halaman [Kontak](/id/contact)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metaTitle": "Ketentuan Layanan — VIDNEX",
+    "metaDescription": "Baca Ketentuan Layanan VIDNEX: sifat teknis layanan, penggunaan yang diizinkan dan dilarang, hak cipta, batas laju, serta batasan tanggung jawab.",
+    "ogTitle": "Ketentuan Layanan — VIDNEX",
+    "ogDescription": "Baca Ketentuan Layanan VIDNEX: sifat teknis layanan, penggunaan yang diizinkan dan dilarang, hak cipta, batas laju, serta batasan tanggung jawab.",
+    "ogImageAlt": "Ketentuan Layanan VIDNEX — Aturan penggunaan dan tanggung jawab pengguna",
+    "h1": "Ketentuan Layanan",
+    "breadcrumbLabel": "Ketentuan",
+    "updatedAt": "21 November 2026",
+    "intro": "Dengan mengakses atau menggunakan VIDNEX, Anda menyetujui Ketentuan Layanan ini. Jika Anda tidak menyetujui bagian mana pun dari ketentuan berikut, harap hentikan penggunaan situs dan seluruh alat di dalamnya.",
+    "sections": [
+      {
+        "heading": "1. Sifat Layanan",
+        "paragraphs": [
+          "VIDNEX adalah utilitas web teknis yang menyelesaikan URL publik sesuai permintaan dari lima platform sosial yang didukung (TikTok, Instagram, X, Facebook, dan LinkedIn) agar aliran media diteruskan langsung ke browser Anda, sekaligus menyediakan alat lokal [Potong Gambar](/id/tools/split-image).",
+          "VIDNEX tidak menghosting, menyimpan, mengindeks, atau menerbitkan konten media pihak ketiga. Kami hanya bertindak sebagai perantara teknis sementara atas inisiatif pengguna yang memasukkan tautan publik secara manual. VIDNEX tidak berafiliasi, didukung, maupun disponsori oleh TikTok, ByteDance, Instagram, Facebook, Meta, X Corp., LinkedIn, Microsoft, YouTube, atau Snapchat."
+        ]
+      },
+      {
+        "heading": "2. Penggunaan yang Diizinkan",
+        "paragraphs": [
+          "Anda hanya boleh menggunakan VIDNEX untuk tujuan yang sah dan menghormati hak pemegang asli, misalnya: mencadangkan unggahan publik milik Anda sendiri, mengunduh materi berlisensi terbuka (seperti Creative Commons) sesuai ketentuan lisensinya, menyimpan berkas yang telah memperoleh izin tertulis dari pemilik hak cipta, atau menggunakan alat lokal Potong Gambar untuk foto yang haknya Anda miliki."
+        ]
+      },
+      {
+        "heading": "3. Penggunaan yang Dilarang",
+        "paragraphs": [
+          "Saat menggunakan VIDNEX, Anda dilarang melakukan tindakan berikut: mengunduh, menyalin, menyebarluaskan, atau memanfaatkan secara komersial konten berhak cipta, merek dagang, atau hak citra tanpa izin pemegang hak atau pengecualian hukum yang berlaku; mencoba mengakses akun pribadi, story terbatas, konten berbayar, atau halaman yang dilindungi kata sandi; menjalankan bot otomatis, skrip scraping, atau permintaan massal untuk melewati pembatasan laju; memindai jaringan internal, mengeksploitasi celah SSRF, atau mengganggu stabilitas server VIDNEX; serta memanfaatkan layanan untuk tujuan yang melanggar hukum."
+        ]
+      },
+      {
+        "heading": "4. Hak Cipta dan Tanggung Jawab Pengguna",
+        "paragraphs": [
+          "Seluruh hak kekayaan intelektual atas video, audio, foto, dan merek dagang di jejaring sosial sepenuhnya tetap menjadi milik kreator atau pemegang haknya masing-masing. VIDNEX tidak memberikan lisensi atau pengalihan hak apa pun atas berkas yang Anda selesaikan.",
+          "Anda bertanggung jawab sepenuhnya sebelum mengunduh untuk memastikan bahwa Anda memiliki dasar hukum yang sah untuk memperoleh, menyimpan, atau menggunakan kembali materi tersebut sesuai hukum setempat dan ketentuan platform asal. Pemegang hak cipta yang ingin memblokir penyelesaian URL tertentu di VIDNEX dapat mengikuti prosedur [DMCA](/id/dmca) kami."
+        ]
+      },
+      {
+        "heading": "5. Pembatasan Laju dan Pencegahan Penyalahgunaan",
+        "paragraphs": [
+          "Untuk menjaga stabilitas infrastruktur dari beban berlebih dan penyalahgunaan otomatis, VIDNEX menerapkan kuota teknis per hash IP bergaram (bawaan 30 ekstraksi per menit dan 60 unduhan berkas per menit), batas ukuran 250 MB per berkas yang dialirkan, maksimal 4 pengalihan, serta daftar izin CDN yang ketat.",
+          "Kami berhak membatasi permintaan sementara (HTTP 429) atau memasukkan URL, domain, maupun hash IP ke daftar blokir internal apabila terdeteksi pola penyalahgunaan, serangan teknis, atau pemberitahuan hak cipta yang sah."
+        ]
+      },
+      {
+        "heading": "6. Ketersediaan Layanan dan Platform Pihak Ketiga",
+        "paragraphs": [
+          "VIDNEX disediakan «sebagaimana adanya» dan sesuai ketersediaan teknis. Karena platform media sosial sering mengubah format, header, dan persyaratan masuk tanpa pemberitahuan sebelumnya, kami tidak menjamin layanan tanpa gangguan ataupun kompatibilitas permanen terhadap setiap unggahan publik.",
+          "Kami dapat menonaktifkan dukungan suatu platform untuk sementara, mengaktifkan mode pemeliharaan, atau menyesuaikan fitur teknis kapan saja demi menjaga keamanan dan keandalan layanan."
+        ]
+      },
+      {
+        "heading": "7. Batasan Tanggung Jawab",
+        "paragraphs": [
+          "Sejauh diizinkan oleh hukum yang berlaku, pengelola VIDNEX tidak bertanggung jawab atas kerugian langsung, tidak langsung, insidental, maupun konsekuensial yang timbul dari penggunaan atau ketidakmampuan menggunakan layanan, kehilangan data, gangguan jaringan pihak ketiga, atau penyalahgunaan berkas yang diunduh oleh pengguna. Kami juga tidak bertanggung jawab atas konten pengiklan pihak ketiga maupun situs eksternal yang tertaut."
+        ]
+      },
+      {
+        "heading": "8. Alat Lokal Browser, Keterpisahan Klausul, dan Perubahan",
+        "paragraphs": [
+          "Saat Anda menggunakan fitur lokal yang berjalan sepenuhnya di dalam browser — seperti alat [Potong Gambar](/id/tools/split-image) atau impor manual gambar profil LinkedIn — seluruh pemrosesan dilakukan hanya pada perangkat Anda menggunakan berkas lokal Anda sendiri. VIDNEX tidak menerima unggahan berkas tersebut dan tidak membuat cadangan di server; Anda tetap bertanggung jawab menjaga salinan asli serta memastikan kepemilikan hak atas gambar yang diolah.",
+          "Apabila salah satu ketentuan dalam Ketentuan Layanan ini dinyatakan tidak sah atau tidak dapat dilaksanakan berdasarkan hukum yang berlaku, ketentuan lainnya tetap berlaku secara penuh. Tidak digunakannya suatu hak oleh pengelola tidak berarti pelepasan atas hak tersebut.",
+          "Kami dapat memperbarui Ketentuan Layanan ini kapan saja untuk mencerminkan perubahan teknis, fungsional, atau hukum. Versi terbaru berlaku sejak dipublikasikan pada halaman ini dengan tanggal revisi terbaru, dan penggunaan VIDNEX secara berkelanjutan berarti Anda menerima ketentuan yang berlaku. Tinjau juga [Kebijakan Privasi](/id/privacy) kami atau hubungi compliance@vidnex.space melalui halaman [Kontak](/id/contact)."
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "metaTitle": "Kontak — Dukungan Teknis dan Kepatuhan VIDNEX",
+    "metaDescription": "Hubungi VIDNEX di compliance@vidnex.space untuk laporan gangguan teknis, pertanyaan privasi, atau permintaan pemblokiran URL DMCA.",
+    "ogTitle": "Kontak — Dukungan Teknis dan Kepatuhan VIDNEX",
+    "ogDescription": "Hubungi VIDNEX di compliance@vidnex.space untuk laporan gangguan teknis, pertanyaan privasi, atau permintaan pemblokiran URL DMCA.",
+    "ogImageAlt": "Kontak VIDNEX — Alamat email resmi untuk dukungan teknis, privasi, dan DMCA",
+    "h1": "Kontak",
+    "breadcrumbLabel": "Kontak",
+    "updatedAt": "21 November 2026",
+    "intro": "Anda dapat menghubungi tim VIDNEX melalui email untuk melaporkan kendala teknis, mengajukan pertanyaan mengenai pelindungan data pribadi, atau mengirimkan permintaan pemblokiran URL terkait hak cipta.",
+    "sections": [
+      {
+        "heading": "1. Alamat Email Resmi",
+        "paragraphs": [
+          "Satu alamat email resmi untuk dukungan teknis, privasi, dan kepatuhan: compliance@vidnex.space.",
+          "Kami tidak menyediakan layanan telepon dan tidak mengelola akun pengguna. Setiap pesan yang masuk ditinjau sesuai urutan dan sifat teknis atau hukumnya, tanpa janji waktu tanggapan tetap."
+        ]
+      },
+      {
+        "heading": "2. Informasi yang Perlu Disertakan",
+        "paragraphs": [
+          "Agar tim kami dapat memeriksa kendala lebih cepat, sertakan informasi berikut: jenis permintaan (laporan bug, hak cipta, atau privasi), platform terkait (TikTok, Instagram, X, Facebook, LinkedIn, atau Potong Gambar), browser dan sistem operasi yang digunakan (misalnya Safari di iOS atau Chrome di Android), URL publik persis yang bermasalah, serta teks pesan kesalahan yang tampil di layar apabila ada."
+        ]
+      },
+      {
+        "heading": "3. Jenis Permintaan dan Tautan Terkait",
+        "paragraphs": [
+          "Laporan bug dan masukan teknis: tautan publik yang gagal secara tidak terduga, kendala unduh pada ponsel, atau masalah tampilan antarmuka.",
+          "Hak cipta dan pemblokiran URL: sebelum mengirim laporan mengenai karya berhak cipta, periksa seluruh syarat wajib pada halaman [DMCA & Hak Cipta](/id/dmca).",
+          "Privasi dan pelindungan data: pelajari rincian mengenai hash IP, masa penyimpanan, dan cookie dalam [Kebijakan Privasi](/id/privacy) serta [Ketentuan Layanan](/id/terms) kami.",
+          "Hal yang tidak boleh dikirim: jangan pernah mengirimkan kata sandi, cookie sesi pribadi, data kartu pembayaran, atau tautan akun pribadi melalui email. VIDNEX hanya memproses tautan publik dan tidak pernah meminta kredensial masuk."
+        ]
+      },
+      {
+        "heading": "4. Pemeriksaan Singkat Sebelum Menghubungi Kami",
+        "paragraphs": [
+          "Sebelum melaporkan gangguan ekstraksi, pastikan unggahan tersebut dapat dibuka di jendela samaran (incognito) browser tanpa perlu masuk ke akun. Akun pribadi, story yang memerlukan login, unggahan foto Facebook, serta tautan YouTube dan Snapchat memang tidak didukung secara teknis."
+        ]
+      }
+    ]
+  },
+  "dmca": {
+    "metaTitle": "DMCA & Hak Cipta — VIDNEX",
+    "metaDescription": "Kebijakan DMCA VIDNEX: tanpa penyimpanan berkas, panduan langkah demi langkah meminta pemblokiran teknis URL publik, serta pemberitahuan balasan.",
+    "ogTitle": "DMCA & Hak Cipta — VIDNEX",
+    "ogDescription": "Kebijakan DMCA VIDNEX: tanpa penyimpanan berkas, panduan langkah demi langkah meminta pemblokiran teknis URL publik, serta pemberitahuan balasan.",
+    "ogImageAlt": "DMCA dan Hak Cipta VIDNEX — Prosedur pemblokiran teknis tautan",
+    "h1": "DMCA & Hak Cipta",
+    "breadcrumbLabel": "DMCA",
+    "updatedAt": "21 November 2026",
+    "intro": "VIDNEX menghormati hak kekayaan intelektual kreator, penerbit, dan pemegang hak cipta. Halaman ini menjelaskan arsitektur tanpa penyimpanan kami serta langkah mengajukan permintaan pemblokiran teknis atas URL tertentu.",
+    "sections": [
+      {
+        "heading": "1. Tidak Ada Hosting maupun Penyimpanan Berkas",
+        "paragraphs": [
+          "VIDNEX tidak menghosting, menyimpan di disk, mengarsipkan, atau mendistribusikan ulang video, audio, maupun gambar di server kami. Sistem kami bekerja semata-mata sebagai jembatan teknis sementara di memori volatil untuk membaca metadata tautan publik pihak ketiga sesuai permintaan pengguna.",
+          "Oleh sebab itu, VIDNEX tidak dapat menghapus berkas dari internet atau menghapus unggahan yang berada di TikTok, Instagram, X, Facebook, maupun LinkedIn. Untuk menghapus berkas asli secara permanen, Anda harus menghubungi langsung platform media sosial tempat konten tersebut diterbitkan. Secara paralel, VIDNEX mengelola daftar blokir teknis internal (blocklist) guna mencegah ekstraktor kami menyelesaikan kembali URL atau domain tertentu."
+        ]
+      },
+      {
+        "heading": "2. Cara Meminta Pemblokiran URL (Langkah demi Langkah)",
+        "paragraphs": [
+          "Langkah 1 — Identifikasi karya yang dilindungi: uraikan secara jelas karya asli yang haknya Anda miliki (judul, akun resmi, atau tautan rujukan asli).",
+          "Langkah 2 — Kumpulkan URL persis: salin alamat publik lengkap dan tepat dari unggahan atau profil yang ingin Anda blokir pemrosesannya di VIDNEX. Permintaan umum tanpa alamat URL spesifik tidak memungkinkan penerapan filter teknis yang akurat.",
+          "Langkah 3 — Kirim pemberitahuan tertulis ke compliance@vidnex.space dengan subjek «Permintaan DMCA / Hak Cipta» beserta seluruh unsur wajib di bawah ini."
+        ]
+      },
+      {
+        "heading": "3. Unsur Wajib dalam Pemberitahuan",
+        "paragraphs": [
+          "Agar kami dapat memverifikasi dan menindaklanjuti permintaan Anda, email harus mencakup: (a) nama lengkap Anda serta, apabila bertindak atas nama perusahaan atau kreator, nama entitas yang diwakili beserta jabatan Anda; (b) alamat email aktif untuk korespondensi; (c) identifikasi jelas atas karya berhak cipta yang diklaim dilanggar; (d) URL publik persis (atau daftar URL) yang ingin ditambahkan ke daftar blokir teknis VIDNEX; (e) pernyataan itikad baik bahwa penggunaan materi tersebut tidak diizinkan oleh pemilik hak cipta, perwakilannya, maupun hukum; (f) pernyataan bahwa seluruh informasi adalah benar dan Anda merupakan pemegang hak atau pihak berwenang yang mewakilinya; dan (g) tanda tangan elektronik Anda (nama lengkap diketik di akhir pesan)."
+        ]
+      },
+      {
+        "heading": "4. Peninjauan dan Dampak Pemblokiran",
+        "paragraphs": [
+          "Setelah menerima pemberitahuan lengkap di compliance@vidnex.space, kami memeriksa kelengkapan dan kesesuaian data yang disampaikan. Jika valid, URL atau domain terkait akan dimasukkan ke tabel daftar blokir internal (blocklist). Sejak saat itu, setiap upaya menyelesaikan alamat tersebut di VIDNEX akan langsung ditolak secara teknis.",
+          "Kami meninjau pemberitahuan yang masuk secara cermat sesuai urutan penerimaan, tanpa menjamin batas waktu jam tertentu. Pemberitahuan yang belum lengkap dapat memerlukan klarifikasi tambahan sebelum pemblokiran diterapkan."
+        ]
+      },
+      {
+        "heading": "5. Pemberitahuan Balasan jika Terjadi Kekeliruan",
+        "paragraphs": [
+          "Apabila URL milik karya Anda sendiri atau konten yang memiliki izin sah diblokir karena kekeliruan atau kesalahan identifikasi, Anda dapat mengirimkan pemberitahuan balasan tertulis ke compliance@vidnex.space dengan menyertakan URL yang diblokir, informasi kontak Anda, penjelasan hak yang Anda miliki atas konten tersebut, serta tanda tangan elektronik. Setelah meninjau bukti yang diberikan, kami dapat mencabut pemblokiran teknis bila sesuai."
+        ]
+      },
+      {
+        "heading": "6. Tautan Pendek, Penghapusan di Platform Asal, dan Penyalahgunaan",
+        "paragraphs": [
+          "Apabila suatu unggahan juga dibagikan melalui tautan pendek atau alamat pengalihan (seperti vm.tiktok.com atau fb.watch), sertakan URL kanonik penuh dari platform asal bila memungkinkan agar pemblokiran teknis berjalan efektif. Karena VIDNEX tidak menyimpan berkas media, ajukan pula permintaan penghapusan langsung kepada TikTok, Instagram, X, Facebook, atau LinkedIn untuk menghapus materi sumber secara permanen.",
+          "Catatan yang dimasukkan ke dalam tabel daftar blokir internal berdasarkan laporan yang sah hanya digunakan untuk menghentikan penyelesaian ulang URL atau domain tersebut di VIDNEX serta mendokumentasikan kepatuhan hukum, tanpa menyimpan salinan media apa pun.",
+          "Pengajuan klaim palsu atau tidak berdasar secara sengaja untuk memblokir konten yang sah dapat menimbulkan tanggung jawab hukum sesuai peraturan berlaku (termasuk ketentuan DMCA Bagian 512(f) apabila relevan). VIDNEX juga dapat memblokir secara permanen domain atau hash teknis yang terkait dengan penyalahgunaan berulang. Lihat pula [Ketentuan Layanan](/id/terms), [Kebijakan Privasi](/id/privacy), dan halaman [Kontak](/id/contact) kami."
+        ]
+      }
+    ]
+  }
+}

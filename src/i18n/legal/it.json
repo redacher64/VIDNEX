@@ -1,0 +1,311 @@
+{
+  "about": {
+    "metaTitle": "Chi siamo — VIDNEX Utilità web per media pubblici",
+    "metaDescription": "Scopri come VIDNEX risolve link pubblici di TikTok, Instagram, X, Facebook e LinkedIn in streaming diretto senza salvare file sui server.",
+    "ogTitle": "Chi siamo — VIDNEX Utilità web per media pubblici",
+    "ogDescription": "Scopri come VIDNEX risolve link pubblici di TikTok, Instagram, X, Facebook e LinkedIn in streaming diretto senza salvare file sui server.",
+    "ogImageAlt": "Chi siamo VIDNEX — Utilità web per media pubblici e strumento locale dividi immagine",
+    "h1": "Chi siamo — VIDNEX",
+    "breadcrumbLabel": "Chi siamo",
+    "updatedAt": "21 novembre 2026",
+    "intro": "VIDNEX è un'utilità web gratuita eseguita direttamente nel browser per risolvere su richiesta collegamenti pubblici dei social network e offrire strumenti locali per creatori, senza registrazione, senza account e senza archiviazione di file sui nostri server.",
+    "sections": [
+      {
+        "heading": "1. Che cos'è VIDNEX",
+        "paragraphs": [
+          "VIDNEX è uno strumento tecnico leggero progettato per creatori, ricercatori e utenti quotidiani che desiderano salvare un contenuto pubblicato apertamente direttamente da un normale browser su iPhone, Android, macOS, Windows o Linux, senza installare applicazioni o estensioni.",
+          "VIDNEX non è una piattaforma di hosting video, non è un social network e non è un catalogo ricercabile di post. Non indicizziamo, archiviamo né ridistribuiamo contenuti di terzi. Ogni operazione tecnica inizia esclusivamente quando un visitatore incolla manualmente un collegamento pubblico nel campo principale."
+        ]
+      },
+      {
+        "heading": "2. Come funziona dal punto di vista tecnico",
+        "paragraphs": [
+          "Quando invii un URL pubblico, l'interfaccia inoltra la richiesta all'endpoint di estrazione su richiesta (/api/extract), che rileva la piattaforma e ricava i metadati multimediali accessibili pubblicamente dalla rete di origine. Per alcuni link pubblici di TikTok o Instagram, la risoluzione può inoltrare esclusivamente l'URL pubblico a un servizio tecnico intermediario compatibile, senza alcun account utente né cookie del visitatore.",
+          "Quando avvii un download, l'endpoint /api/download opera come proxy di streaming diretto senza scrittura su disco: i byte attraversano esclusivamente la memoria volatile da una CDN autorizzata della piattaforma di origine fino al tuo browser. Ogni destinazione viene controllata tramite una lista rigorosa anti-SSRF di domini consentiti, limitata a un massimo di quattro reindirizzamenti manuali e soggetta a un tetto tecnico di 250 MB per file.",
+          "Nessun video, traccia audio o immagine viene mai salvato su disco, archiviato o mantenuto in cache persistente sull'infrastruttura di VIDNEX. Al termine o all'interruzione del flusso non rimane alcuna copia sui nostri server."
+        ]
+      },
+      {
+        "heading": "3. Piattaforme e formati supportati",
+        "paragraphs": [
+          "VIDNEX supporta cinque piattaforme social esclusivamente per contenuti accessibili pubblicamente: TikTok (video pubblici in MP4 senza filigrana quando forniti dal flusso sorgente, tracce audio originali MP3 o M4A/AAC, presentazioni fotografiche pubbliche con selezione tramite caselle e creazione di archivi .ZIP nel browser, e foto profilo pubbliche); Instagram (Reel pubblici in MP4 con audio, post /p/ con foto, video o caroselli multipli con archivio .ZIP selettivo, e foto profilo pubbliche); X / Twitter (video pubblici in MP4 nelle risoluzioni disponibili, GIF animate convertite in MP4 e foto pubbliche); Facebook (video pubblici su /watch/, /videos/ o fb.watch e Reel pubblici in MP4 HD/SD con audio); e LinkedIn (foto profilo pubbliche su /in/{slug} in qualità originale JPG, PNG o WebP, affiancate da un'importazione manuale locale tramite trascinamento quando LinkedIn mostra una barriera di accesso)."
+        ]
+      },
+      {
+        "heading": "4. Che cosa non è supportato",
+        "paragraphs": [
+          "VIDNEX applica limiti tecnici chiari. Non supportiamo YouTube né Snapchat. Non supportiamo inoltre account privati, post riservati ai follower, storie private, contenuti a pagamento o qualsiasi materiale protetto da autenticazione.",
+          "Le Storie e i contenuti in evidenza di Instagram, così come le Storie di Facebook, richiedono normalmente un account autenticato sulla piattaforma di origine; in presenza di una richiesta di accesso, VIDNEX rifiuta l'operazione con un messaggio chiaro e non tenta mai di aggirare i controlli di autenticazione. Anche i post fotografici di Facebook (/photo/ o /photo.php) non sono supportati."
+        ]
+      },
+      {
+        "heading": "5. Strumento Dividi immagine (100% locale)",
+        "paragraphs": [
+          "Oltre alla risoluzione di link pubblici, VIDNEX offre lo strumento [Dividi immagine](/it/tools/split-image) (split-image), ideato per ritagliare foto in griglie 2×2, 3×3, 1×3, 3×1 o matrici personalizzate da 1 a 10 righe e colonne, con ordine di pubblicazione Instagram, esportazione in PNG o JPG con qualità regolabile dal 10 al 100% e download in archivio .ZIP.",
+          "L'intera elaborazione di Dividi immagine avviene al 100% localmente nel tuo browser tramite HTML5 Canvas e JSZip. Le tue immagini non vengono mai caricate su un server, non transitano da API remote e restano esclusivamente sul tuo dispositivo."
+        ]
+      },
+      {
+        "heading": "6. Principi operativi",
+        "paragraphs": [
+          "Solo contenuti pubblici: elaboriamo esclusivamente collegamenti aperti al pubblico senza credenziali personali e rispettiamo sempre le barriere di login imposte dalle piattaforme di origine.",
+          "Nessun account né registrazione: puoi usare VIDNEX senza creare un profilo, senza password e senza fornire nome o email per scaricare un file.",
+          "Rispetto del diritto d'autore e trasparenza: la responsabilità dell'uso conforme spetta a ciascun utente secondo i nostri [Termini di servizio](/it/terms), l'[Informativa sulla privacy](/it/privacy) e la procedura [DMCA](/it/dmca). I costi infrastrutturali sono sostenuti tramite spazi pubblicitari di terze parti chiaramente separati dai pulsanti di download."
+        ]
+      },
+      {
+        "heading": "7. Contatti",
+        "paragraphs": [
+          "Per segnalare un problema tecnico, porre domande sulla privacy o inviare una richiesta di blocco URL per diritto d'autore, scrivi a compliance@vidnex.space oppure visita la pagina [Contatti](/it/contact)."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Informativa sulla privacy — VIDNEX",
+    "metaDescription": "Scopri quali dati tecnici tratta VIDNEX, hash SHA-256 con salt dell'IP, tempi di conservazione, localStorage, cookie pubblicitari e diritti GDPR.",
+    "ogTitle": "Informativa sulla privacy — VIDNEX",
+    "ogDescription": "Scopri quali dati tecnici tratta VIDNEX, hash SHA-256 con salt dell'IP, tempi di conservazione, localStorage, cookie pubblicitari e diritti GDPR.",
+    "ogImageAlt": "Informativa sulla privacy VIDNEX — Trasparenza tecnica e tutela dei dati",
+    "h1": "Informativa sulla privacy",
+    "breadcrumbLabel": "Privacy",
+    "updatedAt": "21 novembre 2026",
+    "intro": "La presente Informativa sulla privacy illustra con precisione quali dati tecnici vengono trattati durante la visita a VIDNEX, per quali finalità, per quanto tempo vengono conservati, quali fornitori di infrastruttura e pubblicità intervengono e come esercitare i tuoi diritti.",
+    "sections": [
+      {
+        "heading": "1. Gestore del servizio e contatto",
+        "paragraphs": [
+          "VIDNEX è gestito come utilità web indipendente senza registrazione di account né database di profili utente. Per domande relative alla protezione dei dati personali o per esercitare i tuoi diritti, puoi scrivere direttamente a compliance@vidnex.space."
+        ]
+      },
+      {
+        "heading": "2. Dati tecnici trattati lato server",
+        "paragraphs": [
+          "URL pubblici inseriti dal visitatore: quando incolli un link nell'estrattore, l'indirizzo viene elaborato esclusivamente nella memoria volatile di Cloudflare Workers per identificare la piattaforma e risolvere il flusso multimediale. Gli URL inseriti non vengono mai registrati nei log delle richieste né associati a una cronologia personale.",
+          "Indirizzo IP e hash SHA-256 con salt: al ricevimento di una chiamata verso /api/extract o /api/download, il sistema legge l'indirizzo IP di rete (CF-Connecting-IP o X-Forwarded-For) in memoria e applica immediatamente una funzione crittografica irreversibile SHA-256 combinata con un salt segreto lato server (IP_HASH_SALT). Nessun indirizzo IP in chiaro viene mai memorizzato nel nostro database Cloudflare D1.",
+          "Limitazione della frequenza (rate_limits): utilizziamo l'hash SHA-256 con salt in contatori al minuto (valori predefiniti: 30 estrazioni al minuto e 60 download al minuto per hash) per prevenire abusi automatizzati e sovraccarichi. I record più vecchi di 5 minuti vengono eliminati automaticamente.",
+          "Log di errori tecnici (request_log): VIDNEX registra esclusivamente le richieste che restituiscono un errore; i download riusciti non generano alcun log individuale. Ogni voce di errore contiene soltanto marca temporale, piattaforma rilevata, codice di errore tecnico, durata in millisecondi, fase del motore, stato HTTP, tipo di contenuto (ad esempio video, post o storia), funzione interna eseguita e un frammento troncato di 12 caratteri dell'hash SHA-256 con salt. Non vengono mai salvati né l'URL inserito né il file scaricato.",
+          "Metriche giornaliere aggregate (daily_metrics): memorizziamo contatori numerici anonimi per giorno e piattaforma (totale richieste, successi, errori, file scaricati e byte trasmessi) per monitorare la stabilità tecnica. Queste tabelle non contengono indirizzi IP, hash, cookie né identificativi personali.",
+          "Lista di blocco (blocklist): a seguito di una valida segnalazione di diritto d'autore o per contrastare abusi, possiamo registrare un URL esatto, un dominio o un hash SHA-256 nella nostra tabella interna di blocco."
+        ]
+      },
+      {
+        "heading": "3. Elaborazione 100% locale nel browser",
+        "paragraphs": [
+          "Lo strumento [Dividi immagine](/it/tools/split-image) (split-image) e l'importazione manuale delle immagini su LinkedIn funzionano interamente nel tuo browser tramite HTML5 Canvas e JSZip. Le immagini selezionate dal tuo dispositivo non vengono mai trasmesse ai server di VIDNEX né a terze parti."
+        ]
+      },
+      {
+        "heading": "4. Basi giuridiche ai sensi del GDPR",
+        "paragraphs": [
+          "Laddove si applichi il Regolamento (UE) 2016/679 (GDPR) e la normativa nazionale sulla protezione dei dati, il trattamento dei dati tecnici minimi si fonda sulle seguenti basi giuridiche: esecuzione del servizio richiesto dall'utente (art. 6, par. 1, lett. b GDPR per la risoluzione istantanea del collegamento pubblico incollato), legittimo interesse del gestore (art. 6, par. 1, lett. f GDPR per sicurezza di rete, mitigazione DDoS, limitazione di frequenza anti-abuso e diagnostica degli errori) e adempimento di obblighi legali (art. 6, par. 1, lett. c GDPR per la gestione delle segnalazioni di diritto d'autore). Per i cookie pubblicitari non essenziali di reti terze si applicano le impostazioni del browser e le regole sul consenso vigenti nella tua giurisdizione."
+        ]
+      },
+      {
+        "heading": "5. Tempi di conservazione",
+        "paragraphs": [
+          "Flussi multimediali (video, audio e immagini): 0 secondi su disco; trasmessi solo in memoria volatile.",
+          "Contatori di limitazione di frequenza (rate_limits): eliminati automaticamente dopo oltre 5 minuti.",
+          "Log di errore (request_log) e metriche giornaliere aggregate (daily_metrics): eliminati automaticamente mediante pulizia periodica trascorsi 30 giorni.",
+          "Voci della lista di blocco (blocklist): conservate per il tempo necessario a mantenere il blocco richiesto o prevenire abusi ripetuti, fino alla rimozione manuale.",
+          "Corrispondenza ricevuta all'indirizzo compliance@vidnex.space: conservata solo per il tempo necessario a gestire, rispondere e documentare la richiesta."
+        ]
+      },
+      {
+        "heading": "6. Archiviazione locale del browser (localStorage)",
+        "paragraphs": [
+          "VIDNEX non imposta cookie propri di tracciamento o sessione. Per salvare le preferenze dell'interfaccia senza inviarle al server, utilizziamo esclusivamente tre chiavi tecniche in localStorage nel tuo browser: vidnex_theme (tema chiaro o scuro), vidnex_lang (lingua scelta) e vidnex_lang_banner_dismissed (chiusura del banner di suggerimento lingua). Puoi cancellare queste chiavi in qualsiasi momento dalle impostazioni del browser."
+        ]
+      },
+      {
+        "heading": "7. Infrastruttura, misurazione e cookie pubblicitari di terze parti",
+        "paragraphs": [
+          "Hosting e rete edge (Cloudflare): il sito e le API operano su Cloudflare Workers, Cloudflare Static Assets e Cloudflare D1. Cloudflare elabora metadati tecnici di connessione a livello di rete per la mitigazione DDoS, la distribuzione dei contenuti e statistiche aggregate di traffico (paese, famiglia di browser, codici di stato e banda). Quando Cloudflare Web Analytics è abilitato sulla zona, misura le prestazioni senza cookie di tracciamento.",
+          "Servizi tecnici di risoluzione pubblica: per alcuni collegamenti pubblici di TikTok o Instagram, il server può inoltrare esclusivamente l'URL pubblico a un servizio di risoluzione compatibile, senza cookie né credenziali del visitatore.",
+          "Reti pubblicitarie di terze parti (Adsterra e Google AdSense): per mantenere VIDNEX gratuito senza abbonamenti, l'interfaccia carica spazi pubblicitari gestiti da Adsterra (banner in iframe isolato, Native Banner e Social Bar solo su desktop da 768 px in su, caricati in modo differito dopo l'interazione dell'utente) e, quando attivato tramite ID editore, Google AdSense (pagead2.googlesyndication.com). Questi fornitori possono utilizzare propri cookie o identificatori tecnici per limitare la frequenza degli annunci, prevenire frodi pubblicitarie o mostrare inserzioni in base alle rispettive informative sulla privacy. Puoi gestire le preferenze di Google su adssettings.google.com o bloccare i cookie di terze parti dal tuo browser."
+        ]
+      },
+      {
+        "heading": "8. Trasferimenti internazionali di dati",
+        "paragraphs": [
+          "Data la natura globale dell'infrastruttura Cloudflare e dei fornitori di pubblicità e risoluzione pubblica, i metadati tecnici di connessione possono transitare su server situati al di fuori dello Spazio Economico Europeo (SEE). Ciascun fornitore adotta proprie garanzie contrattuali e tecniche per tali trasferimenti."
+        ]
+      },
+      {
+        "heading": "9. Minori",
+        "paragraphs": [
+          "VIDNEX è un'utilità tecnica generica non rivolta specificamente a minori di 13 anni (o all'età minima digitale applicabile nel tuo paese, come 14 anni in Italia). Non raccogliamo consapevolmente dati personali di minori. Se un genitore o tutore ritiene che un minore ci abbia inviato dati via email, può scrivere a compliance@vidnex.space per chiederne la cancellazione."
+        ]
+      },
+      {
+        "heading": "10. Diritti dell'interessato e modifiche all'informativa",
+        "paragraphs": [
+          "Ai sensi del GDPR e delle leggi applicabili sulla protezione dei dati, puoi esercitare i diritti di accesso, rettifica, cancellazione, limitazione e opposizione rispetto a eventuali dati personali da te forniti direttamente (ad esempio in un'email inviata a compliance@vidnex.space) e proporre reclamo all'autorità di controllo competente. Poiché VIDNEX non gestisce account né memorizza indirizzi IP in chiaro, non è di norma tecnicamente possibile ricondurre contatori aggregati o hash troncati a una persona specifica.",
+          "Possiamo aggiornare questa Informativa sulla privacy in caso di variazioni tecniche, dei tempi di conservazione o dei fornitori integrati. La data in alto indica sempre l'ultima revisione. Per ulteriori domande scrivi a compliance@vidnex.space o visita [Contatti](/it/contact)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metaTitle": "Termini di servizio — VIDNEX",
+    "metaDescription": "Leggi i Termini di servizio di VIDNEX: natura del servizio, usi consentiti e vietati, diritto d'autore, limiti di frequenza e responsabilità.",
+    "ogTitle": "Termini di servizio — VIDNEX",
+    "ogDescription": "Leggi i Termini di servizio di VIDNEX: natura del servizio, usi consentiti e vietati, diritto d'autore, limiti di frequenza e responsabilità.",
+    "ogImageAlt": "Termini di servizio VIDNEX — Regole di accesso e responsabilità dell'utente",
+    "h1": "Termini di servizio",
+    "breadcrumbLabel": "Termini",
+    "updatedAt": "21 novembre 2026",
+    "intro": "Accedendo o utilizzando VIDNEX accetti i presenti Termini di servizio. Se non concordi con una qualsiasi delle condizioni riportate di seguito, ti invitiamo a non utilizzare il sito né i suoi strumenti.",
+    "sections": [
+      {
+        "heading": "1. Natura del servizio",
+        "paragraphs": [
+          "VIDNEX è un'utilità web tecnica che risolve su richiesta URL pubblici di cinque piattaforme social supportate (TikTok, Instagram, X, Facebook e LinkedIn) trasmettendo il flusso multimediale direttamente al browser dell'utente, oltre a mettere a disposizione lo strumento locale [Dividi immagine](/it/tools/split-image).",
+          "VIDNEX non ospita, archivia, indicizza né pubblica file multimediali di terzi. Operiamo esclusivamente come intermediario tecnico temporaneo su iniziativa manuale dell'utente che inserisce un link pubblico. VIDNEX non è affiliato, approvato né sponsorizzato da TikTok, ByteDance, Instagram, Facebook, Meta, X Corp., LinkedIn, Microsoft, YouTube o Snapchat."
+        ]
+      },
+      {
+        "heading": "2. Uso consentito",
+        "paragraphs": [
+          "Puoi usare VIDNEX esclusivamente per scopi leciti nel rispetto dei diritti dei titolari originali, ad esempio: creare copie di backup dei tuoi post pubblici, scaricare contenuti distribuiti con licenze aperte (come Creative Commons) rispettandone le condizioni, salvare materiali per i quali disponi di autorizzazione espressa del titolare oppure utilizzare lo strumento locale Dividi immagine su fotografie di cui detieni i diritti."
+        ]
+      },
+      {
+        "heading": "3. Usi vietati",
+        "paragraphs": [
+          "Utilizzando VIDNEX ti impegni a non compiere alcuna delle seguenti azioni: scaricare, copiare, distribuire o sfruttare commercialmente contenuti protetti da diritto d'autore, marchi o diritti d'immagine senza consenso del titolare o eccezione di legge applicabile; tentare di accedere ad account privati, storie riservate, contenuti a pagamento o aree protette da autenticazione; automatizzare richieste massive mediante bot, script di scraping o chiamate parallele per aggirare i limiti di frequenza; eseguire scansioni di reti interne, tentativi di attacco SSRF o azioni volte a compromettere la stabilità dei server; utilizzare il servizio per finalità illecite."
+        ]
+      },
+      {
+        "heading": "4. Diritto d'autore e responsabilità dell'utente",
+        "paragraphs": [
+          "Tutti i diritti di proprietà intellettuale su video, audio, immagini e marchi presenti sulle piattaforme social rimangono di esclusiva titolarità dei rispettivi creatori o aventi diritto. VIDNEX non concede alcuna licenza o cessione di diritti sui file risolti.",
+          "Sei l'unico responsabile di verificare, prima di ogni download, di avere il diritto legale di ottenere, conservare o riutilizzare il contenuto nel rispetto delle leggi applicabili e delle condizioni della piattaforma di origine. I titolari dei diritti possono richiedere il blocco tecnico di specifici URL tramite la nostra procedura [DMCA](/it/dmca)."
+        ]
+      },
+      {
+        "heading": "5. Limitazione della frequenza e misure anti-abuso",
+        "paragraphs": [
+          "Per proteggere l'infrastruttura da sovraccarichi e abusi automatizzati, VIDNEX applica quote tecniche per hash IP con salt (valori predefiniti: 30 estrazioni al minuto e 60 download al minuto), un limite massimo di 250 MB per file trasmesso, un massimo di 4 reindirizzamenti e una lista rigorosa di CDN consentite.",
+          "Ci riserviamo il diritto di limitare temporaneamente le richieste (HTTP 429) o di aggiungere URL, domini o hash IP alla nostra lista di blocco interna in presenza di abusi, attacchi tecnici o valide segnalazioni di diritto d'autore."
+        ]
+      },
+      {
+        "heading": "6. Disponibilità del servizio e piattaforme esterne",
+        "paragraphs": [
+          "VIDNEX è fornito «così com'è» e secondo disponibilità tecnica. Poiché i social network modificano frequentemente formati, intestazioni e controlli di accesso senza preavviso, non garantiamo disponibilità ininterrotta né compatibilità permanente con ogni contenuto pubblico.",
+          "Possiamo sospendere temporaneamente il supporto a una specifica piattaforma, attivare la modalità di manutenzione o modificare funzionalità tecniche in qualsiasi momento per tutelare sicurezza e stabilità."
+        ]
+      },
+      {
+        "heading": "7. Limitazione di responsabilità",
+        "paragraphs": [
+          "Nella misura massima consentita dalla legge applicabile, il gestore di VIDNEX non è responsabile per danni diretti, indiretti, incidentali o consequenziali derivanti dall'uso o dall'impossibilità di usare il servizio, da perdite di dati, da interruzioni di reti esterne o dall'uso improprio dei file scaricati da parte degli utenti. Non rispondiamo inoltre dei contenuti di inserzionisti esterni o di siti collegati."
+        ]
+      },
+      {
+        "heading": "8. Strumenti locali, clausola di salvaguardia e modifiche",
+        "paragraphs": [
+          "Quando utilizzi funzionalità che operano interamente nel browser — come lo strumento [Dividi immagine](/it/tools/split-image) o l'importazione manuale delle immagini di LinkedIn — tutta l'elaborazione avviene sul tuo dispositivo con i tuoi file locali. VIDNEX non carica né conserva copie di sicurezza: resta tua responsabilità conservare gli originali e verificare i diritti sulle immagini elaborate.",
+          "Qualora una clausola dei presenti Termini di servizio risulti invalida o inapplicabile ai sensi di legge, le restanti disposizioni rimangono pienamente valide ed efficaci. Il mancato esercizio di un diritto da parte del gestore non costituisce rinuncia.",
+          "Possiamo aggiornare questi Termini di servizio in qualsiasi momento per riflettere modifiche tecniche, operative o normative. La versione aggiornata entra in vigore dalla pubblicazione con la nuova data in alto e l'uso continuato del servizio ne implica l'accettazione. Consulta anche la nostra [Informativa sulla privacy](/it/privacy) o scrivici a compliance@vidnex.space tramite la pagina [Contatti](/it/contact)."
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "metaTitle": "Contatti — Supporto tecnico e conformità VIDNEX",
+    "metaDescription": "Contatta VIDNEX a compliance@vidnex.space per segnalazioni di bug, domande sulla privacy o richieste DMCA di blocco tecnico di un URL.",
+    "ogTitle": "Contatti — Supporto tecnico e conformità VIDNEX",
+    "ogDescription": "Contatta VIDNEX a compliance@vidnex.space per segnalazioni di bug, domande sulla privacy o richieste DMCA di blocco tecnico di un URL.",
+    "ogImageAlt": "Contatti VIDNEX — Email ufficiale per supporto tecnico, privacy e DMCA",
+    "h1": "Contatti",
+    "breadcrumbLabel": "Contatti",
+    "updatedAt": "21 novembre 2026",
+    "intro": "Puoi contattare il team di VIDNEX via email per segnalare un errore tecnico, inviare domande sulla protezione dei dati personali o presentare una richiesta di blocco URL per diritto d'autore.",
+    "sections": [
+      {
+        "heading": "1. Indirizzo email ufficiale",
+        "paragraphs": [
+          "Indirizzo email unico per supporto tecnico, privacy e conformità: compliance@vidnex.space.",
+          "Non forniamo assistenza telefonica e non gestiamo account utente. Esaminiamo i messaggi ricevuti in ordine di arrivo e secondo la loro natura tecnica o legale, senza promettere un tempo fisso di risposta."
+        ]
+      },
+      {
+        "heading": "2. Cosa includere nel messaggio",
+        "paragraphs": [
+          "Per consentirci di verificare rapidamente un problema tecnico, indica sempre: il tipo di richiesta (segnalazione bug, diritto d'autore o privacy), la piattaforma interessata (TikTok, Instagram, X, Facebook, LinkedIn o Dividi immagine), il browser e il sistema operativo usati (ad esempio Safari su iOS o Chrome su Android), l'URL pubblico esatto che genera il problema e l'eventuale messaggio di errore visualizzato sullo schermo."
+        ]
+      },
+      {
+        "heading": "3. Tipi di richieste e link utili",
+        "paragraphs": [
+          "Segnalazioni tecniche e suggerimenti: collegamenti pubblici che restituiscono un errore inatteso, difficoltà di download su smartphone o problemi di interfaccia.",
+          "Diritto d'autore e blocco URL: prima di scrivere per un'opera protetta, verifica tutti gli elementi obbligatori nella pagina [DMCA e diritto d'autore](/it/dmca).",
+          "Privacy e protezione dei dati: consulta i dettagli su hash IP, conservazione e cookie nella nostra [Informativa sulla privacy](/it/privacy) e nei [Termini di servizio](/it/terms).",
+          "Cosa non inviare: non trasmettere mai via email password, cookie di sessione privati, dati di carte di pagamento o link ad account privati. VIDNEX gestisce esclusivamente indirizzi pubblici e non richiede mai credenziali di accesso."
+        ]
+      },
+      {
+        "heading": "4. Verifica rapida prima di scrivere",
+        "paragraphs": [
+          "Prima di segnalare un errore di estrazione, verifica in una finestra di navigazione in incognito che il contenuto sia effettivamente visibile senza accedere a un account. Account privati, storie che richiedono login, post fotografici di Facebook e link YouTube o Snapchat non sono supportati per scelta tecnica."
+        ]
+      }
+    ]
+  },
+  "dmca": {
+    "metaTitle": "DMCA e diritto d'autore — VIDNEX",
+    "metaDescription": "Politica DMCA di VIDNEX: assenza di archiviazione file, procedura passo passo per il blocco tecnico di un URL pubblico e contronotifica.",
+    "ogTitle": "DMCA e diritto d'autore — VIDNEX",
+    "ogDescription": "Politica DMCA di VIDNEX: assenza di archiviazione file, procedura passo passo per il blocco tecnico di un URL pubblico e contronotifica.",
+    "ogImageAlt": "DMCA e diritto d'autore VIDNEX — Procedura di blocco tecnico degli URL",
+    "h1": "DMCA e diritto d'autore",
+    "breadcrumbLabel": "DMCA",
+    "updatedAt": "21 novembre 2026",
+    "intro": "VIDNEX rispetta i diritti di proprietà intellettuale di creatori, editori e titolari dei contenuti. Questa pagina descrive la nostra architettura senza archiviazione e la procedura per richiedere il blocco tecnico di uno specifico URL.",
+    "sections": [
+      {
+        "heading": "1. Assenza di hosting e archiviazione file",
+        "paragraphs": [
+          "VIDNEX non ospita, non salva su disco, non archivia e non ridistribuisce file video, audio o immagine sui propri server. Il sistema funge esclusivamente da ponte tecnico temporaneo in memoria volatile che legge su richiesta i metadati di collegamenti pubblici ospitati su piattaforme terze.",
+          "Di conseguenza, VIDNEX non può rimuovere un contenuto da Internet né cancellare un post pubblicato su TikTok, Instagram, X, Facebook o LinkedIn. Per rimuovere definitivamente il file originale occorre rivolgersi direttamente al social network in cui è pubblicato. In parallelo, VIDNEX gestisce una lista interna di blocco tecnico (blocklist) che impedisce al nostro estrattore di risolvere nuovamente uno specifico URL o dominio."
+        ]
+      },
+      {
+        "heading": "2. Come richiedere il blocco di un URL (passo dopo passo)",
+        "paragraphs": [
+          "Passo 1 — Identifica l'opera protetta: descrivi chiaramente l'opera originale di cui detieni i diritti (titolo, account ufficiale o link di riferimento).",
+          "Passo 2 — Raccogli l'URL esatto: copia l'indirizzo pubblico completo ed esatto del post o del profilo di cui desideri bloccare la risoluzione su VIDNEX. Richieste generiche prive di URL esatto non permettono di configurare un filtro tecnico preciso.",
+          "Passo 3 — Invia una notifica scritta a compliance@vidnex.space con oggetto «Richiesta DMCA / Diritto d'autore», includendo tutti gli elementi obbligatori elencati nella sezione seguente."
+        ]
+      },
+      {
+        "heading": "3. Elementi richiesti nella segnalazione",
+        "paragraphs": [
+          "Affinché possiamo verificare e gestire correttamente la tua richiesta, l'email deve contenere: (a) il tuo nome completo e, se agisci per conto di un'azienda o di un creatore, la denominazione dell'ente rappresentato e il tuo ruolo; (b) un indirizzo email valido per eventuali riscontri; (c) l'identificazione chiara dell'opera protetta da diritto d'autore ritenuta violata; (d) l'URL pubblico esatto (o l'elenco degli URL) da inserire nella blocklist tecnica di VIDNEX; (e) una dichiarazione in buona fede che l'utilizzo del materiale non è autorizzato dal titolare dei diritti, dal suo rappresentante né dalla legge; (f) una dichiarazione che le informazioni fornite sono accurate e che sei il titolare dei diritti o sei autorizzato ad agire per suo conto; e (g) la tua firma elettronica (nome completo digitato al termine del messaggio)."
+        ]
+      },
+      {
+        "heading": "4. Verifica ed effetti del blocco",
+        "paragraphs": [
+          "Al ricevimento di una notifica completa all'indirizzo compliance@vidnex.space, verifichiamo la coerenza degli elementi trasmessi. Se la richiesta è fondata, aggiungiamo l'URL o il dominio indicato alla nostra tabella interna di blocco (blocklist). Da quel momento qualsiasi tentativo di risolvere quell'indirizzo su VIDNEX viene immediatamente respinto.",
+          "Esaminiamo le segnalazioni con diligenza in base all'ordine di ricezione, senza garantire una scadenza oraria fissa. Le segnalazioni incomplete possono richiedere integrazioni prima dell'applicazione del blocco."
+        ]
+      },
+      {
+        "heading": "5. Contronotifica in caso di errore",
+        "paragraphs": [
+          "Se ritieni che un URL relativo a una tua opera o a un contenuto legittimamente autorizzato sia stato bloccato per errore o errata identificazione, puoi inviare una contronotifica motivata a compliance@vidnex.space indicando l'URL bloccato, i tuoi recapiti, la spiegazione dei diritti detenuti sul contenuto e la tua firma elettronica. Verificati i riscontri forniti, potremo rimuovere il blocco tecnico se opportuno."
+        ]
+      },
+      {
+        "heading": "6. Link brevi, segnalazioni abusive e recidive",
+        "paragraphs": [
+          "Quando un contenuto viene diffuso anche tramite link abbreviati o di reindirizzamento (come vm.tiktok.com o fb.watch), indica ove possibile l'URL canonico completo della piattaforma di origine per consentire un blocco tecnico efficace.",
+          "L'invio intenzionale di segnalazioni false o fraudolente per bloccare contenuti leciti può comportare responsabilità legale ai sensi della normativa applicabile (inclusa la sezione 512(f) del DMCA ove pertinente). VIDNEX può inoltre bloccare in modo permanente domini o hash tecnici associati ad abusi ripetuti. Consulta anche i nostri [Termini di servizio](/it/terms), l'[Informativa sulla privacy](/it/privacy) e la pagina [Contatti](/it/contact)."
+        ]
+      }
+    ]
+  }
+}

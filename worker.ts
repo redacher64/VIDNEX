@@ -208,7 +208,18 @@ async function routeInner(
   // Static assets via Cloudflare Workers Static Assets binding
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     const response = await env.ASSETS.fetch(request);
-    if (response.status !== 404 || request.method !== 'GET') {
+    const isTrailingSlashAssetRedirect =
+      request.method === 'GET' &&
+      (response.status === 307 || response.status === 308) &&
+      (() => {
+        const loc = response.headers.get('location') || '';
+        return loc === `${pathname}/` || loc === `${url.origin}${pathname}/`;
+      })();
+
+    if (
+      !isTrailingSlashAssetRedirect &&
+      (response.status !== 404 || request.method !== 'GET')
+    ) {
       if (pathname.startsWith('/og/') && pathname.endsWith('.jpg')) {
         const headers = new Headers(response.headers);
         headers.set('Content-Type', 'image/jpeg');
@@ -245,8 +256,31 @@ async function routeInner(
       return response;
     }
 
+    const { resolveRouteFromPathname } = await import('./src/i18n/config.ts');
+    const resolved = resolveRouteFromPathname(pathname);
     const { parsePathname } = await import('./src/utils/i18nRouting.ts');
     const parsed = parsePathname(pathname);
+
+    // Try the route's own pre-rendered HTML first (e.g. /es/blog -> /es/blog/index.html)
+    // so localized pages never fall back to the French root /index.html.
+    if (!parsed.isNotFound && !parsed.isAdmin) {
+      const targetDir =
+        resolved.canonicalPath && resolved.canonicalPath !== '/'
+          ? resolved.canonicalPath.replace(/\/+$/, '')
+          : pathname.replace(/\/+$/, '');
+      if (targetDir && targetDir !== '/') {
+        const prerenderedUrl = new URL(`${targetDir}/index.html`, url.origin);
+        const prerenderedRes = await env.ASSETS.fetch(
+          new Request(prerenderedUrl.toString(), request)
+        );
+        if (prerenderedRes.ok) {
+          return new Response(prerenderedRes.body, {
+            status: 200,
+            headers: prerenderedRes.headers,
+          });
+        }
+      }
+    }
 
     // Known SPA/Admin routes fall back to index.html with 200
     if (!parsed.isNotFound || parsed.isAdmin) {

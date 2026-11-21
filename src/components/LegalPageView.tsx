@@ -7,7 +7,10 @@ import {
   type PlatformPageKey,
   type SupportedLocale,
 } from '../i18n/config.ts';
-import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import {
+  getLegalDocSync,
+  getLocaleBundleSync,
+} from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 
@@ -17,25 +20,70 @@ interface LegalPageViewProps {
   onNavigatePage: (
     pageKey: LegalPageKey | PlatformPageKey | 'split_image' | 'home'
   ) => void;
+  onNavigatePath?: (path: string) => void;
+}
+
+const INLINE_TOKEN_REGEX =
+  /(\[[^\]]+\]\(\/[a-z0-9/_-]+\)|compliance@vidnex\.space)/gi;
+
+function renderInlineLegalText(
+  text: string,
+  onNavigatePath?: (path: string) => void
+): React.ReactNode {
+  const parts = text.split(INLINE_TOKEN_REGEX);
+  if (parts.length === 1) {
+    return text;
+  }
+
+  return parts.map((part, idx) => {
+    if (!part) return null;
+
+    if (part.toLowerCase() === 'compliance@vidnex.space') {
+      return (
+        <a
+          key={idx}
+          href="mailto:compliance@vidnex.space"
+          className="font-mono font-semibold text-orange-700 dark:text-amber-400 underline decoration-orange-400/70 underline-offset-2 hover:text-orange-600 dark:hover:text-amber-300 transition-colors"
+        >
+          compliance@vidnex.space
+        </a>
+      );
+    }
+
+    const mdMatch = part.match(/^\[([^\]]+)\]\((\/[a-z0-9/_-]+)\)$/i);
+    if (mdMatch) {
+      const label = mdMatch[1];
+      const href = mdMatch[2];
+      return (
+        <a
+          key={idx}
+          href={href}
+          onClick={(e) => {
+            if (onNavigatePath) {
+              e.preventDefault();
+              onNavigatePath(href);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          className="font-semibold text-orange-700 dark:text-amber-400 underline decoration-orange-400/70 underline-offset-2 hover:text-orange-600 dark:hover:text-amber-300 transition-colors"
+        >
+          {label}
+        </a>
+      );
+    }
+
+    return <React.Fragment key={idx}>{part}</React.Fragment>;
+  });
 }
 
 export const LegalPageView: React.FC<LegalPageViewProps> = ({
   legalKey,
   locale,
   onNavigatePage,
+  onNavigatePath,
 }) => {
   const bundle = getLocaleBundleSync(locale);
-  const fallbackEn = getLocaleBundleSync('en');
-  const fallbackFr = getLocaleBundleSync('fr');
-
-  const legalDoc =
-    bundle.legal?.[legalKey] ||
-    fallbackEn.legal?.[legalKey] ||
-    fallbackFr.legal?.[legalKey];
-
-  if (!legalDoc) {
-    return null;
-  }
+  const legalDoc = getLegalDocSync(locale, legalKey);
 
   const homeHref = getLocalizedPagePath(locale, 'home');
   const splitImageHref = getLocalizedPagePath(locale, 'split_image');
@@ -66,7 +114,7 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
             aria-current="page"
             className="text-orange-700 dark:text-amber-400 font-bold"
           >
-            {legalDoc.breadcrumbLabel}
+            {legalDoc?.breadcrumbLabel || bundle.ui.footer[legalKey]}
           </span>
         </nav>
 
@@ -97,37 +145,49 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
         </div>
 
         {/* Main Content Card */}
-        <article className="bg-white/95 dark:bg-[#1c140e]/95 rounded-3xl border border-orange-200/90 dark:border-orange-900/60 p-6 sm:p-10 shadow-card-warm space-y-6">
-          <header className="border-b border-orange-200/70 dark:border-orange-900/50 pb-6">
-            <span className="inline-block font-mono text-[11px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400 mb-2">
-              VIDNEX · {legalDoc.updatedAt}
-            </span>
-            <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1f130b] dark:text-[#fffaf5]">
-              {legalDoc.h1}
-            </h1>
-            <p className="mt-3 text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed">
-              {legalDoc.intro}
-            </p>
-          </header>
+        {legalDoc ? (
+          <article className="bg-white/95 dark:bg-[#1c140e]/95 rounded-3xl border border-orange-200/90 dark:border-orange-900/60 p-6 sm:p-10 shadow-card-warm space-y-6">
+            <header className="border-b border-orange-200/70 dark:border-orange-900/50 pb-6">
+              <span className="inline-block font-mono text-[11px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400 mb-2">
+                VIDNEX · {legalDoc.updatedAt}
+              </span>
+              <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1f130b] dark:text-[#fffaf5]">
+                {legalDoc.h1}
+              </h1>
+              <p className="mt-3 text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed">
+                {renderInlineLegalText(legalDoc.intro, onNavigatePath)}
+              </p>
+            </header>
 
-          <div className="space-y-6">
-            {legalDoc.sections.map((sec) => (
-              <section key={sec.heading} className="space-y-3">
-                <h2 className="font-display text-lg sm:text-xl font-bold text-[#1f130b] dark:text-[#fffaf5]">
-                  {sec.heading}
-                </h2>
-                {sec.paragraphs.map((p, idx) => (
-                  <p
-                    key={idx}
-                    className="text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed"
-                  >
-                    {p}
-                  </p>
-                ))}
-              </section>
-            ))}
-          </div>
-        </article>
+            <div className="space-y-6">
+              {legalDoc.sections.map((sec) => (
+                <section key={sec.heading} className="space-y-3">
+                  <h2 className="font-display text-lg sm:text-xl font-bold text-[#1f130b] dark:text-[#fffaf5]">
+                    {sec.heading}
+                  </h2>
+                  {sec.paragraphs.map((p, idx) => (
+                    <p
+                      key={idx}
+                      className="text-sm sm:text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed"
+                    >
+                      {renderInlineLegalText(p, onNavigatePath)}
+                    </p>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </article>
+        ) : (
+          <article
+            aria-busy="true"
+            className="bg-white/95 dark:bg-[#1c140e]/95 rounded-3xl border border-orange-200/90 dark:border-orange-900/60 p-6 sm:p-10 shadow-card-warm space-y-4 animate-pulse"
+          >
+            <div className="h-4 w-36 rounded bg-orange-200/60 dark:bg-orange-900/40" />
+            <div className="h-8 w-2/3 rounded bg-orange-200/70 dark:bg-orange-900/50" />
+            <div className="h-4 w-full rounded bg-orange-100/70 dark:bg-orange-900/30" />
+            <div className="h-4 w-5/6 rounded bg-orange-100/70 dark:bg-orange-900/30" />
+          </article>
+        )}
 
         {/* Internal Links to the 5 Platform Tools + Split Image Tool */}
         <div className="mt-10">

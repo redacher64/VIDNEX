@@ -35,11 +35,12 @@
 - [Blog de VIDNEX (Español)](https://vidnex.space/es/blog)
 - [VIDNEX Blog (Deutsch)](https://vidnex.space/de/blog)
 - [مدونة VIDNEX (العربية)](https://vidnex.space/ar/blog)
-- [À propos (FR)](https://vidnex.space/a-propos) | [About Us (EN)](https://vidnex.space/en/about) | [من نحن (AR)](https://vidnex.space/ar/about)
-- [Politique de confidentialité (FR)](https://vidnex.space/confidentialite) | [Privacy Policy (EN)](https://vidnex.space/en/privacy)
-- [Conditions d’utilisation (FR)](https://vidnex.space/conditions) | [Terms of Service (EN)](https://vidnex.space/en/terms)
-- [Contact (FR)](https://vidnex.space/contact) | [Contact (EN)](https://vidnex.space/en/contact)
-- [Droits d’auteur et DMCA (FR)](https://vidnex.space/dmca) | [DMCA & Copyright (EN)](https://vidnex.space/en/dmca)
+- **Pages de confiance (disponibles dans les 10 langues)** :
+  - **about** : [FR](https://vidnex.space/a-propos) | [EN](https://vidnex.space/en/about) | [AR](https://vidnex.space/ar/about) | [ES](https://vidnex.space/es/about) | [PT](https://vidnex.space/pt/about) | [DE](https://vidnex.space/de/about) | [TR](https://vidnex.space/tr/about) | [ID](https://vidnex.space/id/about) | [IT](https://vidnex.space/it/about) | [RU](https://vidnex.space/ru/about)
+  - **privacy** : [FR](https://vidnex.space/confidentialite) | [EN](https://vidnex.space/en/privacy) | [AR](https://vidnex.space/ar/privacy) | [ES](https://vidnex.space/es/privacy) | [PT](https://vidnex.space/pt/privacy) | [DE](https://vidnex.space/de/privacy) | [TR](https://vidnex.space/tr/privacy) | [ID](https://vidnex.space/id/privacy) | [IT](https://vidnex.space/it/privacy) | [RU](https://vidnex.space/ru/privacy)
+  - **terms** : [FR](https://vidnex.space/conditions) | [EN](https://vidnex.space/en/terms) | [AR](https://vidnex.space/ar/terms) | [ES](https://vidnex.space/es/terms) | [PT](https://vidnex.space/pt/terms) | [DE](https://vidnex.space/de/terms) | [TR](https://vidnex.space/tr/terms) | [ID](https://vidnex.space/id/terms) | [IT](https://vidnex.space/it/terms) | [RU](https://vidnex.space/ru/terms)
+  - **contact** : [FR](https://vidnex.space/contact) | [EN](https://vidnex.space/en/contact) | [AR](https://vidnex.space/ar/contact) | [ES](https://vidnex.space/es/contact) | [PT](https://vidnex.space/pt/contact) | [DE](https://vidnex.space/de/contact) | [TR](https://vidnex.space/tr/contact) | [ID](https://vidnex.space/id/contact) | [IT](https://vidnex.space/it/contact) | [RU](https://vidnex.space/ru/contact)
+  - **dmca** : [FR](https://vidnex.space/dmca) | [EN](https://vidnex.space/en/dmca) | [AR](https://vidnex.space/ar/dmca) | [ES](https://vidnex.space/es/dmca) | [PT](https://vidnex.space/pt/dmca) | [DE](https://vidnex.space/de/dmca) | [TR](https://vidnex.space/tr/dmca) | [ID](https://vidnex.space/id/dmca) | [IT](https://vidnex.space/it/dmca) | [RU](https://vidnex.space/ru/dmca)
 
 ## Guides techniques publiés (English — /en/blog)
 

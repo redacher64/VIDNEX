@@ -249,13 +249,18 @@ export function handleLegacyQueryRedirect(): {
   }
 
   if (shouldRedirect) {
-    const newPath = getLocalizedPagePath(targetLang, targetPage);
+    let newPath: string;
+    if (parsed.pageKey === 'blog_article' && !toolParam) {
+      newPath = window.location.pathname;
+    } else {
+      newPath = getLocalizedPagePath(targetLang, targetPage);
+    }
     const remaining = params.toString();
     const finalUrl = `${newPath}${remaining ? `?${remaining}` : ''}${window.location.hash}`;
 
     if (window.location.pathname + window.location.search !== finalUrl) {
       window.history.replaceState(
-        { pageKey: targetPage, language: targetLang },
+        { pageKey: parsed.pageKey === 'blog_article' && !toolParam ? 'blog_article' : targetPage, language: targetLang },
         '',
         finalUrl
       );

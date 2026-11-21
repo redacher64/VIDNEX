@@ -136,7 +136,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'es_ES',
     prefix: '/es',
     urlPrefix: '/es',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   pt: {
     code: 'pt',
@@ -147,7 +147,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'pt_BR',
     prefix: '/pt',
     urlPrefix: '/pt',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   de: {
     code: 'de',
@@ -158,7 +158,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'de_DE',
     prefix: '/de',
     urlPrefix: '/de',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   tr: {
     code: 'tr',
@@ -169,7 +169,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'tr_TR',
     prefix: '/tr',
     urlPrefix: '/tr',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   id: {
     code: 'id',
@@ -180,7 +180,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'id_ID',
     prefix: '/id',
     urlPrefix: '/id',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   it: {
     code: 'it',
@@ -191,7 +191,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'it_IT',
     prefix: '/it',
     urlPrefix: '/it',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
   ru: {
     code: 'ru',
@@ -202,7 +202,7 @@ export const LOCALES_CONFIG: Record<SupportedLocale, LocaleDefinition> = {
     ogLocale: 'ru_RU',
     prefix: '/ru',
     urlPrefix: '/ru',
-    hasNativeLegalPages: false,
+    hasNativeLegalPages: true,
   },
 };
 
@@ -222,11 +222,8 @@ export const LEGAL_PAGE_KEYS: readonly LegalPageKey[] = [
   'dmca',
 ] as const;
 
-export const LEGAL_SUPPORTED_LOCALES: readonly ('fr' | 'en' | 'ar')[] = [
-  'fr',
-  'en',
-  'ar',
-] as const;
+export const LEGAL_SUPPORTED_LOCALES: readonly SupportedLocale[] =
+  SUPPORTED_LOCALES;
 
 export function isPlatformPageKey(value: unknown): value is PlatformPageKey {
   return (
@@ -351,9 +348,22 @@ export const ALT_PLATFORM_SLUGS: Record<string, PlatformPageKey> = {
 };
 
 /**
- * Slugs des pages de confiance / légales (complètes en fr, en, ar ; les autres langues pointent vers /en/...).
+ * Slugs des pages de confiance / légales (natifs et complets dans les 10 langues).
+ * - FR à la racine : /a-propos, /confidentialite, /conditions, /contact, /dmca
+ * - 9 autres langues : /{lang}/about, /{lang}/privacy, /{lang}/terms, /{lang}/contact, /{lang}/dmca
  */
-export const LEGAL_SLUGS: Record<'fr' | 'en' | 'ar', Record<LegalPageKey, string>> = {
+const STANDARD_LEGAL_SLUGS: Record<LegalPageKey, string> = {
+  about: 'about',
+  privacy: 'privacy',
+  terms: 'terms',
+  contact: 'contact',
+  dmca: 'dmca',
+};
+
+export const LEGAL_SLUGS: Record<
+  SupportedLocale,
+  Record<LegalPageKey, string>
+> = {
   fr: {
     about: 'a-propos',
     privacy: 'confidentialite',
@@ -361,20 +371,15 @@ export const LEGAL_SLUGS: Record<'fr' | 'en' | 'ar', Record<LegalPageKey, string
     contact: 'contact',
     dmca: 'dmca',
   },
-  en: {
-    about: 'about',
-    privacy: 'privacy',
-    terms: 'terms',
-    contact: 'contact',
-    dmca: 'dmca',
-  },
-  ar: {
-    about: 'about',
-    privacy: 'privacy',
-    terms: 'terms',
-    contact: 'contact',
-    dmca: 'dmca',
-  },
+  en: STANDARD_LEGAL_SLUGS,
+  ar: STANDARD_LEGAL_SLUGS,
+  es: STANDARD_LEGAL_SLUGS,
+  pt: STANDARD_LEGAL_SLUGS,
+  de: STANDARD_LEGAL_SLUGS,
+  tr: STANDARD_LEGAL_SLUGS,
+  id: STANDARD_LEGAL_SLUGS,
+  it: STANDARD_LEGAL_SLUGS,
+  ru: STANDARD_LEGAL_SLUGS,
 };
 
 export function isSupportedLocale(
@@ -416,14 +421,8 @@ export function getLocalizedPagePath(
   }
 
   if (isLegalPageKey(pageKey)) {
-    if (locale === 'fr') {
-      return `/${LEGAL_SLUGS.fr[pageKey]}`;
-    }
-    if (locale === 'ar') {
-      return `/ar/${LEGAL_SLUGS.ar[pageKey]}`;
-    }
-    // Pour 'en' et les 7 autres langues, les pages légales pointent vers /en/...
-    return `/en/${LEGAL_SLUGS.en[pageKey]}`;
+    const slug = LEGAL_SLUGS[locale][pageKey];
+    return `${def.prefix}/${slug}`;
   }
 
   return def.prefix || '/';
@@ -612,20 +611,18 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         }
       }
 
-      if (locale === 'en' || locale === 'ar') {
-        for (const lKey of LEGAL_PAGE_KEYS) {
-          if (LEGAL_SLUGS[locale][lKey] === second) {
-            return {
-              isValidRoute: true,
-              isNotFound: false,
-              isAdmin: false,
-              locale,
-              pageKey: lKey,
-              platformKey: null,
-              legalKey: lKey,
-              canonicalPath: getLocalizedPagePath(locale, lKey),
-            };
-          }
+      for (const lKey of LEGAL_PAGE_KEYS) {
+        if (LEGAL_SLUGS[locale][lKey] === second) {
+          return {
+            isValidRoute: true,
+            isNotFound: false,
+            isAdmin: false,
+            locale,
+            pageKey: lKey,
+            platformKey: null,
+            legalKey: lKey,
+            canonicalPath: getLocalizedPagePath(locale, lKey),
+          };
         }
       }
 
@@ -874,7 +871,7 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
     });
   }
 
-  // 2. Pages légales (complètes en fr, en, ar, avec hreflang bidirectionnel = 15 routes)
+  // 2. Pages légales (complètes dans les 10 langues, avec hreflang bidirectionnel = 50 routes)
   for (const legalLoc of LEGAL_SUPPORTED_LOCALES) {
     for (const lKey of LEGAL_PAGE_KEYS) {
       routes.push({
@@ -930,7 +927,7 @@ export function getAllBlogPublicRoutes(): PublicRouteEntry[] {
 }
 
 /**
- * Retourne la totalité des routes indexables du site (85 routes principales + routes publiques du Blog).
+ * Retourne la totalité des routes indexables du site (120 routes principales + routes publiques du Blog).
  * Utilisé par scripts/prerender.mjs, sitemap.xml, scripts/verify-seo.mjs et scripts/check-og.mjs.
  */
 export function getAllIndexableRoutes(): PublicRouteEntry[] {
@@ -1058,11 +1055,14 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     `- [Blog de VIDNEX (Español)](${base}/es/blog)`,
     `- [VIDNEX Blog (Deutsch)](${base}/de/blog)`,
     `- [مدونة VIDNEX (العربية)](${base}/ar/blog)`,
-    `- [À propos (FR)](${base}${getLocalizedPagePath('fr', 'about')}) | [About Us (EN)](${base}${getLocalizedPagePath('en', 'about')}) | [من نحن (AR)](${base}${getLocalizedPagePath('ar', 'about')})`,
-    `- [Politique de confidentialité (FR)](${base}${getLocalizedPagePath('fr', 'privacy')}) | [Privacy Policy (EN)](${base}${getLocalizedPagePath('en', 'privacy')})`,
-    `- [Conditions d’utilisation (FR)](${base}${getLocalizedPagePath('fr', 'terms')}) | [Terms of Service (EN)](${base}${getLocalizedPagePath('en', 'terms')})`,
-    `- [Contact (FR)](${base}${getLocalizedPagePath('fr', 'contact')}) | [Contact (EN)](${base}${getLocalizedPagePath('en', 'contact')})`,
-    `- [Droits d’auteur et DMCA (FR)](${base}${getLocalizedPagePath('fr', 'dmca')}) | [DMCA & Copyright (EN)](${base}${getLocalizedPagePath('en', 'dmca')})`,
+    `- **Pages de confiance (disponibles dans les 10 langues)** :`,
+    ...LEGAL_PAGE_KEYS.map((lKey) => {
+      const links = SUPPORTED_LOCALES.map(
+        (code) =>
+          `[${code.toUpperCase()}](${base}${getLocalizedPagePath(code, lKey)})`
+      ).join(' | ');
+      return `  - **${lKey}** : ${links}`;
+    }),
     '',
     '## Guides techniques publiés (English — /en/blog)',
     '',

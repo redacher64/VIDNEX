@@ -1,0 +1,322 @@
+{
+  "about": {
+    "metaTitle": "About VIDNEX — Stateless Public Media Web Utility",
+    "metaDescription": "Learn how VIDNEX resolves public TikTok, Instagram, X, Facebook, and LinkedIn media via live streaming with zero server storage and local tools.",
+    "ogTitle": "About VIDNEX — Stateless Public Media Web Utility",
+    "ogDescription": "Learn how VIDNEX resolves public TikTok, Instagram, X, Facebook, and LinkedIn media via live streaming with zero server storage and local tools.",
+    "ogImageAlt": "About VIDNEX — Public media resolver and browser-based Split Image tool",
+    "h1": "About VIDNEX",
+    "breadcrumbLabel": "About",
+    "updatedAt": "November 21, 2026",
+    "intro": "VIDNEX is a free, browser-based web utility designed to resolve publicly accessible social media URLs on demand and provide local creator tools without user registration, accounts, or server-side file storage.",
+    "sections": [
+      {
+        "heading": "1. What VIDNEX Is",
+        "paragraphs": [
+          "VIDNEX is a lightweight technical tool built for creators, researchers, and everyday users who need a straightforward way to save publicly posted media directly through a standard web browser on iPhone, Android, macOS, Windows, or Linux—without installing a mobile app or browser extension.",
+          "VIDNEX is not a video hosting platform, social network, or searchable media library. We do not index, catalog, or redistribute third-party posts. Every action starts only when a visitor manually pastes a public link into the input field."
+        ]
+      },
+      {
+        "heading": "2. How VIDNEX Works Under the Hood",
+        "paragraphs": [
+          "When you submit a public URL, VIDNEX sends the link to our on-demand extraction endpoint (/api/extract), which detects the platform and resolves the publicly accessible media metadata from the origin network. For certain public TikTok or Instagram links, resolution may relay the public URL to a third-party media resolution endpoint without any user account or visitor cookies.",
+          "When you download an item, our /api/download endpoint operates as a zero-buffering streaming proxy: bytes pass directly through volatile memory from an allowlisted origin content delivery network (CDN) to your browser. Every upstream hop is checked against a strict anti-SSRF media host allowlist, limited to four manual redirects, and capped at 250 MB per file.",
+          "No video, audio track, or image file is ever written to disk, archived, or cached permanently on VIDNEX servers. Once the stream finishes or disconnects, nothing remains stored on our infrastructure."
+        ]
+      },
+      {
+        "heading": "3. Supported Platforms and Formats",
+        "paragraphs": [
+          "VIDNEX supports five social platforms strictly for publicly accessible content: TikTok (public MP4 videos without watermark when provided by the source stream, original MP3 or M4A/AAC audio tracks, public photo slideshows with checkbox selection and browser-built .ZIP downloads, and public profile pictures); Instagram (public Reels in MP4 with sound, public /p/ posts including photos, videos, and multi-slide carousels with selective .ZIP archiving, and public profile pictures); X / Twitter (public MP4 videos across available resolutions, animated GIFs converted to MP4, and public tweet photos); Facebook (public videos from /watch/, /videos/, or fb.watch and public Reels in HD/SD MP4 with audio); and LinkedIn (public profile pictures from /in/{slug} in original JPG, PNG, or WebP quality, paired with a 100% local drag-and-drop manual import fallback if LinkedIn displays a login wall)."
+        ]
+      },
+      {
+        "heading": "4. What Is Explicitly Not Supported",
+        "paragraphs": [
+          "VIDNEX enforces clear technical boundaries. We do not support YouTube or Snapchat. We also do not support private accounts, followers-only posts, private stories, paywalled media, or any content gated behind authentication.",
+          "Instagram Stories, Highlights, and Facebook Stories normally require a signed-in account on the source platform; when login is required, VIDNEX rejects the request with a clear explanation rather than attempting to bypass access controls. Facebook photo posts (/photo/ or /photo.php) are likewise unsupported."
+        ]
+      },
+      {
+        "heading": "5. The 100% Local Split Image Tool",
+        "paragraphs": [
+          "Alongside the public URL resolver, VIDNEX includes the free [Split Image tool](/en/tools/split-image) for slicing JPG, PNG, and WebP images into grids such as 2×2, 3×3 (Instagram profile grid), 1×3 (panoramic carousel), 3×1, or custom grids from 1 to 10 rows and columns. It includes an Instagram Order toggle to reverse numbering for posting, lossless PNG or adjustable JPG quality (10% to 100%), individual file downloads, and one-click .ZIP packaging via JSZip.",
+          "All image processing runs 100% locally inside your browser using HTML5 Canvas. Your images are never uploaded to any server, and zero API requests are made while splitting or exporting files."
+        ]
+      },
+      {
+        "heading": "6. Core Principles",
+        "paragraphs": [
+          "VIDNEX operates around four non-negotiable principles: public content only, zero user accounts or social credentials requested, zero attempts to bypass login walls or technical protection measures, and full respect for creator intellectual property.",
+          "Downloading a public file never transfers copyright ownership. VIDNEX is intended for backing up your own published work, personal offline viewing where permitted by applicable law, or uses expressly authorized by the rights holder. Rights holders can request technical blocking of any public URL via our [Copyright & DMCA page](/en/dmca)."
+        ]
+      },
+      {
+        "heading": "7. Contact and Policies",
+        "paragraphs": [
+          "If you have technical questions, bug reports, or compliance inquiries, please visit our [Contact page](/en/contact) or email compliance@vidnex.space. You can also review our [Privacy Policy](/en/privacy) and [Terms of Service](/en/terms) for full technical and legal disclosures."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Privacy Policy & Cookie Disclosures | VIDNEX",
+    "metaDescription": "VIDNEX Privacy Policy: data processed, salted SHA-256 IP hashing, retention limits, browser localStorage, Cloudflare analytics, Adsterra, and AdSense.",
+    "ogTitle": "Privacy Policy & Cookie Disclosures | VIDNEX",
+    "ogDescription": "VIDNEX Privacy Policy: data processed, salted SHA-256 IP hashing, retention limits, browser localStorage, Cloudflare analytics, Adsterra, and AdSense.",
+    "ogImageAlt": "VIDNEX Privacy Policy — Ephemeral URL processing and cookie disclosures",
+    "h1": "Privacy Policy",
+    "breadcrumbLabel": "Privacy Policy",
+    "updatedAt": "November 21, 2026",
+    "intro": "This Privacy Policy provides a factual description of what technical data VIDNEX processes when you browse vidnex.space, resolve a public media link, or use our browser-based image splitter, along with the third-party services and advertising technologies that may load on the site.",
+    "sections": [
+      {
+        "heading": "1. Scope and Operator Contact",
+        "paragraphs": [
+          "This policy applies to vidnex.space and its public technical endpoints (/api/extract, /api/download, and /api/public-config). For any privacy-related inquiry, you can reach the operator of VIDNEX by email at compliance@vidnex.space.",
+          "VIDNEX does not offer public user accounts, logins, or profiles. We do not collect names, phone numbers, social media credentials, or personal viewing histories during normal use of the site."
+        ]
+      },
+      {
+        "heading": "2. Data Processed When Using VIDNEX",
+        "paragraphs": [
+          "When you paste a public URL into VIDNEX, the link is sent to /api/extract solely in volatile memory to resolve the direct media stream from the source platform. When third-party fallback resolution is enabled in system configuration, certain public TikTok or Instagram links may be relayed server-side to third-party public media resolvers (tikwm.com, vxinstagram.com, or ddinstagram.com) without user accounts or visitor cookies. Media files downloaded through /api/download are streamed directly in memory from the allowlisted origin CDN to your browser and are never written to disk or archived on VIDNEX servers.",
+          "Our [Split Image tool](/en/tools/split-image) and the LinkedIn local manual image import feature run entirely inside your browser via HTML5 Canvas and JSZip: files you select never leave your device.",
+          "If you voluntarily email compliance@vidnex.space, we process your email address, message contents, and any URLs or details you include solely to review and respond to your technical, privacy, or copyright inquiry."
+        ]
+      },
+      {
+        "heading": "3. Salted SHA-256 IP Hashing and Anti-Abuse Protection",
+        "paragraphs": [
+          "To protect our endpoints against automated scraping and denial-of-service abuse, every request to /api/extract or /api/download reads the network IP address provided by edge headers (CF-Connecting-IP or X-Forwarded-For) and immediately hashes it one-way using SHA-256 combined with a secret server-side salt (IP_HASH_SALT).",
+          "No raw IP address is stored in our Cloudflare D1 application database. The full salted hash is used only transiently in memory and in the short-lived rate_limits table to enforce per-minute request quotas (defaulting to 30 extractions per minute and 60 downloaded files per minute) or to check against administrative anti-abuse entries in the blocklist table."
+        ]
+      },
+      {
+        "heading": "4. Error Logs, Aggregated Metrics, and Cloudflare Web Analytics",
+        "paragraphs": [
+          "We separate operational monitoring from personal tracking. Successful extractions and downloads are never logged row by row; instead, they increment anonymous daily aggregate counters in the daily_metrics table (UTC date, platform name, event type, and total count) with zero personal identifiers and zero IP hashes.",
+          "Detailed diagnostic records are written to the request_log table strictly when an error occurs. Each error record stores only the timestamp, platform, error code, processing duration in milliseconds, engine stage, HTTP status code, content kind, and the salted SHA-256 IP hash truncated to its first 12 hexadecimal characters. Submitted URLs are never saved in request_log.",
+          "Because vidnex.space is hosted and delivered via Cloudflare Workers and Cloudflare's edge network, Cloudflare processes standard HTTP connection data for routing, security filtering, and aggregate zone-level traffic metrics (such as request volumes by country, browser family, and HTTP status code). When Cloudflare Web Analytics is enabled on the Cloudflare zone, Cloudflare injects its cookie-free performance and traffic measurement script to gather aggregated page load and visit statistics without cross-site advertising trackers."
+        ]
+      },
+      {
+        "heading": "5. Browser Local Storage (localStorage)",
+        "paragraphs": [
+          "VIDNEX uses browser localStorage solely to remember functional interface settings on your device, which are never transmitted to our backend: vidnex_theme (Light or Dark mode preference), vidnex_lang (your manually chosen display language), and vidnex_lang_banner_dismissed (whether you dismissed the language suggestion banner). You can clear these entries at any time via your browser settings."
+        ]
+      },
+      {
+        "heading": "6. Advertising Networks and Cookies (Adsterra and Google AdSense)",
+        "paragraphs": [
+          "To cover infrastructure costs and keep the utility free, VIDNEX may load third-party advertising networks on public pages (never on administrative pages or during static pre-rendering), deferred until user interaction or browser idle time:",
+          "Adsterra: When enabled in site configuration, VIDNEX loads Adsterra ad formats including isolated iframe display banners (728×90, 300×250, 320×50, and 160×600), a Native Banner container, and a desktop-only Social Bar (viewports >= 768px) delivered via the configured domain (bellnewyork.org). Adsterra and its advertising partners may set cookies or process device and browser signals (such as IP address, user-agent, viewport size, and referrer) to deliver, frequency-cap, and measure ads.",
+          "Google AdSense: The codebase also supports Google AdSense (pagead2.googlesyndication.com) when enabled and configured with an active publisher ID. When active, Google and third-party vendors use cookies to serve ads based on prior visits to this site or other websites. You can manage or opt out of personalized Google ads at adssettings.google.com and control or block third-party cookies directly in your browser settings."
+        ]
+      },
+      {
+        "heading": "7. Legal Bases for Processing",
+        "paragraphs": [
+          "Where data protection laws such as the GDPR (EEA/UK) or similar frameworks apply, VIDNEX processes technical data based on: performance of the user-requested action (ephemerally resolving the submitted public URL and streaming the requested media), legitimate interest in maintaining infrastructure security, rate-limiting abuse, and diagnosing engine errors, and user consent where required by applicable law for non-essential advertising cookies."
+        ]
+      },
+      {
+        "heading": "8. Data Retention",
+        "paragraphs": [
+          "Submitted URLs and streamed media bytes exist only in volatile memory during request handling and are never stored on disk. Per-minute rate_limits windows older than five minutes are purged automatically during opportunistic cleanup cycles. Error records in request_log and aggregate counts in daily_metrics are retained for up to 30 days and purged automatically thereafter. Entries in the administrative blocklist (such as DMCA URL exclusions or abusive hashes) remain active until manually removed. Emails sent to compliance@vidnex.space are retained only as long as reasonably needed to handle and document the corresponding inquiry."
+        ]
+      },
+      {
+        "heading": "9. International Data Transfers",
+        "paragraphs": [
+          "VIDNEX runs on Cloudflare's global edge infrastructure (Cloudflare Workers and D1) and interacts with origin social media CDNs, optional third-party public media resolvers, and international advertising networks. Technical connection metadata or ad-delivery signals may therefore be processed in jurisdictions outside your country of residence under the respective providers' safeguards."
+        ]
+      },
+      {
+        "heading": "10. Your Privacy Rights",
+        "paragraphs": [
+          "Depending on your jurisdiction, you may have rights to access, correct, delete, restrict, or object to the processing of personal data, or to withdraw consent for optional advertising cookies. Because VIDNEX holds no user accounts and stores no raw IP addresses in application logs, we generally cannot identify an individual visitor from aggregated technical metrics; however, you may contact compliance@vidnex.space regarding any email correspondence or privacy request, and you may lodge a complaint with your local data protection authority."
+        ]
+      },
+      {
+        "heading": "11. Minors",
+        "paragraphs": [
+          "VIDNEX is a general-purpose web utility not directed at children under the applicable digital age of consent. We do not knowingly collect personal account data from minors. If a parent or guardian believes a minor has sent personal information to us by email, please contact compliance@vidnex.space so we can remove it."
+        ]
+      },
+      {
+        "heading": "12. Policy Updates and Contact",
+        "paragraphs": [
+          "We may revise this Privacy Policy from time to time to reflect changes in our technical architecture, analytics, or advertising partners. The updated date at the top of this page shows the latest revision. For questions, visit our [Contact page](/en/contact) or email compliance@vidnex.space."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metaTitle": "Terms of Service & Acceptable Use | VIDNEX",
+    "metaDescription": "Read the VIDNEX Terms of Service: public media resolver scope, permitted and prohibited use, copyright responsibility, rate limits, and liability.",
+    "ogTitle": "Terms of Service & Acceptable Use | VIDNEX",
+    "ogDescription": "Read the VIDNEX Terms of Service: public media resolver scope, permitted and prohibited use, copyright responsibility, rate limits, and liability.",
+    "ogImageAlt": "VIDNEX Terms of Service and acceptable use rules",
+    "h1": "Terms of Service",
+    "breadcrumbLabel": "Terms of Service",
+    "updatedAt": "November 21, 2026",
+    "intro": "By accessing vidnex.space or using any of its tools, you agree to these Terms of Service. If you do not agree with these terms, please discontinue use of the website.",
+    "sections": [
+      {
+        "heading": "1. Nature of the Service",
+        "paragraphs": [
+          "VIDNEX is a free, browser-based technical utility that provides an on-demand resolver for publicly accessible URLs on supported platforms (TikTok, Instagram, X/Twitter, Facebook, and public LinkedIn profile pictures) alongside a 100% browser-local [Split Image tool](/en/tools/split-image).",
+          "VIDNEX does not host, archive, or republish third-party media files on its servers. VIDNEX is an independent service and is not affiliated with, endorsed by, or sponsored by TikTok (ByteDance), Instagram or Facebook (Meta), X Corp., or LinkedIn (Microsoft). All trademarks remain the property of their respective owners."
+        ]
+      },
+      {
+        "heading": "2. Permitted Use",
+        "paragraphs": [
+          "You may use VIDNEX manually and reasonably solely with publicly available social media links for lawful purposes, such as backing up your own published content, personal offline viewing where permitted under your local laws, editorial review, or any use expressly authorized by the copyright owner.",
+          "You may also use the local Split Image utility to prepare your own photographs, illustrations, or authorized graphic assets."
+        ]
+      },
+      {
+        "heading": "3. Prohibited Use",
+        "paragraphs": [
+          "You must not use VIDNEX to: attempt to access private accounts, private stories, followers-only posts, or login-protected content; bypass authentication, paywalls, or technical protection measures; commercially redistribute, resell, or publicly re-upload third-party copyrighted works without permission; or infringe intellectual property, privacy, or publicity rights.",
+          "Technically, you must not run automated bots, scrapers, or high-volume scripts against VIDNEX endpoints, circumvent rate limits, probe our infrastructure, or attempt to abuse /api/download to reach non-allowlisted hosts or private network addresses (SSRF)."
+        ]
+      },
+      {
+        "heading": "4. Copyright and User Responsibility",
+        "paragraphs": [
+          "VIDNEX claims no ownership over any media resolved from external platforms. All copyrights, neighboring rights, and trademarks belong solely to their original creators and rights holders.",
+          "Because every resolution is initiated directly by you, you bear sole legal responsibility for confirming that downloading, storing, or reusing any public media complies with applicable copyright law and the source platform's terms. Rights holders seeking to block a specific public URL from resolution on VIDNEX may follow our [Copyright & DMCA procedure](/en/dmca)."
+        ]
+      },
+      {
+        "heading": "5. Rate Limiting and Anti-Abuse Controls",
+        "paragraphs": [
+          "To keep infrastructure stable and fair for all visitors, VIDNEX enforces automated per-minute quotas keyed by salted SHA-256 IP hash (defaulting to 30 extraction requests per minute on /api/extract and 60 file downloads per minute on /api/download), a 250 MB maximum streamed file size, and a strict allowlist of media CDN hosts.",
+          "The operator reserves the right to modify rate thresholds at any time and to block specific URLs, domains, or hashed IPs via our administrative blocklist in response to abuse or valid copyright exclusion notices."
+        ]
+      },
+      {
+        "heading": "6. Service Availability",
+        "paragraphs": [
+          "VIDNEX is provided on an \"as is\" and \"as available\" basis. Because extraction relies on the public formatting and availability of third-party social networks that frequently change without warning, we cannot guarantee uninterrupted operation, zero errors, or ongoing compatibility with every URL or platform. Individual platforms may be paused or the entire site placed into maintenance mode when needed."
+        ]
+      },
+      {
+        "heading": "7. Limitation of Liability",
+        "paragraphs": [
+          "To the maximum extent permitted by applicable law, the operator of VIDNEX shall not be liable for any direct, indirect, incidental, consequential, or special damages arising from your use of or inability to use the service, temporary platform outages, third-party media content, or unlawful use of downloaded files by any user.",
+          "Third-party advertisements or external websites linked from VIDNEX are controlled exclusively by their respective operators."
+        ]
+      },
+      {
+        "heading": "8. Local Browser Tools, Severability, and Changes",
+        "paragraphs": [
+          "When you use browser-local features such as the Split Image tool or LinkedIn manual drag-and-drop image import, all processing occurs solely on your own device using your own files; you remain responsible for keeping backups of your originals and confirming you hold rights to any artwork you edit.",
+          "If any provision of these Terms of Service is held invalid or unenforceable under applicable law, the remaining provisions shall continue in full force and effect. Any failure by the operator to enforce a right or provision does not constitute a waiver of that right.",
+          "We may update these Terms of Service at any time to reflect technical changes or legal requirements. The revised date at the top of this page indicates the current version, and continued use of the site constitutes acceptance of the updated terms. Please also review our [Privacy Policy](/en/privacy), or direct questions to compliance@vidnex.space via our [Contact page](/en/contact)."
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "metaTitle": "Contact VIDNEX — Technical Support & Compliance",
+    "metaDescription": "Contact VIDNEX by email at compliance@vidnex.space for bug reports, copyright blocklist notices, privacy inquiries, or technical compliance questions.",
+    "ogTitle": "Contact VIDNEX — Technical Support & Compliance",
+    "ogDescription": "Contact VIDNEX by email at compliance@vidnex.space for bug reports, copyright blocklist notices, privacy inquiries, or technical compliance questions.",
+    "ogImageAlt": "Contact VIDNEX technical support and compliance email",
+    "h1": "Contact Us",
+    "breadcrumbLabel": "Contact",
+    "updatedAt": "November 21, 2026",
+    "intro": "If you need to report a technical bug on VIDNEX, ask a privacy question, or submit a copyright blocklist request, you can reach us through a single dedicated email address.",
+    "sections": [
+      {
+        "heading": "1. Official Email Address",
+        "paragraphs": [
+          "Official support and compliance email: compliance@vidnex.space.",
+          "Messages are reviewed manually by the site operator. While we do not promise a fixed or guaranteed turnaround time, complete and clearly documented inquiries are reviewed in the order received."
+        ]
+      },
+      {
+        "heading": "2. What to Include in Your Message",
+        "paragraphs": [
+          "To help us diagnose technical issues without unnecessary back-and-forth, please include: the platform or tool involved (TikTok, Instagram, X/Twitter, Facebook, LinkedIn, or the Split Image tool), your browser and device/operating system (for example Safari on iOS, Chrome on Android, or Firefox on Windows), the exact public URL you tested, and any error message or code displayed on screen."
+        ]
+      },
+      {
+        "heading": "3. Types of Inquiries We Handle",
+        "paragraphs": [
+          "Technical bugs and compatibility reports: extraction failures on valid public links, layout glitches, or issues in the browser-based Split Image utility. Please note that VIDNEX has no user accounts and cannot assist with social media password resets or private account access.",
+          "Copyright and DMCA blocklist requests: if you are a rights holder wishing to prevent a specific public URL from being resolved on VIDNEX, please follow the required notice format on our [Copyright & DMCA page](/en/dmca).",
+          "Privacy and data requests: for questions about technical logging, browser storage, or advertising cookies, please review our [Privacy Policy](/en/privacy) first and email compliance@vidnex.space with your request.",
+          "What not to send: please never email passwords, private authentication cookies, payment card numbers, or private social media links. VIDNEX only interacts with publicly accessible URLs and never asks for login credentials."
+        ]
+      }
+    ]
+  },
+  "dmca": {
+    "metaTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
+    "metaDescription": "VIDNEX Copyright & DMCA policy: zero media hosting, step-by-step URL blocklist procedure, required notice elements, counter-notices, and misuse rules.",
+    "ogTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
+    "ogDescription": "VIDNEX Copyright & DMCA policy: zero media hosting, step-by-step URL blocklist procedure, required notice elements, counter-notices, and misuse rules.",
+    "ogImageAlt": "VIDNEX Copyright and DMCA blocklist request procedure",
+    "h1": "Copyright & DMCA Policy",
+    "breadcrumbLabel": "Copyright / DMCA",
+    "updatedAt": "November 21, 2026",
+    "intro": "VIDNEX respects the intellectual property rights of creators, publishers, and rights holders. Although VIDNEX hosts no media files, we provide a straightforward administrative procedure to block specific public URLs or domains from being resolved through our service.",
+    "sections": [
+      {
+        "heading": "1. No Media Stored or Hosted on VIDNEX Servers",
+        "paragraphs": [
+          "VIDNEX functions solely as a user-initiated technical resolver for publicly accessible links. No video, audio track, or image file is stored, hosted, or permanently cached on VIDNEX infrastructure. All media remains hosted exclusively on the origin social platforms (TikTok, Instagram, X/Twitter, Facebook, or LinkedIn).",
+          "Accordingly, blocking a link on VIDNEX prevents our tool from resolving it but does not erase the file from the internet. To remove content permanently from public circulation, the copyright owner must delete it, set it to private, or file a takedown directly with the hosting platform."
+        ]
+      },
+      {
+        "heading": "2. Step-by-Step Blocklist Request Procedure",
+        "paragraphs": [
+          "Step 1: Confirm that the relevant post is publicly accessible and copy the exact public URL (or public profile/domain identifier) that you want excluded from VIDNEX.",
+          "Step 2: Prepare a written notice containing all required details listed in Section 3 below together with the good-faith and accuracy statements in Section 4.",
+          "Step 3: Send your notice by email to compliance@vidnex.space with a clear subject line such as \"DMCA / URL Blocklist Request\".",
+          "Step 4: Once manually verified, the specified URL or domain is added to our technical blocklist so that subsequent extraction requests on VIDNEX are rejected immediately with a BLOCKED error."
+        ]
+      },
+      {
+        "heading": "3. Information Required in a Notice",
+        "paragraphs": [
+          "To enable unambiguous technical blocking, please include: (1) your full name (or organization name) and a valid reply email address; (2) clear identification of the copyrighted work claimed to be affected; (3) the exact, complete public URL(s) to be blocked on VIDNEX (screenshots alone or vague descriptions without exact URLs cannot be technically matched); and (4) if you are acting on behalf of a rights holder, confirmation of your authority to represent them."
+        ]
+      },
+      {
+        "heading": "4. Good-Faith Statement and Declaration Under Penalty of Perjury",
+        "paragraphs": [
+          "Every notice must include both statements below along with your physical or electronic signature (your full typed name at the end of the email):",
+          "Good-faith belief: a statement that you have a good-faith belief that the disputed use or resolution of the identified material is not authorized by the copyright owner, its agent, or the law.",
+          "Accuracy statement: a statement, made under penalty of perjury (or equivalent solemn declaration under applicable law), that the information in your notice is accurate and that you are the copyright owner or authorized to act on the owner's behalf."
+        ]
+      },
+      {
+        "heading": "5. Review and Processing",
+        "paragraphs": [
+          "All notices sent to compliance@vidnex.space are reviewed manually. If a submission lacks exact URLs or mandatory declarations, we may request clarification by email before taking action. Once verified, the URL or domain is added to our database blocklist. We do not guarantee a fixed processing deadline, but complete notices are handled diligently."
+        ]
+      },
+      {
+        "heading": "6. Counter-Notification Procedure",
+        "paragraphs": [
+          "If you are the creator or authorized owner of a public post and believe a URL was blocked on VIDNEX due to mistake or misidentification, you may submit a counter-notification to compliance@vidnex.space.",
+          "Include the exact blocked URL, your contact information, a factual explanation of why you believe the block was made in error or why you hold the necessary rights, a solemn statement affirming the accuracy of your counter-notice, and your electronic signature. Following review, the operator will determine whether to lift or maintain the technical block."
+        ]
+      },
+      {
+        "heading": "7. Misuse and Abusive Notices",
+        "paragraphs": [
+          "Our blocklist process is reserved strictly for legitimate copyright holders and authorized agents. Knowingly submitting false copyright claims, impersonating a rights holder, or misusing this process to target lawful public content may expose the submitter to legal liability under applicable laws (including Section 512(f) of the U.S. DMCA or equivalent local rules). For general inquiries, see our [Contact page](/en/contact) or [Terms of Service](/en/terms)."
+        ]
+      }
+    ]
+  }
+}

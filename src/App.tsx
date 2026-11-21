@@ -47,7 +47,8 @@ import {
 } from './data/blogArticles.ts';
 import {
   getLocaleBundleSync,
-  hasLocaleBundleSync,
+  hasLocaleBundleForPageSync,
+  loadLegalBundle,
   loadLocaleBundle,
 } from './i18n/localeLoader.ts';
 import {
@@ -141,13 +142,17 @@ export function App({ initialPath }: AppProps = {}) {
     ? (pageKey as PlatformPageKey)
     : 'tiktok';
 
-  // Ensure the active language chunk is loaded dynamically on the client only if not already cached
+  // Ensure the active language chunk (and legal chunk only on legal routes) is loaded dynamically when missing
   useEffect(() => {
-    if (hasLocaleBundleSync(language)) {
+    if (hasLocaleBundleForPageSync(language, pageKey)) {
       return;
     }
     let cancelled = false;
-    loadLocaleBundle(language)
+    const tasks: Promise<unknown>[] = [loadLocaleBundle(language)];
+    if (isLegalPageKey(pageKey)) {
+      tasks.push(loadLegalBundle(language));
+    }
+    Promise.all(tasks)
       .then(() => {
         if (!cancelled) {
           setLocaleRevision((r) => r + 1);
@@ -157,7 +162,7 @@ export function App({ initialPath }: AppProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, pageKey]);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -238,15 +243,6 @@ export function App({ initialPath }: AppProps = {}) {
   const handleNavigatePage = useCallback(
     (nextPage: PageKey) => {
       let targetLocale = language;
-      if (
-        isLegalPageKey(nextPage) &&
-        language !== 'fr' &&
-        language !== 'en' &&
-        language !== 'ar'
-      ) {
-        targetLocale = 'en';
-        setLanguage('en');
-      }
       if (nextPage === 'blog' && !isBlogHubLocale(language)) {
         targetLocale = 'en';
         setLanguage('en');
@@ -317,17 +313,8 @@ export function App({ initialPath }: AppProps = {}) {
           ? 'home'
           : pageKey;
 
-      let effectivePage: PageKey = currentValidPage;
+      const effectivePage: PageKey = currentValidPage;
       const effectiveLang: SupportedLocale = nextLang;
-
-      if (
-        isLegalPageKey(currentValidPage) &&
-        nextLang !== 'fr' &&
-        nextLang !== 'en' &&
-        nextLang !== 'ar'
-      ) {
-        effectivePage = 'home';
-      }
 
       setLanguage(effectiveLang);
       setPageKey(effectivePage);
@@ -514,6 +501,7 @@ export function App({ initialPath }: AppProps = {}) {
             legalKey={pageKey}
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
+            onNavigatePath={handleNavigatePath}
           />
         ) : (
           <>

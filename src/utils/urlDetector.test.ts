@@ -1530,12 +1530,17 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       '/es/descargar-video-facebook'
     );
 
-    // 2. Pages légales : fr, en, ar ont leurs propres URLs ; les 7 autres langues pointent vers /en/...
+    // 2. Pages légales : les 10 langues ont toutes leurs propres URLs natives (FR sans préfixe, 9 autres sous /{lang}/...)
     assert.equal(getLocalizedPagePath('fr', 'about'), '/a-propos');
     assert.equal(getLocalizedPagePath('en', 'about'), '/en/about');
     assert.equal(getLocalizedPagePath('ar', 'about'), '/ar/about');
-    assert.equal(getLocalizedPagePath('de', 'about'), '/en/about');
-    assert.equal(getLocalizedPagePath('ru', 'privacy'), '/en/privacy');
+    assert.equal(getLocalizedPagePath('de', 'about'), '/de/about');
+    assert.equal(getLocalizedPagePath('ru', 'privacy'), '/ru/privacy');
+    assert.equal(getLocalizedPagePath('es', 'dmca'), '/es/dmca');
+    assert.equal(getLocalizedPagePath('pt', 'terms'), '/pt/terms');
+    assert.equal(getLocalizedPagePath('tr', 'contact'), '/tr/contact');
+    assert.equal(getLocalizedPagePath('id', 'privacy'), '/id/privacy');
+    assert.equal(getLocalizedPagePath('it', 'about'), '/it/about');
 
     // 3. Résolution d'URL + détection 404
     const resolvedFr = resolveRouteFromPathname('/telecharger-reel-instagram');
@@ -1548,12 +1553,17 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(resolvedAr.pageKey, 'facebook');
     assert.equal(resolvedAr.isNotFound, false);
 
+    const resolvedDePrivacy = resolveRouteFromPathname('/de/privacy');
+    assert.equal(resolvedDePrivacy.locale, 'de');
+    assert.equal(resolvedDePrivacy.pageKey, 'privacy');
+    assert.equal(resolvedDePrivacy.isNotFound, false);
+
     const resolved404 = resolveRouteFromPathname('/ar/unknown-broken-route');
     assert.equal(resolved404.locale, 'ar');
     assert.equal(resolved404.pageKey, 'not_found');
     assert.equal(resolved404.isNotFound, true);
 
-    // 4. Hreflang : 10 langues + x-default sur les pages principales, 3 langues (fr, en, ar) + x-default sur les pages légales
+    // 4. Hreflang : 10 langues + x-default sur les pages principales ET les 50 pages légales
     const tiktokHreflangs = buildHreflangCluster('tiktok');
     assert.equal(tiktokHreflangs.length, 11);
     const xDefault = tiktokHreflangs.find((h) => h.hreflang === 'x-default');
@@ -1561,14 +1571,19 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       xDefault?.href,
       'https://vidnex.space/en/tiktok-video-downloader'
     );
-    assert.equal(buildHreflangCluster('privacy').length, 4);
+    const privacyHreflangs = buildHreflangCluster('privacy');
+    assert.equal(privacyHreflangs.length, 11);
+    assert.equal(
+      privacyHreflangs.find((h) => h.hreflang === 'x-default')?.href,
+      'https://vidnex.space/en/privacy'
+    );
     assert.equal(
       getPageCanonicalUrl('fr', 'home'),
       'https://vidnex.space/'
     );
 
-    // 5. 85 routes publiques au total (70 principales + outils + 15 légales)
-    assert.equal(getAllPublicRoutes().length, 85);
+    // 5. 120 routes publiques core au total (70 principales/outils + 50 légales sur 10 langues)
+    assert.equal(getAllPublicRoutes().length, 120);
     assert.equal(
       getLocalizedPagePath('fr', 'linkedin'),
       '/telecharger-photo-profil-linkedin'
@@ -2673,11 +2688,11 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(BLOG_NAV_LABELS.ar, 'المدونة');
     assert.equal(BLOG_NAV_LABELS.ru, 'Блог');
 
-    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 5 hubs (/en/blog, /fr/blog, /es/blog, /de/blog, /ar/blog) + 24 published article pages (8 EN + 7 FR + 2 ES + 3 DE + 4 AR) = 29 routes -> 114 total
-    assert.equal(getAllPublicRoutes().length, 85);
+    // 1. 120 core routes (60 main + 10 split-image tool + 50 legal across 10 languages); blog routes add 5 hubs (/en/blog, /fr/blog, /es/blog, /de/blog, /ar/blog) + 24 published article pages (8 EN + 7 FR + 2 ES + 3 DE + 4 AR) = 29 routes -> 149 total
+    assert.equal(getAllPublicRoutes().length, 120);
     const blogRoutes = getAllBlogPublicRoutes();
     assert.equal(blogRoutes.length, 29);
-    assert.equal(getAllIndexableRoutes().length, 114);
+    assert.equal(getAllIndexableRoutes().length, 149);
 
     // 2. Published articles across all 5 blog locales (en=8, fr=7, es=2, de=3, ar=4)
     const enArticles = getPublishedArticlesForLocale('en');
@@ -5133,18 +5148,20 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('Découper une image'));
   });
 
-  it('validates SEO, GEO, and AEO upgrades across all 114 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
+  it('validates SEO, GEO, and AEO upgrades across all 149 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
     const {
       SUPPORTED_LOCALES,
       getAllIndexableRoutes,
       buildLlmsTxt,
     } = await import('../i18n/config.ts');
     const { buildHeadMetadataForRoute } = await import('../i18n/hreflang.ts');
-    const { getLocaleBundleSync } = await import('../i18n/localeLoader.ts');
+    const { getLegalDocSync, getLocaleBundleSync } = await import(
+      '../i18n/localeLoader.ts'
+    );
     const { getSplitImageContent } = await import('./splitImageLogic.ts');
 
     const allRoutes = getAllIndexableRoutes();
-    assert.equal(allRoutes.length, 114);
+    assert.equal(allRoutes.length, 149);
 
     // Verify Arabic private-account FAQ answer is accurate (does not list platforms)
     const arBundle = getLocaleBundleSync('ar');
@@ -5256,8 +5273,8 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('Snapchat'));
     assert.ok(llms.includes('.ZIP'));
 
-    for (const aboutLoc of ['fr', 'en', 'ar'] as const) {
-      const aboutDoc = getLocaleBundleSync(aboutLoc).legal?.about;
+    for (const aboutLoc of SUPPORTED_LOCALES) {
+      const aboutDoc = getLegalDocSync(aboutLoc, 'about');
       assert.ok(aboutDoc, `Missing legal.about for ${aboutLoc}`);
       const fullAboutText = [
         aboutDoc.intro,
@@ -5273,5 +5290,222 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       );
     }
   });
+
+  it('Trust & legal pages across all 10 languages: word minimums, JSON-LD AboutPage/ContactPage/WebPage + BreadcrumbList, 10-language hreflang, and bundle scoping (zero legal bytes on non-legal routes)', async () => {
+    const { LEGAL_PAGE_KEYS, SUPPORTED_LOCALES } = await import(
+      '../i18n/config.ts'
+    );
+    const { buildHeadMetadataForRoute } = await import('../i18n/hreflang.ts');
+    const {
+      buildScopedLocaleBundle,
+      getLegalDocSync,
+      getLocaleBundleSync,
+    } = await import('../i18n/localeLoader.ts');
+
+    const minimums = {
+      about: 600,
+      privacy: 900,
+      terms: 700,
+      contact: 250,
+      dmca: 600,
+    } as const;
+
+    const countWords = (text: string) =>
+      text
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+
+    for (const loc of SUPPORTED_LOCALES) {
+      const mainBundle = getLocaleBundleSync(loc);
+      assert.equal(
+        (mainBundle as unknown as Record<string, unknown>).legal,
+        undefined,
+        `src/i18n/locales/${loc}.json must not embed legal text`
+      );
+
+      const homeScoped = buildScopedLocaleBundle(mainBundle, 'home');
+      assert.equal(
+        (homeScoped as Record<string, unknown>).legal,
+        undefined,
+        `Home scoped bundle (${loc}) must omit legal text`
+      );
+
+      const tiktokScoped = buildScopedLocaleBundle(mainBundle, 'tiktok');
+      assert.equal(
+        (tiktokScoped as Record<string, unknown>).legal,
+        undefined,
+        `Platform scoped bundle (${loc}) must omit legal text`
+      );
+
+      for (const legalKey of LEGAL_PAGE_KEYS) {
+        const doc = getLegalDocSync(loc, legalKey);
+        assert.ok(doc, `Missing legal doc ${loc}/${legalKey}`);
+
+        const fullText = [
+          doc.h1,
+          doc.updatedAt,
+          doc.intro,
+          ...doc.sections.flatMap((s) => [s.heading, ...s.paragraphs]),
+        ].join(' ');
+        const wc = countWords(fullText);
+        assert.ok(
+          wc >= minimums[legalKey],
+          `Legal doc ${loc}/${legalKey} has ${wc} words, expected >= ${minimums[legalKey]}`
+        );
+
+        const meta = buildHeadMetadataForRoute(loc, legalKey);
+        assert.equal(meta.hreflangs.length, 11);
+        assert.equal(meta.ogLocaleAlternates.length, 9);
+
+        const graph = (meta.jsonLdGraph['@graph'] || []) as Array<
+          Record<string, any>
+        >;
+        const expectedType =
+          legalKey === 'about'
+            ? 'AboutPage'
+            : legalKey === 'contact'
+            ? 'ContactPage'
+            : 'WebPage';
+        assert.ok(
+          graph.some((n) => n['@type'] === expectedType),
+          `Legal route ${loc}/${legalKey} missing JSON-LD ${expectedType}`
+        );
+        assert.ok(
+          graph.some((n) => n['@type'] === 'BreadcrumbList'),
+          `Legal route ${loc}/${legalKey} missing JSON-LD BreadcrumbList`
+        );
+
+        const legalScoped = buildScopedLocaleBundle(mainBundle, legalKey);
+        assert.equal(legalScoped.__scope, legalKey);
+        assert.deepEqual(
+          Object.keys((legalScoped.legal || {}) as Record<string, unknown>),
+          [legalKey],
+          `Legal scoped bundle ${loc}/${legalKey} must include ONLY ${legalKey}`
+        );
+      }
+    }
+  });
+
+  it(
+    'Blog routes: localized title/lang/dir, scoped __VIDNEX_LOCALE_BUNDLE__, BlogPosting author+image, and Worker asset resolution',
+    async () => {
+      const { getAllBlogPublicRoutes } = await import('../i18n/config.ts');
+      const { buildHeadMetadataForRoute } = await import('../i18n/hreflang.ts');
+      const { buildScopedLocaleBundle, getLocaleBundleSync } = await import(
+        '../i18n/localeLoader.ts'
+      );
+      const { BLOG_HUB_LOCALES } = await import('../data/blogArticles.ts');
+      const workerMod = await import('../../worker.ts');
+
+      const frHomeTitle = getLocaleBundleSync('fr').home.metaTitle;
+      const blogRoutes = getAllBlogPublicRoutes();
+      assert.ok(blogRoutes.length >= 29, 'Expected at least 5 blog hubs + 24 articles');
+
+      for (const route of blogRoutes) {
+        const meta = buildHeadMetadataForRoute(
+          route.locale,
+          route.pageKey,
+          route.blogSlug || null
+        );
+        assert.equal(meta.lang, route.locale, `${route.path} lang must match locale`);
+        assert.equal(
+          meta.dir,
+          route.locale === 'ar' ? 'rtl' : 'ltr',
+          `${route.path} dir must be rtl for ar and ltr otherwise`
+        );
+        assert.notEqual(
+          meta.title,
+          frHomeTitle,
+          `${route.path} title must never fall back to French home title`
+        );
+
+        const fullBundle = getLocaleBundleSync(route.locale);
+        const scoped = buildScopedLocaleBundle(fullBundle, route.pageKey);
+        assert.equal(scoped.locale, route.locale);
+        assert.equal(scoped.__scope, route.pageKey);
+        assert.equal((scoped as Record<string, unknown>).legal, undefined);
+        assert.equal((scoped.ui as Record<string, unknown>)?.omnibox, undefined);
+        assert.equal((scoped.ui as Record<string, unknown>)?.drawer, undefined);
+        assert.equal((scoped.home as Record<string, unknown>)?.faqs, undefined);
+        assert.ok(
+          JSON.stringify(scoped).length < JSON.stringify(fullBundle).length * 0.25,
+          `${route.path} scoped bundle should be much smaller than full locale bundle`
+        );
+
+        if (route.pageKey === 'blog') {
+          const graph = (meta.jsonLdGraph['@graph'] || []) as Array<
+            Record<string, any>
+          >;
+          const blogNode = graph.find((n) => n['@type'] === 'Blog');
+          assert.ok(blogNode, `Missing Blog JSON-LD node on ${route.path}`);
+          assert.ok(
+            Array.isArray(blogNode.blogPost) && blogNode.blogPost.length > 0,
+            `Expected non-empty blogPost list on ${route.path}`
+          );
+          for (const bp of blogNode.blogPost) {
+            assert.equal(bp['@type'], 'BlogPosting');
+            assert.ok(
+              bp.author &&
+                bp.author['@type'] === 'Organization' &&
+                typeof bp.author.name === 'string' &&
+                bp.author.name.length > 0,
+              `BlogPosting "${bp.headline}" on ${route.path} missing author`
+            );
+            assert.ok(
+              typeof bp.image === 'string' && bp.image.startsWith('https://vidnex.space/og/'),
+              `BlogPosting "${bp.headline}" on ${route.path} missing valid image URL`
+            );
+          }
+        }
+      }
+
+      // Verify all 5 hubs are covered
+      for (const loc of BLOG_HUB_LOCALES) {
+        assert.ok(
+          blogRoutes.some((r) => r.pageKey === 'blog' && r.locale === loc),
+          `Missing blog hub route for ${loc}`
+        );
+      }
+
+      // Verify worker.ts serves /es/blog/index.html (never FR /index.html) even if ASSETS returns 307 or 404 on /es/blog
+      const esBlogRes = await workerMod.default.fetch(
+        new Request('https://vidnex.space/es/blog'),
+        {
+          ASSETS: {
+            async fetch(req: Request) {
+              const p = new URL(req.url).pathname;
+              if (p === '/es/blog') {
+                return new Response(null, {
+                  status: 307,
+                  headers: { Location: '/es/blog/' },
+                });
+              }
+              if (p === '/es/blog/index.html') {
+                return new Response(
+                  '<html lang="es"><head><title>Blog VIDNEX — Guías de Descarga de Vídeos y Audio</title></head></html>',
+                  { status: 200, headers: { 'Content-Type': 'text/html' } }
+                );
+              }
+              if (p === '/index.html') {
+                return new Response(
+                  '<html lang="fr"><head><title>Télécharger Vidéo TikTok</title></head></html>',
+                  { status: 200, headers: { 'Content-Type': 'text/html' } }
+                );
+              }
+              return new Response('Not Found', { status: 404 });
+            },
+          },
+        }
+      );
+      assert.equal(esBlogRes.status, 200);
+      const esBlogHtml = await esBlogRes.text();
+      assert.ok(esBlogHtml.includes('lang="es"'));
+      assert.ok(esBlogHtml.includes('Guías de Descarga'));
+      assert.ok(!esBlogHtml.includes('Télécharger Vidéo TikTok'));
+    }
+  );
 });
+
 

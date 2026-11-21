@@ -163,15 +163,17 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
         const { buildHeadMetadataForRoute } = await import(
           './src/i18n/hreflang.ts'
         );
-        const { getLocaleBundleSync } = await import(
+        const { buildScopedLocaleBundle, getLocaleBundleSync } = await import(
           './src/i18n/localeLoader.ts'
         );
 
         const parsed = parsePathname(cleanPath);
+        const targetPageKey = parsed.isAdmin ? 'admin' : parsed.pageKey;
         const bundle = getLocaleBundleSync(parsed.lang);
         const meta = buildHeadMetadataForRoute(
           parsed.lang,
-          parsed.isAdmin ? 'admin' : parsed.pageKey
+          targetPageKey,
+          parsed.blogSlug || null
         );
 
         const esc = (s: string) =>
@@ -291,7 +293,11 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
           )}</script>`
         );
         if (!parsed.isAdmin) {
-          const safeBundleJson = JSON.stringify(bundle).replace(/</g, '\\u003c');
+          const scopedBundle = buildScopedLocaleBundle(bundle, targetPageKey);
+          const safeBundleJson = JSON.stringify(scopedBundle).replace(
+            /</g,
+            '\\u003c'
+          );
           extra.push(
             `    <script>window.__VIDNEX_LOCALE_BUNDLE__=${safeBundleJson};</script>`
           );

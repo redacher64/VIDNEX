@@ -182,7 +182,7 @@ export const Footer: React.FC<FooterProps> = ({
             <h2 className="font-display text-xs font-bold uppercase tracking-wider text-orange-800 dark:text-amber-400 mb-3">
               {f.legalTitle}
             </h2>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1.5" data-footer-legal="true">
               <li>
                 <a
                   href={blogHref}

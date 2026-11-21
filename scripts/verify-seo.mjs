@@ -15,14 +15,17 @@ import {
   getAllIndexableRoutes,
   getLocalizedPagePath,
   isLegalPageKey,
+  LEGAL_PAGE_KEYS,
   LEGAL_SUPPORTED_LOCALES,
   LOCALES_CONFIG,
   SUPPORTED_LOCALES,
 } from '../src/i18n/config.ts';
 import {
+  buildHeadMetadataForRoute,
   buildHreflangCluster,
   getOgLocales,
 } from '../src/i18n/hreflang.ts';
+import { getLocaleBundleSync } from '../src/i18n/localeLoader.ts';
 import {
   BLOG_ARTICLES,
   getBlogArticlePath,
@@ -32,6 +35,15 @@ import { validateStaticBlogRepository } from '../src/utils/blogValidation.ts';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const LOCALES_DIR = path.join(process.cwd(), 'src', 'i18n', 'locales');
+const LEGAL_DIR = path.join(process.cwd(), 'src', 'i18n', 'legal');
+
+const LEGAL_WORD_MINIMUMS = {
+  about: 600,
+  privacy: 900,
+  terms: 700,
+  contact: 250,
+  dmca: 600,
+};
 
 function fail(message) {
   console.error(`✗ [SEO Verification Failed] ${message}`);
@@ -41,6 +53,15 @@ function fail(message) {
 function extractTagContent(html, regex) {
   const m = html.match(regex);
   return m ? m[1].trim() : null;
+}
+
+function decodeHtmlEntities(str) {
+  return String(str)
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
 }
 
 function validateBlogAndLocaleInternalLinks(validInternalPaths) {
@@ -128,18 +149,24 @@ function validateBlogAndLocaleInternalLinks(validInternalPaths) {
     }
   }
 
-  // 2. Scan all locale JSON files for markdown links [label](/path) or explicit VIDNEX internal URLs
-  if (fs.existsSync(LOCALES_DIR)) {
-    for (const file of fs.readdirSync(LOCALES_DIR)) {
+  // 2. Scan all locale & legal JSON files for markdown links [label](/path) or explicit VIDNEX internal URLs
+  for (const [dirPath, label] of [
+    [LOCALES_DIR, 'locale'],
+    [LEGAL_DIR, 'legal'],
+  ]) {
+    if (!fs.existsSync(dirPath)) continue;
+    for (const file of fs.readdirSync(dirPath)) {
       if (!file.endsWith('.json')) continue;
-      const raw = fs.readFileSync(path.join(LOCALES_DIR, file), 'utf8');
+      const raw = fs.readFileSync(path.join(dirPath, file), 'utf8');
       const urlRe = /(?:https:\/\/vidnex\.space|\]\()(\/[a-z0-9/_-]+)/gi;
       let m;
       while ((m = urlRe.exec(raw)) !== null) {
         const candidate = m[1].replace(/\/+$/, '') || '/';
         dataLinksChecked++;
         if (!validInternalPaths.has(candidate)) {
-          fail(`Broken internal link "${candidate}" found in locale file ${file}`);
+          fail(
+            `Broken internal link "${candidate}" found in ${label} file ${file}`
+          );
         }
       }
     }
@@ -171,6 +198,25 @@ function main() {
 
   let totalLinksChecked = 0;
 
+  if (LEGAL_SUPPORTED_LOCALES.length !== 10) {
+    fail(
+      `Expected LEGAL_SUPPORTED_LOCALES to contain all 10 languages, got ${LEGAL_SUPPORTED_LOCALES.length}`
+    );
+  }
+
+  // Build map of every legal path -> owning locale for strict footer locale-isolation verification
+  const legalPathToLocale = new Map();
+  for (const loc of SUPPORTED_LOCALES) {
+    for (const lKey of LEGAL_PAGE_KEYS) {
+      legalPathToLocale.set(getLocalizedPagePath(loc, lKey), loc);
+    }
+  }
+
+  const frHomeTitle = getLocaleBundleSync('fr').home.metaTitle;
+  let blogPostingsVerified = 0;
+  let legalPagesVerified = 0;
+  let footerPagesVerified = 0;
+
   for (const route of routes) {
     const filePath =
       route.path === '/'
@@ -182,8 +228,13 @@ function main() {
     }
 
     const html = fs.readFileSync(filePath, 'utf8');
+    const expectedMeta = buildHeadMetadataForRoute(
+      route.locale,
+      route.pageKey,
+      route.blogSlug || null
+    );
 
-    // 1. Check <html lang="..." dir="...">
+    // 1. Check <html lang="..." dir="..."> matches route locale
     const htmlLang = extractTagContent(html, /<html[^>]*\blang="([^"]+)"/i);
     const htmlDir = extractTagContent(html, /<html[^>]*\bdir="([^"]+)"/i);
     if (htmlLang !== route.locale) {
@@ -194,10 +245,85 @@ function main() {
       fail(`Route ${route.path}: expected dir="${expectedDir}", got "${htmlDir}"`);
     }
 
-    // 2. Check <title> uniqueness
-    const title = extractTagContent(html, /<title>([\s\S]*?)<\/title>/i);
+    // 1b. Check window.__VIDNEX_LOCALE_BUNDLE__ exists, matches route.locale, and is page-scoped on blog routes
+    const bundleRaw = extractTagContent(
+      html,
+      /window\.__VIDNEX_LOCALE_BUNDLE__=(\{[\s\S]*?\});<\/script>/i
+    );
+    if (!bundleRaw) {
+      fail(
+        `Route ${route.path}: missing inline window.__VIDNEX_LOCALE_BUNDLE__ payload`
+      );
+    }
+    let parsedBundle;
+    try {
+      parsedBundle = JSON.parse(bundleRaw);
+    } catch (err) {
+      fail(
+        `Route ${route.path}: invalid JSON in window.__VIDNEX_LOCALE_BUNDLE__: ${err.message}`
+      );
+    }
+    if (parsedBundle.locale !== route.locale) {
+      fail(
+        `Route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__.locale is "${parsedBundle.locale}", expected "${route.locale}"`
+      );
+    }
+    if (route.pageKey === 'blog' || route.pageKey === 'blog_article') {
+      if (parsedBundle.__scope !== route.pageKey) {
+        fail(
+          `Route ${route.path}: expected scoped blog bundle __scope="${route.pageKey}", got "${parsedBundle.__scope}"`
+        );
+      }
+      if (
+        parsedBundle.legal ||
+        parsedBundle.ui?.omnibox ||
+        parsedBundle.ui?.drawer ||
+        parsedBundle.home?.faqs ||
+        parsedBundle.home?.editorial
+      ) {
+        fail(
+          `Route ${route.path}: blog window.__VIDNEX_LOCALE_BUNDLE__ contains unused non-blog keys (must only inject strings needed by the page)`
+        );
+      }
+    }
+
+    // 1c. Performance isolation: non-legal routes must NEVER embed legal content; legal routes must ONLY embed their own pageKey
+    if (isLegalPageKey(route.pageKey)) {
+      if (parsedBundle.__scope !== route.pageKey) {
+        fail(
+          `Legal route ${route.path}: expected __scope="${route.pageKey}", got "${parsedBundle.__scope}"`
+        );
+      }
+      const legalKeys =
+        parsedBundle.legal && typeof parsedBundle.legal === 'object'
+          ? Object.keys(parsedBundle.legal)
+          : [];
+      if (legalKeys.length !== 1 || legalKeys[0] !== route.pageKey) {
+        fail(
+          `Legal route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__.legal must contain ONLY ["${route.pageKey}"], got [${legalKeys.join(', ')}]`
+        );
+      }
+    } else if (parsedBundle.legal !== undefined) {
+      fail(
+        `Non-legal route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__ must NOT contain "legal" data`
+      );
+    }
+
+    // 2. Check <title> matches route locale metadata & uniqueness
+    const rawTitle = extractTagContent(html, /<title>([\s\S]*?)<\/title>/i);
+    const title = rawTitle ? decodeHtmlEntities(rawTitle) : null;
     if (!title || title.length < 15) {
       fail(`Route ${route.path}: missing or too short <title>`);
+    }
+    if (title !== expectedMeta.title) {
+      fail(
+        `Route ${route.path}: <title> mismatch for locale "${route.locale}" — expected "${expectedMeta.title}", got "${title}"`
+      );
+    }
+    if (route.locale !== 'fr' && title === frHomeTitle) {
+      fail(
+        `Route ${route.path}: non-French route has French home <title> "${title}"`
+      );
     }
     if (titlesSeen.has(title)) {
       fail(
@@ -205,6 +331,88 @@ function main() {
       );
     }
     titlesSeen.set(title, route.path);
+
+    // 2b. Check JSON-LD validity and BlogPosting author + image requirements
+    const jsonLdRaw = extractTagContent(
+      html,
+      /<script\s+id="vidnex-jsonld-schema"\s+type="application\/ld\+json">([\s\S]*?)<\/script>/i
+    );
+    if (!jsonLdRaw) {
+      fail(`Route ${route.path}: missing #vidnex-jsonld-schema JSON-LD script`);
+    }
+    let jsonLdObj;
+    try {
+      jsonLdObj = JSON.parse(jsonLdRaw);
+    } catch (err) {
+      fail(`Route ${route.path}: invalid JSON-LD payload: ${err.message}`);
+    }
+    const graphNodes = Array.isArray(jsonLdObj['@graph'])
+      ? jsonLdObj['@graph']
+      : [];
+    const blogPostingsToCheck = [];
+    for (const node of graphNodes) {
+      if (node && node['@type'] === 'BlogPosting') {
+        blogPostingsToCheck.push(node);
+      }
+      if (node && node['@type'] === 'Blog' && Array.isArray(node.blogPost)) {
+        for (const bp of node.blogPost) {
+          if (bp && bp['@type'] === 'BlogPosting') {
+            blogPostingsToCheck.push(bp);
+          }
+        }
+      }
+    }
+    for (const bp of blogPostingsToCheck) {
+      blogPostingsVerified++;
+      const hasAuthor =
+        bp.author &&
+        typeof bp.author === 'object' &&
+        typeof bp.author['@type'] === 'string' &&
+        typeof bp.author.name === 'string' &&
+        bp.author.name.trim().length > 0;
+      const hasImage =
+        (typeof bp.image === 'string' && /^https:\/\//.test(bp.image)) ||
+        (bp.image &&
+          typeof bp.image === 'object' &&
+          typeof bp.image.url === 'string' &&
+          /^https:\/\//.test(bp.image.url));
+      if (!hasAuthor) {
+        fail(
+          `Route ${route.path}: JSON-LD BlogPosting "${bp.headline || bp.url}" is missing valid author`
+        );
+      }
+      if (!hasImage) {
+        fail(
+          `Route ${route.path}: JSON-LD BlogPosting "${bp.headline || bp.url}" is missing valid image`
+        );
+      }
+    }
+
+    // 2c. Check JSON-LD schema types on legal pages (AboutPage / ContactPage / WebPage + BreadcrumbList)
+    if (isLegalPageKey(route.pageKey)) {
+      const expectedLegalType =
+        route.pageKey === 'about'
+          ? 'AboutPage'
+          : route.pageKey === 'contact'
+          ? 'ContactPage'
+          : 'WebPage';
+      const hasExpectedLegalNode = graphNodes.some(
+        (node) => node && node['@type'] === expectedLegalType
+      );
+      if (!hasExpectedLegalNode) {
+        fail(
+          `Legal route ${route.path}: missing JSON-LD node with @type="${expectedLegalType}"`
+        );
+      }
+      const hasBreadcrumb = graphNodes.some(
+        (node) => node && node['@type'] === 'BreadcrumbList'
+      );
+      if (!hasBreadcrumb) {
+        fail(
+          `Legal route ${route.path}: missing JSON-LD BreadcrumbList node`
+        );
+      }
+    }
 
     // 3. Check <meta name="description"> uniqueness
     const desc = extractTagContent(
@@ -238,6 +446,35 @@ function main() {
     const h1 = extractTagContent(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i);
     if (!h1 || h1.replace(/<[^>]+>/g, '').trim().length < 5) {
       fail(`Route ${route.path}: missing or empty <h1> in pre-rendered HTML`);
+    }
+
+    // 5b. Legal page word count minimum verification (rendered <article> body text)
+    if (isLegalPageKey(route.pageKey)) {
+      const articleHtml = extractTagContent(
+        html,
+        /<article\b[^>]*>([\s\S]*?)<\/article>/i
+      );
+      if (!articleHtml) {
+        fail(
+          `Legal route ${route.path}: missing <article> container in pre-rendered HTML`
+        );
+      }
+      const plainText = decodeHtmlEntities(
+        articleHtml
+          .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+          .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+          .replace(/<[^>]+>/g, ' ')
+      )
+        .replace(/\s+/g, ' ')
+        .trim();
+      const wordCount = plainText ? plainText.split(/\s+/).length : 0;
+      const minWords = LEGAL_WORD_MINIMUMS[route.pageKey];
+      if (wordCount < minWords) {
+        fail(
+          `Legal route ${route.path} (${route.locale}/${route.pageKey}): rendered word count is ${wordCount}, below required minimum ${minWords}`
+        );
+      }
+      legalPagesVerified++;
     }
 
     // 6. Check exact hreflang + x-default tags across ALL indexable routes (main, legal, blog hubs & articles)
@@ -369,6 +606,46 @@ function main() {
         );
       }
     }
+
+    // 7b. Verify footer legal links ALWAYS point to the page's own locale (never redirecting to another language)
+    const footerHtml = extractTagContent(
+      html,
+      /<footer\b[^>]*>([\s\S]*?)<\/footer>/i
+    );
+    if (!footerHtml) {
+      fail(`Route ${route.path}: missing <footer> in pre-rendered HTML`);
+    }
+    const footerLegalListHtml = extractTagContent(
+      footerHtml,
+      /<ul\b[^>]*data-footer-legal="true"[^>]*>([\s\S]*?)<\/ul>/i
+    );
+    if (!footerLegalListHtml) {
+      fail(
+        `Route ${route.path}: missing <ul data-footer-legal="true"> in <footer>`
+      );
+    }
+    const footerLegalHrefs = new Set();
+    const footerLinkRe = /<a\s+([^>]*)href="(\/[^"#?]*)"([^>]*)>/gi;
+    let footerMatch;
+    while ((footerMatch = footerLinkRe.exec(footerLegalListHtml)) !== null) {
+      const fHref = footerMatch[2].replace(/\/+$/, '') || '/';
+      footerLegalHrefs.add(fHref);
+      const legalOwner = legalPathToLocale.get(fHref);
+      if (legalOwner && legalOwner !== route.locale) {
+        fail(
+          `Route ${route.path} (locale="${route.locale}"): footer legal link "${fHref}" points to another locale "${legalOwner}"`
+        );
+      }
+    }
+    for (const lKey of LEGAL_PAGE_KEYS) {
+      const expectedLegalHref = getLocalizedPagePath(route.locale, lKey);
+      if (!footerLegalHrefs.has(expectedLegalHref)) {
+        fail(
+          `Route ${route.path} (locale="${route.locale}"): footer legal section is missing localized link "${expectedLegalHref}" (${lKey})`
+        );
+      }
+    }
+    footerPagesVerified++;
   }
 
   // 8. Verify 100% reciprocity across hreflangGraph
@@ -455,7 +732,19 @@ function main() {
     `  • ${routes.length} pages verified for complete og:locale + og:locale:alternate tags`
   );
   console.log(
-    `  • ${totalLinksChecked} HTML internal <a href> links + ${dataLinksChecked} data/locale links verified (0 broken)`
+    `  • ${routes.length} pages verified for route-matching <title>, <html lang/dir> & window.__VIDNEX_LOCALE_BUNDLE__.locale`
+  );
+  console.log(
+    `  • ${blogPostingsVerified} JSON-LD BlogPosting entries verified with author & image`
+  );
+  console.log(
+    `  • ${legalPagesVerified}/50 legal pages verified (word minimums, AboutPage/ContactPage/WebPage + BreadcrumbList JSON-LD, 10-language reciprocal hreflang, scoped inline bundle)`
+  );
+  console.log(
+    `  • ${footerPagesVerified}/${routes.length} page footers verified for strict same-locale legal links (0 cross-language redirects)`
+  );
+  console.log(
+    `  • ${totalLinksChecked} HTML internal <a href> links + ${dataLinksChecked} data/locale/legal links verified (0 broken)`
   );
   console.log(`  • sitemap.xml (${locCount} URLs), robots.txt & llms.txt validated`);
   console.log('==========================================================');

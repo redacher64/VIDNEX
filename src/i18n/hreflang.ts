@@ -42,7 +42,7 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from './config.ts';
-import { getLocaleBundleSync } from './localeLoader.ts';
+import { getLegalDocSync, getLocaleBundleSync } from './localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 
 export interface ShareUrls {
@@ -177,7 +177,7 @@ export function buildBlogHreflangCluster(
  * Génère la liste complète des liens hreflang pour une page donnée.
  * - Pour 'home' et les 5 pages plateformes : renvoie les 10 langues + 'x-default' vers la version anglaise.
  * - Pour 'blog' et 'blog_article' : renvoie uniquement les versions linguistiques réellement publiées + 'x-default' vers la version anglaise.
- * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') : renvoie les 3 langues indexées (fr, en, ar) + 'x-default' vers la version anglaise.
+ * - Pour les pages légales ('about', 'privacy', 'terms', 'contact', 'dmca') : renvoie les 10 langues indexées + 'x-default' vers la version anglaise.
  */
 export function buildHreflangCluster(
   pageKey: PageKey | 'blog_article',
@@ -428,9 +428,15 @@ export function buildHeadMetadataForRoute(
           '@type': 'BlogPosting',
           headline: item.translation.title,
           url: getCanonicalUrl(item.canonicalPath),
+          image: getOgImageUrlForPage(item.article.primaryPlatform || 'blog'),
           datePublished: item.article.publishedAt,
           dateModified: item.article.updatedAt,
           inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
+          author: {
+            '@type': 'Organization',
+            name: item.article.author?.name || SITE_NAME,
+            url: SITE_URL,
+          },
         })),
       },
       {
@@ -936,30 +942,43 @@ export function buildHeadMetadataForRoute(
   }
 
   // Legal / Trust Page ('about' | 'privacy' | 'terms' | 'contact' | 'dmca')
-  const fallbackEn = getLocaleBundleSync('en');
-  const fallbackFr = getLocaleBundleSync('fr');
   const legalDoc =
+    getLegalDocSync(locale, pageKey) ||
     bundle.legal?.[pageKey] ||
-    fallbackEn.legal?.[pageKey] ||
-    fallbackFr.legal?.[pageKey]!;
+    getLegalDocSync('en', pageKey) ||
+    getLegalDocSync('fr', pageKey);
 
-  const title = clampSocialText(legalDoc.metaTitle, 60);
-  const description = clampSocialText(legalDoc.metaDescription, 150);
-  const ogTitle = clampSocialText(legalDoc.ogTitle || legalDoc.metaTitle, 60);
-  const ogDescription = clampSocialText(
-    legalDoc.ogDescription || legalDoc.metaDescription,
-    150
-  );
-  const ogImageAlt = legalDoc.ogImageAlt || ogTitle;
+  const fallbackLabel = bundle.ui.footer[pageKey] || pageKey;
+  const rawTitle = legalDoc?.metaTitle || `${fallbackLabel} | ${SITE_NAME}`;
+  const rawDesc = legalDoc?.metaDescription || bundle.home.metaDescription;
+  const rawOgTitle = legalDoc?.ogTitle || rawTitle;
+  const rawOgDesc = legalDoc?.ogDescription || rawDesc;
+
+  const title = clampSocialText(rawTitle, 60);
+  const description = clampSocialText(rawDesc, 150);
+  const ogTitle = clampSocialText(rawOgTitle, 60);
+  const ogDescription = clampSocialText(rawOgDesc, 150);
+  const ogImageAlt = legalDoc?.ogImageAlt || ogTitle;
+  const breadcrumbLabel = legalDoc?.breadcrumbLabel || fallbackLabel;
+
+  const legalPageSchemaType =
+    pageKey === 'about'
+      ? 'AboutPage'
+      : pageKey === 'contact'
+      ? 'ContactPage'
+      : 'WebPage';
 
   const graph: Record<string, unknown>[] = [
     {
-      '@type': 'WebPage',
+      '@type': legalPageSchemaType,
       '@id': `${canonicalUrl}#webpage`,
       name: title,
       url: canonicalUrl,
       inLanguage: localeMeta.hreflang,
       description,
+      isPartOf: {
+        '@id': `${SITE_URL}/#website`,
+      },
     },
     {
       '@type': 'BreadcrumbList',
@@ -974,7 +993,7 @@ export function buildHeadMetadataForRoute(
         {
           '@type': 'ListItem',
           position: 2,
-          name: legalDoc.breadcrumbLabel,
+          name: breadcrumbLabel,
           item: canonicalUrl,
         },
       ],

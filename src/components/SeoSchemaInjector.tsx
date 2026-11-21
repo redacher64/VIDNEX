@@ -1,10 +1,17 @@
 import React, { useEffect } from 'react';
-import type { PageKey, SupportedLocale } from '../i18n/config.ts';
+import {
+  isLegalPageKey,
+  type PageKey,
+  type SupportedLocale,
+} from '../i18n/config.ts';
 import {
   buildHeadMetadataForRoute,
   type RouteHeadMetadata,
 } from '../i18n/hreflang.ts';
-import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import {
+  getLocaleBundleSync,
+  hasLocaleBundleForPageSync,
+} from '../i18n/localeLoader.ts';
 import { JsonLd } from './JsonLd.tsx';
 
 export { buildHeadMetadataForRoute, type RouteHeadMetadata };
@@ -21,11 +28,24 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   blogSlug,
 }) => {
   const loadedBundleLocale = getLocaleBundleSync(language).locale;
+  const isBlogRoute = pageKey === 'blog' || pageKey === 'blog_article';
+  const hasPageBundle =
+    pageKey === 'admin' ||
+    (language === 'fr' && !isLegalPageKey(pageKey)) ||
+    hasLocaleBundleForPageSync(language, pageKey);
+  const canApplyHeadMetadata = hasPageBundle || isBlogRoute;
   const meta = buildHeadMetadataForRoute(language, pageKey, blogSlug);
 
   useEffect(() => {
     document.documentElement.lang = meta.lang;
     document.documentElement.dir = meta.dir;
+
+    // Never overwrite pre-rendered localized <title> / meta tags with the FR fallback bundle
+    // while a non-FR locale chunk is still loading asynchronously on the client.
+    if (!canApplyHeadMetadata) {
+      return;
+    }
+
     document.title = meta.title;
 
     const upsertNameMeta = (name: string, content: string) => {
@@ -106,7 +126,19 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
       link.setAttribute('data-vidnex-hreflang', 'true');
       document.head.appendChild(link);
     });
-  }, [meta, pageKey, language, blogSlug, loadedBundleLocale]);
+  }, [
+    meta,
+    pageKey,
+    language,
+    blogSlug,
+    loadedBundleLocale,
+    hasPageBundle,
+    canApplyHeadMetadata,
+  ]);
+
+  if (!hasPageBundle) {
+    return null;
+  }
 
   return <JsonLd data={meta.jsonLdGraph} />;
 };

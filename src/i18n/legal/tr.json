@@ -1,0 +1,320 @@
+{
+  "about": {
+    "metaTitle": "VIDNEX Hakkında — Herkese Açık Medya Web Aracı",
+    "metaDescription": "VIDNEX'in TikTok, Instagram, X, Facebook ve LinkedIn herkese açık bağlantılarını sunucuda dosya saklamadan canlı akışla nasıl çözdüğünü öğrenin.",
+    "ogTitle": "VIDNEX Hakkında — Herkese Açık Medya Web Aracı",
+    "ogDescription": "VIDNEX'in TikTok, Instagram, X, Facebook ve LinkedIn herkese açık bağlantılarını sunucuda dosya saklamadan canlı akışla nasıl çözdüğünü öğrenin.",
+    "ogImageAlt": "VIDNEX Hakkında — Herkese açık medya çözümleyici ve yerel görsel bölme aracı",
+    "h1": "VIDNEX Hakkında",
+    "breadcrumbLabel": "Hakkında",
+    "updatedAt": "21 Kasım 2026",
+    "intro": "VIDNEX, sosyal medyadaki herkese açık bağlantıları isteğe bağlı olarak çözen ve yerel düzenleme araçları sunan, üyelik, hesap veya sunucu tarafında dosya depolaması gerektirmeyen ücretsiz bir web aracıdır.",
+    "sections": [
+      {
+        "heading": "1. VIDNEX Nedir?",
+        "paragraphs": [
+          "VIDNEX; iPhone, Android, macOS, Windows veya Linux üzerinde herhangi bir uygulama ya da tarayıcı eklentisi kurmadan, yalnızca standart bir web tarayıcısı üzerinden herkese açık olarak paylaşılmış medyaları kaydetmek isteyen içerik üreticileri, araştırmacılar ve günlük kullanıcılar için tasarlanmış hafif bir teknik araçtır.",
+          "VIDNEX bir video barındırma platformu, sosyal ağ veya aranabilir bir medya arşivi değildir. Üçüncü taraf gönderilerini indekslemez, kataloglamaz veya yeniden dağıtmaz. Her işlem, yalnızca bir ziyaretçi herkese açık bir bağlantıyı ana alana manuel olarak yapıştırdığında başlar."
+        ]
+      },
+      {
+        "heading": "2. Teknik Olarak Nasıl Çalışır?",
+        "paragraphs": [
+          "Herkese açık bir bağlantı gönderdiğinizde arayüz, isteği anlık çözümleme uç noktasına (/api/extract) iletir. Bu uç nokta platformu algılar ve kaynak ağdaki herkese açık medya üst verilerini çözümler. Belirli herkese açık TikTok veya Instagram bağlantılarında çözümleme, ziyaretçiye ait hiçbir hesap veya çerez olmadan yalnızca herkese açık URL'yi uyumlu bir üçüncü taraf teknik çözümleyiciye aktarabilir.",
+          "İndirme işlemini başlattığınızda /api/download uç noktası diske yazmayan canlı bir akış vekili (streaming proxy) gibi çalışır: veri baytları kaynak platformun izin verilen CDN sunucusundan yalnızca geçici bellek üzerinden doğrudan tarayıcınıza aktarılır. Her hedef sunucu SSRF saldırılarına karşı sıkı bir izinli alan adı listesiyle doğrulanır, en fazla dört manuel yönlendirmeyle sınırlanır ve dosya başına 250 MB üst sınır uygulanır.",
+          "Hiçbir video, ses kaydı veya görsel dosyası VIDNEX sunucularında diske yazılmaz, arşivlenmez veya kalıcı önbelleğe alınmaz. Akış tamamlandığında veya kesildiğinde altyapımızda herhangi bir kopya kalmaz."
+        ]
+      },
+      {
+        "heading": "3. Desteklenen Platformlar ve Biçimler",
+        "paragraphs": [
+          "VIDNEX yalnızca herkese açık içerikler için beş sosyal platformu destekler: TikTok (kaynak akış sunduğunda filigransız herkese açık MP4 videoları, orijinal MP3 veya M4A/AAC ses dosyaları, tarayıcıda seçmeli .ZIP paketlemeli fotoğraf slaytları ve herkese açık profil fotoğrafları); Instagram (sesli herkese açık MP4 Reels videoları, fotoğraf, video veya çoklu kaydırmalı karuseller içeren herkese açık /p/ gönderileri ile seçmeli .ZIP arşivi ve herkese açık profil fotoğrafları); X / Twitter (mevcut çözünürlüklerde herkese açık MP4 videoları, MP4 biçimine dönüştürülen hareketli GIF'ler ve herkese açık gönderi fotoğrafları); Facebook (/watch/, /videos/ veya fb.watch herkese açık videoları ve sesli HD/SD MP4 herkese açık Reels videoları); ve LinkedIn (/in/{slug} herkese açık profil fotoğrafları için orijinal JPG, PNG veya WebP kalitesi ile LinkedIn oturum duvarı gösterdiğinde tamamen yerel sürükle-bırak manuel içe aktarma seçeneği)."
+        ]
+      },
+      {
+        "heading": "4. Açıkça Desteklenmeyen İçerikler",
+        "paragraphs": [
+          "VIDNEX net teknik sınırlar uygular. YouTube ve Snapchat desteklenmemektedir. Ayrıca gizli hesaplar, yalnızca takipçilere açık gönderiler, gizli hikayeler, ücretli abonelik içerikleri veya giriş duvarı arkasında korunan hiçbir medya desteklenmez.",
+          "Instagram Hikayeleri (Stories), Öne Çıkanlar ve Facebook Hikayeleri kaynak platformda normalde oturum açmayı gerektirir; giriş istendiğinde VIDNEX erişim kontrollerini aşmaya çalışmak yerine isteği açık bir bilgilendirme mesajıyla reddeder. Facebook fotoğraf gönderileri (/photo/ veya /photo.php) de desteklenmemektedir."
+        ]
+      },
+      {
+        "heading": "5. Görsel Bölme Aracı (%100 Yerel)",
+        "paragraphs": [
+          "VIDNEX, bağlantı çözümlemeye ek olarak [Görsel Bölme](/tr/tools/split-image) (split-image) aracını sunar. Bu araçla fotoğraflarınızı 2×2, 3×3, 1×3, 3×1 veya 1–10 satır ve sütunlu özel ızgaralara bölebilir, Instagram paylaşım sırasını seçebilir, %10–100 kalite ayarıyla PNG veya JPG olarak dışa aktarabilir ve toplu .ZIP arşivi indirebilirsiniz.",
+          "Görsel Bölme aracındaki tüm işlemler HTML5 Canvas ve JSZip kullanılarak %100 kendi tarayıcınızda yürütülür. Görselleriniz hiçbir sunucuya yüklenmez, uzaktaki bir API'ye gönderilmez ve cihazınızdan dışarı çıkmaz."
+        ]
+      },
+      {
+        "heading": "6. Çalışma İlkelerimiz",
+        "paragraphs": [
+          "Yalnızca herkese açık içerik: Sadece oturum bilgisi gerektirmeden açıkça erişilebilen bağlantıları çözümler ve her platformun giriş duvarlarına saygı gösteririz.",
+          "Hesap ve üyelik yok: VIDNEX'i kayıt olmadan, şifre oluşturmadan ve ad ya da e-posta paylaşmadan kullanabilirsiniz.",
+          "Telif hakkına saygı ve şeffaflık: Uygun kullanım sorumluluğu, [Kullanım Koşulları](/tr/terms), [Gizlilik Politikası](/tr/privacy) ve [DMCA](/tr/dmca) politikamız uyarınca her kullanıcıya aittir. Altyapı maliyetleri, indirme düğmelerinden açıkça ayrılmış üçüncü taraf reklam alanlarıyla karşılanır."
+        ]
+      },
+      {
+        "heading": "7. İletişim",
+        "paragraphs": [
+          "Teknik bir hata bildirmek, gizlilik hakkında soru sormak veya telif hakkı kapsamında bir URL engelleme talebi göndermek için compliance@vidnex.space adresine yazabilir ya da [İletişim](/tr/contact) sayfamızı ziyaret edebilirsiniz."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Gizlilik Politikası — VIDNEX",
+    "metaDescription": "VIDNEX'in işlediği teknik verileri, tuzlu SHA-256 IP karma işlemini, saklama sürelerini, localStorage ve reklam çerezleri ile haklarınızı inceleyin.",
+    "ogTitle": "Gizlilik Politikası — VIDNEX",
+    "ogDescription": "VIDNEX'in işlediği teknik verileri, tuzlu SHA-256 IP karma işlemini, saklama sürelerini, localStorage ve reklam çerezleri ile haklarınızı inceleyin.",
+    "ogImageAlt": "VIDNEX Gizlilik Politikası — Teknik şeffaflık ve veri koruma",
+    "h1": "Gizlilik Politikası",
+    "breadcrumbLabel": "Gizlilik",
+    "updatedAt": "21 Kasım 2026",
+    "intro": "Bu Gizlilik Politikası, VIDNEX'i ziyaret ettiğinizde hangi teknik verilerin işlendiğini, bu verilerin hangi amaçla ve ne kadar süreyle tutulduğunu, hangi altyapı ve reklam sağlayıcılarının devreye girdiğini ve sahip olduğunuz hakları açıklar.",
+    "sections": [
+      {
+        "heading": "1. Hizmet İşletmecisi ve İletişim",
+        "paragraphs": [
+          "VIDNEX, kullanıcı hesabı veya profil veritabanı bulundurmayan bağımsız bir web aracı olarak işletilmektedir. Veri koruma kapsamındaki sorularınız veya hak talepleriniz için doğrudan compliance@vidnex.space adresine e-posta gönderebilirsiniz."
+        ]
+      },
+      {
+        "heading": "2. Sunucu Tarafında İşlenen Teknik Veriler",
+        "paragraphs": [
+          "Ziyaretçi tarafından girilen herkese açık URL'ler: Çıkarıcıya bir bağlantı yapıştırdığınızda, platformu algılamak ve medya akışını çözmek amacıyla URL yalnızca Cloudflare Workers'ın geçici belleğinde işlenir. Gönderilen URL'ler istek günlüklerine kaydedilmez ve kişisel bir geçmişe bağlanmaz.",
+          "IP adresi ve tuzlu SHA-256 karması: /api/extract veya /api/download uç noktalarına bir istek geldiğinde sistem ağ IP adresini (CF-Connecting-IP veya X-Forwarded-For) bellekte okur ve sunucu tarafındaki gizli bir tuz değeriyle (IP_HASH_SALT) tek yönlü SHA-256 kriptografik karma uygular. Cloudflare D1 veritabanımızda hiçbir zaman açık IP adresi saklanmaz.",
+          "Hız sınırlaması (rate_limits): Otomatik kötüye kullanımı ve aşırı yüklenmeyi önlemek için tuzlu SHA-256 karmasını dakikalık sayaçlarda kullanırız (varsayılan olarak karma başına dakikada 30 çözümleme ve 60 dosya indirme). 5 dakikadan eski kayıtlar otomatik olarak silinir.",
+          "Teknik hata günlükleri (request_log): VIDNEX yalnızca hata döndüren istekleri kaydeder; başarılı indirmeler tekil olarak günlüklenmez. Her hata kaydı yalnızca zaman damgası, algılanan platform, teknik hata kodu, milisaniye cinsinden süre, motor aşaması, HTTP durum kodu, içerik türü (video, gönderi, hikaye vb.), yürütülen işlev adı ve tuzlu SHA-256 karmasının kısaltılmış 12 karakterlik bölümünü içerir. Girilen URL veya indirilen dosya hiçbir zaman kaydedilmez.",
+          "Toplulaştırılmış günlük metrikler (daily_metrics): Teknik kararlılığı izlemek amacıyla gün ve platform bazında anonim sayısal sayaçlar (toplam istek, başarı, hata, indirilen dosya sayısı ve aktarılan bayt) tutarız. Bu tablolarda IP adresi, karma değeri, çerez veya kişisel tanımlayıcı yer almaz.",
+          "Engelleme listesi (blocklist): Geçerli bir telif hakkı bildirimi veya kötüye kullanım önleme kapsamında belirli bir URL, alan adı veya SHA-256 karması dahili engelleme tablomuza eklenebilir."
+        ]
+      },
+      {
+        "heading": "3. Tarayıcıda %100 Yerel İşleme",
+        "paragraphs": [
+          "[Görsel Bölme](/tr/tools/split-image) (split-image) aracı ve LinkedIn manuel görsel içe aktarma özelliği HTML5 Canvas ve JSZip ile tamamen tarayıcınızda çalışır. Cihazınızdan seçtiğiniz görseller VIDNEX sunucularına veya üçüncü taraflara gönderilmez."
+        ]
+      },
+      {
+        "heading": "4. Veri İşlemenin Hukuki Sebepleri",
+        "paragraphs": [
+          "6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve ilgili hallerde diğer veri koruma mevzuatları çerçevesinde, asgari teknik verilerin işlenmesi; kullanıcının talep ettiği teknik hizmetin yerine getirilmesi (yapıştırılan herkese açık bağlantının anlık çözülmesi), işletmecinin meşru menfaati (ağ güvenliği, kötüye kullanım önleme, hız sınırlaması ve teknik hata giderme) ve hukuki yükümlülüklerin yerine getirilmesi (telif hakkı engelleme taleplerinin yönetimi) sebeplerine dayanır. Üçüncü taraf reklam ağlarına ait zorunlu olmayan çerezler, tarayıcı ayarlarınıza ve bulunduğunuz bölgedeki geçerli onay kurallarına tabidir."
+        ]
+      },
+      {
+        "heading": "5. Saklama Süreleri",
+        "paragraphs": [
+          "Medya dosyaları (video, ses, görsel): Diskte 0 saniye saklama; yalnızca geçici bellek üzerinden canlı aktarım yapılır.",
+          "Hız sınırlama sayaçları (rate_limits): 5 dakikayı aştığında otomatik olarak silinir.",
+          "Hata günlükleri (request_log) ve günlük toplu metrikler (daily_metrics): 30 günün sonunda otomatik temizleme işlemiyle kalıcı olarak silinir.",
+          "Engelleme listesi kayıtları (blocklist): İlgili engellemenin sürdürülmesi veya tekrar eden kötüye kullanımın önlenmesi için gerekli olduğu sürece, manuel olarak kaldırılana kadar saklanır.",
+          "compliance@vidnex.space adresine gönderilen e-postalar: Yalnızca talebin incelenmesi, yanıtlanması ve belgelenmesi için gerekli süre boyunca muhafaza edilir."
+        ]
+      },
+      {
+        "heading": "6. Tarayıcı Yerel Depolaması (localStorage)",
+        "paragraphs": [
+          "VIDNEX kendi izleme veya oturum çerezlerini oluşturmaz. Arayüz tercihlerinizi sunucuya göndermeden yalnızca tarayıcınızda saklamak için localStorage üzerinde yalnızca üç teknik anahtar kullanırız: vidnex_theme (açık veya koyu tema), vidnex_lang (seçilen dil) ve vidnex_lang_banner_dismissed (dil öneri çubuğunun kapatılması). Bu kayıtları tarayıcı ayarlarınızdan dilediğiniz zaman silebilirsiniz."
+        ]
+      },
+      {
+        "heading": "7. Altyapı, Ölçüm ve Üçüncü Taraf Reklam Çerezleri",
+        "paragraphs": [
+          "Barındırma ve kenar ağı (Cloudflare): Site ve API uç noktaları Cloudflare Workers, Cloudflare Static Assets ve Cloudflare D1 üzerinde çalışır. Cloudflare, DDoS saldırılarını engellemek, içerik dağıtmak ve toplulaştırılmış trafik istatistikleri (ülke, tarayıcı ailesi, durum kodları, bant genişliği) üretmek için ağ düzeyinde teknik bağlantı üst verilerini işler. Bölgede etkinleştirildiğinde Cloudflare Web Analytics, izleme çerezi kullanmadan performans ölçümü yapar.",
+          "Üçüncü taraf herkese açık çözümleyiciler: Belirli herkese açık TikTok veya Instagram bağlantıları için sunucu, ziyaretçi çerezi veya hesap verisi olmaksızın yalnızca herkese açık URL'yi uyumlu bir teknik çözümleyiciye iletebilir.",
+          "Üçüncü taraf reklam ağları (Adsterra ve Google AdSense): VIDNEX'i ücretsiz sunabilmek için site, Adsterra tarafından sağlanan reklam alanlarını (yalıtılmış iframe banner'ları, Native Banner ve yalnızca 768 px ve üzeri masaüstü cihazlarda kullanıcı etkileşiminden sonra yüklenen Social Bar) ve yayıncı kimliği ile etkinleştirildiğinde Google AdSense'i (pagead2.googlesyndication.com) yükler. Bu reklam sağlayıcıları, gösterim sıklığını sınırlamak, reklam sahtekarlığını önlemek veya kendi gizlilik politikaları uyarınca reklam sunmak için çerez ya da teknik tanımlayıcı kullanabilir. Google reklam tercihlerinizi adssettings.google.com adresinden yönetebilir veya tarayıcınızdan üçüncü taraf çerezlerini engelleyebilirsiniz."
+        ]
+      },
+      {
+        "heading": "8. Uluslararası Veri Aktarımları",
+        "paragraphs": [
+          "Cloudflare'in küresel kenar ağı ile reklam ve çözümleme sağlayıcılarının uluslararası yapısı gereği teknik bağlantı üst verileri ikamet ettiğiniz ülke dışındaki veri merkezlerinden geçebilir. Her sağlayıcı, uluslararası aktarımlar için kendi sözleşmesel ve teknik güvenlik önlemlerini uygular."
+        ]
+      },
+      {
+        "heading": "9. Çocukların Gizliliği",
+        "paragraphs": [
+          "VIDNEX genel amaçlı bir teknik araçtır ve 13 yaşından küçük çocuklara (veya ülkenizde geçerli dijital rıza yaşının altındaki kişilere) yönelik değildir. Çocuklardan bilerek kişisel veri toplamayız. Bir ebeveyn veya yasal vasi, bir çocuğun bize e-posta yoluyla bilgi gönderdiğini fark ederse silinmesi için compliance@vidnex.space adresine yazabilir."
+        ]
+      },
+      {
+        "heading": "10. Haklarınız ve Politikadaki Değişiklikler",
+        "paragraphs": [
+          "KVKK ve bulunduğunuz yargı alanında geçerli diğer veri koruma yasaları kapsamında, bize doğrudan ilettiğiniz (örneğin e-posta yazışmalarındaki) kişisel verilerle ilgili bilgi alma, erişim, düzeltme, silme, kısıtlama veya itiraz haklarınızı kullanmak için compliance@vidnex.space adresine başvurabilir ve yetkili veri koruma kurumuna şikayette bulunabilirsiniz. VIDNEX hesap tutmadığı ve açık IP adresi saklamadığı için toplulaştırılmış sayaçların veya kısaltılmış karmaların belirli bir kişiyle eşleştirilmesi teknik olarak mümkün değildir.",
+          "Teknik altyapı, saklama süreleri veya entegre sağlayıcılar değiştiğinde bu Gizlilik Politikasını güncelleyebiliriz. Üst kısımdaki tarih en son revizyonu gösterir. Ek sorularınız için compliance@vidnex.space adresine yazabilir veya [İletişim](/tr/contact) sayfamızı inceleyebilirsiniz."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "metaTitle": "Kullanım Koşulları — VIDNEX",
+    "metaDescription": "VIDNEX Kullanım Koşullarını okuyun: hizmetin niteliği, izin verilen ve yasaklanan kullanımlar, telif hakları, hız sınırları ve sorumluluk sınırları.",
+    "ogTitle": "Kullanım Koşulları — VIDNEX",
+    "ogDescription": "VIDNEX Kullanım Koşullarını okuyun: hizmetin niteliği, izin verilen ve yasaklanan kullanımlar, telif hakları, hız sınırları ve sorumluluk sınırları.",
+    "ogImageAlt": "VIDNEX Kullanım Koşulları — Erişim kuralları ve kullanıcı sorumluluğu",
+    "h1": "Kullanım Koşulları",
+    "breadcrumbLabel": "Koşullar",
+    "updatedAt": "21 Kasım 2026",
+    "intro": "VIDNEX'e erişerek veya aracı kullanarak bu Kullanım Koşullarını kabul etmiş sayılırsınız. Aşağıdaki hükümlerden herhangi birini kabul etmiyorsanız siteyi ve araçlarını kullanmayı bırakmalısınız.",
+    "sections": [
+      {
+        "heading": "1. Hizmetin Niteliği",
+        "paragraphs": [
+          "VIDNEX, desteklenen beş sosyal platformdaki (TikTok, Instagram, X, Facebook ve LinkedIn) herkese açık URL'leri isteğe bağlı olarak çözümleyip medya akışını doğrudan tarayıcınıza ileten teknik bir web aracıdır ve ayrıca yerel [Görsel Bölme](/tr/tools/split-image) aracını sunar.",
+          "VIDNEX üçüncü taraf medya dosyalarını barındırmaz, saklamaz, indekslemez veya yayınlamaz. Yalnızca kullanıcının manuel olarak girdiği herkese açık bir bağlantı üzerine geçici teknik aracı olarak çalışır. VIDNEX'in TikTok, ByteDance, Instagram, Facebook, Meta, X Corp., LinkedIn, Microsoft, YouTube veya Snapchat ile herhangi bir ortaklığı, bağlantısı veya sponsorluk ilişkisi yoktur."
+        ]
+      },
+      {
+        "heading": "2. İzin Verilen Kullanım",
+        "paragraphs": [
+          "VIDNEX'i yalnızca yasal amaçlarla ve hak sahiplerinin haklarına saygı göstererek kullanabilirsiniz: örneğin kendi herkese açık paylaşımlarınızı yedeklemek, açık lisansla (Creative Commons gibi) yayınlanan içerikleri lisans şartlarına uyarak indirmek, hak sahibinin açık iznine sahip olduğunuz dosyaları kaydetmek veya haklarına sahip olduğunuz fotoğrafları yerel Görsel Bölme aracında düzenlemek."
+        ]
+      },
+      {
+        "heading": "3. Kesinlikle Yasaklanan Kullanımlar",
+        "paragraphs": [
+          "VIDNEX'i kullanırken şu eylemlerde bulunmamayı taahhüt edersiniz: hak sahibinin izni veya yasal istisna olmaksızın telif hakkı, marka veya kişilik haklarıyla korunan içerikleri indirmek, kopyalamak, dağıtmak veya ticari olarak kullanmak; gizli hesaplara, kısıtlı hikayelere, ücretli içeriklere veya giriş engellerine erişmeye çalışmak; hız sınırlarını aşmak amacıyla bot, kazıma (scraping) betiği veya otomatik toplu istek göndermek; dahili ağları taramak, SSRF zafiyeti aramak veya sunucu kararlılığını bozmak; hizmeti hukuka aykırı amaçlarla kullanmak."
+        ]
+      },
+      {
+        "heading": "4. Telif Hakları ve Kullanıcı Sorumluluğu",
+        "paragraphs": [
+          "Sosyal platformlardaki video, ses, fotoğraf ve markalara ilişkin tüm fikri mülkiyet hakları tamamen ilgili içerik üreticilerine veya hak sahiplerine aittir. VIDNEX, çözümlediğiniz dosyalar üzerinde herhangi bir lisans veya hak devri sağlamaz.",
+          "Her indirme öncesinde ilgili içeriği ülkenizdeki yasalara ve kaynak platformun koşullarına uygun şekilde indirme, saklama veya yeniden kullanma hakkına sahip olduğunuzu doğrulamak tamamen sizin sorumluluğunuzdadır. Hak sahipleri, belirli bir URL'nin VIDNEX üzerinde çözümlenmesini engellemek için [DMCA](/tr/dmca) prosedürümüzü kullanabilir."
+        ]
+      },
+      {
+        "heading": "5. Hız Sınırlaması ve Kötüye Kullanım Önlemleri",
+        "paragraphs": [
+          "Altyapıyı aşırı yüklenmeye ve otomatik kötüye kullanıma karşı korumak için VIDNEX, tuzlu IP karması başına teknik kotalar (varsayılan dakikada 30 çözümleme ve 60 dosya indirme), dosya başına 250 MB aktarım üst sınırı, en fazla 4 yönlendirme ve sıkı bir izinli CDN listesi uygular.",
+          "Kötüye kullanım kalıpları, teknik saldırılar veya geçerli telif hakkı bildirimleri tespit edildiğinde istekleri geçici olarak sınırlama (HTTP 429) ya da ilgili URL'leri, alan adlarını veya IP karmalarını dahili engelleme listemize ekleme hakkımızı saklı tutarız."
+        ]
+      },
+      {
+        "heading": "6. Hizmetin Erişilebilirliği ve Harici Platformlar",
+        "paragraphs": [
+          "VIDNEX «olduğu gibi» ve teknik erişilebilirlik esasına göre sunulur. Sosyal medya platformları biçimlerini, başlıklarını ve oturum açma kurallarını önceden haber vermeksizin sıkça değiştirdiğinden, kesintisiz erişim veya her herkese açık bağlantının hatasız çözümleneceği konusunda garanti vermeyiz.",
+          "Güvenliği veya sistem kararlılığını korumak amacıyla belirli bir platformu geçici olarak devre dışı bırakabilir, bakım modu uygulayabilir veya teknik özellikleri güncelleyebiliriz."
+        ]
+      },
+      {
+        "heading": "7. Sorumluluğun Sınırlandırılması",
+        "paragraphs": [
+          "Yürürlükteki yasaların izin verdiği azami ölçüde, VIDNEX işletmecisi hizmetin kullanımından veya kullanılamamasından, veri kaybından, üçüncü taraf ağ kesintilerinden ya da kullanıcıların indirdikleri dosyaları hukuka aykırı biçimde kullanmasından doğan doğrudan, dolaylı, arızi veya sonuç niteliğindeki zararlardan sorumlu değildir. Harici reklamverenlerin içeriklerinden veya bağlantılı üçüncü taraf sitelerden de sorumluluk kabul edilmez."
+        ]
+      },
+      {
+        "heading": "8. Yerel Tarayıcı Araçları ve Kullanıcı Yükümlülükleri",
+        "paragraphs": [
+          "[Görsel Bölme](/tr/tools/split-image) aracı veya LinkedIn manuel sürükle-bırak görsel içe aktarma özelliği gibi tamamen tarayıcı içinde çalışan araçları kullandığınızda tüm işlemler yalnızca kendi cihazınızda ve kendi dosyalarınız üzerinde gerçekleşir. VIDNEX sunucularına hiçbir dosya yüklenmez ve otomatik yedekleme yapılmaz.",
+          "Orijinal dosyalarınızın yedeğini almak ve düzenlediğiniz veya paylaştığınız görseller üzerinde gerekli kullanım haklarına sahip olduğunuzu doğrulamak tamamen sizin sorumluluğunuzdadır.",
+          "VIDNEX'in ücretsiz teknik işletimi, indirme düğmelerinden açıkça ayrılmış üçüncü taraf reklam alanlarıyla finanse edilir; belirli bir biçim veya kesintisiz uyumluluk konusunda garanti verilmez."
+        ]
+      },
+      {
+        "heading": "9. Üçüncü Taraf Markaları, Bölünebilirlik ve Değişiklikler",
+        "paragraphs": [
+          "VIDNEX sayfalarında anılan tüm harici platform adları ve ticari markalar yalnızca desteklenen veya desteklenmeyen URL biçimlerini açıkça belirtmek amacıyla kullanılır ve herhangi bir ortaklık ya da onay anlamına gelmez.",
+          "Bu Kullanım Koşullarının herhangi bir maddesi yürürlükteki yasalar uyarınca geçersiz veya uygulanamaz sayılırsa, kalan tüm hükümler tam olarak yürürlükte kalmaya devam eder. İşletmecinin herhangi bir hakkı anında uygulamaması o haktan feragat edildiği anlamına gelmez.",
+          "Teknik, işlevsel veya yasal değişiklikleri yansıtmak amacıyla bu Kullanım Koşullarını herhangi bir zamanda güncelleyebiliriz. Güncellenmiş metin, yeni revizyon tarihiyle bu sayfada yayınlandığı anda yürürlüğe girer ve hizmeti kullanmaya devam etmeniz güncel koşulları kabul ettiğiniz anlamına gelir. Ayrıca [Gizlilik Politikamızı](/tr/privacy) inceleyebilir veya [İletişim](/tr/contact) sayfamız üzerinden compliance@vidnex.space adresine yazabilirsiniz."
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "metaTitle": "İletişim — Teknik Destek ve Uyum VIDNEX",
+    "metaDescription": "Teknik hata bildirimleri, gizlilik soruları veya DMCA URL engelleme talepleri için compliance@vidnex.space üzerinden VIDNEX ile iletişime geçin.",
+    "ogTitle": "İletişim — Teknik Destek ve Uyum VIDNEX",
+    "ogDescription": "Teknik hata bildirimleri, gizlilik soruları veya DMCA URL engelleme talepleri için compliance@vidnex.space üzerinden VIDNEX ile iletişime geçin.",
+    "ogImageAlt": "VIDNEX İletişim — Teknik destek, gizlilik ve DMCA e-posta kanalı",
+    "h1": "İletişim",
+    "breadcrumbLabel": "İletişim",
+    "updatedAt": "21 Kasım 2026",
+    "intro": "Teknik bir sorunu bildirmek, veri koruma hakkında soru sormak veya telif hakkı kapsamında bir URL engelleme talebi iletmek için VIDNEX ekibine e-posta gönderebilirsiniz.",
+    "sections": [
+      {
+        "heading": "1. Resmi İletişim E-posta Adresi",
+        "paragraphs": [
+          "Teknik destek, gizlilik ve yasal uyum için tek resmi e-posta adresi: compliance@vidnex.space.",
+          "Telefonla destek vermiyoruz ve yönetilecek kullanıcı hesapları bulunmuyor. Gelen mesajlar teknik veya hukuki niteliğine ve geliş sırasına göre incelenir; sabit bir yanıt süresi taahhüt edilmez."
+        ]
+      },
+      {
+        "heading": "2. Mesajınızda Neleri Belirtmelisiniz?",
+        "paragraphs": [
+          "Bir sorunu hızlı şekilde inceleyebilmemiz için mesajınızda şu bilgileri paylaşın: talebinizin türü (teknik hata, telif hakkı veya gizlilik), ilgili platform (TikTok, Instagram, X, Facebook, LinkedIn veya Görsel Bölme), kullandığınız tarayıcı ve işletim sistemi (örneğin iOS üzerinde Safari veya Android üzerinde Chrome), hataya neden olan tam herkese açık URL ve varsa ekranda görünen hata metni."
+        ]
+      },
+      {
+        "heading": "3. Talep Türleri ve İlgili Bağlantılar",
+        "paragraphs": [
+          "Teknik hata bildirimleri ve öneriler: beklenmedik hata veren herkese açık bağlantılar, mobil indirme sorunları veya arayüz hataları.",
+          "Telif hakkı ve URL engelleme: korunan bir eser için yazmadan önce gerekli tüm bilgileri [DMCA ve Telif Hakkı](/tr/dmca) sayfamızdan kontrol edin.",
+          "Gizlilik ve veri koruma: IP karması, saklama süreleri ve çerezler hakkında ayrıntılar için [Gizlilik Politikası](/tr/privacy) ve [Kullanım Koşulları](/tr/terms) sayfalarımızı inceleyin.",
+          "Neleri göndermemelisiniz: E-posta ile kesinlikle şifre, özel oturum çerezi, kart bilgisi veya gizli hesap bağlantısı paylaşmayın. VIDNEX yalnızca herkese açık URL'lerle çalışır ve hiçbir zaman hesap giriş bilgisi talep etmez."
+        ]
+      },
+      {
+        "heading": "4. Mesaj Göndermeden Önce Hızlı Kontrol",
+        "paragraphs": [
+          "Bir çözümleme hatası bildirmeden önce ilgili gönderinin gizli bir tarayıcı sekmesinde oturum açmadan açılıp açılmadığını doğrulayın. Gizli hesaplar, giriş gerektiren hikayeler, Facebook fotoğraf gönderileri ile YouTube ve Snapchat bağlantıları teknik kapsam gereği desteklenmez. Güvenlikle ilgili bir gözlem paylaşmak için de açık ve teknik ayrıntılarla compliance@vidnex.space adresine yazabilirsiniz."
+        ]
+      }
+    ]
+  },
+  "dmca": {
+    "metaTitle": "DMCA ve Telif Hakkı — VIDNEX",
+    "metaDescription": "VIDNEX DMCA politikası: dosya barındırılmaması, herkese açık bir URL'yi teknik olarak engelleme adımları ve karşı bildirim süreci.",
+    "ogTitle": "DMCA ve Telif Hakkı — VIDNEX",
+    "ogDescription": "VIDNEX DMCA politikası: dosya barındırılmaması, herkese açık bir URL'yi teknik olarak engelleme adımları ve karşı bildirim süreci.",
+    "ogImageAlt": "VIDNEX DMCA ve Telif Hakkı — Teknik URL engelleme prosedürü",
+    "h1": "DMCA ve Telif Hakkı",
+    "breadcrumbLabel": "DMCA",
+    "updatedAt": "21 Kasım 2026",
+    "intro": "VIDNEX, içerik üreticilerinin, yayıncıların ve hak sahiplerinin fikri mülkiyet haklarına saygı duyar. Bu sayfa, depolamasız teknik yapımızı ve belirli bir URL'nin engellenmesini adım adım nasıl talep edebileceğinizi açıklar.",
+    "sections": [
+      {
+        "heading": "1. Dosya Barındırma ve Depolama Yapılmaması",
+        "paragraphs": [
+          "VIDNEX, sunucularında hiçbir video, ses veya görsel dosyasını barındırmaz, diske kaydetmez veya yeniden dağıtmaz. Sistemimiz yalnızca kullanıcı talebi üzerine üçüncü taraf platformlardaki herkese açık üst verileri okuyan geçici bellek tabanlı teknik bir köprü olarak çalışır.",
+          "Bu nedenle VIDNEX bir içeriği internetten kaldıramaz veya TikTok, Instagram, X, Facebook ya da LinkedIn üzerinde barındırılan bir gönderiyi silemez. Orijinal dosyanın kalıcı olarak kaldırılması için doğrudan ilgili sosyal platforma başvurmanız gerekir. Buna paralel olarak VIDNEX, bildirilen belirli bir URL'nin veya alan adının çıkarıcımız tarafından yeniden çözümlenmesini önleyen dahili bir teknik engelleme listesi (blocklist) tutar."
+        ]
+      },
+      {
+        "heading": "2. URL Engelleme Talebi Nasıl Gönderilir? (Adım Adım)",
+        "paragraphs": [
+          "1. Adım — Korunan eseri belirleyin: Haklarına sahip olduğunuz orijinal eseri açıkça tanımlayın (başlık, resmi hesap veya referans bağlantısı).",
+          "2. Adım — Tam URL'yi toplayın: VIDNEX üzerinde çözümlenmesini engellemek istediğiniz gönderinin veya profilin eksiksiz herkese açık adresini kopyalayın. Belirli bir URL içermeyen genel talepler teknik filtre eklememize imkan vermez.",
+          "3. Adım — Yazılı bildirim gönderin: Aşağıdaki bölümde sıralanan tüm öğeleri içeren e-postanızı «DMCA / Telif Hakkı Engelleme Talebi» konu başlığıyla compliance@vidnex.space adresine iletin."
+        ]
+      },
+      {
+        "heading": "3. Bildirimde Yer Alması Gereken Bilgiler",
+        "paragraphs": [
+          "Talebinizi doğrulayıp işleme alabilmemiz için e-postanız şu bilgileri içermelidir: (a) tam adınız ve bir şirket veya içerik üreticisi adına hareket ediyorsanız temsil edilen kurumun adı ile göreviniz; (b) size ulaşabileceğimiz geçerli bir e-posta adresi; (c) ihlal edildiğini düşündüğünüz telif hakkıyla korunan eserin açık tanımı; (d) VIDNEX teknik engelleme listesine eklenmesini istediğiniz tam herkese açık URL (veya URL listesi); (e) söz konusu materyalin kullanımının hak sahibi, temsilcisi veya yasa tarafından yetkilendirilmediğine dair iyi niyet beyanı; (f) verilen bilgilerin doğru olduğuna ve hak sahibi ya da yetkili temsilci olduğunuza dair beyan; ve (g) elektronik imzanız (mesajın sonuna yazılmış tam adınız)."
+        ]
+      },
+      {
+        "heading": "4. İnceleme ve Engellemenin Etkisi",
+        "paragraphs": [
+          "compliance@vidnex.space adresine eksiksiz bir bildirim ulaştığında sunulan bilgilerin tutarlılığını inceleriz. Talep geçerli bulunduğunda belirtilen URL veya alan adını dahili engelleme tablomuza (blocklist) ekleriz. Bu andan itibaren söz konusu adresi VIDNEX üzerinden çözümleme girişimleri anında teknik olarak reddedilir.",
+          "Bildirimler alındıktan sonra özenle incelenir; belirli bir saatlik süre garantisi verilmez. Eksik bildirimlerde engelleme uygulanmadan önce ek bilgi talep edilebilir."
+        ]
+      },
+      {
+        "heading": "5. Hatalı Engelleme Halinde Karşı Bildirim",
+        "paragraphs": [
+          "Kendi eserinize veya yasal olarak yetkilendirildiğiniz bir içeriğe ait bir URL'nin hata ya da yanlış tanımlama sonucu engellendiğini düşünüyorsanız, engellenen URL'yi, iletişim bilgilerinizi, içerik üzerindeki haklarınızın açıklamasını ve elektronik imzanızı içeren gerekçeli bir karşı bildirimi compliance@vidnex.space adresine gönderebilirsiniz. Sunulan kanıtların incelenmesinin ardından uygun görülürse teknik engelleme kaldırılabilir."
+        ]
+      },
+      {
+        "heading": "6. Kısaltılmış Bağlantılar, Kaynak Platformlar ve Kötü Niyetli Bildirimler",
+        "paragraphs": [
+          "Korunan bir gönderi kısaltılmış veya alternatif paylaşım bağlantılarıyla (örneğin vm.tiktok.com veya fb.watch) dolaşıma girmişse, teknik engelleme filtresinin eksiksiz çalışabilmesi için mümkün olduğunda kaynak platformun tam kanonik URL'sini iletin. VIDNEX hiçbir medya dosyasını barındırmadığı için orijinal içeriğin kalıcı olarak kaldırılması amacıyla aynı anda TikTok, Instagram, X, Facebook veya LinkedIn'in resmi telif hakkı bildirim formlarına başvurmanız gerekir.",
+          "Geçerli bildirimler sonucunda dahili engelleme tablosuna eklenen kayıtlar yalnızca ilgili URL veya alan adının VIDNEX üzerinde yeniden çözümlenmesini durdurmak ve yasal uyumu belgelemek amacıyla tutulur. Engellenen bağlantılar için herhangi bir medya dosyası arşivlenmez ve üçüncü taraflarla paylaşılmaz. Karşı bildirim veya ek belge gerektiğinde yalnızca hak sahipliğini doğrulamaya yarayan asgari bilgiler talep edilir. Her talep, platform dışı yanlış engellemeleri önlemek amacıyla tam herkese açık bağlantı bazında titizlikle kontrol edilir ve yalnızca doğrulanmış adresler listeye eklenir.",
+          "Meşru içerikleri engellemek amacıyla kasıtlı olarak yanlış veya yanıltıcı bildirimde bulunmak yürürlükteki yasalar (ilgili hallerde DMCA Bölüm 512(f) dahil) uyarınca hukuki sorumluluk doğurabilir. Ayrıca VIDNEX, tekrarlayan kötüye kullanımla bağlantılı alan adlarını veya teknik karmaları kalıcı olarak engelleyebilir. Ayrıntılar için [Kullanım Koşulları](/tr/terms), [Gizlilik Politikası](/tr/privacy) ve [İletişim](/tr/contact) sayfalarımızı da inceleyebilirsiniz."
+        ]
+      }
+    ]
+  }
+}

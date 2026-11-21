@@ -15,6 +15,7 @@ const ROOT_DIR = process.cwd();
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const LOCALES_DIR = path.join(ROOT_DIR, 'src', 'i18n', 'locales');
+const LEGAL_DIR = path.join(ROOT_DIR, 'src', 'i18n', 'legal');
 
 function escapeHtml(str) {
   return String(str)
@@ -125,7 +126,8 @@ function loadAndValidateAllLocales(
   SUPPORTED_LOCALES,
   PLATFORM_PAGE_KEYS,
   LEGAL_PAGE_KEYS,
-  registerPreloadedLocale
+  registerPreloadedLocale,
+  registerPreloadedLegalBundle
 ) {
   const map = new Map();
   const refPath = path.join(LOCALES_DIR, 'fr.json');
@@ -133,7 +135,7 @@ function loadAndValidateAllLocales(
 
   function assertKeysMatch(obj, ref, locale, keyPath = '') {
     for (const key of Object.keys(ref)) {
-      if (key === 'legal') continue; // Legal is mandatory on fr, en, ar
+      if (key === 'legal') continue; // Legal content lives in src/i18n/legal/{locale}.json
       const currentPath = keyPath ? `${keyPath}.${key}` : key;
       if (!(key in obj) || obj[key] === undefined || obj[key] === null) {
         throw new Error(
@@ -168,6 +170,11 @@ function loadAndValidateAllLocales(
       );
     }
     const bundle = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    if (bundle.legal) {
+      throw new Error(
+        `[i18n Performance Error] src/i18n/locales/${locale}.json must NOT embed "legal" (legal text belongs exclusively in src/i18n/legal/${locale}.json)`
+      );
+    }
     assertKeysMatch(bundle, refBundle, locale);
     assertSocialLengths(locale, 'home', bundle.home);
 
@@ -180,23 +187,50 @@ function loadAndValidateAllLocales(
       assertSocialLengths(locale, `platforms.${pKey}`, bundle.platforms[pKey]);
     }
 
-    if (locale === 'fr' || locale === 'en' || locale === 'ar') {
-      for (const lKey of LEGAL_PAGE_KEYS) {
-        if (!bundle.legal || !bundle.legal[lKey]) {
+    const legalFilePath = path.join(LEGAL_DIR, `${locale}.json`);
+    if (!fs.existsSync(legalFilePath)) {
+      throw new Error(
+        `[i18n Validation Error] Missing legal file: src/i18n/legal/${locale}.json`
+      );
+    }
+    const legalData = JSON.parse(fs.readFileSync(legalFilePath, 'utf8'));
+    for (const lKey of LEGAL_PAGE_KEYS) {
+      const doc = legalData[lKey];
+      if (!doc || typeof doc !== 'object') {
+        throw new Error(
+          `[i18n Validation Error] Missing legal page "${lKey}" in src/i18n/legal/${locale}.json`
+        );
+      }
+      for (const reqField of [
+        'metaTitle',
+        'metaDescription',
+        'ogImageAlt',
+        'h1',
+        'breadcrumbLabel',
+        'updatedAt',
+        'intro',
+      ]) {
+        if (typeof doc[reqField] !== 'string' || doc[reqField].trim().length === 0) {
           throw new Error(
-            `[i18n Validation Error] Missing legal page "${lKey}" in ${locale}.json`
+            `[i18n Validation Error] Missing or empty "${lKey}.${reqField}" in src/i18n/legal/${locale}.json`
           );
         }
-        assertSocialLengths(locale, `legal.${lKey}`, bundle.legal[lKey]);
       }
+      if (!Array.isArray(doc.sections) || doc.sections.length === 0) {
+        throw new Error(
+          `[i18n Validation Error] Empty sections in "${lKey}" of src/i18n/legal/${locale}.json`
+        );
+      }
+      assertSocialLengths(locale, `legal.${lKey}`, doc);
     }
 
     registerPreloadedLocale(bundle);
+    registerPreloadedLegalBundle(locale, legalData);
     map.set(locale, bundle);
   }
 
   console.log(
-    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files (0 missing keys, 100% OG length compliance).`
+    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files + ${SUPPORTED_LOCALES.length} legal files (0 missing keys, 100% OG length compliance).`
   );
   return map;
 }
@@ -209,7 +243,8 @@ function buildHtmlDocument(
   blogSlug,
   bundle,
   App,
-  buildHeadMetadataForRoute
+  buildHeadMetadataForRoute,
+  buildScopedLocaleBundle
 ) {
   const meta = buildHeadMetadataForRoute(locale, pageKey, blogSlug);
   const appHtml = renderToString(
@@ -344,7 +379,8 @@ function buildHtmlDocument(
   );
 
   if (pageKey !== 'admin') {
-    const safeBundleJson = JSON.stringify(bundle).replace(/</g, '\\u003c');
+    const scopedBundle = buildScopedLocaleBundle(bundle, pageKey);
+    const safeBundleJson = JSON.stringify(scopedBundle).replace(/</g, '\\u003c');
     extraHeadParts.push(
       `    <script>window.__VIDNEX_LOCALE_BUNDLE__=${safeBundleJson};</script>`
     );
@@ -447,9 +483,11 @@ async function main() {
     const { buildHreflangCluster } = await vite.ssrLoadModule(
       '/src/i18n/hreflang.ts'
     );
-    const { registerPreloadedLocale } = await vite.ssrLoadModule(
-      '/src/i18n/localeLoader.ts'
-    );
+    const {
+      buildScopedLocaleBundle,
+      registerPreloadedLegalBundle,
+      registerPreloadedLocale,
+    } = await vite.ssrLoadModule('/src/i18n/localeLoader.ts');
 
     // 1. Ensure committed OG images in public/og/ are present in dist/og/
     const publicOgDir = path.join(PUBLIC_DIR, 'og');
@@ -464,12 +502,13 @@ async function main() {
       }
     }
 
-    // 2. Load & validate all 10 locale JSON files
+    // 2. Load & validate all 10 locale JSON files + 10 legal JSON files
     const localesMap = loadAndValidateAllLocales(
       SUPPORTED_LOCALES,
       PLATFORM_PAGE_KEYS,
       LEGAL_PAGE_KEYS,
-      registerPreloadedLocale
+      registerPreloadedLocale,
+      registerPreloadedLegalBundle
     );
 
     // 3. Read base built index.html template
@@ -490,7 +529,8 @@ async function main() {
         route.blogSlug || null,
         bundle,
         App,
-        buildHeadMetadataForRoute
+        buildHeadMetadataForRoute,
+        buildScopedLocaleBundle
       );
 
       const outPath =
@@ -511,7 +551,8 @@ async function main() {
       null,
       localesMap.get('fr'),
       App,
-      buildHeadMetadataForRoute
+      buildHeadMetadataForRoute,
+      buildScopedLocaleBundle
     );
     const adminOutPath = path.join(DIST_DIR, 'admin', 'index.html');
     fs.mkdirSync(path.dirname(adminOutPath), { recursive: true });

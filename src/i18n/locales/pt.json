@@ -273,7 +273,7 @@
       "faqs": [
         {
           "question": "Como tirar a marca d'água do vídeo do TikTok?",
-          "answer": "Ao colar o link público no VIDNEX, o sistema localiza diretamente o arquivo MP4 original sem a camada de marca d'água."
+          "answer": "Ao colar um link público ou link curto vm.tiktok.com no VIDNEX, o sistema localiza diretamente o arquivo de vídeo MP4 original em alta definição sem a camada de marca d'água, além de permitir visualizar o vídeo, extrair a faixa de áudio em MP3 ou M4A e baixar apresentações de fotos em um pacote .ZIP."
         },
         {
           "question": "Links curtos vm.tiktok.com funcionam?",
@@ -347,7 +347,7 @@
       "faqs": [
         {
           "question": "Posso baixar todos os vídeos de um carrossel do Instagram?",
-          "answer": "Sim, ao analisar um carrossel público, o VIDNEX lista todas as fotos e vídeos separadamente com botões individuais de download."
+          "answer": "Sim, ao analisar um carrossel público do Instagram, o VIDNEX exibe uma grade interativa de seleção com caixas de marcação individuais e contador de itens. Você pode pré-visualizar cada foto JPG ou vídeo MP4, baixar slides separadamente ou reunir todos os arquivos selecionados em um único pacote .ZIP diretamente no seu navegador."
         },
         {
           "question": "Por que alguns Reels retornam aviso de conteúdo privado?",
@@ -425,7 +425,7 @@
         },
         {
           "question": "Como escolher a maior qualidade de vídeo do Twitter?",
-          "answer": "As opções de download são ordenadas da maior para a menor resolução; o primeiro botão corresponde sempre à melhor qualidade disponível."
+          "answer": "Após analisar um link público de x.com, twitter.com ou link curto t.co, o VIDNEX classifica todas as versões progressivas em MP4 da maior para a menor resolução e taxa de bits. O botão principal baixa a qualidade máxima (1080p ou 720p) com prévia de vídeo integrada, ou você pode escolher uma versão compacta."
         },
         {
           "question": "Por que os GIFs do X são baixados em formato MP4?",
@@ -495,7 +495,7 @@
       "faqs": [
         {
           "question": "Por que alguns vídeos do Facebook mostram apenas a opção SD?",
-          "answer": "Isso depende da resolução original enviada pelo criador; quando não há uma faixa HD progressiva pública no servidor, exibimos a versão SD."
+          "answer": "Ao analisar um vídeo público do Facebook Watch, um Reel ou um link curto fb.watch, o VIDNEX localiza os fluxos MP4 nativos com áudio em alta definição (HD 720p ou 1080p) e definição padrão (SD) com reprodutor de prévia; caso o criador original não tenha enviado versão HD, disponibilizamos a faixa SD."
         },
         {
           "question": "Links curtos fb.watch e /share/v/ são compatíveis?",
@@ -569,7 +569,7 @@
       "faqs": [
         {
           "question": "É possível baixar a foto de um perfil privado do LinkedIn?",
-          "answer": "Não. Quando o titular restringe a visibilidade da foto apenas para conexões ou usuários conectados, ou quando o LinkedIn exibe uma tela de login, o VIDNEX não acessa a imagem e nunca burla essa proteção."
+          "answer": "Não. Quando o titular restringe a visibilidade da foto apenas para usuários conectados ou quando o LinkedIn exibe uma tela de login, o VIDNEX nunca burla essa proteção; em vez disso, disponibiliza uma área de importação manual 100% local no navegador para arrastar, validar e salvar sua imagem com segurança."
         },
         {
           "question": "Páginas de empresas ou posts de vídeo do LinkedIn funcionam?",

@@ -273,7 +273,7 @@
       "faqs": [
         {
           "question": "Come scaricare un video da TikTok senza logo o filigrana?",
-          "answer": "Incollando il link pubblico su VIDNEX, il pulsante Scarica MP4 fornisce direttamente il flusso video sorgente senza il livello della filigrana."
+          "answer": "Incollando un link pubblico di TikTok o un link breve vm.tiktok.com su VIDNEX, il pulsante Scarica MP4 fornisce direttamente il flusso video sorgente in alta definizione senza il livello della filigrana, permettendoti inoltre di vedere l’anteprima video, estrarre l’audio originale in MP3 o M4A e salvare gli slideshow fotografici in .ZIP."
         },
         {
           "question": "I link brevi vm.tiktok.com funzionano?",
@@ -347,7 +347,7 @@
       "faqs": [
         {
           "question": "Posso scaricare tutti i video di un carosello Instagram?",
-          "answer": "Sì, incollando il link di un carosello pubblico, VIDNEX mostra ogni foto e video separatamente con il proprio pulsante di download."
+          "answer": "Sì, incollando il link di un carosello pubblico di Instagram, VIDNEX apre una griglia di selezione interattiva dotata di caselle di spunta individuali e contatore degli elementi. Puoi visualizzare in anteprima ogni foto JPG o video MP4, scaricare le singole slide separatamente oppure raggruppare tutti i file selezionati in un archivio .ZIP nel browser."
         },
         {
           "question": "Perché alcuni Reels restituiscono un avviso di login richiesto?",
@@ -425,7 +425,7 @@
         },
         {
           "question": "Come scelgo la migliore qualità video da Twitter?",
-          "answer": "Dopo l'analisi, le varianti MP4 vengono ordinate dalla risoluzione più alta alla più bassa; la prima opzione è sempre la qualità migliore."
+          "answer": "Dopo l’analisi di un link pubblico x.com, twitter.com o di un link breve t.co, VIDNEX filtra i flussi segmentati e ordina tutte le varianti MP4 progressive dalla risoluzione e bitrate più elevati a quelli più leggeri. Il pulsante principale scarica la massima qualità (1080p o 720p) con anteprima integrata, oltre alle opzioni compatte."
         },
         {
           "question": "Perché le GIF di Twitter vengono scaricate come file MP4?",
@@ -495,7 +495,7 @@
       "faqs": [
         {
           "question": "Perché alcuni video di Facebook mostrano solo l'opzione SD?",
-          "answer": "Dipende dalla risoluzione originale con cui è stato caricato il video; se sul server non è presente una traccia HD progressiva pubblica, viene mostrata la versione SD."
+          "answer": "Analizzando un video pubblico di Facebook Watch, un Reel o un link breve fb.watch, VIDNEX estrae contemporaneamente i flussi MP4 nativi con audio in alta definizione (HD 720p o 1080p) e definizione standard (SD) con lettore di anteprima; se l’autore originale non ha caricato una traccia HD, viene fornita la versione SD."
         },
         {
           "question": "I link brevi fb.watch e /share/v/ sono supportati?",
@@ -569,7 +569,7 @@
       "faqs": [
         {
           "question": "Posso scaricare la foto di un profilo LinkedIn privato o protetto?",
-          "answer": "No. Se l’utente ha limitato la visibilità della propria foto ai soli contatti o agli utenti registrati, oppure se LinkedIn impone una pagina di login, VIDNEX non può recuperare l’immagine e non aggira mai queste protezioni."
+          "answer": "No. Se l’utente ha limitato la visibilità della propria foto agli utenti registrati oppure se LinkedIn impone una pagina di login, VIDNEX non aggira mai queste protezioni; mette invece a disposizione nel riquadro dei risultati un modulo di importazione manuale 100% locale tramite trascinamento per verificare e salvare un’immagine nel browser."
         },
         {
           "question": "Sono supportate le pagine aziendali o i post video di LinkedIn?",

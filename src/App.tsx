@@ -469,12 +469,15 @@ export function App({ initialPath }: AppProps = {}) {
       <LanguageSuggestionBanner
         currentLocale={language}
         pageKey={bannerPageKey}
+        activePageKey={pageKey}
+        blogSlug={blogSlug}
         onSelectLocale={handleSelectLanguage}
       />
 
       <Header
         activePageKey={pageKey}
         activePlatform={activePlatform}
+        blogSlug={blogSlug}
         onNavigatePage={handleNavigatePage}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -556,6 +559,7 @@ export function App({ initialPath }: AppProps = {}) {
 
       <Footer
         activePageKey={pageKey}
+        blogSlug={blogSlug}
         onNavigatePage={handleNavigatePage}
         language={language}
         onSelectLanguage={handleSelectLanguage}

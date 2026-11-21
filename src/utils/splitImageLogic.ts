@@ -424,7 +424,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'What does the "Instagram Order" option do?',
         answer:
-          'On an Instagram profile grid, the newest post appears at the top-left. Enabling "Instagram Order" numbers the bottom-right tile as #1 and the top-left tile last, so uploading image-1, image-2, and so on assembles your profile mosaic in the right order.',
+          'On an Instagram profile grid, the newest post always appears at the top-left corner. Enabling "Instagram Order" numbers the bottom-right tile as image-1 and the top-left tile last, so uploading image-1, image-2, and so on from your local PNG, JPG, or ZIP export assembles your 3×3 or custom profile mosaic in the exact visual sequence.',
       },
       {
         question: 'Are my images uploaded to a server?',
@@ -531,7 +531,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'ما فائدة خيار «ترتيب إنستغرام»؟',
         answer:
-          'في شبكة الملف الشخصي على إنستغرام يظهر أحدث منشور في أعلى اليسار. عند تفعيل هذا الخيار يبدأ الترقيم من أسفل اليمين (1) حتى أعلى اليسار، بحيث تنشر image-1 ثم image-2 لتكتمل الصورة الكبيرة بالترتيب الصحيح.',
+          'في شبكة الملف الشخصي على إنستغرام يظهر أحدث منشور دائماً في الزاوية العلوية اليسرى. عند تفعيل خيار ترتيب إنستغرام يبدأ ترقيم الأجزاء تلقائياً من أسفل اليمين برقم واحد وصولاً إلى أعلى اليسار، بحيث تنشر الصور المقطعة بصيغة PNG أو JPG من أرشيف ZIP بالتسلسل الرقمي لتكتمل لوحة حسابك بدقة تامة.',
       },
       {
         question: 'هل يتم رفع صوري إلى خادم VIDNEX؟',
@@ -638,7 +638,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: '¿Para qué sirve la opción «Orden de Instagram»?',
         answer:
-          'En el perfil de Instagram, la última foto publicada se coloca arriba a la izquierda. Al activar «Orden de Instagram», la pieza inferior derecha recibe el número 1 para que publiques en orden numérico (image-1, image-2…) y el mosaico quede perfecto.',
+          'En la cuadrícula del perfil de Instagram, la última publicación aparece siempre arriba a la izquierda. Al activar «Orden de Instagram», la pieza inferior derecha recibe el número image-1 y la superior izquierda el último número, permitiéndote publicar cada recorte PNG o JPG del archivo ZIP en orden numérico para armar tu mosaico sin errores.',
       },
       {
         question: '¿Mis fotos se suben a algún servidor?',
@@ -745,7 +745,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'Como funciona a opção «Ordem para Instagram»?',
         answer:
-          'No feed do perfil do Instagram, a foto publicada por último fica no canto superior esquerdo. Ao ativar essa opção, a fatia inferior direita vira a image-1 para que você poste na ordem 1, 2, 3... e forme o mosaico corretamente.',
+          'No feed do perfil do Instagram, a foto publicada por último aparece sempre no canto superior esquerdo. Ao ativar a opção «Ordem para Instagram», a fatia inferior direita recebe o número image-1 e a superior esquerda o último, permitindo postar os arquivos PNG ou JPG do pacote ZIP em sequência numérica para montar o mosaico perfeitamente.',
       },
       {
         question: 'Minhas imagens são enviadas para algum servidor?',
@@ -852,7 +852,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'Was bewirkt die Option „Instagram-Reihenfolge“?',
         answer:
-          'Im Instagram-Profil erscheint der neueste Beitrag immer oben links. Mit aktivierter Instagram-Reihenfolge wird die Kachel unten rechts als image-1 nummeriert, sodass Sie einfach der Reihe nach (1, 2, 3…) posten können.',
+          'Im Instagram-Profilraster erscheint der neueste Beitrag immer oben links. Mit aktivierter Option „Instagram-Reihenfolge“ wird die Kachel unten rechts automatisch als image-1 und die Kachel oben links zuletzt nummeriert, sodass Sie die lokal im Browser geschnittenen PNG- oder JPG-Einzelbilder aus dem ZIP-Archiv einfach der Reihe nach für ein nahtloses Profil-Mosaik veröffentlichen können.',
       },
       {
         question: 'Werden meine Fotos auf einen Server hochgeladen?',
@@ -959,7 +959,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: '«Instagram Sırası» seçeneği ne işe yarar?',
         answer:
-          'Instagram profilinde en son yüklenen fotoğraf sol üstte görünür. Bu seçeneği açtığınızda sağ alt kare image-1 olarak numaralandırılır; böylece 1’den başlayıp sırayla paylaştığınızda profil vitrininiz doğru birleşir.',
+          'Instagram profil ızgarasında en son paylaşılan gönderi her zaman sol üst köşede yer alır. «Instagram Sırası» seçeneğini etkinleştirdiğinizde sağ alt kare image-1, sol üst kare ise son numara olarak etiketlenir; böylece tarayıcıda yerel olarak kesilen PNG veya JPG parçalarını ZIP arşivinden sırayla yükleyerek 3×3 profil vitrininizi hatasız biçimde birleştirebilirsiniz.',
       },
       {
         question: 'Fotoğraflarım sunucuya yükleniyor mu?',
@@ -1066,7 +1066,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'Apa fungsi opsi «Urutan Instagram»?',
         answer:
-          'Di profil Instagram, postingan terbaru muncul di kiri atas. Dengan mengaktifkan Urutan Instagram, potongan kanan bawah diberi nomor 1 sehingga Anda cukup mengunggah image-1, image-2, dan seterusnya secara berurutan.',
+          'Pada tampilan grid profil Instagram, foto terbaru selalu muncul di pojok kiri atas. Saat Anda mengaktifkan fitur «Urutan Instagram», potongan kanan bawah diberi nomor image-1 hingga potongan kiri atas di urutan terakhir, sehingga Anda cukup mengunggah hasil potongan PNG atau JPG dari arsip ZIP secara berurutan agar mozaik profil tersusun rapi.',
       },
       {
         question: 'Apakah foto saya diunggah ke server?',
@@ -1173,7 +1173,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'A cosa serve l’opzione «Ordine Instagram»?',
         answer:
-          'Sul profilo Instagram l’ultimo post pubblicato compare in alto a sinistra. Attivando «Ordine Instagram», il riquadro in basso a destra diventa image-1 così puoi pubblicare in ordine numerico (1, 2, 3…) ottenendo il mosaico corretto.',
+          'Nella griglia del profilo Instagram l’ultimo contenuto pubblicato appare sempre in alto a sinistra. Attivando l’opzione «Ordine Instagram», il riquadro in basso a destra viene numerato come image-1 e quello in alto a sinistra per ultimo, permettendoti di caricare i ritagli PNG o JPG estratti dall’archivio ZIP in sequenza numerica senza errori.',
       },
       {
         question: 'Le mie foto vengono caricate su un server?',
@@ -1280,7 +1280,7 @@ export const SPLIT_IMAGE_I18N: Record<SupportedLocale, SplitImageLocaleContent> 
       {
         question: 'Зачем нужна опция «Порядок для Instagram»?',
         answer:
-          'В сетке профиля Instagram последний опубликованный пост оказывается в левом верхнем углу. При включении этой опции правый нижний фрагмент получает номер 1 (image-1), чтобы вы загружали их по порядку 1, 2, 3… и мозаика сложилась правильно.',
+          'В сетке профиля Instagram последняя опубликованная фотография всегда отображается в левом верхнем углу. При включении режима «Порядок для Instagram» правый нижний фрагмент автоматически получает номер image-1, а левый верхний — последний номер, поэтому вы можете загружать нарезанные в браузере файлы PNG или JPG из ZIP-архива строго по порядку для сборки мозаики.',
       },
       {
         question: 'Загружаются ли мои фото на сервер?',

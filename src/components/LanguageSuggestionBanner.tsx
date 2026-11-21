@@ -6,6 +6,13 @@ import {
   type PageKey,
   type SupportedLocale,
 } from '../i18n/config.ts';
+import {
+  getBlogHomePath,
+  getPublishedArticleBySlug,
+  getPublishedArticleTranslations,
+  isBlogHubLocale,
+  type BlogLocale,
+} from '../data/blogArticles.ts';
 
 const DISMISS_STORAGE_KEY = 'vidnex_lang_banner_dismissed';
 
@@ -69,6 +76,8 @@ const BANNER_COPY: Record<
 interface LanguageSuggestionBannerProps {
   currentLocale: SupportedLocale;
   pageKey: PageKey;
+  activePageKey?: PageKey | 'blog_article' | 'not_found';
+  blogSlug?: string | null;
   onSelectLocale: (locale: SupportedLocale) => void;
 }
 
@@ -80,7 +89,7 @@ interface LanguageSuggestionBannerProps {
  */
 export const LanguageSuggestionBanner: React.FC<
   LanguageSuggestionBannerProps
-> = ({ currentLocale, pageKey, onSelectLocale }) => {
+> = ({ currentLocale, pageKey, activePageKey, blogSlug, onSelectLocale }) => {
   const [suggestedLocale, setSuggestedLocale] =
     useState<SupportedLocale | null>(null);
 
@@ -112,6 +121,26 @@ export const LanguageSuggestionBanner: React.FC<
         }
 
         if (matched && matched !== currentLocale) {
+          const effectivePage = activePageKey || pageKey;
+          if (effectivePage === 'blog' && !isBlogHubLocale(matched)) {
+            setSuggestedLocale(null);
+            return;
+          }
+          if (effectivePage === 'blog_article') {
+            const blogLoc: BlogLocale = isBlogHubLocale(currentLocale)
+              ? currentLocale
+              : 'en';
+            const resolved = blogSlug
+              ? getPublishedArticleBySlug(blogLoc, blogSlug)
+              : null;
+            const translations = resolved
+              ? getPublishedArticleTranslations(resolved.article.id)
+              : [];
+            if (!translations.some((t) => t.locale === matched)) {
+              setSuggestedLocale(null);
+              return;
+            }
+          }
           setSuggestedLocale(matched);
         } else {
           setSuggestedLocale(null);
@@ -130,14 +159,31 @@ export const LanguageSuggestionBanner: React.FC<
     return () => {
       window.removeEventListener('load', evaluateLanguageSuggestion);
     };
-  }, [currentLocale]);
+  }, [currentLocale, pageKey, activePageKey, blogSlug]);
 
   if (!suggestedLocale) {
     return null;
   }
 
   const targetMeta = LOCALES_CONFIG[suggestedLocale];
-  const targetHref = getLocalizedPagePath(suggestedLocale, pageKey);
+  const targetHref = (() => {
+    const effectivePage = activePageKey || pageKey;
+    if (effectivePage === 'blog_article' && blogSlug) {
+      const blogLoc: BlogLocale = isBlogHubLocale(currentLocale)
+        ? currentLocale
+        : 'en';
+      const resolved = getPublishedArticleBySlug(blogLoc, blogSlug);
+      const translations = resolved
+        ? getPublishedArticleTranslations(resolved.article.id)
+        : [];
+      const match = translations.find((t) => t.locale === suggestedLocale);
+      if (match) return match.canonicalPath;
+    }
+    if (effectivePage === 'blog' && isBlogHubLocale(suggestedLocale)) {
+      return getBlogHomePath(suggestedLocale);
+    }
+    return getLocalizedPagePath(suggestedLocale, pageKey);
+  })();
   const bannerText = BANNER_COPY[suggestedLocale];
 
   const handleDismiss = () => {

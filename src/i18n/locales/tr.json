@@ -273,7 +273,7 @@
       "faqs": [
         {
           "question": "TikTok videosu filigransız (logosuz) nasıl indirilir?",
-          "answer": "Herkese açık bağlantıyı VIDNEX'e yapıştırdığınızda sistem, üzerine filigran eklenmemiş kaynak MP4 dosyasını doğrudan sunar."
+          "answer": "Herkese açık bir TikTok video bağlantısını veya vm.tiktok.com kısa linkini VIDNEX arama kutusuna yapıştırdığınızda sistem, üzerine hareketli kullanıcı adı filigranı eklenmemiş orijinal MP4 HD video akışını doğrudan çözümler; ayrıca videoyu tarayıcıda önizleyebilir, orijinal MP3/M4A ses dosyasını ayırabilir veya çoklu fotoğraf slaytlarını tek bir .ZIP arşivi olarak indirebilirsiniz."
         },
         {
           "question": "vm.tiktok.com kısa bağlantıları çalışıyor mu?",
@@ -347,7 +347,7 @@
       "faqs": [
         {
           "question": "Instagram çoklu (kaydırmalı) gönderilerindeki tüm videoları indirebilir miyim?",
-          "answer": "Evet, herkese açık bir çoklu gönderi bağlantısı yapıştırdığınızda tüm fotoğraf ve videolar ayrı ayrı indirilmek üzere listelenir."
+          "answer": "Evet, herkese açık bir Instagram kaydırmalı (carousel) gönderi bağlantısı yapıştırdığınızda VIDNEX onay kutuları ve öğe sayacı içeren etkileşimli bir seçim ekranı açar. Her bir MP4 videoyu veya JPG fotoğrafı önizleyebilir, istediğiniz slaytları tek tek kaydedebilir ya da seçtiğiniz tüm medyaları tarayıcınızda tek bir .ZIP arşivinde birleştirerek indirebilirsiniz."
         },
         {
           "question": "Bazı Reels videoları neden giriş yapılması gerektiğini söylüyor?",
@@ -425,7 +425,7 @@
         },
         {
           "question": "En yüksek Twitter video kalitesini nasıl seçerim?",
-          "answer": "Analiz sonrasında MP4 seçenekleri en yüksek çözünürlükten en düşüğe doğru sıralanır; ilk seçenek her zaman en yüksek kalitedir."
+          "answer": "Herkese açık bir x.com, twitter.com veya t.co kısa bağlantısını analiz ettikten sonra VIDNEX, parçalı yayın listelerini filtreleyerek tüm doğrudan MP4 video sürümlerini en yüksek bit hızından en düşüğe doğru sıralar; yerleşik video önizlemesiyle birlikte en net 1080p veya 720p kaliteyi ya da mobil veri tasarrufu sağlayan SD seçeneğini indirebilirsiniz."
         },
         {
           "question": "Twitter GIF'leri neden MP4 olarak indiriliyor?",
@@ -495,7 +495,7 @@
       "faqs": [
         {
           "question": "Bazı Facebook videolarında neden yalnızca SD seçeneği görünüyor?",
-          "answer": "Bu durum videonun yüklendiği orijinal çözünürlüğe bağlıdır; sunucuda ayrı bir birleşik HD akışı yoksa SD sürüm sunulur."
+          "answer": "Herkese açık bir Facebook Watch videosu, Reels klibi veya fb.watch kısa bağlantısı yapıştırıldığında VIDNEX, orijinal sesli hem yüksek çözünürlüklü HD (720p veya 1080p) hem de standart SD MP4 akışlarını yerleşik önizleme oynatıcısıyla birlikte çıkarır; içerik üreticisi videoyu HD yüklemediyse doğrudan SD sürümü sunulur."
         },
         {
           "question": "fb.watch ve /share/v/ kısa bağlantıları destekleniyor mu?",
@@ -569,7 +569,7 @@
       "faqs": [
         {
           "question": "Gizli bir LinkedIn profilinin fotoğrafını indirebilir miyim?",
-          "answer": "Hayır. Profil sahibi fotoğrafını yalnızca bağlantılara veya giriş yapmış üyelere açtıysa ya da LinkedIn giriş duvarı gösteriyorsa VIDNEX görsele erişemez ve bu korumayı asla aşmaz."
+          "answer": "Hayır. Profil sahibi fotoğrafını yalnızca oturum açmış üyelere açtıysa ya da LinkedIn giriş duvarı gösteriyorsa VIDNEX bu korumayı asla aşmaya çalışmaz; bunun yerine sonuç kartında sunucuya dosya göndermeden çalışan %100 yerel sürükle-bırak manuel görsel içe aktarma, doğrulama ve kaydetme kutusu sunar."
         },
         {
           "question": "Şirket sayfaları veya LinkedIn video gönderileri destekleniyor mu?",

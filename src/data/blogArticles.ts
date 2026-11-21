@@ -13,11 +13,14 @@
 
 import type { PlatformPageKey, SupportedLocale } from '../i18n/config.ts';
 
-export type BlogLocale = 'en' | 'fr' | 'es' | 'de';
+export type BlogLocale = 'en' | 'fr' | 'es' | 'de' | 'ar';
 
 export const BLOG_HUB_LOCALES: readonly BlogLocale[] = [
   'en',
   'fr',
+  'es',
+  'de',
+  'ar',
 ] as const;
 
 export type BlogCategoryKey =
@@ -116,12 +119,12 @@ export interface BlogFeaturedIllustration {
     | 'tiktok-watermark-layers'
     | 'x-gif-mp4-transcode'
     | 'downloader-security-audit';
-  alt: Record<BlogLocale, string>;
-  caption: Record<BlogLocale, string>;
+  alt: Partial<Record<BlogLocale, string>> & { en: string };
+  caption: Partial<Record<BlogLocale, string>> & { en: string };
 }
 
 export interface BlogArticleTranslation {
-  locale: BlogLocale | 'ar';
+  locale: BlogLocale;
   localizedSlug: string;
   translationStatus: 'published' | 'draft';
   title: string;
@@ -158,7 +161,7 @@ export interface BlogArticle {
   publishedAt: string;
   updatedAt: string;
   relatedArticleIds: string[];
-  translations: Partial<Record<BlogLocale | 'ar', BlogArticleTranslation>>;
+  translations: Partial<Record<BlogLocale, BlogArticleTranslation>>;
 }
 
 export type BlogArticleRecord = BlogArticle;
@@ -181,6 +184,7 @@ export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
       fr: 'Équipe éditoriale',
       es: 'Equipo editorial',
       de: 'Redaktion',
+      ar: 'فريق التحرير',
     },
   },
 };
@@ -193,7 +197,7 @@ export const BLOG_HUB_SEO: Record<BlogLocale, BlogHubSeoMeta> = {
       'In-depth technical guides, troubleshooting workflows, container format comparisons, and privacy practices for saving publicly accessible videos and audio.',
     metaTitle: 'VIDNEX Blog — Video Download & Media Format Guides',
     metaDescription:
-      'Read expert guides on fixing TikTok, Instagram, Facebook, and X video downloads, understanding MP4 vs MP3 formats, iPhone file storage, and web safety.',
+      'Read expert guides on fixing TikTok, Instagram, Facebook, and X video downloads, comparing MP4 vs MP3 formats, iPhone file storage, and web safety.',
     breadcrumbLabel: 'Blog',
   },
   fr: {
@@ -203,7 +207,7 @@ export const BLOG_HUB_SEO: Record<BlogLocale, BlogHubSeoMeta> = {
       'Analyses techniques, résolutions de pannes de téléchargement, comparatifs des formats MP4/MP3 et bonnes pratiques de sécurité pour les médias publics.',
     metaTitle: 'Blog VIDNEX — Guides et Astuces Téléchargement Vidéo',
     metaDescription:
-      'Consultez nos guides complets pour résoudre les erreurs de téléchargement TikTok, Instagram, Facebook et X, comprendre MP4 vs MP3 et gérer vos fichiers iOS.',
+      'Consultez nos guides pour résoudre les erreurs de téléchargement TikTok, Instagram, Facebook et X, comprendre MP4 vs MP3 et gérer vos fichiers iOS.',
     breadcrumbLabel: 'Blog',
   },
   es: {
@@ -213,7 +217,7 @@ export const BLOG_HUB_SEO: Record<BlogLocale, BlogHubSeoMeta> = {
       'Tutoriales prácticos, diagnóstico de enlaces públicos de TikTok, Instagram y iPhone, y guías sobre calidad de vídeo y formatos de audio.',
     metaTitle: 'Blog VIDNEX — Guías de Descarga de Vídeos y Audio',
     metaDescription:
-      'Explora guías prácticas para solucionar fallos al descargar vídeos de TikTok e Instagram sin audio, guardar archivos en iPhone y usar herramientas seguras.',
+      'Explora guías prácticas para solucionar fallos al descargar vídeos de TikTok e Instagram sin audio, guardar archivos en iPhone y usar formatos MP4.',
     breadcrumbLabel: 'Blog',
   },
   de: {
@@ -225,6 +229,16 @@ export const BLOG_HUB_SEO: Record<BlogLocale, BlogHubSeoMeta> = {
     metaDescription:
       'Technische Anleitungen zur Behebung von TikTok- und Instagram-Downloadfehlern, fehlendem Reel-Ton sowie detaillierte Vergleiche zwischen MP4 und MP3.',
     breadcrumbLabel: 'Blog',
+  },
+  ar: {
+    locale: 'ar',
+    title: 'مدونة VIDNEX — أدلة تقنية وحلول تنزيل الفيديو',
+    subtitle:
+      'شروحات عملية وأدلة تقنية لحفظ الفيديوهات العامة من تيك توك وإنستغرام وإكس وفيسبوك بجودة عالية وبدون علامة مائية.',
+    metaTitle: 'مدونة VIDNEX — أدلة تنزيل الفيديو وصيغ الوسائط',
+    metaDescription:
+      'اقرأ أدلة شاملة حول تنزيل الفيديوهات العامة من تيك توك وإنستغرام وإكس وفيسبوك بصيغة MP4، وحل مشاكل الروابط وحفظ الملفات على الآيفون والأندرويد.',
+    breadcrumbLabel: 'المدونة',
   },
 };
 
@@ -405,43 +419,87 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       tutorials: 'Tutorials',
     },
   },
+  ar: {
+    navBlogLabel: 'المدونة',
+    editorialBadge: 'المجلة التقنية لـ VIDNEX',
+    featuredLabel: 'دليل مميز',
+    latestArticlesTitle: 'جميع الأدلة التقنية والشروحات',
+    allCategoriesLabel: 'جميع المواضيع',
+    searchPlaceholder: 'ابحث في الأدلة حسب المنصة أو الصيغة…',
+    searchClearLabel: 'مسح البحث',
+    noResultsTitle: 'لم يتم العثور على مقالات مطابقة',
+    noResultsBody:
+      'جرّب مسح عامل البحث أو الانتقال إلى النسخة الإنجليزية لتصفح مكتبة الأدلة التقنية الكاملة.',
+    readArticleCta: 'اقرأ الدليل الكامل',
+    minReadSuffix: 'دقائق قراءة',
+    publishedOnLabel: 'نُشر في',
+    updatedOnLabel: 'تحديث',
+    authorLabel: 'بواسطة',
+    tocTitle: 'محتويات المقال',
+    availableLanguagesLabel: 'اللغات المتوفرة',
+    relatedArticlesTitle: 'أدلة تقنية ذات صلة',
+    faqSectionTitle: 'الأسئلة الشائعة',
+    sourcesSectionTitle: 'المصادر الرسمية والمراجع التقنية',
+    toolCtaHeading: 'استخدم أدوات VIDNEX المرتبطة',
+    toolCtaButton: 'افتح الأداة',
+    backToBlogLabel: 'العودة إلى المدونة',
+    loadMoreLabel: 'عرض المزيد من المقالات',
+    showingCountLabel: 'مقالات منشورة بهذه اللغة',
+    categories: {
+      'tiktok-guides': 'أدلة تيك توك',
+      'instagram-guides': 'أدلة إنستغرام',
+      'facebook-guides': 'أدلة فيسبوك',
+      'x-twitter-guides': 'أدلة إكس / تويتر',
+      'video-audio': 'فيديو وصوت',
+      troubleshooting: 'حل المشكلات',
+      'privacy-safety': 'الخصوصية والأمان',
+      tutorials: 'شروحات',
+    },
+  },
 };
 
 export function getBlogUiLabels(locale: SupportedLocale): BlogUiLabels {
-  if (locale === 'fr' || locale === 'es' || locale === 'de') {
+  if (
+    locale === 'fr' ||
+    locale === 'es' ||
+    locale === 'de' ||
+    locale === 'ar'
+  ) {
     return BLOG_UI_BY_LOCALE[locale];
   }
   return BLOG_UI_BY_LOCALE.en;
 }
 
 export function isBlogHubLocale(locale: string): locale is BlogLocale {
-  return locale === 'en' || locale === 'fr';
+  return (
+    locale === 'en' ||
+    locale === 'fr' ||
+    locale === 'es' ||
+    locale === 'de' ||
+    locale === 'ar'
+  );
 }
 
 /**
  * Returns the canonical Blog Home path for a given locale.
- * - For 'en' (and any locale without a dedicated blog hub): '/blog'
- * - For 'fr': '/fr/blog'
+ * - For locales with a published blog hub ('en', 'fr', 'es', 'de', 'ar'): '/{locale}/blog'
+ * - For any other locale without a dedicated blog hub: '/en/blog'
  */
 export function getBlogHomePath(locale: SupportedLocale): string {
-  if (locale === 'fr') {
-    return '/fr/blog';
+  if (isBlogHubLocale(locale)) {
+    return `/${locale}/blog`;
   }
-  return '/blog';
+  return '/en/blog';
 }
 
 /**
  * Returns the canonical Blog Article path for a given blog locale and localizedSlug.
- * - English is served at root '/blog/{slug}'
- * - Other published blog locales are served at '/{locale}/blog/{localizedSlug}'
+ * All published blog locales are served at '/{locale}/blog/{localizedSlug}'.
  */
 export function getBlogArticlePath(
   locale: BlogLocale,
   localizedSlug: string
 ): string {
-  if (locale === 'en') {
-    return `/blog/${localizedSlug}`;
-  }
   return `/${locale}/blog/${localizedSlug}`;
 }
 
@@ -808,14 +866,14 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       es: {
         locale: 'es',
         localizedSlug: 'por-que-no-se-descarga-video-tiktok',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title:
           '¿Por qué no se descarga mi vídeo de TikTok? 7 causas y soluciones',
         excerpt:
           'Aprende a diagnosticar por qué falla la descarga de un vídeo de TikTok: cuentas privadas, enlaces cortos caducados, modo foto o bloqueos del navegador.',
         metaTitle: '¿Por qué no se descarga un vídeo de TikTok? 7 soluciones',
         metaDescription:
-          'Descubre las 7 causas por las que un vídeo de TikTok no se descarga y cómo solucionar errores de enlaces vm.tiktok.com, privacidad y almacenamiento móvil.',
+          'Descubre las 7 causas por las que un vídeo de TikTok no se descarga y cómo solucionar errores de enlaces vm.tiktok.com, privacidad y móvil.',
         primaryKeyword: 'por que no se descarga video tiktok',
         secondaryKeywords: [
           'no puedo descargar video de tiktok',
@@ -926,11 +984,11 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             platformKey: 'tiktok',
           },
           {
-            label: 'Cómo descargar vídeos en iPhone y dónde se guardan',
+            label: '¿Reel de Instagram descargado sin sonido? Causas y solución',
             description:
-              'Aprende a localizar tus descargas MP4 en la app Archivos de iOS.',
+              'Descubre por qué algunos Reels públicos se guardan sin pista de audio AAC.',
             targetType: 'blog_article',
-            targetArticleId: 'how-to-download-videos-on-iphone',
+            targetArticleId: 'instagram-reels-carousels-resolution-compression-guide',
           },
         ],
         sources: [
@@ -944,14 +1002,14 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       de: {
         locale: 'de',
         localizedSlug: 'tiktok-video-laedt-nicht-herunter-loesung',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title:
           'Warum lädt mein TikTok-Video nicht herunter? 7 Ursachen & Lösungen',
         excerpt:
           'Erfahren Sie, warum ein TikTok-Download fehlschlägt: private Konten, abgelaufene CDN-Tokens, Foto-Karussells oder In-App-Browser-Sperren.',
         metaTitle: 'TikTok-Video lädt nicht herunter? 7 Lösungen | VIDNEX',
         metaDescription:
-          'Erfahren Sie, warum sich ein TikTok-Video nicht herunterladen lässt und wie Sie Fehler bei Kurzlinks, privaten Konten und mobilen Browsern sofort beheben.',
+          'Erfahren Sie, warum sich ein TikTok-Video nicht herunterladen lässt und wie Sie Fehler bei Kurzlinks, privaten Konten und mobilen Browsern beheben.',
         primaryKeyword: 'tiktok video laedt nicht herunter',
         secondaryKeywords: [
           'tiktok download funktioniert nicht',
@@ -1347,7 +1405,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             description:
               'Comprendre la différence entre un conteneur multimédia MP4 et un fichier audio MP3.',
             targetType: 'blog_article',
-            targetArticleId: 'mp4-vs-mp3-difference',
+            targetArticleId: 'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
           },
         ],
         sources: [
@@ -1361,7 +1419,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       es: {
         locale: 'es',
         localizedSlug: 'reel-instagram-descargado-sin-audio',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title:
           '¿Reel de Instagram descargado sin sonido? Por qué ocurre y solución',
         excerpt:
@@ -1444,14 +1502,14 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       de: {
         locale: 'de',
         localizedSlug: 'instagram-reel-ohne-ton-heruntergeladen',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title:
           'Instagram Reel ohne Ton heruntergeladen? Ursachen & Lösung',
         excerpt:
           'Warum manche heruntergeladenen Instagram Reels stumm bleiben: Getrennte MPEG-DASH-Spuren, Musiklizenzen und wie Sie MP4-Dateien mit Ton erhalten.',
         metaTitle: 'Instagram Reel ohne Ton heruntergeladen? Hier ist die Lösung',
         metaDescription:
-          'Ihr heruntergeladenes Instagram Reel hat keinen Ton? Erfahren Sie, wie getrennte MPEG-DASH-Streams und Musiklizenzen funktionieren und wie MP4 mit Ton klappt.',
+          'Ihr heruntergeladenes Instagram Reel hat keinen Ton? Erfahren Sie, wie getrennte MPEG-DASH-Streams funktionieren und wie MP4 mit Ton klappt.',
         primaryKeyword: 'instagram reel ohne ton heruntergeladen',
         secondaryKeywords: [
           'instagram video kein ton nach download',
@@ -1520,7 +1578,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             description:
               'Wie Containerformate Video- und Audiospuren bündeln.',
             targetType: 'blog_article',
-            targetArticleId: 'mp4-vs-mp3-difference',
+            targetArticleId: 'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
           },
         ],
         sources: [
@@ -1550,7 +1608,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
     relatedArticleIds: [
       'why-is-downloaded-video-low-quality',
       'is-online-video-downloader-safe',
-      'tiktok-video-not-downloading',
+      'troubleshooting-expired-blocked-social-media-links',
     ],
     featuredImage: {
       diagramType: 'facebook-url-canonical',
@@ -2059,9 +2117,9 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
     publishedAt: '2026-02-26',
     updatedAt: '2026-03-22',
     relatedArticleIds: [
-      'tiktok-video-not-downloading',
-      'instagram-reel-without-sound',
-      'mp4-vs-mp3-difference',
+      'troubleshooting-expired-blocked-social-media-links',
+      'instagram-reels-carousels-resolution-compression-guide',
+      'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
     ],
     featuredImage: {
       diagramType: 'ios-safari-sandbox',
@@ -2190,7 +2248,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             description:
               'Solve common mobile browser and link issues when saving TikTok videos.',
             targetType: 'blog_article',
-            targetArticleId: 'tiktok-video-not-downloading',
+            targetArticleId: 'troubleshooting-expired-blocked-social-media-links',
           },
         ],
         sources: [
@@ -2624,13 +2682,13 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       de: {
         locale: 'de',
         localizedSlug: 'mp4-vs-mp3-unterschied-erklaert',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title: 'MP4 vs. MP3: Was ist der technische Unterschied?',
         excerpt:
           'Obwohl sich die Namen ähneln, erfüllen MP4 und MP3 völlig unterschiedliche Aufgaben. Erfahren Sie den Unterschied zwischen Multimedia-Containern und Audio-Codecs.',
         metaTitle: 'MP4 vs. MP3: Was ist der Unterschied? Container & Codecs',
         metaDescription:
-          'MP4 vs. MP3 im Vergleich: Verstehen Sie den technischen Unterschied zwischen Multimedia-Containern und Audio-Codecs, Dateigrößen sowie M4A-Audiospuren.',
+          'MP4 vs. MP3 im Vergleich: Verstehen Sie den Unterschied zwischen Multimedia-Containern und Audio-Codecs, Dateigrößen sowie M4A-Audiospuren.',
         primaryKeyword: 'mp4 vs mp3 unterschied',
         secondaryKeywords: [
           'unterschied zwischen mp3 und mp4',
@@ -2905,7 +2963,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
     category: 'tiktok-guides',
     primaryPlatform: 'tiktok',
     primaryToolRoute: '/en/tiktok-video-downloader',
-    secondaryToolRoute: '/en/instagram-video-downloader',
+    secondaryToolRoute: '/en/instagram-reels-downloader',
     author: BLOG_AUTHORS.editorialTeam,
     publishedAt: '2026-03-07',
     updatedAt: '2026-11-12',
@@ -3007,7 +3065,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'Why TikTok Adds a Bouncing Watermark to Saved Videos',
             paragraphs: [
               'When you tap the built-in Save video button inside the TikTok app, the platform does not simply hand over the raw video file that the creator uploaded. Instead, TikTok generates a stamped export copy. This file includes the TikTok logo, the creator\'s @username floating from side to side, and a full-screen outro card at the end of the clip.',
-              'This overlay serves a clear purpose: attribution. When clips are shared in group chats or across the web, viewers immediately see who made the original video and where it came from. However, that moving stamp becomes an obstacle in several legitimate everyday situations. Content creators often lose the original camera files on their phones and want to recover clean archival copies of their own old posts. Video editors studying transitions, educators archiving public references for offline classroom playback, or social media managers repurposing their brand\'s own vertical clips for other platforms like [Instagram Reels](https://vidnex.space/en/instagram-video-downloader) all need an unobstructed frame.',
+              'This overlay serves a clear purpose: attribution. When clips are shared in group chats or across the web, viewers immediately see who made the original video and where it came from. However, that moving stamp becomes an obstacle in several legitimate everyday situations. Content creators often lose the original camera files on their phones and want to recover clean archival copies of their own old posts. Video editors studying transitions, educators archiving public references for offline classroom playback, or social media managers repurposing their brand\'s own vertical clips for other platforms like [Instagram Reels](https://vidnex.space/en/instagram-reels-downloader) all need an unobstructed frame.',
               'Attempting to remove the logo after the fact by cropping the edges of the video or applying a blur box rarely works well. Because the TikTok watermark jumps between the upper-left and lower-right corners halfway through playback, cropping cuts off captions, facial expressions, and visual details. The cleanest approach is not editing the logo out of a stamped file, but retrieving the clean public MP4 stream when it is available.',
             ],
             table: {
@@ -3088,7 +3146,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "Not every post on TikTok is a standard single-stream video anymore. Creators frequently publish multi-image carousels (Photo Mode slideshows) paired with background music. When you try to save these inside the app, TikTok either saves individual images with watermarks in the corner or blocks the save option depending on the creator's settings.",
               'With VIDNEX, pasting a link to a public TikTok photo post lets you save public photos and slideshows cleanly. You can also save a public TikTok profile picture if you need a reference of a public avatar.',
-              'Sometimes you only care about the sound—such as a public voiceover, an original comedy skit, or a backing track for offline listening. Instead of downloading the entire video file and stripping the audio in an editing program, you can choose the audio option (MP3 or M4A) directly when processing the link. If you want to understand which audio format works best for your device or editing workflow, read our [guide comparing TikTok MP3 and M4A audio tracks](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
+              'Sometimes you only care about the sound—such as a public voiceover, an original comedy skit, or a backing track for offline listening. Instead of downloading the entire video file and stripping the audio in an editing program, you can choose the audio option (MP3 or M4A) directly when processing the link. If you want to understand which audio format works best for your device or editing workflow, read our [guide comparing TikTok MP3 and M4A audio tracks](https://vidnex.space/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
             ],
           },
           {
@@ -3097,7 +3155,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "A common misconception is that watermark-free downloaders use artificial intelligence or blurring filters to 'erase' the logo from the pixels of the video. Tools that actually blur or paint over watermarks leave behind a smudged rectangle where the username used to be, which degrades visual clarity.",
               "When you save a public TikTok video without a watermark through a link processor, no pixel blurring takes place. The tool simply requests the clean public MP4 version hosted on the platform's delivery servers when that stream is available. Because the video is not being re-compressed or cropped by a third-party editor, it retains the resolution of that public stream.",
-              'However, if you save a video and notice that it still looks blocky, blurry, or pixelated, the cause usually lies in how the video was originally uploaded or compressed by the platform upon publishing. Uploading over a weak cellular connection, exporting at non-standard frame rates, or applying heavy in-app filters can cause TikTok to compress the source file aggressively. For a full breakdown of resolution limits and compression behavior, check our article on [why a downloaded video might look low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+              'However, if you save a video and notice that it still looks blocky, blurry, or pixelated, the cause usually lies in how the video was originally uploaded or compressed by the platform upon publishing. Uploading over a weak cellular connection, exporting at non-standard frame rates, or applying heavy in-app filters can cause TikTok to compress the source file aggressively. For a full breakdown of resolution limits and compression behavior, check our article on [why a downloaded video might look low quality](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).',
             ],
           },
           {
@@ -3108,7 +3166,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             ],
             bullets: [
               "The link fails to load or says 'Video unavailable': Check whether the creator's account is set to Private, or if the video is restricted to Friends Only. VIDNEX only processes strictly public posts. If you cannot view the video in an incognito browser window without logging in, the tool cannot access it either.",
-              'Shortened link expired or redirected: Mobile share links (like vm.tiktok.com) can occasionally fail if copied incompletely or if the post was recently deleted. Open the video again, copy a fresh link, or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'Shortened link expired or redirected: Mobile share links (like vm.tiktok.com) can occasionally fail if copied incompletely or if the post was recently deleted. Open the video again, copy a fresh link, or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).',
               "Video plays in the browser tab instead of downloading: On some older browser configurations, clicking the download button opens a black video player screen. If this happens, press and hold on the video (on mobile) or right-click the video (on desktop) and select 'Save video as' or 'Download Linked File'.",
               "Downloaded video has no sound: Check two things first—make sure your phone's physical silent switch is off, and check whether the audio was muted on TikTok itself due to a copyright claim on the original post. If TikTok muted the audio on the public post, the saved file will also be silent.",
               "The Native 'Save Video' button is missing in TikTok: Creators can disable downloads in their privacy settings (Settings and privacy > Privacy > Downloads). While this hides the button inside the TikTok app, remember to respect the creator's intent and rights.",
@@ -3274,7 +3332,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'Pourquoi TikTok ajoute-t-il un filigrane mobile sur les vidéos enregistrées ?',
             paragraphs: [
               "Lorsque vous utilisez l'option native « Enregistrer la vidéo » directement dans l'application TikTok, la plateforme ne vous transmet pas le fichier brut envoyé par le créateur. Elle génère une copie ré-encodée sur laquelle sont incrustés le logo TikTok, l'identifiant @utilisateur qui rebondit d'un bord à l'autre de l'image, ainsi qu'une séquence finale plein écran.",
-              "Ce marquage visuel répond à une logique d'attribution : quand une vidéo circule sur WhatsApp, par message ou sur le web, tout le monde identifie immédiatement son auteur d'origine. Pourtant, ce logo animé pose vite problème dans de nombreux cas légitimes. Un créateur qui a changé de téléphone ou vidé sa galerie souhaite souvent récupérer ses propres montages propres pour ses archives ou pour les adapter sur d'autres réseaux comme les [Reels Instagram](https://vidnex.space/en/instagram-video-downloader). De même, un enseignant ou un monteur qui conserve une vidéo publique pour la consulter hors connexion préfère une image nette, sans texte superposé sur les sous-titres.",
+              "Ce marquage visuel répond à une logique d'attribution : quand une vidéo circule sur WhatsApp, par message ou sur le web, tout le monde identifie immédiatement son auteur d'origine. Pourtant, ce logo animé pose vite problème dans de nombreux cas légitimes. Un créateur qui a changé de téléphone ou vidé sa galerie souhaite souvent récupérer ses propres montages propres pour ses archives ou pour les adapter sur d'autres réseaux comme les [Reels Instagram](https://vidnex.space/telecharger-reel-instagram). De même, un enseignant ou un monteur qui conserve une vidéo publique pour la consulter hors connexion préfère une image nette, sans texte superposé sur les sous-titres.",
               "Chercher à masquer ce filigrane après coup en recadrant l'image (zoom dans la vidéo) ou en appliquant un flou donne de mauvais résultats : comme le logo change de position en cours de lecture, le recadrage coupe une partie importante du cadre et dégrade la netteté. La méthode propre consiste à récupérer directement le fichier MP4 public sans filigrane lorsqu'il est disponible.",
             ],
             table: {
@@ -3317,7 +3375,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'Comment enregistrer une vidéo TikTok publique sans filigrane étape par étape',
             paragraphs: [
               "Passer par un outil dans votre navigateur web présente l'avantage de fonctionner de la même manière sur un smartphone, une tablette ou un ordinateur, sans avoir à installer d'application tierce ni d'extension. Aucune connexion à votre compte TikTok n'est demandée.",
-              'Voici la marche à suivre avec le [téléchargeur de vidéos TikTok VIDNEX](https://vidnex.space/en/tiktok-video-downloader) :',
+              'Voici la marche à suivre avec le [téléchargeur de vidéos TikTok VIDNEX](https://vidnex.space/telecharger-video-tiktok) :',
             ],
             bullets: [
               "1. Ouvrez l'application TikTok ou le site web TikTok et affichez la vidéo publique que vous souhaitez conserver.",
@@ -3346,7 +3404,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "De nombreux créateurs montent leurs vidéos directement dans l'application TikTok pour profiter des outils de texte, des transitions ou du doublage vocal, puis réalisent après publication qu'ils n'ont pas de copie vierge sur leur téléphone.",
               "Lorsque vous préparez une nouvelle publication sur TikTok, vous pouvez anticiper ce besoin : sur l'écran final avant de publier, appuyez sur « Plus d'options » et vérifiez le réglage permettant d'enregistrer vos vidéos sur votre appareil sans filigrane. Évitez en revanche d'enregistrer l'écran pendant que votre vidéo est encore dans les Brouillons, car les boutons de l'interface resteraient visibles sur l'image.",
-              "Si votre vidéo est déjà en ligne depuis plusieurs semaines ou plusieurs mois et que vous avez perdu le fichier d'origine, passer par le bouton « Enregistrer la vidéo » sur votre propre profil ajoute souvent le filigrane malgré tout. Il vous suffit alors de vérifier que la publication est bien en mode public, de copier son lien via le menu Partager et de le coller dans le [téléchargeur TikTok VIDNEX](https://vidnex.space/en/tiktok-video-downloader) pour retrouver le fichier MP4 propre.",
+              "Si votre vidéo est déjà en ligne depuis plusieurs semaines ou plusieurs mois et que vous avez perdu le fichier d'origine, passer par le bouton « Enregistrer la vidéo » sur votre propre profil ajoute souvent le filigrane malgré tout. Il vous suffit alors de vérifier que la publication est bien en mode public, de copier son lien via le menu Partager et de le coller dans le [téléchargeur TikTok VIDNEX](https://vidnex.space/telecharger-video-tiktok) pour retrouver le fichier MP4 propre.",
             ],
           },
           {
@@ -3355,7 +3413,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "TikTok ne se limite plus aux vidéos classiques : le format carrousel (diaporama photo accompagné d'une musique) est très répandu. Lorsque vous sauvegardez ces publications depuis l'application, chaque image reçoit un filigrane dans l'angle.",
               "En collant le lien d'une publication publique dans VIDNEX, vous pouvez enregistrer les photos et diaporamas publics de manière propre, ainsi que la photo de profil publique d'un compte TikTok.",
-              "Par ailleurs, si seule la bande-son d'une vidéo publique vous intéresse — par exemple pour réécouter un extrait parlé ou un son original hors ligne — vous n'avez pas besoin de télécharger toute la vidéo MP4. L'outil propose d'extraire directement la piste audio au format MP3 ou M4A. Pour savoir quel format privilégier selon votre appareil, consultez notre [comparatif des pistes audio TikTok MP3 et M4A](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).",
+              "Par ailleurs, si seule la bande-son d'une vidéo publique vous intéresse — par exemple pour réécouter un extrait parlé ou un son original hors ligne — vous n'avez pas besoin de télécharger toute la vidéo MP4. L'outil propose d'extraire directement la piste audio au format MP3 ou M4A. Pour savoir quel format privilégier selon votre appareil, consultez notre [comparatif des pistes audio TikTok MP3 et M4A](https://vidnex.space/fr/blog/audio-tiktok-mp3-vs-m4a-aac-guide-technique).",
             ],
           },
           {
@@ -3364,7 +3422,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "On pense parfois que les outils en ligne « effacent » le logo TikTok en floutant une zone de l'image. C'est le cas des logiciels de retouche qui masquent un filigrane déjà incrusté, ce qui laisse une trace floue très visible à l'écran.",
               "Un téléchargeur par lien fonctionne différemment : il ne retouche pas les pixels de l'image, mais récupère la version publique du fichier MP4 sans filigrane hébergée par la plateforme lorsque celle-ci est disponible. Il n'y a donc ni recadrage ni floutage ajouté par l'outil.",
-              "Si vous constatez malgré tout que la vidéo enregistrée manque de netteté ou présente des pixels visibles, cela provient généralement de la compression appliquée lors de la mise en ligne initiale sur TikTok (connexion mobile instable lors de l'envoi, basse lumière ou filtres lourds). Nous détaillons ces mécanismes techniques dans notre guide expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+              "Si vous constatez malgré tout que la vidéo enregistrée manque de netteté ou présente des pixels visibles, cela provient généralement de la compression appliquée lors de la mise en ligne initiale sur TikTok (connexion mobile instable lors de l'envoi, basse lumière ou filtres lourds). Nous détaillons ces mécanismes techniques dans notre guide expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).",
             ],
           },
           {
@@ -3375,7 +3433,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             ],
             bullets: [
               "Message d'erreur « Vidéo introuvable » ou lien refusé : Vérifiez que le compte TikTok n'est pas privé et que la vidéo n'est pas limitée aux abonnés (« Amis uniquement »). VIDNEX traite exclusivement les contenus publics. Si la vidéo ne s'ouvre pas dans un onglet de navigation privée sans connexion, elle ne pourra pas être récupérée.",
-              'Lien court expiré ou incomplet : Si un lien copié depuis un message tiers ne répond plus, retournez sur la publication dans TikTok et copiez à nouveau le lien via le bouton Partager. Consultez aussi notre article dédié au [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'Lien court expiré ou incomplet : Si un lien copié depuis un message tiers ne répond plus, retournez sur la publication dans TikTok et copiez à nouveau le lien via le bouton Partager. Consultez aussi notre article dédié au [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme).',
               'La vidéo se lance dans un onglet au lieu de se télécharger : Sur certains navigateurs, le clic ouvre un lecteur vidéo sur fond noir. Sur mobile, maintenez votre doigt appuyé sur la vidéo et choisissez « Télécharger le fichier lié » ou « Enregistrer la vidéo » ; sur ordinateur, faites un clic droit puis « Enregistrer la vidéo sous… ».',
               "Absence de son sur le fichier MP4 : Vérifiez d'abord que le mode silencieux de votre téléphone est désactivé. Vérifiez ensuite sur TikTok si le son de la vidéo originale n'a pas été coupé par la plateforme pour des raisons de droits musicaux.",
               "Le bouton « Enregistrer la vidéo » n'existe pas dans l'app TikTok : L'auteur a désactivé l'option de téléchargement dans ses paramètres de confidentialité (Profil > Menu ☰ > Paramètres et confidentialité > Confidentialité > Téléchargements). Respectez toujours le choix du créateur.",
@@ -3467,7 +3525,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       ar: {
         locale: 'ar',
         localizedSlug: 'tanzil-video-tiktok-bidun-alama-maiya-dalil',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title: 'كيفية تنزيل فيديو تيك توك عام بدون علامة مائية على الهاتف والكمبيوتر',
         metaTitle: 'تنزيل فيديو تيك توك بدون علامة مائية: دليل عملي شامل',
         metaDescription:
@@ -3541,7 +3599,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'لماذا يضيف تيك توك علامة مائية متحركة عند حفظ الفيديو؟',
             paragraphs: [
               'عندما تضغط على خيار «حفظ الفيديو» المدمج داخل تطبيق تيك توك، لا يمنحك التطبيق ملف الفيديو الأصلي كما رفعه صانع المحتوى، بل ينشئ نسخة جديدة مدمجة بشعار تيك توك واسم حساب الناشر الذي يتحرك بين زوايا الشاشة، بالإضافة إلى بطاقة ختامية في نهاية المقطع.',
-              'الهدف من هذا الشعار هو حفظ حقوق النسب؛ فعندما تتم مشاركة المقطع في تطبيقات المراسلة، يعرف المشاهدون مصدر الفيديو وصاحبه الأصلي. لكن هذه العلامة المتحركة قد تعيق الاستخدامات المشروعة في حالات كثيرة: كأن يفقد صانع المحتوى ملفاته الأصلية من هاتفه ويرغب في استعادة نسخ نظيفة من فيديوهاته القديمة لأرشفتها أو إعادة نشرها على منصات أخرى مثل [ريلز إنستغرام](https://vidnex.space/en/instagram-video-downloader)، أو عندما يحتاج معلم أو محرر فيديو إلى حفظ مقطع عام للرجوع إليه دون اتصال بالإنترنت دون أن يغطي الشعار النصوص التوضيحية.',
+              'الهدف من هذا الشعار هو حفظ حقوق النسب؛ فعندما تتم مشاركة المقطع في تطبيقات المراسلة، يعرف المشاهدون مصدر الفيديو وصاحبه الأصلي. لكن هذه العلامة المتحركة قد تعيق الاستخدامات المشروعة في حالات كثيرة: كأن يفقد صانع المحتوى ملفاته الأصلية من هاتفه ويرغب في استعادة نسخ نظيفة من فيديوهاته القديمة لأرشفتها أو إعادة نشرها على منصات أخرى مثل [ريلز إنستغرام](https://vidnex.space/ar/instagram-reels-downloader)، أو عندما يحتاج معلم أو محرر فيديو إلى حفظ مقطع عام للرجوع إليه دون اتصال بالإنترنت دون أن يغطي الشعار النصوص التوضيحية.',
               'محاولة إزالة الشعار لاحقاً عن طريق قص أطراف الفيديو أو وضع تمويه ضبابي فوق الاسم غالباً ما تشوه الصورة، لأن العلامة المائية تنتقل من الأعلى إلى الأسفل أثناء التشغيل. الحل الأدق هو جلب ملف الفيديو العام بصيغة MP4 بدون علامة مائية من الأساس عندما يكون متاحاً.',
             ],
             table: {
@@ -3584,7 +3642,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'خطوات تنزيل فيديو تيك توك عام بدون علامة مائية عبر المتصفح',
             paragraphs: [
               'استخدام أداة تعتمد على متصفح الويب يوفر عليك تثبيت تطبيقات إضافية تستهلك مساحة الهاتف، كما أنه يعمل بنفس الطريقة على الهواتف الذكية والأجهزة اللوحية وأجهزة الكمبيوتر دون الحاجة إلى تسجيل الدخول أو ربط حسابك.',
-              'اتبع هذه الخطوات المرتبة لحفظ المقطع عبر [أداة تنزيل فيديو تيك توك من VIDNEX](https://vidnex.space/en/tiktok-video-downloader):',
+              'اتبع هذه الخطوات المرتبة لحفظ المقطع عبر [أداة تنزيل فيديو تيك توك من VIDNEX](https://vidnex.space/ar/tiktok-video-downloader):',
             ],
             bullets: [
               '1. افتح تطبيق تيك توك أو موقع المنصة وانتقل إلى الفيديو العام الذي تريد حفظه.',
@@ -3613,7 +3671,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               'كثير من الباحثين عن إزالة العلامة المائية هم في الواقع صناع محتوى يريدون استرجاع مقاطعهم الخاصة التي صمموها داخل تيك توك باستخدام المؤثرات الصوتية والنصوص المدمجة في التطبيق.',
               'إذا كنت تقوم بتصوير وتحرير فيديو جديد داخل تيك توك، يمكنك تفعيل خيار حفظ الفيديو على جهازك بدون علامة مائية من قسم «خيارات إضافية» في شاشة النشر النهائية قبل الضغط على زر النشر. وتجنب الاعتماد على تسجيل الشاشة أثناء وجود الفيديو في «المسودات» لأن أزرار الواجهة ستظهر فوق الصورة.',
-              'أما إذا كان الفيديو منشوراً بالفعل في حسابك منذ فترة وفقدت النسخة الأصلية من هاتفك، فإن الضغط على «حفظ الفيديو» من داخل ملفك الشخصي قد يضيف الشعار أيضاً. في هذه الحالة، طالما أن حسابك والمقطع متاحان للعامة، انسخ رابط الفيديو الخاص بك واستخدم [أداة تنزيل تيك توك على VIDNEX](https://vidnex.space/en/tiktok-video-downloader) لاستعادة نسخة MP4 النظيفة.',
+              'أما إذا كان الفيديو منشوراً بالفعل في حسابك منذ فترة وفقدت النسخة الأصلية من هاتفك، فإن الضغط على «حفظ الفيديو» من داخل ملفك الشخصي قد يضيف الشعار أيضاً. في هذه الحالة، طالما أن حسابك والمقطع متاحان للعامة، انسخ رابط الفيديو الخاص بك واستخدم [أداة تنزيل تيك توك على VIDNEX](https://vidnex.space/ar/tiktok-video-downloader) لاستعادة نسخة MP4 النظيفة.',
             ],
           },
           {
@@ -3622,7 +3680,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               'لم يعد المحتوى على تيك توك يقتصر على الفيديو فقط؛ إذ تنتشر منشورات الصور المتعددة (عروض الشرائح المصحوبة بموسيقى). عند حفظ هذه الصور من داخل التطبيق، يظهر شعار تيك توك في زاوية كل صورة.',
               'يتيح لك موقع VIDNEX عند لصق رابط منشور عام حفظ الصور وعروض الشرائح العامة من تيك توك، كما يدعم حفظ صورة الملف الشخصي العامة لأي حساب عام.',
-              'وإذا كنت ترغب في الاحتفاظ بالصوت فقط — مثل تعليق صوتي عام أو مقطع صوتي للاستماع إليه دون إنترنت — يمكنك اختيار تنزيل الصوت بصيغة MP3 أو M4A مباشرة بدلاً من تحميل الفيديو بالكامل. ولمعرفة الفروق التقنية بين الصيغتين وأيهما أنسب لهاتفك، يمكنك قراءة [دليل مقارنة صيغ الصوت MP3 و M4A في تيك توك](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
+              'وإذا كنت ترغب في الاحتفاظ بالصوت فقط — مثل تعليق صوتي عام أو مقطع صوتي للاستماع إليه دون إنترنت — يمكنك اختيار تنزيل الصوت بصيغة MP3 أو M4A مباشرة بدلاً من تحميل الفيديو بالكامل. ولمعرفة الفروق التقنية بين الصيغتين وأيهما أنسب لهاتفك، يمكنك قراءة [دليل مقارنة صيغ الصوت MP3 و M4A في تيك توك](https://vidnex.space/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide).',
             ],
           },
           {
@@ -3631,7 +3689,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               'يعتقد البعض أن أدوات التحميل تقوم بتمويه الشعار أو طمسه رقمياً فوق الفيديو، وهي طريقة تستخدمها بعض برامج المونتاج وتترك بقعة ضبابية مشوهة في مكان الاسم.',
               'في المقابل، عند حفظ فيديو عام عبر الرابط، لا يتم التعديل على بكسلات الصورة أو قص أبعادها، بل يتم جلب نسخة ملف MP4 العامة الخالية من الشعار عندما تكون متاحة على الخوادم. لذلك يحتفظ المقطع بدقته الأصلية المتاحة في البث العام.',
-              'ومع ذلك، إذا لاحظت أن الفيديو المحمل يبدو غير واضح أو منخفض الدقة، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي على المنصة أو ضعف اتصال الإنترنت وقت النشر. يمكنك الاطلاع على الأسباب التفصيلية في مقالنا حول [أسباب انخفاض جودة الفيديو بعد تنزيله](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+              'ومع ذلك، إذا لاحظت أن الفيديو المحمل يبدو غير واضح أو منخفض الدقة، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي على المنصة أو ضعف اتصال الإنترنت وقت النشر. يمكنك الاطلاع على الأسباب التفصيلية في مقالنا حول [أسباب انخفاض جودة الفيديو بعد تنزيله](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).',
             ],
           },
           {
@@ -3642,7 +3700,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             ],
             bullets: [
               'رسالة «الفيديو غير متاح» أو فشل قراءة الرابط: تأكد من أن الحساب ليس خاصاً (Private) وأن المقطع غير مخصص للأصدقاء فقط. أداة VIDNEX تتعامل حصرياً مع المنشورات العامة، فإذا كان الفيديو لا يفتح في متصفح خفي بدون تسجيل دخول، فلن تتمكن الأداة من الوصول إليه.',
-              'انتهاء صلاحية الرابط المختصر: الروابط المنسوخة قديماً قد تتوقف عن العمل إذا تغيرت حالة المنشور أو تم حذفه. افتح تيك توك وانسخ رابطاً جديداً، أو راجع دليلنا حول [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'انتهاء صلاحية الرابط المختصر: الروابط المنسوخة قديماً قد تتوقف عن العمل إذا تغيرت حالة المنشور أو تم حذفه. افتح تيك توك وانسخ رابطاً جديداً، أو راجع دليلنا حول [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).',
               'الفيديو يعمل داخل المتصفح بدلاً من التنزيل: في بعض المتصفحات، يؤدي الضغط على زر التحميل إلى فتح مشغل فيديو. في هذه الحالة، اضغط مطولاً على الفيديو في الهاتف (أو بزر الفأرة الأيمن على الكمبيوتر) واختر «حفظ الفيديو» أو «تنزيل الملف المرتبط».',
               'الفيديو المحمل يعمل بدون صوت: تحقق أولاً من زر الصامت في هاتفك، ثم تأكد من أن الصوت الأصلي على تيك توك لم يتم كتمه من قِبل المنصة بسبب قيود حقوق الموسيقى.',
               'غياب زر «حفظ الفيديو» داخل تطبيق تيك توك: يتيح تيك توك لصناع المحتوى إيقاف ميزة التنزيل من إعدادات الخصوصية (الملف الشخصي > القائمة ☰ > الإعدادات والخصوصية > الخصوصية > التنزيلات). احترم دائماً رغبة صانع المحتوى وحقوقه.',
@@ -4282,7 +4340,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               'Instagram posts are frequently multi-slide carousels mixing still photography with short video clips. Screenshotting each slide lowers image sharpness and forces you to crop out the slide counter dots in the upper-right corner.',
               'When you paste the link of a public Instagram carousel into VIDNEX, the tool detects the public media items inside that post so you can save each photo or video clip cleanly. Similarly, if you need to inspect or archive a public brand avatar or creator headshot, you can paste a public profile URL into the tool to save the public profile picture.',
-              'If you want to learn more about how Instagram scales dimensions and compresses multi-slide posts versus single Reels, read our deep dive on [Instagram Reels and carousels resolution and compression](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+              'If you want to learn more about how Instagram scales dimensions and compresses multi-slide posts versus single Reels, read our deep dive on [Instagram Reels and carousels resolution and compression](https://vidnex.space/en/blog/instagram-reels-carousels-resolution-compression-guide).',
             ],
           },
           {
@@ -4290,7 +4348,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'What Video Quality Should You Expect from Saved Reels?',
             paragraphs: [
               "Instagram streams Reels at a standard vertical 9:16 aspect ratio, typically capped at 1080p Full HD (1080 × 1920 pixels) with AAC audio. When you save a public Reel through a link processor, you receive the MP4 file served by Instagram's content delivery network without added watermarks or secondary re-compression.",
-              "If a saved Reel looks softer or more pixelated than expected, the compression occurred when the creator originally uploaded the file—for instance, if 'Upload at highest quality' was turned off in their Instagram account settings or if the video was uploaded over a weak mobile signal. Check our guide on [why a downloaded video looks low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality) for a full explanation of bitrate and upload settings.",
+              "If a saved Reel looks softer or more pixelated than expected, the compression occurred when the creator originally uploaded the file—for instance, if 'Upload at highest quality' was turned off in their Instagram account settings or if the video was uploaded over a weak mobile signal. Check our guide on [why a downloaded video looks low quality](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality) for a full explanation of bitrate and upload settings.",
             ],
           },
           {
@@ -4302,7 +4360,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             bullets: [
               "Error message 'Post unavailable' or 'Private account': Confirm that the Instagram profile is set to Public. VIDNEX never accesses private profiles, Close Friends stories, or subscriber-only posts. If you cannot view the URL in an incognito browser tab while logged out, it cannot be saved.",
               "Clicking download does nothing on iPhone: Check that you are not using Instagram's in-app browser. Tap the three dots or compass icon to open the page in Safari, then try again.",
-              "Link fails with tracking parameters attached: Instagram's mobile Share sheet sometimes appends '?igsh=...' tracking tags to the end of a URL. If a link stalls, try removing everything starting from the question mark '?' and paste the clean 'https://www.instagram.com/reel/CODE/' URL, or review our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Link fails with tracking parameters attached: Instagram's mobile Share sheet sometimes appends '?igsh=...' tracking tags to the end of a URL. If a link stalls, try removing everything starting from the question mark '?' and paste the clean 'https://www.instagram.com/reel/CODE/' URL, or review our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).",
               "Video opens in a browser player instead of saving: On desktop, right-click the playing video and choose 'Save video as...'. On mobile Safari, tap and hold the link or use the browser's Share menu to save the file.",
               'Instagram Stories or Highlights links fail: VIDNEX supports public Instagram Reels, posts, carousels, and profile pictures—ephemeral 24-hour Stories are not supported.',
             ],
@@ -4535,7 +4593,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               "Sur Instagram, les publications carrousels combinent souvent plusieurs photos et séquences vidéo dans un même post. Faire une capture d'écran de chaque diapositive dégrade la définition et laisse apparaître les points de navigation en haut à droite.",
               "Lorsque vous collez le lien d'un carrousel Instagram public dans VIDNEX, l'outil détecte les différents éléments publics de la publication afin que vous puissiez enregistrer chaque photo ou vidéo séparément. De la même façon, vous pouvez coller l'URL d'un profil public pour récupérer sa photo de profil publique en pleine résolution disponible.",
-              'Pour mieux comprendre comment Instagram redimensionne et compresse les carrousels par rapport aux Reels verticaux, consultez notre [guide technique sur la résolution et la compression des Reels et carrousels Instagram](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+              'Pour mieux comprendre comment Instagram redimensionne et compresse les carrousels par rapport aux Reels verticaux, consultez notre [guide technique sur la résolution et la compression des Reels et carrousels Instagram](https://vidnex.space/fr/blog/instagram-reels-carrousels-resolution-compression-guide).',
             ],
           },
           {
@@ -4543,7 +4601,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: "Quelle qualité vidéo attendre lors de l'enregistrement d'un Reel ?",
             paragraphs: [
               'Instagram diffuse les Reels au format vertical 9:16 jusqu\'à une définition Full HD 1080p (1080 × 1920 pixels) avec piste audio AAC. Lorsque vous enregistrez un Reel public via VIDNEX, vous récupérez le flux MP4 public diffusé par la plateforme sans ajout de filigrane ni recompression supplémentaire.',
-              "Si une vidéo enregistrée paraît malgré tout légèrement floue ou pixellisée, cette perte provient de la compression appliquée lors de sa mise en ligne initiale par le créateur (par exemple si l'option « Importation de haute qualité » n'était pas activée dans ses paramètres Instagram). Nous expliquons ces mécanismes dans notre article sur [les raisons pour lesquelles une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+              "Si une vidéo enregistrée paraît malgré tout légèrement floue ou pixellisée, cette perte provient de la compression appliquée lors de sa mise en ligne initiale par le créateur (par exemple si l'option « Importation de haute qualité » n'était pas activée dans ses paramètres Instagram). Nous expliquons ces mécanismes dans notre article sur [les raisons pour lesquelles une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).",
             ],
           },
           {
@@ -4555,7 +4613,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             bullets: [
               "Erreur « Publication introuvable » ou « Compte privé » : Vérifiez que le profil Instagram est bien public. VIDNEX ne traite jamais les comptes privés, les stories Amis proches ou les contenus réservés aux abonnés. Si le lien ne s'ouvre pas dans un onglet de navigation privée sans connexion, il ne peut pas être enregistré.",
               "Le bouton de téléchargement ne réagit pas sur iPhone : Assurez-vous d'avoir ouvert la page dans Safari et non dans le navigateur intégré de l'application Instagram.",
-              "Le lien échoue à cause des paramètres de suivi : L'application mobile ajoute parfois des paramètres '?igsh=...' à la fin de l'URL. Supprimez tout ce qui suit le point d'interrogation '?' pour ne garder que 'https://www.instagram.com/reel/CODE/', ou consultez notre guide pour [dépanner les liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Le lien échoue à cause des paramètres de suivi : L'application mobile ajoute parfois des paramètres '?igsh=...' à la fin de l'URL. Supprimez tout ce qui suit le point d'interrogation '?' pour ne garder que 'https://www.instagram.com/reel/CODE/', ou consultez notre guide pour [dépanner les liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme).",
               "La vidéo s'ouvre dans un lecteur au lieu de se télécharger : Sur ordinateur, faites un clic droit sur la vidéo et choisissez « Enregistrer la vidéo sous… ». Sur mobile, maintenez le doigt appuyé ou utilisez le bouton Partager du navigateur.",
               'Les Stories Instagram ne fonctionnent pas : Pour Instagram, VIDNEX prend uniquement en charge les Reels, publications, carrousels et photos de profil publics ; les Stories éphémères de 24 heures ne sont pas prises en charge.',
             ],
@@ -4646,7 +4704,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       ar: {
         locale: 'ar',
         localizedSlug: 'tanzil-reels-carousel-instagram-ama-maa-alsawt-dalil',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title: 'كيفية تنزيل ريلز ومنشورات كاروسيل إنستغرام العامة مع الصوت بجودة عالية',
         metaTitle: 'تنزيل ريلز وكاروسيل إنستغرام مع الصوت: دليل عملي شامل',
         metaDescription:
@@ -4759,7 +4817,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'خطوات تنزيل ريلز وكاروسيل ومنشورات إنستغرام العامة',
             paragraphs: [
               'العمل عبر متصفح الإنترنت يغنيك عن تثبيت تطبيقات مجهولة على هاتفك ولا يتطلب منك إدخال بيانات حسابك في إنستغرام إطلاقاً.',
-              'اتبع الخطوات التالية عبر [أداة تنزيل ريلز إنستغرام من VIDNEX](https://vidnex.space/en/instagram-reels-downloader) لحفظ أي منشور عام:',
+              'اتبع الخطوات التالية عبر [أداة تنزيل ريلز إنستغرام من VIDNEX](https://vidnex.space/ar/instagram-reels-downloader) لحفظ أي منشور عام:',
             ],
             bullets: [
               '1. افتح تطبيق إنستغرام (أو موقع instagram.com على الكمبيوتر) وانتقل إلى الريلز أو المنشور أو ألبوم الكاروسيل العام الذي ترغب في حفظه.',
@@ -4788,7 +4846,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             paragraphs: [
               'تجمع منشورات الكاروسيل في إنستغرام عدة صور ومقاطع فيديو في منشور واحد. أخذ لقطة شاشة لكل صورة يقلل من الدقة ويترك أرقام التمرير ظاهرة في زاوية الصورة.',
               'عند لصق رابط منشور كاروسيل عام في موقع VIDNEX، تتعرف الأداة على الوسائط العامة داخل المنشور لتتمكن من حفظ كل صورة أو مقطع فيديو بجودته المتاحة. وبالمثل، يمكنك لصق رابط أي حساب عام لحفظ صورة الملف الشخصي العامة الخاصة به.',
-              'لمعرفة المزيد حول كيفية تعامل إنستغرام مع أبعاد وضغط الصور في الكاروسيل مقارنة بمقاطع الريلز، يمكنك قراءة [دليل دقة وضغط ريلز وكاروسيل إنستغرام](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide).',
+              'لمعرفة المزيد حول كيفية تعامل إنستغرام مع أبعاد وضغط الصور في الكاروسيل مقارنة بمقاطع الريلز، يمكنك قراءة [دليل دقة وضغط ريلز وكاروسيل إنستغرام](https://vidnex.space/en/blog/instagram-reels-carousels-resolution-compression-guide).',
             ],
           },
           {
@@ -4796,7 +4854,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'ما هي جودة الفيديو المتوقعة عند حفظ ريلز إنستغرام؟',
             paragraphs: [
               'يعرض إنستغرام مقاطع الريلز بأبعاد عمودية قياسية 9:16 وتصل دقتها عادةً إلى 1080p Full HD مع صوت بصيغة AAC. عند حفظ ريلز عام عبر VIDNEX، تحصل على ملف MP4 العام المتوفر على خوادم المنصة دون إضافة علامات مائية أو إعادة ضغط إضافية.',
-              'وإذا بدا المقطع المحمل أقل وضوحاً من المتوقع، فغالباً ما يكون السبب هو ضغط الفيديو أثناء رفعه الأصلي من قِبل الناشر أو عدم تفعيل خيار «الرفع بأعلى جودة» في إعدادات حسابه. راجع مقالنا حول [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/blog/why-is-downloaded-video-low-quality) للتفاصيل التقنية الكاملة.',
+              'وإذا بدا المقطع المحمل أقل وضوحاً من المتوقع، فغالباً ما يكون السبب هو ضغط الفيديو أثناء رفعه الأصلي من قِبل الناشر أو عدم تفعيل خيار «الرفع بأعلى جودة» في إعدادات حسابه. راجع مقالنا حول [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality) للتفاصيل التقنية الكاملة.',
             ],
           },
           {
@@ -4808,7 +4866,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             bullets: [
               'رسالة «المنشور غير متاح» أو «حساب خاص»: تأكد من أن حساب إنستغرام عام (Public). موقع VIDNEX لا يصل أبداً إلى الحسابات الخاصة أو قصص الأصدقاء المقربين أو المحتوى الحصري للمشتركين.',
               'زر التنزيل لا يستجيب على الآيفون: تأكد من أنك تستخدم متصفح سفاري وليس المتصفح الداخلي لتطبيق إنستغرام.',
-              "فشل الرابط بسبب رموز التتبع الإضافية: يضيف تطبيق إنستغرام أحياناً رموز تتبع تبدأ بـ '?igsh=' في نهاية الرابط. احذف الجزء الذي يبدأ بعلامة الاستفهام '?' واترك الرابط الأساسي 'https://www.instagram.com/reel/CODE/'، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "فشل الرابط بسبب رموز التتبع الإضافية: يضيف تطبيق إنستغرام أحياناً رموز تتبع تبدأ بـ '?igsh=' في نهاية الرابط. احذف الجزء الذي يبدأ بعلامة الاستفهام '?' واترك الرابط الأساسي 'https://www.instagram.com/reel/CODE/'، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).",
               'فتح الفيديو في مشغل داخل المتصفح بدلاً من الحفظ: على الكمبيوتر اضغط بزر الفأرة الأيمن واختر «حفظ الفيديو باسم»، وعلى الهاتف استخدم قائمة المشاركة في المتصفح لحفظ الملف.',
               'عدم عمل روابط القصص (Stories): يدعم VIDNEX في إنستغرام الريلز والمنشورات والكاروسيل وصورة الحساب العامة فقط، ولا يدعم القصص المؤقتة التي تختفي خلال 24 ساعة.',
             ],
@@ -5075,7 +5133,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'Video Quality, x.com vs. twitter.com Links, and Compression',
             paragraphs: [
               'Whether your copied URL starts with `https://x.com/...` or `https://twitter.com/...` and includes tracking suffixes like `?s=20` or `?t=...`, the link points to the same public post ID and resolves automatically.',
-              "When X encodes a public video, it generates adaptive MP4 streams based on the resolution and bitrate uploaded by the creator. Saving the public MP4 stream retrieves the clean file hosted on X's delivery servers without adding watermarks. If a saved clip looks blurry or blocky, the compression happened when the original user uploaded a low-bitrate file or recorded over a poor mobile connection—a behavior we explain in detail in our guide on [why a downloaded video looks low quality](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+              "When X encodes a public video, it generates adaptive MP4 streams based on the resolution and bitrate uploaded by the creator. Saving the public MP4 stream retrieves the clean file hosted on X's delivery servers without adding watermarks. If a saved clip looks blurry or blocky, the compression happened when the original user uploaded a low-bitrate file or recorded over a poor mobile connection—a behavior we explain in detail in our guide on [why a downloaded video looks low quality](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).",
             ],
           },
           {
@@ -5088,7 +5146,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
               "Post not found or link fails: Check whether the author's account has a padlock icon next to their name (Protected posts). VIDNEX only processes public posts. If you cannot view the post in an incognito browser tab while logged out, it cannot be saved.",
               'Age-restricted or sensitive media warning: Posts flagged as sensitive or restricted to logged-in viewers are blocked from unauthenticated web access and cannot be retrieved without logging into X.',
               "MP4 opens in a browser player instead of downloading: On desktop, right-click the video player and choose 'Save video as...'. On mobile Safari, press and hold the download link or use the browser's Share sheet to save the file.",
-              "Link copied from a quote post downloads nothing: If you copied a post that simply comments on someone else's video, open the inner quoted post directly, copy its own URL, and paste that link instead—or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Link copied from a quote post downloads nothing: If you copied a post that simply comments on someone else's video, open the inner quoted post directly, copy its own URL, and paste that link instead—or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).",
               'Looking to save media from other platforms? VIDNEX also supports public clips from [TikTok](https://vidnex.space/en/tiktok-video-downloader), Instagram, Facebook, and public LinkedIn profile photos.',
             ],
           },
@@ -5310,7 +5368,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'Formats de liens (x.com vs twitter.com) et qualité vidéo',
             paragraphs: [
               "Que l'adresse copiée commence par `https://x.com/...` ou `https://twitter.com/...` et qu'elle contienne des paramètres de suivi comme `?s=20`, l'outil reconnaît automatiquement l'identifiant du post public.",
-              "La définition du fichier MP4 dépend de l'encodage généré par X lors de la mise en ligne initiale par l'auteur. Si la vidéo enregistrée manque de netteté, cette perte est liée à la compression appliquée au moment de la publication sur X. Vous pouvez en lire davantage dans notre article expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/blog/why-is-downloaded-video-low-quality).",
+              "La définition du fichier MP4 dépend de l'encodage généré par X lors de la mise en ligne initiale par l'auteur. Si la vidéo enregistrée manque de netteté, cette perte est liée à la compression appliquée au moment de la publication sur X. Vous pouvez en lire davantage dans notre article expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).",
             ],
           },
           {
@@ -5323,7 +5381,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
               'Post introuvable ou lien refusé : Vérifiez que le compte ne comporte pas de cadenas à côté de son nom (compte protégé/privé). VIDNEX traite exclusivement les publications publiques accessibles sans connexion.',
               "Contenu sensible ou soumis à une limite d'âge : Les publications masquées par X aux visiteurs non connectés ne peuvent pas être récupérées via un lien public.",
               "La vidéo s'ouvre dans un lecteur au lieu de se télécharger : Sur ordinateur, faites un clic droit sur la vidéo puis choisissez « Enregistrer la vidéo sous… ». Sur iPhone, utilisez le menu Partager de Safari pour sauvegarder le fichier.",
-              "Lien d'un post cité qui ne renvoie aucun média : Ouvrez le post cité d'origine pour copier son URL propre, ou consultez notre guide sur le [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).",
+              "Lien d'un post cité qui ne renvoie aucun média : Ouvrez le post cité d'origine pour copier son URL propre, ou consultez notre guide sur le [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme).",
               "Besoin d'enregistrer des médias sur d'autres réseaux ? VIDNEX prend aussi en charge les contenus publics de [TikTok](https://vidnex.space/telecharger-video-tiktok), Instagram, Facebook et la photo de profil publique LinkedIn.",
             ],
           },
@@ -5408,11 +5466,11 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
       ar: {
         locale: 'ar',
         localizedSlug: 'tanzil-video-gif-x-twitter-mp4-dalil',
-        translationStatus: 'draft',
+        translationStatus: 'published',
         title: 'كيفية تنزيل فيديو أو صورة متحركة GIF (بصيغة MP4) أو صور من منصة إكس (تويتر)',
         metaTitle: 'تنزيل فيديو وصور GIF من منصة إكس تويتر MP4: دليل شامل',
         metaDescription:
-          'تعرف على طريقة تنزيل الفيديوهات العامة والصور المتحركة GIF بصيغة MP4 وصور التغريدات العامة من منصة إكس (تويتر) على الآيفون والأندرويد والكمبيوتر بدون حساب.',
+          'تعرف على طريقة تنزيل الفيديوهات العامة والصور المتحركة GIF بصيغة MP4 وصور التغريدات من منصة إكس (تويتر) للآيفون والأندرويد والكمبيوتر مجاناً.',
         excerpt:
           'لا توفر منصة إكس زر تنزيل عام لجميع الفيديوهات، كما أن كل صورة GIF تُنشر على المنصة تُحفظ فعلياً كملف فيديو MP4 متكرر. إليك طريقة حفظ الفيديوهات والصور المتحركة وصور التغريدات العامة.',
         quickAnswer:
@@ -5545,7 +5603,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             heading: 'جودة الفيديو وصيغ الروابط (x.com و twitter.com)',
             paragraphs: [
               'سواء بدأ الرابط المنسوخ بـ `https://x.com/...` أو `https://twitter.com/...` وتضمن رموز تتبع إضافية مثل `?s=20`، تتعرف الأداة تلقائياً على المنشور العام وتجلب الوسائط المتاحة فيه.',
-              'تعتمد دقة ملف MP4 المحفوظ على الجودة التي رفعت بها المنصة الفيديو الأصلي. وإذا بدا المقطع منخفض الوضوح، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي من قِبل صانع المحتوى، وهو ما نشرحه بالتفصيل في دليل [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/blog/why-is-downloaded-video-low-quality).',
+              'تعتمد دقة ملف MP4 المحفوظ على الجودة التي رفعت بها المنصة الفيديو الأصلي. وإذا بدا المقطع منخفض الوضوح، فغالباً ما يعود السبب إلى ضغط الملف أثناء رفعه الأولي من قِبل صانع المحتوى، وهو ما نشرحه بالتفصيل في دليل [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).',
             ],
           },
           {
@@ -5558,7 +5616,7 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
               'المنشور غير موجود أو فشل قراءة الرابط: تأكد من عدم وجود علامة القفل بجانب اسم الحساب (حساب محمي/خاص). موقع VIDNEX يعالج المنشورات العامة المتاحة للجميع فقط.',
               'المحتوى المقيد بالعمر أو المحتوى الحساس: المنشورات التي تقيدها إكس للمستخدمين المسجلين فقط لا يمكن الوصول إليها عبر الروابط العامة.',
               'فتح الفيديو داخل المتصفح بدلاً من التنزيل: على الكمبيوتر اضغط بزر الفأرة الأيمن واختر «حفظ الفيديو باسم»، وعلى الآيفون استخدم زر المشاركة في سفاري لحفظ الملف.',
-              'عدم ظهور وسائط عند نسخ رابط منشور مقتبس: افتح المنشور الأصلي المقتبس وانسخ رابطه المباشر، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links).',
+              'عدم ظهور وسائط عند نسخ رابط منشور مقتبس: افتح المنشور الأصلي المقتبس وانسخ رابطه المباشر، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).',
               'هل تريد حفظ وسائط من منصات أخرى؟ يدعم VIDNEX أيضاً المحتوى العام من [تيك توك](https://vidnex.space/ar/tiktok-video-downloader) وإنستغرام وفيسبوك وصورة الملف الشخصي العامة في لينكد إن.',
             ],
           },
@@ -5632,6 +5690,784 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
             title: 'سياسة حقوق النشر وحقوق الملكية الفكرية',
             publisher: 'مركز مساعدة إكس',
             url: 'https://help.x.com/en/rules-and-policies/copyright-policy',
+          },
+          {
+            title: 'العثور على الملفات المحملة من سفاري على آيفون وآيباد',
+            publisher: 'دعم آبل',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+    },
+  },
+
+  // ============================================================================
+  // ARTICLE 13 — How to Save Public Facebook Videos and Reels in HD or SD MP4
+  // Translations: en (published), fr (published), ar (draft)
+  // ============================================================================
+  {
+    id: 'download-public-facebook-videos-reels-hd-sd-guide',
+    status: 'published',
+    featured: false,
+    category: 'facebook-guides',
+    primaryPlatform: 'facebook',
+    primaryToolRoute: '/en/facebook-video-downloader',
+    secondaryToolRoute: '/en/instagram-reels-downloader',
+    author: BLOG_AUTHORS.editorialTeam,
+    publishedAt: '2026-11-21',
+    updatedAt: '2026-11-21',
+    relatedArticleIds: [
+      'troubleshooting-expired-blocked-social-media-links',
+      'why-is-downloaded-video-low-quality',
+      'download-public-instagram-reels-carousels-guide',
+    ],
+    featuredImage: {
+      diagramType: 'facebook-url-canonical',
+      alt: {
+        en: 'How to Save Public Facebook Videos and Reels in HD or SD MP4',
+        fr: 'Comment enregistrer une vidéo ou un Reel Facebook public en MP4 HD ou SD',
+        es: '',
+        de: '',
+      },
+      caption: {
+        en: '',
+        fr: '',
+        es: '',
+        de: '',
+      },
+    },
+    translations: {
+      en: {
+        locale: 'en',
+        localizedSlug: 'download-public-facebook-videos-reels-hd-sd-guide',
+        translationStatus: 'published',
+        title: 'How to Save Public Facebook Videos and Reels in HD or SD MP4',
+        metaTitle: 'Save Public Facebook Videos & Reels in HD/SD MP4 (Guide)',
+        metaDescription:
+          'Learn how to save public Facebook videos, Facebook Reels, and fb.watch links in HD or SD MP4 on iPhone, Android, or PC without an account.',
+        excerpt:
+          "Facebook's Save Video option only bookmarks a link inside your account, and in-app browsers block direct file downloads. Here is how to save public Facebook videos and Reels cleanly in HD or SD MP4.",
+        quickAnswer:
+          'To save a public Facebook video or Reel, open the post in Facebook, tap Share, and select Copy link. Switch to a standalone browser such as Safari or Chrome, paste the URL (including fb.watch links) into the VIDNEX Facebook Video Downloader, and choose the HD or SD MP4 option to save the file directly to your device with no account required.',
+        keyTakeaways: [
+          "Tapping 'Save video' inside Facebook only adds a bookmark to your Saved items list; if the page deletes the post or changes its audience, the video disappears.",
+          'VIDNEX supports standard public Facebook video posts, public Facebook Reels, and shortened fb.watch share links in HD or SD MP4 quality when available.',
+          "Always open the downloader in Safari, Chrome, or Firefox rather than Facebook's built-in mini-browser, which restricts file downloads.",
+          'On iPhone and iPad, Safari stores downloaded MP4 files in the Files app first; tap Share and Save Video to move them to your Camera Roll.',
+          'Only strictly public Facebook posts can be processed; private groups, Friends-only posts, and locked profiles are never accessible.',
+        ],
+        primaryKeyword: 'download public facebook videos and reels hd',
+        secondaryKeywords: [
+          'save facebook video to camera roll',
+          'download facebook reels mp4 hd',
+          'save fb.watch video mp4',
+          'public facebook video downloader',
+        ],
+        searchIntent:
+          'Informational and transactional: users want to save public Facebook videos, Reels, and fb.watch links as HD or SD MP4 files on iPhone, Android, or PC without logging in or installing an app.',
+        readingTimeMinutes: 7,
+        introduction: [
+          'To save a public Facebook video or Reel, open the post in Facebook, tap Share, and select Copy link. Switch to a standalone browser such as Safari or Chrome, paste the URL (including fb.watch links) into the VIDNEX Facebook Video Downloader, and choose the HD or SD MP4 option to save the file directly to your device with no account required.',
+          "Tapping 'Save video' inside Facebook only adds a bookmark to your Saved items list; if the page deletes the post or changes its audience, the video disappears.",
+          'VIDNEX supports standard public Facebook video posts, public Facebook Reels, and shortened fb.watch share links in HD or SD MP4 quality when available.',
+          "Always open the downloader in Safari, Chrome, or Firefox rather than Facebook's built-in mini-browser, which restricts file downloads.",
+          'On iPhone and iPad, Safari stores downloaded MP4 files in the Files app first; tap Share and Save Video to move them to your Camera Roll.',
+          'Only strictly public Facebook posts can be processed; private groups, Friends-only posts, and locked profiles are never accessible.',
+        ],
+        tableOfContents: [
+          {
+            id: 'facebook-bookmark-vs-mp4-download',
+            heading:
+              "Why Facebook's Built-In 'Save Video' Button Does Not Store a File Offline",
+          },
+          {
+            id: 'step-by-step-save-facebook-videos-reels',
+            heading:
+              'How to Save Public Facebook Videos and Reels Step by Step',
+          },
+          {
+            id: 'hd-vs-sd-and-fb-watch-links',
+            heading: 'HD vs. SD Quality and Supported Facebook Link Formats',
+          },
+          {
+            id: 'where-files-go-iphone-android-pc',
+            heading:
+              'Where Saved Facebook Videos Go on iPhone, Android, and Computer',
+          },
+          {
+            id: 'common-problems-and-solutions-facebook',
+            heading:
+              'Common Problems and Solutions When Saving Facebook Videos',
+          },
+          {
+            id: 'platform-scope-and-copyright-facebook',
+            heading:
+              'Tool Boundaries and Respecting Creator Rights on Facebook',
+          },
+        ],
+        content: [
+          {
+            id: 'facebook-bookmark-vs-mp4-download',
+            heading:
+              "Why Facebook's Built-In 'Save Video' Button Does Not Store a File Offline",
+            paragraphs: [
+              "When you tap the three dots on a Facebook video or Reel and select Save video, Facebook does not download an MP4 file to your phone or computer. Instead, it adds a bookmark to your personal Saved list inside Facebook's servers. That means you still need an active internet connection to watch it, and if the creator later deletes the post, archives the Reel, or restricts its audience from Public to Friends, your saved item vanishes.",
+              'Saving a public video as a standalone MP4 file is useful when you manage a brand page and want an offline backup of your own published videos, need to review public educational tutorials without buffering, or want to archive public clips you have permission to reference. Just like saving public clips with our [Instagram Reels Downloader](https://vidnex.space/en/instagram-reels-downloader), using a browser link tool works directly from the public post URL without installing unknown apps or connecting your Facebook account.',
+            ],
+            table: {
+              headers: [
+                'Method',
+                'Offline MP4 File',
+                'Quality Options',
+                'Supported Facebook Content',
+              ],
+              rows: [
+                [
+                  "Facebook In-App 'Save Video'",
+                  'No (in-app bookmark only)',
+                  'Depends on live connection',
+                  'Any post visible to your account (online only)',
+                ],
+                [
+                  'Phone Screen Recording',
+                  'Yes',
+                  'Reduced sharpness & UI overlays',
+                  'Captures like buttons, captions, and notifications',
+                ],
+                [
+                  'VIDNEX Browser Tool',
+                  'Yes (MP4 stored on device)',
+                  'HD and SD MP4 (when available)',
+                  'Public Facebook videos, public Reels & fb.watch links',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'step-by-step-save-facebook-videos-reels',
+            heading:
+              'How to Save Public Facebook Videos and Reels Step by Step',
+            paragraphs: [
+              'Browser-based tools run identically across iOS, Android, Windows, and macOS without requiring browser extensions or login cookies.',
+              'Follow these steps using the [VIDNEX Facebook Video Downloader](https://vidnex.space/en/facebook-video-downloader) to save a public video or Reel:',
+            ],
+            bullets: [
+              '1. Open the Facebook app or visit facebook.com and locate the public video or public Facebook Reel you want to save.',
+              "2. Check the audience icon next to the post's timestamp: make sure it shows the globe icon (Public) rather than Friends or a group padlock.",
+              '3. Tap the Share button beneath the video (or on the right side of a Reel) and select Copy link.',
+              "4. Exit Facebook's internal browser and open Safari, Chrome, Edge, or Firefox.",
+              '5. Navigate to the VIDNEX Facebook Video Downloader page, paste the copied link into the input box, and start the fetch.',
+              '6. Choose either the HD MP4 or SD MP4 download button (depending on the resolutions available for that post) to save the video to your device.',
+            ],
+            proTip:
+              "If you click a link inside Facebook Messenger or a Facebook comment, Facebook opens its own built-in mini-browser, which blocks file downloads. Tap the three-dot menu in the corner and choose 'Open in Safari' or 'Open in Chrome' before downloading.",
+          },
+          {
+            id: 'hd-vs-sd-and-fb-watch-links',
+            heading: 'HD vs. SD Quality and Supported Facebook Link Formats',
+            paragraphs: [
+              'Facebook generates multiple adaptive video streams whenever a creator uploads a public video. When both high-definition and standard-definition streams are exposed publicly, VIDNEX presents both **HD** and **SD** MP4 options:',
+              'Choose **HD MP4** (typically 720p or 1080p) when you are on Wi-Fi, plan to view the video on a larger screen, or need crisp on-screen text. Choose **SD MP4** (typically 360p or 480p) when you want a smaller file size to save mobile data or device storage.',
+              'If a public video only displays an SD option, it means the original uploader compressed the file at standard resolution or disabled HD uploads in their Facebook app settings. For a deeper look at bitrate and upload compression, see our guide on [why a downloaded video can look low quality](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).',
+              'In terms of URL formats, VIDNEX accepts standard desktop watch URLs (`facebook.com/watch/?v=...`), page video links (`facebook.com/PageName/videos/...`), public Reel URLs (`facebook.com/reel/...`), and shortened mobile share links (`fb.watch/...`).',
+            ],
+          },
+          {
+            id: 'where-files-go-iphone-android-pc',
+            heading:
+              'Where Saved Facebook Videos Go on iPhone, Android, and Computer',
+            paragraphs: [
+              'Once your browser finishes downloading the MP4 file, its folder location depends on your operating system.',
+              "On iPhone and iPad (iOS / iPadOS), Safari saves web downloads inside the built-in Files app rather than directly into your Photos library. To transfer the MP4 to your Camera Roll, tap the blue download arrow icon next to Safari's address bar (or open the Files app > Downloads), tap the video file to open it, tap the Share icon in the lower-left corner, and select Save Video. It will appear immediately in your Photos app.",
+              'On Android phones and tablets, Chrome and Samsung Internet store the MP4 directly in your internal Downloads folder, which Google Photos and Samsung Gallery index automatically.',
+              'On Windows and Mac computers, your browser saves the MP4 into your default Downloads directory, ready to play in QuickTime, VLC, or Windows Media Player.',
+            ],
+          },
+          {
+            id: 'common-problems-and-solutions-facebook',
+            heading:
+              'Common Problems and Solutions When Saving Facebook Videos',
+            paragraphs: [
+              "Because Meta updates Facebook's access controls and URL routing regularly, occasional errors can happen and no web tool can guarantee uninterrupted availability. Use this checklist to resolve the most frequent issues:",
+            ],
+            bullets: [
+              "Error message 'Video unavailable' or 'Private content': Check the audience icon on the original post. If the video was posted inside a Private Facebook Group, shared only with Friends, or published on a locked profile, VIDNEX cannot access it. Test the URL in an incognito browser window without logging in—if Facebook asks you to log in to view it, it is not public.",
+              'Shortened fb.watch link stalls or fails: Occasionally, an old `fb.watch` redirect expires or points to a removed post. Open the video in Facebook again and copy the fresh URL, or read our guide on [troubleshooting expired or blocked social media links](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).',
+              "Video plays inside the browser tab instead of downloading: On desktop browsers, right-click the playing video and choose 'Save video as...'. On mobile Safari, press and hold the download link or use the browser's Share menu to save the file.",
+              'Downloaded video has no audio: Some older Facebook live replays or copyrighted music clips have their audio track muted by Meta on the source post itself. Check if sound plays on the public Facebook post first.',
+            ],
+          },
+          {
+            id: 'platform-scope-and-copyright-facebook',
+            heading:
+              'Tool Boundaries and Respecting Creator Rights on Facebook',
+            paragraphs: [
+              'Before saving any media from Facebook, keep both technical boundaries and copyright laws in mind.',
+              'Technically, VIDNEX is a free web utility requiring no user account or login. It processes strictly public content across five platforms: Facebook (public HD/SD videos and Reels), TikTok (public MP4 videos without watermark when available, MP3/M4A audio, public photos/slideshows, profile picture), Instagram (public Reels, posts, carousels, and profile photos), X/Twitter (public videos, GIFs as MP4, and tweet photos), and LinkedIn (public profile picture only). It never accesses private accounts or private groups, does not support YouTube or Snapchat, and cannot promise permanent availability if platforms block access.',
+              "Legally, under Meta's Terms of Service and intellectual property rules, creators and publishers retain full copyright over the videos and Reels they upload to Facebook. Saving a public MP4 file does not transfer ownership or grant permission to re-upload someone else's video to your own page or monetize it. Only save public posts for personal offline viewing, archiving your own page's content, or authorized reuse with explicit permission and credit.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question:
+              'Do I need to log into my Facebook account to use VIDNEX?',
+            answer:
+              'No. VIDNEX never asks for your Facebook email, password, or session cookies. You only paste the URL of a publicly accessible Facebook video or Reel.',
+          },
+          {
+            question:
+              'Can I download a video from a private Facebook group or a Friends-only post?',
+            answer:
+              'No. Even if you are a member of a private group on your own Facebook account, VIDNEX operates without login credentials and can only process posts that are publicly visible to everyone.',
+          },
+          {
+            question:
+              'What is the difference between the HD and SD download options?',
+            answer:
+              'HD provides sharper 720p or 1080p video resolution ideal for larger screens and readable text, while SD provides a lighter 360p or 480p MP4 file that downloads faster and uses less storage.',
+          },
+          {
+            question: 'Do fb.watch links and Facebook Reels URLs work?',
+            answer:
+              'Yes. VIDNEX supports standard facebook.com video URLs, public Facebook Reels links, and shortened fb.watch share links.',
+          },
+          {
+            question:
+              'How do I save a downloaded Facebook video to my iPhone Camera Roll?',
+            answer:
+              'Safari saves web downloads in the Files app on iOS. Open the Files app, tap Downloads, open your MP4 video, tap the Share icon in the lower-left corner, and choose Save Video to move it to Photos.',
+          },
+          {
+            question:
+              "Is it legal to repost someone else's Facebook video after downloading it?",
+            answer:
+              "No, not without permission from the copyright owner. Under Meta's Terms of Service and copyright laws, downloading a public video does not grant redistribution rights. Always get permission and credit the creator.",
+          },
+        ],
+        ctaTitle: 'Save Any Public Facebook Video or Reel in HD or SD',
+        ctaDescription:
+          'Paste a public Facebook video, Reel, or fb.watch link to save it as a clean MP4 file in HD or SD—free and with no account required.',
+        ctaButtonLabel: 'Open Facebook Video Downloader',
+        internalLinks: [
+          {
+            label: 'Open Facebook Video Downloader',
+            description:
+              'Paste a public Facebook video, Reel, or fb.watch link to save it as a clean MP4 file in HD or SD—free and with no account required.',
+            targetType: 'platform',
+            platformKey: 'facebook',
+          },
+        ],
+        sources: [
+          {
+            title: 'How to share a link to a video on Facebook',
+            publisher: 'Facebook Help Center',
+            url: 'https://www.facebook.com/help/1744643532522513',
+          },
+          {
+            title: 'Meta Terms of Service',
+            publisher: 'Meta',
+            url: 'https://www.facebook.com/terms.php',
+          },
+          {
+            title: 'Intellectual Property and Copyright',
+            publisher: 'Facebook Help Center',
+            url: 'https://www.facebook.com/help/249141925204375',
+          },
+          {
+            title: 'Where to find downloads on your iPhone or iPad',
+            publisher: 'Apple Support',
+            url: 'https://support.apple.com/en-us/102440',
+          },
+        ],
+      },
+      fr: {
+        locale: 'fr',
+        localizedSlug:
+          'telecharger-videos-reels-facebook-publics-hd-sd-guide',
+        translationStatus: 'published',
+        title:
+          'Comment enregistrer une vidéo ou un Reel Facebook public en MP4 HD ou SD',
+        metaTitle:
+          'Télécharger vidéo et Reel Facebook public HD/SD MP4 : Guide',
+        metaDescription:
+          'Apprenez comment enregistrer une vidéo publique Facebook, un Reel ou un lien fb.watch en MP4 HD ou SD sur iPhone, Android ou PC, sans compte.',
+        excerpt:
+          "L'option « Enregistrer la vidéo » de Facebook ne crée qu'un signet dans votre compte, et le navigateur intégré bloque les téléchargements. Voici comment enregistrer proprement les vidéos et Reels publics en HD ou SD.",
+        quickAnswer:
+          "Pour enregistrer une vidéo ou un Reel Facebook public, ouvrez la publication dans Facebook, appuyez sur Partager puis sur Copier le lien. Ouvrez ensuite Safari ou Chrome, collez l'adresse (y compris les liens fb.watch) dans l'outil Facebook de VIDNEX et choisissez le format MP4 HD ou SD pour sauvegarder le fichier sur votre appareil, sans compte.",
+        keyTakeaways: [
+          "L'option « Enregistrer la vidéo » dans Facebook ajoute seulement un favori en ligne : si la page supprime le post ou restreint son audience, la vidéo disparaît.",
+          "VIDNEX prend en charge les vidéos publiques Facebook, les Reels publics et les liens raccourcis fb.watch en qualité MP4 HD ou SD lorsqu'ils sont disponibles.",
+          "Quittez toujours le navigateur intégré de Facebook pour ouvrir Safari ou Chrome avant de télécharger, car le navigateur interne bloque l'enregistrement de fichiers.",
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'ajouter à votre galerie Photos.",
+          'Seules les publications strictement publiques sont prises en charge : les groupes privés et posts réservés aux amis sont inaccessibles.',
+        ],
+        primaryKeyword: 'télécharger une vidéo ou un reel facebook public hd',
+        secondaryKeywords: [
+          'enregistrer vidéo facebook sur iphone',
+          'télécharger reel facebook mp4',
+          'sauvegarder vidéo fb.watch',
+          'télécharger vidéo facebook sans compte',
+        ],
+        searchIntent:
+          "Informationnelle et pratique : l'internaute cherche comment enregistrer une vidéo publique Facebook, un Reel ou un lien fb.watch en MP4 HD ou SD sur iPhone, Android ou ordinateur sans compte.",
+        readingTimeMinutes: 7,
+        introduction: [
+          "Pour enregistrer une vidéo ou un Reel Facebook public, ouvrez la publication dans Facebook, appuyez sur Partager puis sur Copier le lien. Ouvrez ensuite Safari ou Chrome, collez l'adresse (y compris les liens fb.watch) dans l'outil Facebook de VIDNEX et choisissez le format MP4 HD ou SD pour sauvegarder le fichier sur votre appareil, sans compte.",
+          "L'option « Enregistrer la vidéo » dans Facebook ajoute seulement un favori en ligne : si la page supprime le post ou restreint son audience, la vidéo disparaît.",
+          "VIDNEX prend en charge les vidéos publiques Facebook, les Reels publics et les liens raccourcis fb.watch en qualité MP4 HD ou SD lorsqu'ils sont disponibles.",
+          "Quittez toujours le navigateur intégré de Facebook pour ouvrir Safari ou Chrome avant de télécharger, car le navigateur interne bloque l'enregistrement de fichiers.",
+          "Sur iPhone et iPad, Safari range le fichier MP4 dans l'application Fichiers : touchez Partager puis Enregistrer la vidéo pour l'ajouter à votre galerie Photos.",
+          'Seules les publications strictement publiques sont prises en charge : les groupes privés et posts réservés aux amis sont inaccessibles.',
+        ],
+        tableOfContents: [
+          {
+            id: 'signet-facebook-vs-telechargement-mp4',
+            heading:
+              'Pourquoi le bouton « Enregistrer la vidéo » de Facebook ne stocke pas le fichier hors ligne',
+          },
+          {
+            id: 'etapes-enregistrer-video-reel-facebook',
+            heading:
+              'Comment enregistrer une vidéo ou un Reel Facebook public étape par étape',
+          },
+          {
+            id: 'qualite-hd-vs-sd-et-liens-fb-watch',
+            heading:
+              'Qualité HD vs SD et formats de liens Facebook reconnus',
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading:
+              'Où retrouver la vidéo Facebook enregistrée sur iPhone, Android et PC ?',
+          },
+          {
+            id: 'problemes-frequents-solutions-facebook',
+            heading:
+              'Problèmes fréquents et solutions lors du téléchargement sur Facebook',
+          },
+          {
+            id: 'limites-outil-et-droit-auteur-facebook',
+            heading:
+              "Limites de l'outil et respect du droit d'auteur sur Facebook",
+          },
+        ],
+        content: [
+          {
+            id: 'signet-facebook-vs-telechargement-mp4',
+            heading:
+              'Pourquoi le bouton « Enregistrer la vidéo » de Facebook ne stocke pas le fichier hors ligne',
+            paragraphs: [
+              'Lorsque vous appuyez sur les trois points d\'une vidéo ou d\'un Reel Facebook et choisissez « Enregistrer la vidéo », aucun fichier MP4 n\'est copié dans la mémoire de votre téléphone ou de votre ordinateur. Facebook ajoute simplement un raccourci dans votre liste d\'éléments enregistrés en ligne. Sans connexion internet, la vidéo reste illisible, et si l\'auteur supprime sa publication ou passe son audience de Public à Amis uniquement, votre signet disparaît.',
+              'Enregistrer une vidéo publique sous forme de fichier MP4 autonome est utile pour sauvegarder les vidéos publiées sur votre propre page, consulter un tutoriel public hors connexion sans mise en mémoire tampon ou archiver une référence publique autorisée. Comme pour nos [Reels et carrousels Instagram publics](https://vidnex.space/telecharger-reel-instagram), passer par un outil web via le lien public évite d\'installer des applications tierces et ne demande jamais vos identifiants Facebook.',
+            ],
+            table: {
+              headers: [
+                "Méthode d'enregistrement",
+                'Fichier MP4 hors ligne',
+                'Choix de qualité',
+                'Contenus Facebook pris en charge',
+              ],
+              rows: [
+                [
+                  'Option native « Enregistrer la vidéo »',
+                  'Non (signet en ligne uniquement)',
+                  'Dépend de la connexion',
+                  'Publications visibles par votre compte (en ligne)',
+                ],
+                [
+                  "Capture vidéo de l'écran",
+                  'Oui',
+                  'Netteté réduite + icônes visibles',
+                  "Enregistre les boutons J'aime, légendes et notifications",
+                ],
+                [
+                  'Outil navigateur VIDNEX',
+                  "Oui (MP4 stocké sur l'appareil)",
+                  'MP4 HD et SD (quand disponibles)',
+                  'Vidéos publiques Facebook, Reels publics et liens fb.watch',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'etapes-enregistrer-video-reel-facebook',
+            heading:
+              'Comment enregistrer une vidéo ou un Reel Facebook public étape par étape',
+            paragraphs: [
+              "Un outil fonctionnant directement dans le navigateur s'utilise de la même manière sur iPhone, Android, Windows et Mac, sans extension ni accès à votre profil.",
+              'Voici la marche à suivre avec le [téléchargeur vidéo Facebook VIDNEX](https://vidnex.space/telecharger-video-facebook) :',
+            ],
+            bullets: [
+              "1. Ouvrez l'application Facebook ou le site facebook.com et affichez la vidéo publique ou le Reel public que vous souhaitez conserver.",
+              "2. Vérifiez l'icône d'audience à côté de la date de publication : elle doit afficher le globe terrestre (Public) et non l'icône Amis ou un cadenas de groupe.",
+              "3. Appuyez sur le bouton Partager sous la vidéo (ou sur le côté droit d'un Reel), puis sélectionnez « Copier le lien ».",
+              '4. Quittez le navigateur interne de Facebook et ouvrez Safari, Chrome, Edge ou Firefox.',
+              "5. Accédez à la page de l'outil Facebook de VIDNEX, collez le lien dans le champ dédié et lancez l'analyse.",
+              '6. Sélectionnez le bouton de téléchargement MP4 HD ou MP4 SD (selon les définitions disponibles pour cette publication) pour enregistrer le fichier.',
+            ],
+            proTip:
+              "Si vous cliquez sur un lien depuis Messenger ou un commentaire Facebook, l'application ouvre son propre navigateur intégré qui bloque les téléchargements. Touchez le menu à trois points dans un coin et choisissez « Ouvrir dans Safari » ou « Ouvrir dans Chrome » avant de télécharger.",
+          },
+          {
+            id: 'qualite-hd-vs-sd-et-liens-fb-watch',
+            heading:
+              'Qualité HD vs SD et formats de liens Facebook reconnus',
+            paragraphs: [
+              "Lorsqu'une vidéo publique est mise en ligne sur Facebook, la plateforme génère plusieurs flux adaptatifs. Quand la haute définition et la définition standard sont accessibles publiquement, VIDNEX vous laisse choisir entre **HD** et **SD** :",
+              'Privilégiez le **MP4 HD** (généralement 720p ou 1080p) lorsque vous êtes en Wi-Fi, pour visionner sur grand écran ou lire des textes incrustés avec netteté. Choisissez le **MP4 SD** (généralement 360p ou 480p) pour obtenir un fichier plus léger qui économise vos données mobiles et votre espace de stockage.',
+              "Si seule l'option SD apparaît, cela signifie que l'auteur d'origine a publié une vidéo en définition standard ou désactivé l'importation HD dans ses paramètres. Pour mieux comprendre le débit binaire et la compression vidéo, consultez notre article expliquant [pourquoi une vidéo téléchargée peut sembler de basse qualité](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).",
+              "Côté formats d'URL, VIDNEX reconnaît les liens classiques (`facebook.com/watch/?v=...`), les vidéos de pages (`facebook.com/NomDePage/videos/...`), les Reels publics (`facebook.com/reel/...`) ainsi que les liens courts mobiles (`fb.watch/...`).",
+            ],
+          },
+          {
+            id: 'ou-trouver-fichiers-iphone-android-pc',
+            heading:
+              'Où retrouver la vidéo Facebook enregistrée sur iPhone, Android et PC ?',
+            paragraphs: [
+              "Une fois le téléchargement terminé dans votre navigateur, l'emplacement du fichier MP4 dépend du système de votre appareil.",
+              "Sur iPhone et iPad (iOS / iPadOS), Safari range les fichiers téléchargés sur le web dans le dossier Téléchargements de l'application « Fichiers », et non directement dans « Photos ». Pour transférer le fichier MP4 vers votre pellicule : touchez la petite flèche bleue de téléchargement à côté de la barre d'adresse de Safari (ou ouvrez l'app Fichiers > Téléchargements), touchez la vidéo MP4, appuyez sur le bouton Partager en bas à gauche, puis sélectionnez « Enregistrer la vidéo ». Elle apparaît aussitôt dans l'application Photos.",
+              'Sur Android, Chrome ou le navigateur Samsung enregistre la vidéo MP4 directement dans le dossier « Téléchargements » (Downloads), visible automatiquement dans Google Photos et la Galerie.',
+              "Sur Windows et Mac, le fichier rejoint votre répertoire « Téléchargements » habituel et s'ouvre dans VLC, QuickTime ou le lecteur multimédia Windows.",
+            ],
+          },
+          {
+            id: 'problemes-frequents-solutions-facebook',
+            heading:
+              'Problèmes fréquents et solutions lors du téléchargement sur Facebook',
+            paragraphs: [
+              'Meta modifiant régulièrement les paramètres d\'accès et la structure des liens Facebook, aucun service en ligne ne peut promettre une disponibilité permanente sans interruption. Voici comment résoudre les blocages les plus courants :',
+            ],
+            bullets: [
+              "Erreur « Vidéo introuvable » ou « Contenu privé » : Vérifiez l'icône d'audience de la publication d'origine. Si la vidéo provient d'un groupe Facebook privé, d'un partage « Amis uniquement » ou d'un profil verrouillé, VIDNEX ne peut pas y accéder. Testez le lien dans un onglet de navigation privée sans connexion : si Facebook demande de se connecter, la vidéo n'est pas publique.",
+              'Lien court fb.watch expiré ou bloqué : Un ancien lien raccourci peut parfois ne plus aboutir. Retournez sur la publication dans Facebook pour copier un lien récent, ou consultez notre guide sur le [dépannage des liens de réseaux sociaux expirés ou bloqués](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme).',
+              'La vidéo se lance dans un onglet au lieu de se télécharger : Sur ordinateur, faites un clic droit sur le lecteur vidéo puis choisissez « Enregistrer la vidéo sous… ». Sur iPhone, maintenez votre doigt appuyé ou utilisez le bouton Partager de Safari.',
+              "Absence de son sur le fichier enregistré : Certaines rediffusions en direct ou vidéos contenant de la musique sous droits d'auteur ont leur piste audio coupée par Meta directement sur le post d'origine.",
+            ],
+          },
+          {
+            id: 'limites-outil-et-droit-auteur-facebook',
+            heading:
+              "Limites de l'outil et respect du droit d'auteur sur Facebook",
+            paragraphs: [
+              "Avant d'enregistrer une vidéo depuis Facebook, gardez à l'esprit le périmètre technique de l'outil ainsi que les règles de propriété intellectuelle.",
+              "Sur le plan technique, VIDNEX est un service gratuit sans inscription qui fonctionne exclusivement sur les médias publics de cinq plateformes : Facebook (vidéos et Reels publics HD/SD), TikTok (vidéos publiques MP4 sans filigrane quand disponible, audio MP3/M4A, photos/diaporamas publics, photo de profil), Instagram (Reels, publications, carrousels et photos de profil publics), X/Twitter (vidéos publiques, GIFs en MP4 et photos de tweets publics) et LinkedIn (photo de profil publique uniquement). Aucun compte privé ni groupe privé n'est accessible, YouTube et Snapchat ne sont pas pris en charge, et la disponibilité dépend des accès autorisés par les plateformes.",
+              "Sur le plan juridique, conformément aux Conditions de service de Meta et au droit d'auteur, chaque créateur ou éditeur conserve l'intégralité des droits sur ses vidéos et Reels. Télécharger un fichier MP4 public ne vous autorise pas à le republier sur votre propre page ni à en faire un usage commercial sans l'autorisation explicite de son auteur.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            question:
+              'Faut-il se connecter à son compte Facebook pour utiliser VIDNEX ?',
+            answer:
+              "Non. VIDNEX ne demande jamais votre adresse e-mail, votre mot de passe ni vos cookies Facebook. Il suffit de coller le lien d'une vidéo ou d'un Reel public.",
+          },
+          {
+            question:
+              "Puis-je télécharger la vidéo d'un groupe Facebook privé ou d'un ami ?",
+            answer:
+              'Non. Même si vous êtes membre d\'un groupe privé avec votre compte personnel, VIDNEX fonctionne sans authentification et ne peut traiter que les publications strictement publiques.',
+          },
+          {
+            question:
+              'Quelle est la différence entre les options de téléchargement HD et SD ?',
+            answer:
+              "La qualité HD offre une définition nette (720p ou 1080p) idéale pour les grands écrans, tandis que la qualité SD produit un fichier MP4 plus léger (360p ou 480p) qui économise l'espace de stockage.",
+          },
+          {
+            question:
+              'Les liens fb.watch et les URL de Reels Facebook fonctionnent-ils ?',
+            answer:
+              'Oui. VIDNEX prend en charge les liens classiques facebook.com, les liens de Reels publics ainsi que les liens raccourcis fb.watch.',
+          },
+          {
+            question:
+              "Comment mettre une vidéo Facebook téléchargée dans l'app Photos de mon iPhone ?",
+            answer:
+              "Sur iOS, Safari range le fichier dans l'application Fichiers. Ouvrez Fichiers > Téléchargements, touchez la vidéo MP4, appuyez sur Partager en bas à gauche puis choisissez « Enregistrer la vidéo ».",
+          },
+          {
+            question:
+              "Ai-je le droit de republier la vidéo Facebook d'un autre créateur après l'avoir enregistrée ?",
+            answer:
+              "Non, pas sans l'autorisation du titulaire des droits. Enregistrer une vidéo publique ne cède aucun droit de diffusion : demandez toujours l'accord de l'auteur et mentionnez la source.",
+          },
+        ],
+        ctaTitle:
+          'Enregistrez une vidéo ou un Reel Facebook public en HD ou SD',
+        ctaDescription:
+          "Collez le lien d'une vidéo publique Facebook, d'un Reel ou un lien fb.watch pour le sauvegarder en MP4 HD ou SD — gratuitement et sans compte.",
+        ctaButtonLabel: "Ouvrir l'outil Facebook VIDNEX",
+        internalLinks: [
+          {
+            label: "Ouvrir l'outil Facebook VIDNEX",
+            description:
+              "Collez le lien d'une vidéo publique Facebook, d'un Reel ou un lien fb.watch pour le sauvegarder en MP4 HD ou SD — gratuitement et sans compte.",
+            targetType: 'platform',
+            platformKey: 'facebook',
+          },
+        ],
+        sources: [
+          {
+            title: 'Comment partager le lien d\'une vidéo sur Facebook',
+            publisher: "Centre d'aide Facebook",
+            url: 'https://www.facebook.com/help/1744643532522513',
+          },
+          {
+            title: 'Conditions de service de Meta',
+            publisher: 'Meta',
+            url: 'https://www.facebook.com/terms.php',
+          },
+          {
+            title: "Propriété intellectuelle et droits d'auteur",
+            publisher: "Centre d'aide Facebook",
+            url: 'https://www.facebook.com/help/249141925204375',
+          },
+          {
+            title: 'Où trouver des téléchargements sur votre iPhone ou iPad',
+            publisher: 'Assistance Apple',
+            url: 'https://support.apple.com/fr-lu/102440',
+          },
+        ],
+      },
+      ar: {
+        locale: 'ar',
+        localizedSlug: 'tanzil-video-reels-facebook-ama-hd-sd-dalil',
+        translationStatus: 'published',
+        title:
+          'كيفية تنزيل فيديو أو ريلز فيسبوك عام بصيغة MP4 بجودة HD أو SD',
+        metaTitle:
+          'تنزيل فيديو وريلز فيسبوك عام بجودة HD و SD MP4: دليل شامل',
+        metaDescription:
+          'تعرف على طريقة تنزيل الفيديوهات العامة ومقاطع فيسبوك ريلز وروابط fb.watch بصيغة MP4 بجودة HD أو SD على الآيفون والأندرويد والكمبيوتر بدون حساب.',
+        excerpt:
+          'خيار «حفظ الفيديو» داخل تطبيق فيسبوك يضيف إشارة مرجعية في حسابك فقط، كما أن متصفح التطبيق الداخلي يمنع التنزيل المباشر. إليك طريقة حفظ فيديوهات وريلز فيسبوك العامة بجودة HD أو SD.',
+        quickAnswer:
+          'لتنزيل فيديو أو ريلز فيسبوك عام، افتح المنشور في تطبيق فيسبوك، واضغط على زر المشاركة ثم اختر نسخ الرابط. افتح متصفح سفاري أو كروم، والصق الرابط (بما في ذلك روابط fb.watch) في أداة تنزيل فيديو فيسبوك على موقع VIDNEX، ثم اختر جودة HD أو SD بصيغة MP4 لحفظ الملف مباشرة على جهازك بدون حساب.',
+        keyTakeaways: [
+          'زر «حفظ الفيديو» داخل تطبيق فيسبوك يحفظ رابطاً في قائمة العناصر المحفوظة بحسابك فقط؛ وإذا حذف الناشر المنشور أو غيّر خصوصيته فسيختفي الفيديو.',
+          'يدعم موقع VIDNEX منشورات الفيديو العامة على فيسبوك، ومقاطع Facebook Reels العامة، وروابط fb.watch المختصرة بجودة MP4 HD أو SD عند توفرها.',
+          'افتح أداة التنزيل دائماً في متصفح سفاري أو كروم الخارجي وليس داخل متصفح فيسبوك الداخلي الذي يمنع تنزيل الملفات.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تعالج المنشورات العامة فقط ولا يمكنها الوصول إلى المجموعات الخاصة أو منشورات الأصدقاء فقط.',
+        ],
+        primaryKeyword: 'تنزيل فيديو وريلز فيسبوك عام بجودة HD و SD',
+        secondaryKeywords: [
+          'حفظ فيديو فيسبوك للايفون MP4',
+          'تحميل ريلز فيسبوك بجودة عالية',
+          'تنزيل فيديو من رابط fb.watch',
+          'حفظ مقاطع فيسبوك بدون برنامج',
+        ],
+        searchIntent:
+          'بحث معلوماتي وعملي: يبحث المستخدم عن طريقة لحفظ فيديوهات فيسبوك العامة ومقاطع الريلز وروابط fb.watch بصيغة MP4 بجودة HD أو SD على الآيفون أو الأندرويد أو الكمبيوتر بدون حساب.',
+        readingTimeMinutes: 7,
+        introduction: [
+          'لتنزيل فيديو أو ريلز فيسبوك عام، افتح المنشور في تطبيق فيسبوك، واضغط على زر المشاركة ثم اختر نسخ الرابط. افتح متصفح سفاري أو كروم، والصق الرابط (بما في ذلك روابط fb.watch) في أداة تنزيل فيديو فيسبوك على موقع VIDNEX، ثم اختر جودة HD أو SD بصيغة MP4 لحفظ الملف مباشرة على جهازك بدون حساب.',
+          'زر «حفظ الفيديو» داخل تطبيق فيسبوك يحفظ رابطاً في قائمة العناصر المحفوظة بحسابك فقط؛ وإذا حذف الناشر المنشور أو غيّر خصوصيته فسيختفي الفيديو.',
+          'يدعم موقع VIDNEX منشورات الفيديو العامة على فيسبوك، ومقاطع Facebook Reels العامة، وروابط fb.watch المختصرة بجودة MP4 HD أو SD عند توفرها.',
+          'افتح أداة التنزيل دائماً في متصفح سفاري أو كروم الخارجي وليس داخل متصفح فيسبوك الداخلي الذي يمنع تنزيل الملفات.',
+          'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري ملفات MP4 داخل تطبيق «الملفات» أولاً، ويمكنك نقلها إلى ألبوم الصور عبر المشاركة ثم حفظ الفيديو.',
+          'الأداة تعالج المنشورات العامة فقط ولا يمكنها الوصول إلى المجموعات الخاصة أو منشورات الأصدقاء فقط.',
+        ],
+        tableOfContents: [
+          {
+            id: 'alhifz-dakhil-facebook-muqabil-tanzil-mp4',
+            heading:
+              'لماذا لا يقوم زر «حفظ الفيديو» في فيسبوك بتخزين الملف دون إنترنت؟',
+          },
+          {
+            id: 'khatwat-tanzil-video-reels-facebook',
+            heading: 'خطوات تنزيل فيديو أو ريلز فيسبوك عام عبر المتصفح',
+          },
+          {
+            id: 'aljawda-hd-wa-sd-wasigh-fb-watch',
+            heading:
+              'الفرق بين جودة HD و SD وصيغ روابط فيسبوك المدعومة',
+          },
+          {
+            id: 'ayna-tuhfaz-almalafat-iphone-android-pc',
+            heading:
+              'أين تُحفظ فيديوهات فيسبوك بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-facebook',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل فيديوهات فيسبوك',
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-facebook',
+            heading:
+              'نطاق عمل الأداة واحترام حقوق الملكية الفكرية على فيسبوك',
+          },
+        ],
+        content: [
+          {
+            id: 'alhifz-dakhil-facebook-muqabil-tanzil-mp4',
+            heading:
+              'لماذا لا يقوم زر «حفظ الفيديو» في فيسبوك بتخزين الملف دون إنترنت؟',
+            paragraphs: [
+              'عندما تضغط على النقاط الثلاث في أي فيديو أو ريلز على فيسبوك وتختار «حفظ الفيديو»، لا يتم تنزيل ملف MP4 على هاتفك أو كمبيوترك، بل يُضاف رابط المنشور إلى قائمة العناصر المحفوظة في حسابك على خوادم فيسبوك. وبالتالي ستحتاج دائماً إلى اتصال بالإنترنت لمشاهدته، وإذا قام صاحب الصفحة بحذف الفيديو أو تحويله إلى للأصدقاء فقط فسيختفي من قائمتك فوراً.',
+              'أما حفظ الفيديو العام كملف MP4 مستقل فيفيدك عند الرغبة في الاحتفاظ بنسخة احتياطية من فيديوهات صفحتك المنشورة، أو مشاهدة الشروحات العامة دون انقطاع، تماماً مثل [حفظ ريلز ومنشورات إنستغرام العامة](https://vidnex.space/ar/instagram-reels-downloader) عبر المتصفح دون الحاجة إلى تثبيت برامج إضافية أو تسجيل الدخول بحسابك.',
+            ],
+            table: {
+              headers: [
+                'طريقة الحفظ',
+                'تخزين ملف MP4 دون إنترنت',
+                'خيارات الجودة',
+                'المحتوى المدعوم في فيسبوك',
+              ],
+              rows: [
+                [
+                  'خيار «حفظ الفيديو» داخل فيسبوك',
+                  'لا (إشارة مرجعية في الحساب فقط)',
+                  'تعتمد على سرعة الاتصال',
+                  'المنشورات المتاحة لحسابك أثناء الاتصال',
+                ],
+                [
+                  'تسجيل شاشة الهاتف',
+                  'نعم',
+                  'وضوح أقل مع ظهور أزرار الواجهة',
+                  'يلتقط أزرار الإعجاب والنصوص والإشعارات',
+                ],
+                [
+                  'أداة المتصفح VIDNEX',
+                  'نعم (ملف MP4 على الجهاز)',
+                  'MP4 بجودة HD و SD (عند التوفر)',
+                  'فيديوهات فيسبوك العامة، الريلز العامة وروابط fb.watch',
+                ],
+              ],
+            },
+          },
+          {
+            id: 'khatwat-tanzil-video-reels-facebook',
+            heading: 'خطوات تنزيل فيديو أو ريلز فيسبوك عام عبر المتصفح',
+            paragraphs: [
+              'العمل عبر متصفح الويب يعمل بنفس السهولة على الآيفون والأندرويد والكمبيوتر دون إضافات أو ربط حسابك الشخصي.',
+              'اتبع هذه الخطوات عبر [أداة تنزيل فيديو فيسبوك من VIDNEX](https://vidnex.space/ar/facebook-video-downloader):',
+            ],
+            bullets: [
+              '1. افتح تطبيق فيسبوك أو موقع facebook.com وانتقل إلى الفيديو العام أو مقطع الريلز العام الذي تريد حفظه.',
+              '2. تأكد من أيقونة الخصوصية بجانب وقت النشر؛ يجب أن تكون علامة الكرة الأرضية (عام) وليس أيقونة الأصدقاء أو قفل مجموعة خاصة.',
+              '3. اضغط على زر المشاركة أسفل الفيديو (أو على جانب شاشة الريلز) ثم اختر «نسخ الرابط».',
+              '4. اخرج من متصفح فيسبوك الداخلي وافتح متصفح سفاري أو كروم أو فايرفوكس.',
+              '5. توجه إلى صفحة أداة فيسبوك في موقع VIDNEX، والصق الرابط المنسوخ في حقل الإدخال ثم ابدأ المعالجة.',
+              '6. اختر زر تنزيل MP4 HD أو MP4 SD (حسب الدقات المتاحة للمنشور) لحفظ الفيديو على جهازك.',
+            ],
+            proTip:
+              'عند فتح رابط من داخل تطبيق ماسنجر أو تعليقات فيسبوك، يفتحه التطبيق في متصفح داخلي مصغر يمنع تنزيل الملفات. اضغط على قائمة النقاط الثلاث واختر «الفتح في سفاري» أو «الفتح في كروم» قبل التنزيل.',
+          },
+          {
+            id: 'aljawda-hd-wa-sd-wasigh-fb-watch',
+            heading:
+              'الفرق بين جودة HD و SD وصيغ روابط فيسبوك المدعومة',
+            paragraphs: [
+              'ينشئ فيسبوك عدة تدفقات فيديو عند رفع أي مقطع عام. وعندما تتوفر الدقة العالية والدقة القياسية للعامة، يعرض لك موقع VIDNEX خياري **HD** و **SD**:',
+              'اختر **MP4 HD** (عادةً بدقة 720p أو 1080p) عند الاتصال بشبكة Wi-Fi أو للمشاهدة على شاشات كبيرة وقراءة النصوص بوضوح. واختر **MP4 SD** (عادةً 360p أو 480p) للحصول على ملف أصغر حجماً يوفر بيانات الهاتف ومساحة التخزين.',
+              'إذا ظهر خيار SD فقط، فهذا يعني أن الناشر الأصلي رفع الفيديو بدقة قياسية أو أوقف خيار الرفع عالي الدقة في إعدادات تطبيقه. ولمعرفة تفاصيل الضغط ومعدل البت، راجع مقالنا حول [أسباب انخفاض جودة الفيديو بعد التنزيل](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality).',
+              'يدعم VIDNEX روابط المشاهدة القياسية (`facebook.com/watch/?v=...`)، وروابط فيديوهات الصفحات (`facebook.com/PageName/videos/...`)، وروابط الريلز العامة (`facebook.com/reel/...`)، والروابط المختصرة (`fb.watch/...`).',
+            ],
+          },
+          {
+            id: 'ayna-tuhfaz-almalafat-iphone-android-pc',
+            heading:
+              'أين تُحفظ فيديوهات فيسبوك بعد تنزيلها على الآيفون والأندرويد والكمبيوتر؟',
+            paragraphs: [
+              'بعد اكتمال التنزيل في المتصفح، يعتمد مكان حفظ ملف MP4 على نظام تشغيل جهازك.',
+              'على أجهزة آيفون وآيباد، يحفظ متصفح سفاري الملفات المحملة من الويب داخل مجلد التنزيلات في تطبيق «الملفات» المدمج وليس في تطبيق «الصور» مباشرة. لنقل ملف MP4 إلى ألبوم الكاميرا: اضغط على أيقونة سهم التنزيلات الأزرق بجانب شريط العنوان في سفاري (أو افتح تطبيق الملفات ثم التنزيلات)، وافتح ملف الفيديو، ثم اضغط على زر المشاركة في الزاوية السفلية واختر «حفظ الفيديو» ليظهر فوراً في تطبيق الصور.',
+              'على هواتف أندرويد، يقوم متصفح كروم أو متصفح سامسونج بحفظ فيديو MP4 مباشرة في مجلد «التنزيلات» (Downloads) ويظهر تلقائياً في المعرض وصور جوجل.',
+              'على أجهزة الكمبيوتر (ويندوز أو ماك)، يُحفظ الملف في مجلد التنزيلات الافتراضي لمتصفحك ويعمل فوراً على أي مشغل وسائط.',
+            ],
+          },
+          {
+            id: 'mushkilat-shaiia-wa-hululuha-facebook',
+            heading: 'مشكلات شائعة وحلولها عند تنزيل فيديوهات فيسبوك',
+            paragraphs: [
+              'تُحدّث شركة ميتا إعدادات الخصوصية وبنية روابط فيسبوك باستمرار، لذا لا يمكن لأي أداة ضمان عملها بشكل دائم دون انقطاع. إليك أبرز الحلول للمشكلات الشائعة:',
+            ],
+            bullets: [
+              'رسالة «الفيديو غير متاح» أو «محتوى خاص»: تحقق من أيقونة الجمهور في المنشور الأصلي. إذا كان الفيديو في مجموعة فيسبوك خاصة أو مخصصاً للأصدقاء فقط أو في ملف شخصي مقفل، فلن يتمكن VIDNEX من الوصول إليه.',
+              'توقف رابط fb.watch المختصر: قد تنتهي صلاحية بعض الروابط المختصرة القديمة. افتح الفيديو مجدداً في فيسبوك وانسخ رابطاً حديثاً، أو راجع دليل [حل مشكلات روابط التواصل الاجتماعي المنتهية أو المحجوبة](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links).',
+              'فتح الفيديو داخل المتصفح بدلاً من التنزيل: على الكمبيوتر اضغط بزر الفأرة الأيمن واختر «حفظ الفيديو باسم»، وعلى الآيفون استخدم قائمة المشاركة في سفاري لحفظ الملف.',
+              'عدم وجود صوت في الفيديو المحمل: بعض البثوث المباشرة القديمة أو المقاطع التي تحتوي على موسيقى محمية بحقوق النشر يتم كتم صوتها من قِبل ميتا في المنشور الأصلي نفسه.',
+            ],
+          },
+          {
+            id: 'hudud-alada-wa-huquq-alnashr-facebook',
+            heading:
+              'نطاق عمل الأداة واحترام حقوق الملكية الفكرية على فيسبوك',
+            paragraphs: [
+              'من الضروري مراعاة الحدود التقنية للأداة وقوانين حقوق الملكية الفكرية عند حفظ أي محتوى من فيسبوك.',
+              'تقنياً، VIDNEX موقع مجاني لا يتطلب تسجيل حساب، ويعمل حصرياً مع الوسائط العامة من خمس منصات: فيسبوك (الفيديوهات والريلز العامة بجودة HD/SD)، وتيك توك (فيديو عام MP4 بدون علامة مائية عند توفره، صوت MP3/M4A، صور وعروض شرائح عامة، وصورة الملف الشخصي)، وإنستغرام (الريلز والمنشورات والكاروسيل وصورة الحساب العامة)، ومنصة إكس تويتر سابقاً (فيديوهات عامة، صور متحركة GIF بصيغة MP4، وصور التغريدات العامة)، ولينكد إن (صورة الملف الشخصي العامة فقط). الموقع لا يصل إلى الحسابات أو المجموعات الخاصة، ولا يدعم يوتيوب أو سناب شات، ولا يقدم وعوداً بتوفر دائم للخدمة.',
+              'قانونياً، وفقاً لشروط خدمة ميتا وقوانين حقوق النشر، يحتفظ صناع المحتوى والناشرون بحقوق ملكية الفيديوهات والريلز التي ينشرونها. حفظ ملف MP4 عام لا يمنحك الحق في إعادة نشره على صفحتك دون إذن صريح من صاحبه الأصلي.',
+            ],
+          },
+        ],
+        faq: [
+          {
+            question:
+              'هل أحتاج إلى تسجيل الدخول بحساب فيسبوك لاستخدام موقع VIDNEX؟',
+            answer:
+              'لا، لا يطلب منك الموقع بريدك الإلكتروني أو كلمة المرور لحساب فيسبوك؛ يكفي لصق رابط الفيديو أو الريلز العام فقط.',
+          },
+          {
+            question:
+              'هل يمكنني تنزيل فيديو من مجموعة فيسبوك خاصة أو منشور للأصدقاء فقط؟',
+            answer:
+              'لا، حتى لو كنت عضواً في المجموعة الخاصة بحسابك الشخصي، يعمل VIDNEX دون تسجيل دخول ويعالج المنشورات العامة المتاحة للجميع فقط.',
+          },
+          {
+            question: 'ما الفرق بين خياري التنزيل HD و SD؟',
+            answer:
+              'توفر جودة HD دقة عالية (720p أو 1080p) مناسبة للشاشات الكبيرة ووضوح النصوص، بينما توفر جودة SD ملف MP4 أخف حجماً (360p أو 480p) يوفر مساحة التخزين.',
+          },
+          {
+            question: 'هل تعمل روابط fb.watch وروابط فيسبوك ريلز؟',
+            answer:
+              'نعم، يدعم VIDNEX روابط facebook.com القياسية، وروابط الريلز العامة، والروابط المختصرة fb.watch.',
+          },
+          {
+            question:
+              'كيف أنقل فيديو فيسبوك المحمل إلى ألبوم الصور على الآيفون؟',
+            answer:
+              'يحفظ سفاري الملفات في تطبيق «الملفات». افتح تطبيق الملفات ثم مجلد التنزيلات، وافتح ملف MP4 واضغط على أيقونة المشاركة في الأسفل ثم اختر «حفظ الفيديو».',
+          },
+          {
+            question:
+              'هل يجوز إعادة نشر فيديو لشخص آخر من فيسبوك بعد تنزيله؟',
+            answer:
+              'لا، حفظ الفيديو العام لا ينقل ملكيته إليك؛ يجب دائماً الحصول على إذن صريح من صاحب المحتوى الأصلي قبل إعادة النشر.',
+          },
+        ],
+        ctaTitle:
+          'احفظ أي فيديو أو ريلز فيسبوك عام بجودة HD أو SD الآن',
+        ctaDescription:
+          'الصق رابط أي فيديو فيسبوك عام أو ريلز أو رابط fb.watch لتنزيله بصيغة MP4 بجودة HD أو SD — مجاناً وبدون حساب.',
+        ctaButtonLabel: 'افتح أداة تنزيل فيديو فيسبوك',
+        internalLinks: [
+          {
+            label: 'افتح أداة تنزيل فيديو فيسبوك',
+            description:
+              'الصق رابط أي فيديو فيسبوك عام أو ريلز أو رابط fb.watch لتنزيله بصيغة MP4 بجودة HD أو SD — مجاناً وبدون حساب.',
+            targetType: 'platform',
+            platformKey: 'facebook',
+          },
+        ],
+        sources: [
+          {
+            title: 'كيفية مشاركة رابط فيديو على فيسبوك',
+            publisher: 'مركز مساعدة فيسبوك',
+            url: 'https://www.facebook.com/help/1744643532522513',
+          },
+          {
+            title: 'شروط خدمة ميتا',
+            publisher: 'ميتا',
+            url: 'https://www.facebook.com/terms.php',
+          },
+          {
+            title: 'حقوق الملكية الفكرية وحقوق النشر',
+            publisher: 'مركز مساعدة فيسبوك',
+            url: 'https://www.facebook.com/help/249141925204375',
           },
           {
             title: 'العثور على الملفات المحملة من سفاري على آيفون وآيباد',

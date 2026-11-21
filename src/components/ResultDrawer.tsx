@@ -281,6 +281,9 @@ const LinkedInManualUploadBox: React.FC = () => {
             <img
               src={uploadedImage.objectUrl}
               alt="Aperçu de l’image importée"
+              width={uploadedImage.width || 112}
+              height={uploadedImage.height || 112}
+              decoding="async"
               className="w-full h-full object-cover"
             />
             <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-stone-900/85 text-white font-mono text-[10px] font-bold">

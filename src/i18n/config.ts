@@ -61,6 +61,23 @@ export interface LocaleDefinition {
 export const DEFAULT_LOCALE: SupportedLocale = 'fr';
 export const BLOG_DEFAULT_LOCALE: SupportedLocale = 'en';
 
+export const BLOG_NAV_LABELS: Record<SupportedLocale, string> = {
+  fr: 'Blog',
+  en: 'Blog',
+  ar: 'المدونة',
+  es: 'Blog',
+  pt: 'Blog',
+  de: 'Blog',
+  tr: 'Blog',
+  id: 'Blog',
+  it: 'Blog',
+  ru: 'Блог',
+};
+
+export function getBlogNavLabel(locale: SupportedLocale): string {
+  return BLOG_NAV_LABELS[locale] || 'Blog';
+}
+
 export const SUPPORTED_LOCALES: readonly SupportedLocale[] = [
   'fr',
   'en',
@@ -479,40 +496,8 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
     };
   }
 
-  // 2b. Route /blog et /blog/{slug} => Blog en anglais par défaut (English as default language of the blog)
+  // 2b. Route /blog et /blog/{slug} => redirigées en 301 vers /en/blog et /en/blog/{slug} via resolveBlogRedirectPath
   if (first === 'blog') {
-    if (segments.length === 1) {
-      return {
-        isValidRoute: true,
-        isNotFound: false,
-        isAdmin: false,
-        locale: 'en',
-        pageKey: 'blog',
-        platformKey: null,
-        legalKey: null,
-        canonicalPath: '/blog',
-      };
-    }
-
-    if (segments.length === 2) {
-      const articleSlug = segments[1];
-      const resolvedArticle = getPublishedArticleBySlug('en', articleSlug);
-      if (resolvedArticle) {
-        return {
-          isValidRoute: true,
-          isNotFound: false,
-          isAdmin: false,
-          locale: 'en',
-          pageKey: 'blog_article',
-          platformKey: null,
-          legalKey: null,
-          blogSlug: resolvedArticle.translation.localizedSlug,
-          blogArticleId: resolvedArticle.article.id,
-          canonicalPath: resolvedArticle.canonicalPath,
-        };
-      }
-    }
-
     return {
       isValidRoute: false,
       isNotFound: true,
@@ -521,7 +506,7 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
       pageKey: 'not_found',
       platformKey: null,
       legalKey: null,
-      canonicalPath: '/blog',
+      canonicalPath: '/en/blog',
     };
   }
 
@@ -560,9 +545,9 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
       };
     }
 
-    // Blog sous préfixe de langue : seul /fr/blog est servi en 200 ; /en/blog redirige en 301 vers /blog
+    // Blog sous préfixe de langue : /en/blog, /es/blog, /de/blog, /ar/blog
     if (segments[1] === 'blog') {
-      if (locale !== 'en' && isBlogHubLocale(locale)) {
+      if (isBlogHubLocale(locale)) {
         if (segments.length === 2) {
           return {
             isValidRoute: true,
@@ -601,11 +586,11 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         isValidRoute: false,
         isNotFound: true,
         isAdmin: false,
-        locale: locale === 'en' ? 'en' : locale,
+        locale,
         pageKey: 'not_found',
         platformKey: null,
         legalKey: null,
-        canonicalPath: locale === 'en' ? '/blog' : `/${locale}`,
+        canonicalPath: isBlogHubLocale(locale) ? `/${locale}/blog` : `/${locale}`,
       };
     }
 
@@ -954,15 +939,25 @@ export function getAllIndexableRoutes(): PublicRouteEntry[] {
 
 export const LEGACY_BLOG_SLUG_REDIRECTS: Record<string, string> = {
   '/blog/tiktok-video-not-downloading':
-    '/blog/troubleshooting-expired-blocked-social-media-links',
+    '/en/blog/troubleshooting-expired-blocked-social-media-links',
   '/blog/download-tiktok-without-watermark':
-    '/blog/save-public-tiktok-videos-without-watermark-guide',
+    '/en/blog/save-public-tiktok-videos-without-watermark-guide',
   '/blog/mp4-vs-mp3-difference':
-    '/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
+    '/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
   '/blog/instagram-reel-without-sound':
-    '/blog/instagram-reels-carousels-resolution-compression-guide',
+    '/en/blog/instagram-reels-carousels-resolution-compression-guide',
   '/blog/social-media-video-aspect-ratios-safe-zones-2026':
-    '/blog/social-media-video-aspect-ratios-safe-zones',
+    '/en/blog/social-media-video-aspect-ratios-safe-zones',
+  '/en/blog/tiktok-video-not-downloading':
+    '/en/blog/troubleshooting-expired-blocked-social-media-links',
+  '/en/blog/download-tiktok-without-watermark':
+    '/en/blog/save-public-tiktok-videos-without-watermark-guide',
+  '/en/blog/mp4-vs-mp3-difference':
+    '/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
+  '/en/blog/instagram-reel-without-sound':
+    '/en/blog/instagram-reels-carousels-resolution-compression-guide',
+  '/en/blog/social-media-video-aspect-ratios-safe-zones-2026':
+    '/en/blog/social-media-video-aspect-ratios-safe-zones',
   '/fr/blog/son-reel-instagram-manquant':
     '/fr/blog/instagram-reels-carrousels-resolution-compression-guide',
   '/fr/blog/difference-mp4-et-mp3':
@@ -971,31 +966,39 @@ export const LEGACY_BLOG_SLUG_REDIRECTS: Record<string, string> = {
 
 /**
  * Résout les redirections permanentes 301 du Blog :
- * - /en/blog -> /blog
- * - /en/blog/{slug} -> /blog/{slug} (avec normalisation d'ancien slug ou retrait de -2026)
+ * - /blog -> /en/blog
+ * - /blog/{slug} -> /en/blog/{slug} (avec normalisation d'ancien slug ou retrait de -2026)
  * - Anciens slugs publiés ou slugs contenant -2026 -> nouveau slug canonique sans année
  */
 export function resolveBlogRedirectPath(rawPathname: string): string | null {
   const clean = (rawPathname || '/').split('?')[0].split('#')[0];
   const normalized = clean.replace(/\/+$/, '') || '/';
 
-  if (normalized === '/en/blog') {
-    return '/blog';
-  }
-
-  if (normalized.startsWith('/en/blog/')) {
-    const rest = normalized.slice('/en/blog/'.length).replace(/^\/+|\/+$/g, '');
-    if (!rest) return '/blog';
-    const candidate = `/blog/${rest.replace(/-2026$/, '')}`;
-    return LEGACY_BLOG_SLUG_REDIRECTS[candidate] || candidate;
+  if (normalized === '/blog') {
+    return '/en/blog';
   }
 
   if (normalized in LEGACY_BLOG_SLUG_REDIRECTS) {
     return LEGACY_BLOG_SLUG_REDIRECTS[normalized];
   }
 
+  if (normalized.startsWith('/blog/')) {
+    const rest = normalized.slice('/blog/'.length).replace(/^\/+|\/+$/g, '');
+    if (!rest) return '/en/blog';
+    const strippedSlug = rest.replace(/-2026$/, '');
+    const legacyKey = `/blog/${strippedSlug}`;
+    if (legacyKey in LEGACY_BLOG_SLUG_REDIRECTS) {
+      return LEGACY_BLOG_SLUG_REDIRECTS[legacyKey];
+    }
+    return `/en/blog/${strippedSlug}`;
+  }
+
   if (
-    (normalized.startsWith('/blog/') || normalized.startsWith('/fr/blog/')) &&
+    (normalized.startsWith('/en/blog/') ||
+      normalized.startsWith('/fr/blog/') ||
+      normalized.startsWith('/es/blog/') ||
+      normalized.startsWith('/de/blog/') ||
+      normalized.startsWith('/ar/blog/')) &&
     normalized.endsWith('-2026')
   ) {
     const stripped = normalized.replace(/-2026$/, '');
@@ -1013,6 +1016,9 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   const base = siteUrl.replace(/\/+$/, '');
   const enArticles = getPublishedArticlesForLocale('en');
   const frArticles = getPublishedArticlesForLocale('fr');
+  const esArticles = getPublishedArticlesForLocale('es');
+  const deArticles = getPublishedArticlesForLocale('de');
+  const arArticles = getPublishedArticlesForLocale('ar');
 
   return [
     '# VIDNEX',
@@ -1023,38 +1029,42 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '',
     '- **Nature du service** : Résolveur web de métadonnées publiques à la demande et boîte à outils créateurs 100 % côté navigateur (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).',
     '- **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).',
-    '- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`), traitement local HTML5 Canvas et JSZip sans aucun upload serveur.',
+    '- **Sélection multi-médias et archive ZIP côté navigateur** : Pour les carrousels Instagram, les diaporamas photo TikTok et les Stories publiques, VIDNEX affiche un écran de sélection préalable (cases à cocher, Tout sélectionner / Tout désélectionner, aperçu individuel, téléchargement unitaire ou archive groupée `.ZIP` jusqu’à 50 éléments / 50 Mo).',
+    '- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`, décliné dans les 10 langues), traitement local HTML5 Canvas et JSZip sans aucune API ni upload serveur.',
     '- **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.',
     '- **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.',
     '',
     '## Outils principaux et formats pris en charge',
     '',
     `- **TikTok** — [FR: ${base}${getLocalizedPagePath('fr', 'tiktok')}](${base}${getLocalizedPagePath('fr', 'tiktok')}) | [EN: ${base}${getLocalizedPagePath('en', 'tiktok')}](${base}${getLocalizedPagePath('en', 'tiktok')})`,
-    '  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics et photo de profil publique.',
+    '  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics (téléchargement unitaire ou archive `.ZIP`) et photo de profil publique.',
     `- **Instagram** — [FR: ${base}${getLocalizedPagePath('fr', 'instagram')}](${base}${getLocalizedPagePath('fr', 'instagram')}) | [EN: ${base}${getLocalizedPagePath('en', 'instagram')}](${base}${getLocalizedPagePath('en', 'instagram')})`,
-    '  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides) et photo de profil publique en JPG.',
+    '  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides avec sélection par cases à cocher et téléchargement `.ZIP`), Stories publiques accessibles et photo de profil publique en JPG.',
     `- **X (Twitter)** — [FR: ${base}${getLocalizedPagePath('fr', 'x')}](${base}${getLocalizedPagePath('fr', 'x')}) | [EN: ${base}${getLocalizedPagePath('en', 'x')}](${base}${getLocalizedPagePath('en', 'x')})`,
-    '  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).',
+    '  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles avec lecteur d’aperçu intégré), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).',
     `- **Facebook** — [FR: ${base}${getLocalizedPagePath('fr', 'facebook')}](${base}${getLocalizedPagePath('fr', 'facebook')}) | [EN: ${base}${getLocalizedPagePath('en', 'facebook')}](${base}${getLocalizedPagePath('en', 'facebook')})`,
-    '  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.',
+    '  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`), Stories publiques accessibles et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.',
     `- **LinkedIn** — [FR: ${base}${getLocalizedPagePath('fr', 'linkedin')}](${base}${getLocalizedPagePath('fr', 'linkedin')}) | [EN: ${base}${getLocalizedPagePath('en', 'linkedin')}](${base}${getLocalizedPagePath('en', 'linkedin')})`,
-    '  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.',
+    '  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG/PNG/WebP d’origine avec aperçu zoom HD, plus un module d’import manuel local (glisser-déposer ou fichier, vérification par signature binaire, zéro envoi serveur) lorsque LinkedIn affiche un mur de connexion.',
     `- **Découper une image (Split Image)** — [FR: ${base}${getLocalizedPagePath('fr', 'split_image')}](${base}${getLocalizedPagePath('fr', 'split_image')}) | [EN: ${base}${getLocalizedPagePath('en', 'split_image')}](${base}${getLocalizedPagePath('en', 'split_image')})`,
-    '  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, export PNG ou JPG (qualité réglable), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).',
+    '  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (1 à 10 lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, aperçu interactif des lignes de coupe, export PNG ou JPG (qualité réglable de 10 % à 100 %), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).',
     '',
     '## Pages principales et Informations légales',
     '',
     `- [Accueil VIDNEX (FR)](${base}/) | [VIDNEX Home (EN)](${base}/en)`,
     `- [Découper une image (FR)](${base}/tools/split-image) | [Split Image Online (EN)](${base}/en/tools/split-image)`,
-    `- [VIDNEX Editorial Blog (English)](${base}/blog)`,
+    `- [VIDNEX Editorial Blog (English)](${base}/en/blog)`,
     `- [Blog VIDNEX (Français)](${base}/fr/blog)`,
+    `- [Blog de VIDNEX (Español)](${base}/es/blog)`,
+    `- [VIDNEX Blog (Deutsch)](${base}/de/blog)`,
+    `- [مدونة VIDNEX (العربية)](${base}/ar/blog)`,
     `- [À propos (FR)](${base}${getLocalizedPagePath('fr', 'about')}) | [About Us (EN)](${base}${getLocalizedPagePath('en', 'about')}) | [من نحن (AR)](${base}${getLocalizedPagePath('ar', 'about')})`,
     `- [Politique de confidentialité (FR)](${base}${getLocalizedPagePath('fr', 'privacy')}) | [Privacy Policy (EN)](${base}${getLocalizedPagePath('en', 'privacy')})`,
     `- [Conditions d’utilisation (FR)](${base}${getLocalizedPagePath('fr', 'terms')}) | [Terms of Service (EN)](${base}${getLocalizedPagePath('en', 'terms')})`,
     `- [Contact (FR)](${base}${getLocalizedPagePath('fr', 'contact')}) | [Contact (EN)](${base}${getLocalizedPagePath('en', 'contact')})`,
     `- [Droits d’auteur et DMCA (FR)](${base}${getLocalizedPagePath('fr', 'dmca')}) | [DMCA & Copyright (EN)](${base}${getLocalizedPagePath('en', 'dmca')})`,
     '',
-    '## Guides techniques publiés (English — /blog)',
+    '## Guides techniques publiés (English — /en/blog)',
     '',
     ...enArticles.map(
       (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
@@ -1063,6 +1073,24 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '## Guides techniques publiés (Français — /fr/blog)',
     '',
     ...frArticles.map(
+      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+    ),
+    '',
+    '## Guides techniques publiés (Español — /es/blog)',
+    '',
+    ...esArticles.map(
+      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+    ),
+    '',
+    '## Guides techniques publiés (Deutsch — /de/blog)',
+    '',
+    ...deArticles.map(
+      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+    ),
+    '',
+    '## Guides techniques publiés (العربية — /ar/blog)',
+    '',
+    ...arArticles.map(
       (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
     ),
     '',

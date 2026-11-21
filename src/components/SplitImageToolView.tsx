@@ -467,6 +467,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+              aria-label={copy.selectFileCta}
               data-testid="split-file-input"
               className="hidden"
               onChange={(e) => {
@@ -613,6 +614,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                           min={1}
                           max={10}
                           value={customRows}
+                          aria-label={copy.rowsLabel}
                           data-testid="split-custom-rows"
                           onChange={(e) =>
                             setCustomRows(clampGridAxis(Number(e.target.value)))
@@ -629,6 +631,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                           min={1}
                           max={10}
                           value={customCols}
+                          aria-label={copy.colsLabel}
                           data-testid="split-custom-cols"
                           onChange={(e) =>
                             setCustomCols(clampGridAxis(Number(e.target.value)))
@@ -653,6 +656,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                       type="button"
                       role="switch"
                       aria-checked={instagramOrder}
+                      aria-label={copy.instagramOrderLabel}
                       data-testid="split-instagram-order-toggle"
                       onClick={() => setInstagramOrder((prev) => !prev)}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
@@ -730,6 +734,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                         max={100}
                         step={1}
                         value={jpgQuality}
+                        aria-label={copy.qualityLabel}
                         data-testid="split-jpg-quality-slider"
                         onChange={(e) => setJpgQuality(Number(e.target.value))}
                         className="w-full accent-[#c2410c] cursor-pointer"
@@ -791,6 +796,9 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                       <img
                         src={sourceImage.previewUrl}
                         alt={copy.previewHeading}
+                        width={sourceImage.width}
+                        height={sourceImage.height}
+                        decoding="async"
                         className="block max-w-full max-h-[520px] w-auto h-auto select-none"
                       />
 
@@ -908,7 +916,11 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                             <div className="relative rounded-lg overflow-hidden bg-black/20 aspect-square flex items-center justify-center">
                               <img
                                 src={slice.dataUrl}
-                                alt={slice.filename}
+                                alt={`${slice.filename} (${slice.width}×${slice.height} px)`}
+                                width={slice.width}
+                                height={slice.height}
+                                loading="lazy"
+                                decoding="async"
                                 className="max-w-full max-h-full object-contain"
                               />
                               <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#140e0a]/85 text-white font-mono text-[10px] font-bold">
@@ -927,6 +939,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
 
                             <button
                               type="button"
+                              aria-label={`${copy.downloadSingleCta} ${slice.filename}`}
                               data-testid={`split-download-item-${slice.orderNumber}`}
                               onClick={() => handleTriggerSingleDownload(slice)}
                               className="w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-500/15 hover:bg-[#c2410c] text-[#9a3412] dark:text-[#fb923c] hover:text-white font-mono text-xs font-bold transition-colors cursor-pointer"
@@ -1053,6 +1066,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                     >
                       <button
                         type="button"
+                        aria-expanded={isOpen}
                         onClick={() =>
                           setOpenFaqIndex(isOpen ? null : idx)
                         }
@@ -1065,11 +1079,15 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                           }`}
                         />
                       </button>
-                      {isOpen && (
-                        <div className="px-5 pb-4 text-xs sm:text-sm text-[#6e472b] dark:text-[#d6b8a3] leading-relaxed">
-                          {faq.answer}
-                        </div>
-                      )}
+                      <div
+                        className={
+                          isOpen
+                            ? 'px-5 pb-4 text-xs sm:text-sm text-[#6e472b] dark:text-[#d6b8a3] leading-relaxed'
+                            : 'hidden'
+                        }
+                      >
+                        {faq.answer}
+                      </div>
                     </div>
                   );
                 })}

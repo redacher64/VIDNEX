@@ -2664,15 +2664,15 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'ru',
     ]);
 
-    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 2 hubs (/blog, /fr/blog) + 13 published article pages (7 EN + 6 FR) = 15 routes -> 100 total
+    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 2 hubs (/blog, /fr/blog) + 15 published article pages (8 EN + 7 FR) = 17 routes -> 102 total
     assert.equal(getAllPublicRoutes().length, 85);
     const blogRoutes = getAllBlogPublicRoutes();
-    assert.equal(blogRoutes.length, 15);
-    assert.equal(getAllIndexableRoutes().length, 100);
+    assert.equal(blogRoutes.length, 17);
+    assert.equal(getAllIndexableRoutes().length, 102);
 
-    // 2. Only the 7 specified English articles are published at /blog/{slug}; es and de have 0 published articles
+    // 2. Only the 8 specified English articles are published at /blog/{slug}; es and de have 0 published articles
     const enArticles = getPublishedArticlesForLocale('en');
-    assert.equal(enArticles.length, 7);
+    assert.equal(enArticles.length, 8);
     const expectedEnIds = [
       'troubleshooting-expired-blocked-social-media-links',
       'instagram-reels-carousels-resolution-compression-guide',
@@ -2681,6 +2681,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'save-public-tiktok-videos-without-watermark-guide',
       'download-public-instagram-reels-carousels-guide',
       'download-public-x-twitter-videos-gifs-mp4-guide',
+      'download-public-facebook-videos-reels-hd-sd-guide',
     ];
     assert.deepEqual(
       enArticles.map((a) => a.article.id),
@@ -2688,7 +2689,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(getPublishedArticlesForLocale('es').length, 0);
     assert.equal(getPublishedArticlesForLocale('de').length, 0);
-    assert.equal(getPublishedArticlesForLocale('fr').length, 6);
+    assert.equal(getPublishedArticlesForLocale('fr').length, 7);
 
     // 3. English default blog hub (/blog) is 200; /en/blog and /en/blog/{slug} are 301 redirects (no longer 200 aliases)
     const resBlogEn = resolveRouteFromPathname('/blog');
@@ -5089,9 +5090,135 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('/tools/split-image'));
     assert.ok(llms.includes('Découper une image'));
   });
+
+  it('validates SEO, GEO, and AEO upgrades across all 100 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, and llms.txt + About alignment)', async () => {
+    const {
+      SUPPORTED_LOCALES,
+      getAllIndexableRoutes,
+      buildLlmsTxt,
+    } = await import('../i18n/config.ts');
+    const { buildHeadMetadataForRoute } = await import('../i18n/hreflang.ts');
+    const { getLocaleBundleSync } = await import('../i18n/localeLoader.ts');
+    const { getSplitImageContent } = await import('./splitImageLogic.ts');
+
+    const allRoutes = getAllIndexableRoutes();
+    assert.equal(allRoutes.length, 102);
+
+    const forbiddenPattern =
+      /100\s*%\s*s[ûu]r|100\s*%\s*safe|illimit[ée]|unlimited|le meilleur|the best/i;
+
+    for (const r of allRoutes) {
+      const meta = buildHeadMetadataForRoute(
+        r.locale,
+        r.pageKey,
+        r.blogSlug || null
+      );
+      assert.ok(
+        meta.title.length >= 15 && meta.title.length <= 60,
+        `Route ${r.path} title length (${meta.title.length}) out of bounds: "${meta.title}"`
+      );
+      assert.ok(
+        meta.description.length >= 120 && meta.description.length <= 155,
+        `Route ${r.path} description length (${meta.description.length}) out of [120, 155]: "${meta.description}"`
+      );
+      assert.ok(
+        !forbiddenPattern.test(meta.title) &&
+          !forbiddenPattern.test(meta.description),
+        `Route ${r.path} contains forbidden promotional claim`
+      );
+    }
+
+    const countWords = (text: string) =>
+      text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+
+    const toolKeys = [
+      'tiktok',
+      'instagram',
+      'x',
+      'facebook',
+      'linkedin',
+      'split_image',
+    ] as const;
+
+    for (const loc of SUPPORTED_LOCALES) {
+      const bundle = getLocaleBundleSync(loc);
+      for (const toolKey of toolKeys) {
+        const meta = buildHeadMetadataForRoute(loc, toolKey);
+        const graph = (meta.jsonLdGraph['@graph'] || []) as Array<
+          Record<string, any>
+        >;
+        const webApp = graph.find((node) => node['@type'] === 'WebApplication');
+        assert.ok(webApp, `Missing WebApplication JSON-LD for ${loc}/${toolKey}`);
+        assert.ok(
+          Array.isArray(webApp.featureList) && webApp.featureList.length >= 3,
+          `Missing or empty WebApplication.featureList for ${loc}/${toolKey}`
+        );
+
+        const faqNode = graph.find((node) => node['@type'] === 'FAQPage');
+        assert.ok(faqNode, `Missing FAQPage JSON-LD for ${loc}/${toolKey}`);
+
+        const visibleFaqs =
+          toolKey === 'split_image'
+            ? getSplitImageContent(loc).faqs
+            : bundle.platforms[toolKey].faqs;
+
+        assert.equal(
+          faqNode.mainEntity.length,
+          visibleFaqs.length,
+          `FAQ count mismatch between DOM and JSON-LD for ${loc}/${toolKey}`
+        );
+
+        let has40To60WordAnswer = false;
+        for (let i = 0; i < visibleFaqs.length; i++) {
+          assert.equal(
+            faqNode.mainEntity[i].name,
+            visibleFaqs[i].question,
+            `FAQ question mismatch for ${loc}/${toolKey} #${i}`
+          );
+          assert.equal(
+            faqNode.mainEntity[i].acceptedAnswer.text,
+            visibleFaqs[i].answer,
+            `FAQ answer mismatch for ${loc}/${toolKey} #${i}`
+          );
+          const wc = countWords(visibleFaqs[i].answer);
+          if (wc >= 40 && wc <= 60) {
+            has40To60WordAnswer = true;
+          }
+        }
+
+        assert.ok(
+          has40To60WordAnswer,
+          `Tool ${loc}/${toolKey} must have at least one 40-60 word FAQ answer`
+        );
+      }
+    }
+
+    // Verify llms.txt & About pages (/a-propos, /en/about, /ar/about)
+    const llms = buildLlmsTxt();
+    assert.ok(llms.includes('/tools/split-image'));
+    assert.ok(llms.includes('YouTube'));
+    assert.ok(llms.includes('Snapchat'));
+    assert.ok(llms.includes('.ZIP'));
+
+    for (const aboutLoc of ['fr', 'en', 'ar'] as const) {
+      const aboutDoc = getLocaleBundleSync(aboutLoc).legal?.about;
+      assert.ok(aboutDoc, `Missing legal.about for ${aboutLoc}`);
+      const fullAboutText = [
+        aboutDoc.intro,
+        ...aboutDoc.sections.flatMap((s) => s.paragraphs),
+      ].join(' ');
+      assert.ok(
+        fullAboutText.includes('split-image'),
+        `About page (${aboutLoc}) must mention split-image tool`
+      );
+      assert.ok(
+        fullAboutText.includes('YouTube') && fullAboutText.includes('Snapchat'),
+        `About page (${aboutLoc}) must preserve YouTube & Snapchat exclusions`
+      );
+    }
+  });
 });
-
-
-
-
 

@@ -6,24 +6,25 @@
 
 - **Nature du service** : Résolveur web de métadonnées publiques à la demande et boîte à outils créateurs 100 % côté navigateur (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).
 - **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).
-- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`), traitement local HTML5 Canvas et JSZip sans aucun upload serveur.
+- **Sélection multi-médias et archive ZIP côté navigateur** : Pour les carrousels Instagram, les diaporamas photo TikTok et les Stories publiques, VIDNEX affiche un écran de sélection préalable (cases à cocher, Tout sélectionner / Tout désélectionner, aperçu individuel, téléchargement unitaire ou archive groupée `.ZIP` jusqu’à 50 éléments / 50 Mo).
+- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`, décliné dans les 10 langues), traitement local HTML5 Canvas et JSZip sans aucune API ni upload serveur.
 - **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.
 - **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.
 
 ## Outils principaux et formats pris en charge
 
 - **TikTok** — [FR: https://vidnex.space/telecharger-video-tiktok](https://vidnex.space/telecharger-video-tiktok) | [EN: https://vidnex.space/en/tiktok-video-downloader](https://vidnex.space/en/tiktok-video-downloader)
-  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics et photo de profil publique.
+  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics (téléchargement unitaire ou archive `.ZIP`) et photo de profil publique.
 - **Instagram** — [FR: https://vidnex.space/telecharger-reel-instagram](https://vidnex.space/telecharger-reel-instagram) | [EN: https://vidnex.space/en/instagram-reels-downloader](https://vidnex.space/en/instagram-reels-downloader)
-  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides) et photo de profil publique en JPG.
+  - Formats : Reels publics en MP4 avec audio, publications `/p/` publiques (photo JPG, vidéo MP4 ou carrousel multi-slides avec sélection par cases à cocher et téléchargement `.ZIP`), Stories publiques accessibles et photo de profil publique en JPG.
 - **X (Twitter)** — [FR: https://vidnex.space/telecharger-video-x-twitter](https://vidnex.space/telecharger-video-x-twitter) | [EN: https://vidnex.space/en/x-twitter-video-downloader](https://vidnex.space/en/x-twitter-video-downloader)
-  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).
+  - Formats : Vidéos publiques en MP4 (multi-résolutions disponibles avec lecteur d’aperçu intégré), GIFs animés convertis en boucle MP4 et photos de publications publiques (`x.com` et `twitter.com`).
 - **Facebook** — [FR: https://vidnex.space/telecharger-video-facebook](https://vidnex.space/telecharger-video-facebook) | [EN: https://vidnex.space/en/facebook-video-downloader](https://vidnex.space/en/facebook-video-downloader)
-  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.
+  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`), Stories publiques accessibles et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.
 - **LinkedIn** — [FR: https://vidnex.space/telecharger-photo-profil-linkedin](https://vidnex.space/telecharger-photo-profil-linkedin) | [EN: https://vidnex.space/en/linkedin-profile-picture-downloader](https://vidnex.space/en/linkedin-profile-picture-downloader)
-  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.
+  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG/PNG/WebP d’origine avec aperçu zoom HD, plus un module d’import manuel local (glisser-déposer ou fichier, vérification par signature binaire, zéro envoi serveur) lorsque LinkedIn affiche un mur de connexion.
 - **Découper une image (Split Image)** — [FR: https://vidnex.space/tools/split-image](https://vidnex.space/tools/split-image) | [EN: https://vidnex.space/en/tools/split-image](https://vidnex.space/en/tools/split-image)
-  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, export PNG ou JPG (qualité réglable), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).
+  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (1 à 10 lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, aperçu interactif des lignes de coupe, export PNG ou JPG (qualité réglable de 10 % à 100 %), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).
 
 ## Pages principales et Informations légales
 
@@ -46,6 +47,7 @@
 - [How to Save Public TikTok Videos Without a Watermark on Any Device](https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide)
 - [How to Save Public Instagram Reels, Carousels, and Posts with Sound](https://vidnex.space/blog/download-public-instagram-reels-carousels-guide)
 - [How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos](https://vidnex.space/blog/download-public-x-twitter-videos-gifs-mp4-guide)
+- [How to Save Public Facebook Videos and Reels in HD or SD MP4](https://vidnex.space/blog/download-public-facebook-videos-reels-hd-sd-guide)
 
 ## Guides techniques publiés (Français — /fr/blog)
 
@@ -55,6 +57,7 @@
 - [Comment enregistrer une vidéo TikTok publique sans filigrane (Mobile et PC)](https://vidnex.space/fr/blog/enregistrer-videos-tiktok-publiques-sans-filigrane-guide)
 - [Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son](https://vidnex.space/fr/blog/telecharger-reels-carrousels-instagram-publics-guide)
 - [Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)](https://vidnex.space/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide)
+- [Comment enregistrer une vidéo ou un Reel Facebook public en MP4 HD ou SD](https://vidnex.space/fr/blog/telecharger-videos-reels-facebook-publics-hd-sd-guide)
 
 ## Langues disponibles (10)
 

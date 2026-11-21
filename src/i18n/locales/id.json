@@ -273,7 +273,7 @@
       "faqs": [
         {
           "question": "Bagaimana cara download video TikTok tanpa watermark?",
-          "answer": "Cukup tempel tautan video publik di VIDNEX; tombol Unduh MP4 akan langsung memberikan file video bersih dari server sumber."
+          "answer": "Cukup tempel tautan video TikTok publik atau tautan pendek vm.tiktok.com di VIDNEX; tombol Unduh MP4 akan langsung memberikan file video sumber berkualitas HD yang bersih tanpa lapisan watermark, dilengkapi pemutar pratinjau langsung, opsi ekstraksi musik asli MP3 atau M4A, serta unduhan slideshow foto dalam arsip .ZIP."
         },
         {
           "question": "Apakah tautan pendek vm.tiktok.com bisa digunakan?",
@@ -347,7 +347,7 @@
       "faqs": [
         {
           "question": "Bisakah saya mengunduh semua slide dari karusel Instagram?",
-          "answer": "Ya, saat menganalisis tautan karusel publik, VIDNEX menampilkan setiap foto dan video secara individual lengkap dengan tombol unduhnya."
+          "answer": "Ya, saat menganalisis tautan karusel publik Instagram, VIDNEX menampilkan kisi pemilihan interaktif dengan kotak centang individual dan penghitung jumlah item. Anda dapat melihat pratinjau setiap foto JPG maupun video MP4, menyimpan slide satu per satu, atau menggabungkan seluruh slide terpilih ke dalam satu arsip .ZIP langsung di browser Anda."
         },
         {
           "question": "Mengapa beberapa Reels gagal diambil dan meminta login?",
@@ -425,7 +425,7 @@
         },
         {
           "question": "Bagaimana cara memilih kualitas video Twitter tertinggi?",
-          "answer": "Setelah analisis selesai, daftar unduhan MP4 diurutkan dari resolusi tertinggi ke terendah; opsi paling atas adalah kualitas terbaik."
+          "answer": "Setelah menganalisis tautan tweet publik dari x.com, twitter.com, atau tautan pendek t.co, VIDNEX menyaring daftar streaming tersegmen dan mengurutkan semua file MP4 progresif dari bitrate tertinggi ke terendah. Tombol utama mengunduh kualitas terbaik (1080p atau 720p) lengkap dengan pratinjau video, atau pilih ukuran yang lebih hemat kuota."
         },
         {
           "question": "Mengapa GIF Twitter diunduh sebagai file MP4?",
@@ -495,7 +495,7 @@
       "faqs": [
         {
           "question": "Mengapa sebagian video Facebook hanya menampilkan kualitas SD?",
-          "answer": "Hal itu bergantung pada resolusi video asli yang diunggah pembuatnya; jika tidak tersedia aliran HD progresif publik, maka versi SD yang ditampilkan."
+          "answer": "Saat memeriksa tautan video publik Facebook Watch, Reels, atau fb.watch, mesin VIDNEX mengekstrak aliran video MP4 progresif bersuara dalam resolusi tinggi (HD 720p atau 1080p) maupun standar (SD) lengkap dengan pemutar pratinjau langsung; apabila pembuat aslinya tidak mengunggah versi HD, maka versi SD otomatis disediakan."
         },
         {
           "question": "Apakah tautan pendek fb.watch dan /share/v/ didukung?",
@@ -569,7 +569,7 @@
       "faqs": [
         {
           "question": "Bisakah saya mengunduh foto dari profil LinkedIn yang diprivat?",
-          "answer": "Tidak. Jika pemilik akun membatasi visibilitas foto profilnya hanya untuk pengguna yang login atau koneksi, atau jika LinkedIn memblokir akses anonim, VIDNEX tidak dapat mengambil foto tersebut dan tidak pernah melewati batasan privasi."
+          "answer": "Tidak. Jika pemilik akun membatasi visibilitas foto profilnya hanya untuk pengguna yang login atau jika LinkedIn menampilkan halaman login, VIDNEX tidak pernah melewati batasan privasi tersebut; sebagai gantinya tersedia kotak impor gambar manual 100% lokal lewat seret dan lepas untuk memvalidasi, melihat pratinjau, dan menyimpan file di browser."
         },
         {
           "question": "Apakah halaman perusahaan atau postingan video LinkedIn didukung?",

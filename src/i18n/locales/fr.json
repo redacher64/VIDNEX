@@ -282,7 +282,7 @@
         },
         {
           "question": "Que se passe-t-il si je colle un lien TikTok contenant plusieurs photos ?",
-          "answer": "VIDNEX reconnaît automatiquement le mode diaporama (Photo Mode) et affiche chaque photo séparément, un bouton pour télécharger toutes les images en .ZIP ainsi que la piste audio associée."
+          "answer": "VIDNEX reconnaît automatiquement le mode diaporama (Photo Mode) public de TikTok et affiche une grille de sélection interactive avec cases à cocher. Vous pouvez prévisualiser chaque diapositive JPG haute résolution, télécharger uniquement les photos choisies à l’unité, regrouper l’ensemble en une archive .ZIP ou extraire la piste audio MP3 originale."
         },
         {
           "question": "Pourquoi la qualité affichée dépend-elle de la vidéo d'origine ?",
@@ -349,7 +349,7 @@
       "faqs": [
         {
           "question": "Puis-je télécharger toutes les photos d'un carrousel Instagram d'un seul coup ?",
-          "answer": "Oui. Dès qu'une publication comporte plusieurs images ou vidéos, VIDNEX affiche chaque diapositive ainsi qu'un bouton « Tout télécharger (.ZIP) » qui assemble l'archive directement dans votre navigateur."
+          "answer": "Oui. Dès qu’une publication publique Instagram comporte plusieurs photos ou vidéos, VIDNEX affiche une grille de sélection avec cases à cocher et compteur d’éléments. Vous pouvez prévisualiser chaque média MP4 ou JPG, télécharger une diapositive à l’unité ou assembler toute votre sélection dans une archive .ZIP directement dans votre navigateur."
         },
         {
           "question": "Faut-il se connecter à son compte Instagram sur VIDNEX ?",
@@ -432,7 +432,7 @@
         },
         {
           "question": "Comment choisir entre 720p, 1080p ou une résolution inférieure ?",
-          "answer": "Après l'analyse du tweet, le bouton principal propose la meilleure qualité disponible, tandis que les boutons secondaires situés juste en dessous vous permettent de télécharger les résolutions alternatives."
+          "answer": "Après l’analyse d’une publication publique x.com, twitter.com ou t.co, VIDNEX trie automatiquement les flux progressifs MP4 du débit binaire le plus élevé au plus léger. Le bouton principal télécharge la meilleure résolution (1080p ou 720p), tandis que les boutons secondaires permettent de choisir une version plus légère ou d’ouvrir l’aperçu vidéo."
         },
         {
           "question": "Pourquoi certains tweets contenant du texte renvoient-ils une erreur ?",
@@ -503,7 +503,7 @@
         },
         {
           "question": "Quelle est la différence entre les boutons HD et SD sur Facebook ?",
-          "answer": "La version HD correspond au flux haute définition (généralement 720p ou 1080p) fourni par Facebook, tandis que la version SD offre une résolution standard plus rapide à télécharger sur une connexion mobile limitée."
+          "answer": "Lorsque vous collez un lien public Facebook Watch, Reel ou fb.watch, VIDNEX extrait simultanément les deux pistes MP4 natives avec son : la version HD offre la meilleure définition (720p ou 1080p) avec lecteur d’aperçu intégré, tandis que la version SD fournit un fichier plus compact idéal sur réseau mobile."
         },
         {
           "question": "Les liens courts fb.watch et /share/v/ sont-ils pris en charge ?",
@@ -573,7 +573,7 @@
       "faqs": [
         {
           "question": "Puis-je télécharger la photo d’un profil LinkedIn privé ou masqué ?",
-          "answer": "Non. Si le membre a restreint la visibilité de sa photo aux utilisateurs connectés ou à son réseau, ou si LinkedIn impose un mur de connexion, VIDNEX ne peut pas récupérer l’image et ne tente jamais de contourner cette protection."
+          "answer": "Non. Si le membre restreint la visibilité de sa photo aux utilisateurs connectés ou si LinkedIn affiche un mur de connexion, VIDNEX ne contourne jamais cette protection. Vous disposez toutefois d’un module d’import manuel 100 % local par glisser-déposer permettant de vérifier, prévisualiser et enregistrer une image dans votre navigateur."
         },
         {
           "question": "Les pages entreprises, les vidéos ou les posts LinkedIn sont-ils acceptés ?",
@@ -595,13 +595,14 @@
       "metaDescription": "Découvrez le fonctionnement technique de VIDNEX, notre architecture web sans stockage de fichiers et nos engagements de transparence.",
       "h1": "À propos de VIDNEX",
       "breadcrumbLabel": "À propos",
-      "updatedAt": "15 novembre 2026",
-      "intro": "VIDNEX est un utilitaire web gratuit, sans inscription ni compte, conçu pour enregistrer uniquement les médias publics partagés sur TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn.",
+      "updatedAt": "20 novembre 2026",
+      "intro": "VIDNEX est un utilitaire web gratuit, sans inscription ni compte, conçu pour enregistrer uniquement les médias publics partagés sur TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn, complété par un outil local de découpe d’image en grille (/tools/split-image).",
       "sections": [
         {
           "heading": "Périmètre vérifié et formats pris en charge",
           "paragraphs": [
-            "VIDNEX agit comme un résolveur de métadonnées publiques à la demande directement dans le navigateur (iPhone, Android, Mac et PC) : vidéos TikTok publiques en MP4 (sans filigrane lorsque la piste source le permet), audio MP3 ou M4A/AAC et diaporamas photos ; Reels Instagram publics, publications /p/ (photo, vidéo ou carrousel) et photos de profil publiques ; vidéos X (Twitter), GIFs convertis en MP4 et photos de tweets publics ; vidéos et Reels Facebook publics en MP4 HD/SD ; ainsi que les photos de profil publiques LinkedIn en JPG.",
+            "VIDNEX agit comme un résolveur de métadonnées publiques à la demande directement dans le navigateur (iPhone, Android, Mac et PC) : vidéos TikTok publiques en MP4 (sans filigrane lorsque la piste source le permet), audio MP3 ou M4A/AAC et diaporamas photos avec sélection .ZIP ; Reels Instagram publics, publications /p/ (photo, vidéo ou carrousel multi-slides avec sélection par cases à cocher et archive .ZIP), Stories publiques et photos de profil publiques ; vidéos X (Twitter), GIFs convertis en MP4 et photos de tweets publics ; vidéos, Stories publiques et Reels Facebook publics en MP4 HD/SD ; ainsi que les photos de profil publiques LinkedIn en JPG avec module d’import manuel local en cas de mur de connexion.",
+            "En complément, VIDNEX intègre l’outil créateur Découper une image (/tools/split-image), fonctionnant à 100 % côté navigateur via HTML5 Canvas et JSZip (grilles 2×2, 3×3, 1×3, 3×1 et personnalisées, option Ordre Instagram, export PNG ou JPG et téléchargement .ZIP sans aucun upload serveur).",
             "Exclusions techniques strictes : VIDNEX ne prend pas en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication nécessitant une authentification."
           ]
         },

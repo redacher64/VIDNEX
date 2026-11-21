@@ -282,7 +282,7 @@
         },
         {
           "question": "What happens when I paste a TikTok Photo Mode slideshow link?",
-          "answer": "VIDNEX automatically switches to carousel view, allowing you to save each photo individually, download all slides as a .ZIP file, or save the background audio."
+          "answer": "VIDNEX automatically detects public TikTok Photo Mode slideshows and opens an interactive pre-download selection grid with checkboxes. You can preview every high-resolution JPG slide, download individual photos, bundle your selected slides into a single client-side .ZIP archive, or extract the original background MP3 or M4A audio track."
         },
         {
           "question": "Why does video resolution vary from one TikTok post to another?",
@@ -349,7 +349,7 @@
       "faqs": [
         {
           "question": "Can I download all photos and videos from an Instagram carousel at once?",
-          "answer": "Yes. Multi-slide Instagram posts include a 'Download All (.ZIP)' button that bundles every photo and video slide into a single archive."
+          "answer": "Yes. Whenever a public Instagram post contains multiple photo or video slides, VIDNEX displays an interactive selection grid with individual checkboxes and a live item counter. You can preview each MP4 or JPG item, save single slides separately, or bundle all selected media into one client-side .ZIP archive."
         },
         {
           "question": "Do I need to log in with my Instagram credentials?",
@@ -432,7 +432,7 @@
         },
         {
           "question": "Can I choose a lower resolution to save mobile data?",
-          "answer": "Yes. Whenever X provides multiple bitrates for a video, all available resolutions (such as 1080p, 720p, and 360p) are displayed as separate download buttons."
+          "answer": "Yes. Whenever X encodes multiple bitrates for a public video from x.com, twitter.com, or t.co, VIDNEX sorts every progressive MP4 stream from highest quality to lightest size. You can preview the video inline, download the primary 1080p or 720p stream, or select a compact 480p or 360p file."
         },
         {
           "question": "Why does an age-restricted tweet return an error?",
@@ -503,7 +503,7 @@
         },
         {
           "question": "What is the difference between the HD and SD download buttons?",
-          "answer": "HD delivers the highest-resolution MP4 stream (typically 720p or 1080p) encoded by Facebook, while SD provides a smaller standard-definition file that downloads faster on slower connections."
+          "answer": "When you paste a public Facebook Watch video, Reel, or fb.watch shortlink, VIDNEX extracts both native MP4 video streams with original audio. The HD button saves the highest-resolution 720p or 1080p stream with inline video preview, while the SD button downloads a smaller standard-definition file for mobile connections."
         },
         {
           "question": "Do fb.watch and /share/v/ links work?",
@@ -573,7 +573,7 @@
       "faqs": [
         {
           "question": "Can I download the profile picture of a private LinkedIn profile?",
-          "answer": "No. If the profile owner restricts their photo to logged-in members or connections, or if LinkedIn blocks anonymous access with a login wall, VIDNEX cannot retrieve the photo and never bypasses login restrictions."
+          "answer": "No. If the profile owner restricts photo visibility to logged-in members or if LinkedIn displays an authentication wall, VIDNEX never bypasses login protections. Instead, the result card provides a 100% browser-based manual image import box with binary signature verification so you can preview and save a local portrait file."
         },
         {
           "question": "Does this tool support LinkedIn company pages, videos, or posts?",
@@ -595,13 +595,14 @@
       "metaDescription": "Learn how VIDNEX resolves public videos across TikTok, Instagram, X, and Facebook using a stateless web architecture with zero file storage.",
       "h1": "About VIDNEX",
       "breadcrumbLabel": "About Us",
-      "updatedAt": "November 15, 2026",
-      "intro": "VIDNEX is a free, browser-based web utility requiring no registration or account, built to save strictly public media from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures.",
+      "updatedAt": "November 20, 2026",
+      "intro": "VIDNEX is a free, browser-based web utility requiring no registration or account, built to save strictly public media from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures, alongside a 100% client-side Split Image grid maker (/en/tools/split-image).",
       "sections": [
         {
           "heading": "Verified scope and supported formats",
           "paragraphs": [
-            "VIDNEX operates as an on-demand public metadata resolver across iPhone, Android, Mac, and PC browsers: public TikTok MP4 videos (without watermark when available), MP3 or M4A/AAC audio tracks, and photo slideshows; public Instagram Reels, /p/ posts (photo, video, or multi-slide carousel), and public profile pictures; public X (Twitter) videos, GIFs converted to MP4, and post photos; public Facebook HD/SD videos and Reels; and public LinkedIn profile pictures in original JPG.",
+            "VIDNEX operates as an on-demand public metadata resolver across iPhone, Android, Mac, and PC browsers: public TikTok MP4 videos (without watermark when available), MP3 or M4A/AAC audio tracks, and photo slideshows with .ZIP batch selection; public Instagram Reels, /p/ posts (photo, video, or multi-slide carousel with checkbox selection and .ZIP bundling), public Stories, and public profile pictures; public X (Twitter) videos, GIFs converted to MP4, and post photos; public Facebook HD/SD videos, public Stories, and Reels; and public LinkedIn profile pictures in original JPG with a local manual drag-and-drop import fallback when LinkedIn serves a login wall.",
+            "In addition, VIDNEX includes the 100% browser-based Split Image creator tool (/en/tools/split-image) powered by HTML5 Canvas and JSZip (2×2, 3×3 Instagram grid, 1×3 carousel, 3×1, and custom grids, reversed Instagram Order numbering, lossless PNG or adjustable JPG export, and one-click .ZIP download with zero server uploads).",
             "Strict technical exclusions: VIDNEX does not support YouTube, Snapchat, private accounts, private stories, or any login-restricted content."
           ]
         },
@@ -678,7 +679,7 @@
     },
     "contact": {
       "metaTitle": "Contact VIDNEX — Support & Compliance Inquiries",
-      "metaDescription": "Contact the VIDNEX team via email for technical questions, bug reports, or copyright compliance inquiries.",
+      "metaDescription": "Contact the VIDNEX technical and compliance support team by email for assistance, bug reports, creator blocklist requests, or legal inquiries.",
       "h1": "Contact Us",
       "breadcrumbLabel": "Contact",
       "updatedAt": "November 10, 2026",
@@ -693,12 +694,12 @@
         }
       ],
       "ogTitle": "Contact VIDNEX — Support & Compliance Inquiries",
-      "ogDescription": "Contact the VIDNEX team via email for technical questions, bug reports, or copyright compliance inquiries.",
+      "ogDescription": "Contact the VIDNEX technical and compliance support team by email for assistance, bug reports, creator blocklist requests, or legal inquiries.",
       "ogImageAlt": "Contact the VIDNEX technical and compliance support team"
     },
     "dmca": {
       "metaTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
-      "metaDescription": "Learn how copyright holders can request URL or domain blocking on VIDNEX through our DMCA compliance procedure.",
+      "metaDescription": "Review the VIDNEX Copyright and DMCA compliance policy to learn how rights holders can request immediate URL or creator domain blocklisting.",
       "h1": "Copyright & DMCA Policy",
       "breadcrumbLabel": "Copyright / DMCA",
       "updatedAt": "November 10, 2026",
@@ -719,7 +720,7 @@
         }
       ],
       "ogTitle": "Copyright & DMCA Notice Procedure | VIDNEX",
-      "ogDescription": "Learn how copyright holders can request URL or domain blocking on VIDNEX through our DMCA compliance procedure.",
+      "ogDescription": "Review the VIDNEX Copyright and DMCA compliance policy to learn how rights holders can request immediate URL or creator domain blocklisting.",
       "ogImageAlt": "VIDNEX Copyright and DMCA takedown request policy"
     }
   }

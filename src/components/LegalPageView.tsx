@@ -8,12 +8,15 @@ import {
   type SupportedLocale,
 } from '../i18n/config.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 
 interface LegalPageViewProps {
   legalKey: LegalPageKey;
   locale: SupportedLocale;
-  onNavigatePage: (pageKey: LegalPageKey | PlatformPageKey | 'home') => void;
+  onNavigatePage: (
+    pageKey: LegalPageKey | PlatformPageKey | 'split_image' | 'home'
+  ) => void;
 }
 
 export const LegalPageView: React.FC<LegalPageViewProps> = ({
@@ -35,6 +38,8 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
   }
 
   const homeHref = getLocalizedPagePath(locale, 'home');
+  const splitImageHref = getLocalizedPagePath(locale, 'split_image');
+  const splitImageData = getSplitImageContent(locale);
 
   return (
     <section className="w-full py-10 sm:py-14 bg-[#fffaf5] dark:bg-[#140e0a]">
@@ -124,12 +129,12 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
           </div>
         </article>
 
-        {/* Internal Links to the 4 Platform Tools */}
+        {/* Internal Links to the 5 Platform Tools + Split Image Tool */}
         <div className="mt-10">
           <h2 className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-4">
             {bundle.ui.footer.platformsTitle}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {PLATFORM_PAGE_KEYS.map((pKey) => {
               const pData = bundle.platforms[pKey];
               const pHref = getLocalizedPagePath(locale, pKey);
@@ -155,6 +160,24 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
                 </a>
               );
             })}
+            <a
+              href={splitImageHref}
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigatePage('split_image');
+              }}
+              className="p-4 rounded-2xl bg-white dark:bg-[#1c140e] border border-orange-200/80 dark:border-orange-900/60 hover:border-orange-500 transition-all flex items-center justify-between gap-2 group"
+            >
+              <span className="flex items-center gap-2 font-display text-sm font-bold text-[#1f130b] dark:text-[#fffaf5]">
+                <span className="text-orange-600 dark:text-amber-400 font-mono text-xs font-extrabold">
+                  ⊞
+                </span>
+                <span>{splitImageData.breadcrumbLabel}</span>
+              </span>
+              <span className="text-orange-600 dark:text-amber-400 font-mono text-xs font-bold rtl:rotate-180 transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
+            </a>
           </div>
         </div>
       </div>

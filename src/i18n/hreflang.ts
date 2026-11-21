@@ -147,7 +147,7 @@ export function buildBlogHreflangCluster(
     }));
     entries.push({
       hreflang: 'x-default',
-      href: getCanonicalUrl('/blog'),
+      href: getCanonicalUrl(getBlogHomePath('en')),
     });
     return entries;
   }
@@ -663,7 +663,7 @@ export function buildHeadMetadataForRoute(
         name: SITE_NAME,
         url: SITE_URL,
         description:
-          'VIDNEX is a free, browser-based web utility for saving strictly public media (MP4 video, MP3/M4A audio, and JPG photos) from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures without login or server-side file storage.',
+          'VIDNEX is a free, browser-based web utility for saving strictly public media (MP4 video, MP3/M4A audio, and JPG/PNG photos) from TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile pictures, plus a 100% client-side Split Image grid tool, without login or server-side file storage.',
         logo: buildAbsoluteUrl('/logo.png'),
       },
       {
@@ -737,6 +737,7 @@ export function buildHeadMetadataForRoute(
         operatingSystem: 'All',
         description,
         image: ogImage,
+        featureList: p.editorial.formatsList,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -846,6 +847,7 @@ export function buildHeadMetadataForRoute(
         operatingSystem: 'All',
         description,
         image: ogImage,
+        featureList: s.editorial.formatsList,
         offers: {
           '@type': 'Offer',
           price: '0',

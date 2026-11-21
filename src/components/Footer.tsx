@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  getBlogNavLabel,
   getLocalizedPagePath,
   LEGAL_PAGE_KEYS,
   type LegalPageKey,
@@ -10,12 +11,21 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from '../i18n/config.ts';
+import {
+  BLOG_HUB_LOCALES,
+  getBlogHomePath,
+  getPublishedArticleBySlug,
+  getPublishedArticleTranslations,
+  isBlogHubLocale,
+  type BlogLocale,
+} from '../data/blogArticles.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 
 interface FooterProps {
   activePageKey: PageKey | 'blog_article' | 'not_found';
+  blogSlug?: string | null;
   onNavigatePage: (pageKey: PageKey) => void;
   language: SupportedLocale;
   onSelectLanguage: (lang: SupportedLocale) => void;
@@ -23,6 +33,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({
   activePageKey,
+  blogSlug,
   onNavigatePage,
   language,
   onSelectLanguage,
@@ -37,6 +48,41 @@ export const Footer: React.FC<FooterProps> = ({
       : activePageKey === 'blog_article'
       ? 'blog'
       : activePageKey;
+
+  const availableLanguageOptions: Array<{
+    code: SupportedLocale;
+    href: string;
+  }> = (() => {
+    if (activePageKey === 'blog') {
+      return BLOG_HUB_LOCALES.map((loc) => ({
+        code: loc,
+        href: getBlogHomePath(loc),
+      }));
+    }
+    if (activePageKey === 'blog_article') {
+      const blogLoc: BlogLocale = isBlogHubLocale(language) ? language : 'en';
+      const resolved = blogSlug
+        ? getPublishedArticleBySlug(blogLoc, blogSlug)
+        : null;
+      const translations = resolved
+        ? getPublishedArticleTranslations(resolved.article.id)
+        : [];
+      if (translations.length > 0) {
+        return translations.map((item) => ({
+          code: item.locale,
+          href: item.canonicalPath,
+        }));
+      }
+      return BLOG_HUB_LOCALES.map((loc) => ({
+        code: loc,
+        href: getBlogHomePath(loc),
+      }));
+    }
+    return SUPPORTED_LOCALES.map((code) => ({
+      code,
+      href: getLocalizedPagePath(code, pageForLangSwitch),
+    }));
+  })();
 
   const homeHref = getLocalizedPagePath(language, 'home');
   const splitImageHref = getLocalizedPagePath(language, 'split_image');
@@ -147,7 +193,7 @@ export const Footer: React.FC<FooterProps> = ({
                       : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
                   }`}
                 >
-                  Blog
+                  {getBlogNavLabel(language)}
                 </a>
               </li>
               {LEGAL_PAGE_KEYS.map((lKey: LegalPageKey) => {
@@ -178,9 +224,8 @@ export const Footer: React.FC<FooterProps> = ({
               {f.languagesTitle}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
-              {SUPPORTED_LOCALES.map((code) => {
+              {availableLanguageOptions.map(({ code, href }) => {
                 const meta = LOCALES_CONFIG[code];
-                const href = getLocalizedPagePath(code, pageForLangSwitch);
                 const isCurrent = code === language;
                 return (
                   <a

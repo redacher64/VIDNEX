@@ -273,7 +273,7 @@
       "faqs": [
         {
           "question": "Wie lade ich ein TikTok-Video ohne Wasserzeichen herunter?",
-          "answer": "Nach dem Einfügen eines öffentlichen Links stellt VIDNEX direkt die ursprüngliche MP4-Videodatei bereit, die kein überlagertes Wasserzeichen enthält."
+          "answer": "Nach dem Einfügen eines öffentlichen TikTok-Links oder eines kurzen vm.tiktok.com-Links stellt VIDNEX direkt die ursprüngliche MP4-Videodatei in HD ohne überlagertes Wasserzeichen bereit. Zusätzlich können Sie das Video direkt im Browser ansehen, die originale MP3- oder M4A-Audiospur extrahieren oder Foto-Slideshows über eine Auswahlmaske als komplettes .ZIP-Archiv herunterladen."
         },
         {
           "question": "Funktionieren auch kurze Links wie vm.tiktok.com?",
@@ -347,7 +347,7 @@
       "faqs": [
         {
           "question": "Kann ich mehrere Videos aus einem Instagram-Karussell herunterladen?",
-          "answer": "Ja, bei öffentlichen Karussell-Beiträgen zeigt VIDNEX alle enthaltenen Fotos und Videos einzeln zum Herunterladen an."
+          "answer": "Ja, bei öffentlichen Instagram-Karussell-Beiträgen öffnet VIDNEX eine interaktive Auswahl-Oberfläche mit einzelnen Kontrollkästchen, Zähler und Direktvorschau. Sie können jedes enthaltene JPG-Foto oder MP4-Video einzeln speichern oder alle ausgewählten Medien mit einem Klick direkt in Ihrem Browser zu einem praktischen .ZIP-Archiv bündeln und herunterladen."
         },
         {
           "question": "Warum lassen sich manche Reels nicht abrufen?",
@@ -425,7 +425,7 @@
         },
         {
           "question": "Wie wähle ich die beste Videoqualität bei Twitter aus?",
-          "answer": "Die gefundenen MP4-Streams werden absteigend nach Auflösung sortiert; der erste Eintrag bietet die höchste verfügbare Qualität."
+          "answer": "Nach der Analyse eines öffentlichen Links von x.com, twitter.com oder eines kurzen t.co-Links sortiert VIDNEX alle progressiven MP4-Videostreams absteigend nach Bitrate und Auflösung. Über die Hauptschaltfläche laden Sie die höchste Qualität (1080p oder 720p) mit integrierter Videovorschau herunter, während darunter kompaktere Auflösungen bereitstehen."
         },
         {
           "question": "Warum werden Twitter-GIFs als MP4-Datei heruntergeladen?",
@@ -495,7 +495,7 @@
       "faqs": [
         {
           "question": "Warum wird bei manchen Facebook-Videos nur SD angezeigt?",
-          "answer": "Das hängt von der Auflösung des hochgeladenen Originalvideos ab. Wenn kein öffentlicher progressiver HD-Stream vorliegt, wird die SD-Version bereitgestellt."
+          "answer": "Beim Analysieren eines öffentlichen Facebook-Watch-Videos, eines Reels oder eines kurzen fb.watch-Links liest VIDNEX gleichzeitig den hochauflösenden HD-Stream (720p oder 1080p) sowie den kompakten SD-Stream als MP4 mit Originalton und Vorschau-Player aus; liegt auf dem Quellserver kein HD-Stream vor, wird automatisch die SD-Version angeboten."
         },
         {
           "question": "Werden fb.watch- und /share/v/-Links unterstützt?",
@@ -569,7 +569,7 @@
       "faqs": [
         {
           "question": "Kann ich das Profilbild eines privaten LinkedIn-Kontos herunterladen?",
-          "answer": "Nein. Wenn ein Mitglied sein Foto nur für Kontakte oder angemeldete Nutzer freigibt oder LinkedIn eine Anmeldeseite anzeigt, kann VIDNEX das Bild nicht abrufen und umgeht niemals Zugangsbeschränkungen."
+          "answer": "Nein. Wenn ein Mitglied sein Foto nur für angemeldete Nutzer freigibt oder LinkedIn eine Anmeldesperre anzeigt, umgeht VIDNEX diese Schutzmechanismen niemals. Stattdessen steht Ihnen im Ergebnisfenster ein zu 100 % lokales Drag-and-Drop-Importfeld zur Verfügung, mit dem Sie eine eigene Bilddatei im Browser prüfen und speichern können."
         },
         {
           "question": "Werden LinkedIn-Unternehmensseiten oder Beiträge unterstützt?",

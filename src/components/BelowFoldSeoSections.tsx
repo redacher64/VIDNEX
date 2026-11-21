@@ -27,7 +27,7 @@ const PILLAR_BLOG_ARTICLE_IDS: Partial<Record<PlatformPageKey, string>> = {
   tiktok: 'save-public-tiktok-videos-without-watermark-guide',
   instagram: 'download-public-instagram-reels-carousels-guide',
   x: 'download-public-x-twitter-videos-gifs-mp4-guide',
-  facebook: 'facebook-video-downloader-not-working',
+  facebook: 'download-public-facebook-videos-reels-hd-sd-guide',
 };
 
 const PRACTICAL_GUIDE_LABELS: Record<SupportedLocale, string> = {

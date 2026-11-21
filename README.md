@@ -44,7 +44,7 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 ## 2. Stack et architecture
 
 ### Stack technique
-- **Frontend** : React `19.2`, TypeScript `5.8`, Vite `6.2`, Tailwind CSS `4.1` (`@tailwindcss/vite`).
+- **Frontend** : React `19.2`, TypeScript `5.8`, Vite `6.2`, Tailwind CSS `4.1` (`@tailwindcss/vite`), HTML5 Canvas & `jszip` (pour l'outil local `/tools/split-image`).
 - **Icônes & Graphiques** : `lucide-react` (interface publique) et `recharts` (chargé uniquement en *lazy-loading* dans le bundle `/admin`).
 - **Backend Edge** : Cloudflare Pages Functions (`functions/`) et point d'entrée unifié Cloudflare Workers Static Assets (`worker.ts`).
 - **Base de données Edge** : Cloudflare D1 (SQLite distribué, binding `DB`, base `vidnex-db`).
@@ -213,7 +213,8 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   │   ├── MediaPreviewModal.tsx# Modale de prévisualisation vidéo/image/audio
 │   │   ├── PlatformIcons.tsx    # Icônes SVG vectorielles des 5 plateformes (TikTok, Instagram, X, Facebook, LinkedIn)
 │   │   ├── ResultCard.tsx       # Carte de résultat d'extraction (miniature, auteur, sélecteur de qualité, carrousel)
-│   │   └── SeoHead.tsx          # Synchronisation dynamique du <head> lors de la navigation SPA
+│   │   ├── SeoHead.tsx          # Synchronisation dynamique du <head> lors de la navigation SPA
+│   │   └── SplitImageToolView.tsx # Outil « Découper une image » (/tools/split-image) 100 % côté navigateur (Canvas + JSZip)
 │   ├── i18n/                    # Système d'internationalisation (10 langues)
 │   │   ├── config.ts            # Configuration des langues, table des slugs localisés et résolveur de routes
 │   │   ├── index.ts             # Hook et utilitaires de traduction
@@ -231,8 +232,9 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   ├── services/
 │   │   └── extractorService.ts  # Client HTTP frontend appelant /api/extract et construisant les liens /api/download
 │   └── utils/
+│       ├── splitImageLogic.ts   # Logique pure de découpe d'image (grilles, ordre Instagram, limite 8000 px, JSZip, i18n 10 langues)
 │       ├── urlDetector.ts       # Détection et validation d'URL côté client (miroir de functions/_lib/detect.ts)
-│       └── urlDetector.test.ts  # Suite de tests unitaires du détecteur d'URL
+│       └── urlDetector.test.ts  # Suite de tests unitaires du détecteur d'URL et des outils
 │
 └── tests/                       # Tests unitaires backend
     └── linkedin.test.ts         # Tests unitaires de détection, parsing HTML et allowlist LinkedIn
@@ -405,6 +407,17 @@ Le fichier `functions/api/download.ts` agit comme un proxy de streaming direct (
 
 ---
 
+### 4.6 Outil « Découper une image » (`/tools/split-image`)
+
+L'outil **Découper une image** (`src/components/SplitImageToolView.tsx` et `src/utils/splitImageLogic.ts`) fonctionne **100 % côté navigateur** via l'API **HTML5 Canvas** et **JSZip**, sans aucune requête API ni aucun upload serveur :
+1. **Import & sécurité mémoire (limite 8000 px)** : Accepte les images `JPG`, `PNG` et `WebP` par glisser-déposer ou sélecteur de fichier. Si la largeur ou la hauteur dépasse `8000 px`, `computeDownscaledDimensions` réduit automatiquement l'image proportionnellement afin que son plus grand côté mesure `8000 px`.
+2. **Grilles prédéfinies & personnalisées** : Choix immédiat entre `2×2`, `3×3` (mosaïque profil Instagram), `1×3` (carrousel horizontal), `3×1` (vertical) et grille personnalisée (`lignes × colonnes`, de 1 à 10).
+3. **Aperçu interactif & Ordre Instagram** : Affiche l'image avec les lignes de découpe et les badges numérotés `1, 2, 3...`. L'interrupteur **« Ordre Instagram »** inverse la numérotation (`N` jusqu'à `1`, de bas-droite à haut-gauche) pour permettre de publier les images dans l'ordre exact d'une grille de profil Instagram.
+4. **Formats de sortie & Téléchargement ZIP** : Export en `PNG` (sans perte) ou `JPG` avec curseur de qualité réglable (`10 %` à `100 %`). Téléchargement individuel de chaque tuile (`image-1`, `image-2`...) ou téléchargement groupé **« Tout télécharger (ZIP) »** assemblé localement avec `JSZip`.
+5. **Monétisation Adsterra / AdSense autour de l'outil** : Réutilise `AdSlot.tsx` et `adsterraConfig.ts` (au-dessus, en dessous et en rails latéraux desktop `≥ 1280px`), sans jamais chevaucher l'aperçu ni les boutons de téléchargement, et en respectant les interrupteurs `/admin` (`ads_adsterra_enabled`, `ads_enabled`).
+
+---
+
 ## 5. Internationalisation (i18n)
 
 ### 5.1 Les 10 langues supportées (`src/i18n/config.ts`)
@@ -450,30 +463,31 @@ Les slugs des 5 pages plateformes sont traduits nativement pour les 8 langues à
 
 ## 6. Référencement naturel (SEO) et Performance
 
-### 6.1 Prérendu statique (75 routes publiques)
+### 6.1 Prérendu statique (85 routes principales + 15 routes Blog = 100 routes indexables)
 Lors de `npm run build`, le script `scripts/prerender.mjs` génère un fichier `index.html` complet par route dans `dist/` :
-- **60 routes principales avec `hreflang`** : 1 page d'accueil + 5 pages plateformes × 10 langues = **60 pages**.
+- **70 routes principales et outils avec `hreflang`** : (1 page d'accueil + 5 pages plateformes + 1 outil `/tools/split-image`) × 10 langues = **70 pages**.
 - **15 routes légales** : 5 pages légales × 3 langues (`fr`, `en`, `ar`) = **15 pages**.
+- **15 routes Blog** : 2 hubs (`/blog`, `/fr/blog`) + 13 articles publiés (7 EN + 6 FR) = **15 pages**.
 - **1 page `dist/404.html`** : Page d'erreur 404 autonome avec `<meta name="robots" content="noindex, nofollow">`.
 
 Chaque page prérendue contient directement dans son HTML statique :
-- Les balises `<html lang="..." dir="...">`, `<title>` (≤ 60 caractères) et `<meta name="description">` (90 à 160 caractères).
-- Le contenu visible complet dans `<div id="root">` (H1, formulaire, étapes, cartes plateformes, texte éditorial natif de 150 à 250+ mots sur chaque page plateforme, accordéons FAQ et liens internes vers les autres plateformes).
+- Les balises `<html lang="..." dir="...">`, `<title>` (≤ 60 caractères) et `<meta name="description">` (90 à 150 caractères).
+- Le contenu visible complet dans `<div id="root">` (H1, formulaire ou outil interactif, étapes, cartes plateformes, texte éditorial natif, accordéons FAQ et liens internes).
 
 ### 6.2 Balises `hreflang` réciproques et `canonical`
-- Chacune des 60 pages principales inclut sa balise `<link rel="canonical" href="https://vidnex.space...">` ainsi que **11 balises `<link rel="alternate" hreflang="...">`** pointant vers les 10 langues (`fr`, `en`, `ar`, `es`, `pt`, `de`, `tr`, `id`, `it`, `ru`) et `x-default` (pointant vers la version française à la racine).
-- Les 15 pages légales possèdent leur `<link rel="canonical">` propre sans groupe `hreflang` incomplet.
+- Chacune des 70 pages principales et outils (dont `/tools/split-image` et `/{locale}/tools/split-image`) inclut sa balise `<link rel="canonical" href="https://vidnex.space...">` ainsi que **11 balises `<link rel="alternate" hreflang="...">`** pointant vers les 10 langues (`fr`, `en`, `ar`, `es`, `pt`, `de`, `tr`, `id`, `it`, `ru`) et `x-default` (pointant vers la version anglaise `/en/...`).
+- Les 15 pages légales possèdent leur `<link rel="canonical">` propre et leur grappe `hreflang` réciproque (`fr`, `en`, `ar` + `x-default`).
 
 ### 6.3 `sitemap.xml`, `robots.txt` et `llms.txt`
-- `public/sitemap.xml` (et `dist/sitemap.xml`) est régénéré automatiquement à chaque build avec les 75 URLs canoniques, leurs priorités (`1.0` à `0.5`), `lastmod` et les grappes `xhtml:link rel="alternate" hreflang="..."`.
-- `public/robots.txt` autorise tous les robots (`User-agent: *`, `Allow: /`), bloque `/admin` et `/api/`, et référence `Sitemap: https://vidnex.space/sitemap.xml`.
-- `public/llms.txt` expose un résumé Markdown structuré de VIDNEX, de ses 5 plateformes, de ses pages légales et de ses 10 langues pour les moteurs de recherche IA.
+- `public/sitemap.xml` (et `dist/sitemap.xml`) est régénéré automatiquement à chaque build avec les 100 URLs canoniques (incluant `/tools/split-image` dans les 10 langues), leurs priorités (`1.0` à `0.5`), `lastmod` et les grappes `xhtml:link rel="alternate" hreflang="..."`.
+- `public/robots.txt` autorise tous les robots (`User-agent: *`, `Allow: /`, ce qui autorise `/tools/split-image` et `/{locale}/tools/split-image`), bloque `/admin` et `/api/`, et référence `Sitemap: https://vidnex.space/sitemap.xml`.
+- `public/llms.txt` expose un résumé Markdown structuré de VIDNEX, de ses 5 plateformes, de l'outil local Découper une image (`/tools/split-image`), de ses guides blog, de ses pages légales et de ses 10 langues pour les moteurs de recherche IA.
 
 ### 6.4 Données structurées JSON-LD (`Schema.org`)
 Chaque page injecte un graphe `@graph` JSON-LD adapté :
 - **Accueil** : `WebSite`, `Organization`, `WebApplication` et `FAQPage` (6 questions/réponses).
-- **Pages plateformes** : `WebSite`, `Organization`, `WebApplication` (spécifique à la plateforme), `BreadcrumbList` (Accueil -> Plateforme) et `FAQPage` (5 questions/réponses spécifiques à la plateforme, y compris les règles de confidentialité sur les photos de profil publiques LinkedIn).
-- **Pages légales** : `WebSite`, `Organization`, `WebPage` et `BreadcrumbList`.
+- **Pages plateformes & Outil `/tools/split-image`** : `WebApplication`, `HowTo`, `BreadcrumbList` (Accueil -> Outil) et `FAQPage`.
+- **Pages légales** : `WebPage` et `BreadcrumbList`.
 
 ### 6.5 Images OpenGraph (`public/og/`)
 - Générées via `scripts/generate-og.mjs` au format `1200×630` pixels en JPEG optimisé (< 300 Ko) avec un hash de contenu dans le nom de fichier (`public/og/manifest.json`) pour éviter les problèmes de cache sur les réseaux sociaux :

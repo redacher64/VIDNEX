@@ -29,7 +29,12 @@ export type PlatformPageKey =
 
 export type LegalPageKey = 'about' | 'privacy' | 'terms' | 'contact' | 'dmca';
 
-export type PageKey = 'home' | PlatformPageKey | LegalPageKey | 'blog';
+export type PageKey =
+  | 'home'
+  | PlatformPageKey
+  | LegalPageKey
+  | 'blog'
+  | 'split_image';
 export type RoutePageKey = PageKey | 'blog_article';
 
 import {
@@ -380,6 +385,10 @@ export function getLocalizedPagePath(
     return def.prefix || '/';
   }
 
+  if (pageKey === 'split_image') {
+    return `${def.prefix}/tools/split-image`;
+  }
+
   if (pageKey === 'blog') {
     return getBlogHomePath(locale);
   }
@@ -418,7 +427,7 @@ export interface ResolvedRoute {
 }
 
 /**
- * Résout un pathname URL vers sa langue, son type de page (home, platform, legal, blog, blog_article, admin)
+ * Résout un pathname URL vers sa langue, son type de page (home, platform, legal, blog, blog_article, split_image, admin)
  * ou signale `isValidRoute: false` / `isNotFound: true` (pour renvoyer un vrai 404).
  */
 export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
@@ -453,6 +462,20 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
       platformKey: null,
       legalKey: null,
       canonicalPath: '/admin',
+    };
+  }
+
+  // 2a. Route /tools/split-image => Outil Découper une image en français (langue par défaut)
+  if (first === 'tools' && segments.length === 2 && segments[1] === 'split-image') {
+    return {
+      isValidRoute: true,
+      isNotFound: false,
+      isAdmin: false,
+      locale: DEFAULT_LOCALE,
+      pageKey: 'split_image',
+      platformKey: null,
+      legalKey: null,
+      canonicalPath: '/tools/split-image',
     };
   }
 
@@ -516,6 +539,24 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         platformKey: null,
         legalKey: null,
         canonicalPath: `/${locale}`,
+      };
+    }
+
+    // Outil /tools/split-image sous préfixe de langue (ex: /en/tools/split-image)
+    if (
+      segments.length === 3 &&
+      segments[1] === 'tools' &&
+      segments[2] === 'split-image'
+    ) {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale,
+        pageKey: 'split_image',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: getLocalizedPagePath(locale, 'split_image'),
       };
     }
 
@@ -633,6 +674,24 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
 
   // Support de /fr/blog, /fr/blog/{slug} et d'un ancien lien /fr ou /fr/...
   if (first === 'fr') {
+    if (
+      segments.length === 3 &&
+      segments[1] === 'tools' &&
+      segments[2] === 'split-image'
+    ) {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale: 'fr',
+        pageKey: 'split_image',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: '/tools/split-image',
+        isLegacyAlias: true,
+      };
+    }
+
     if (segments[1] === 'blog') {
       if (segments.length === 2) {
         return {
@@ -798,7 +857,7 @@ export interface PublicRouteEntry {
 export function getAllPublicRoutes(): PublicRouteEntry[] {
   const routes: PublicRouteEntry[] = [];
 
-  // 1. Accueil + 5 pages plateformes pour chacune des 10 langues (60 routes)
+  // 1. Accueil + 5 pages plateformes + 1 outil (split_image) pour chacune des 10 langues (70 routes)
   for (const code of SUPPORTED_LOCALES) {
     routes.push({
       path: getLocalizedPagePath(code, 'home'),
@@ -819,6 +878,15 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
         changefreq: 'weekly',
       });
     }
+
+    routes.push({
+      path: getLocalizedPagePath(code, 'split_image'),
+      locale: code,
+      pageKey: 'split_image',
+      hasHreflang: true,
+      priority: code === DEFAULT_LOCALE ? '0.9' : '0.8',
+      changefreq: 'weekly',
+    });
   }
 
   // 2. Pages légales (complètes en fr, en, ar, avec hreflang bidirectionnel = 15 routes)
@@ -877,7 +945,7 @@ export function getAllBlogPublicRoutes(): PublicRouteEntry[] {
 }
 
 /**
- * Retourne la totalité des routes indexables du site (75 routes principales + routes publiques du Blog).
+ * Retourne la totalité des routes indexables du site (85 routes principales + routes publiques du Blog).
  * Utilisé par scripts/prerender.mjs, sitemap.xml, scripts/verify-seo.mjs et scripts/check-og.mjs.
  */
 export function getAllIndexableRoutes(): PublicRouteEntry[] {
@@ -949,12 +1017,13 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   return [
     '# VIDNEX',
     '',
-    '> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.',
+    '> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn, ainsi que de découper des images en grille directement dans le navigateur. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.',
     '',
     '## Définition et périmètre technique (Verified Facts)',
     '',
-    '- **Nature du service** : Résolveur web de métadonnées publiques à la demande (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).',
+    '- **Nature du service** : Résolveur web de métadonnées publiques à la demande et boîte à outils créateurs 100 % côté navigateur (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).',
     '- **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).',
+    '- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`), traitement local HTML5 Canvas et JSZip sans aucun upload serveur.',
     '- **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.',
     '- **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.',
     '',
@@ -970,10 +1039,13 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '  - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.',
     `- **LinkedIn** — [FR: ${base}${getLocalizedPagePath('fr', 'linkedin')}](${base}${getLocalizedPagePath('fr', 'linkedin')}) | [EN: ${base}${getLocalizedPagePath('en', 'linkedin')}](${base}${getLocalizedPagePath('en', 'linkedin')})`,
     '  - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.',
+    `- **Découper une image (Split Image)** — [FR: ${base}${getLocalizedPagePath('fr', 'split_image')}](${base}${getLocalizedPagePath('fr', 'split_image')}) | [EN: ${base}${getLocalizedPagePath('en', 'split_image')}](${base}${getLocalizedPagePath('en', 'split_image')})`,
+    '  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, export PNG ou JPG (qualité réglable), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).',
     '',
     '## Pages principales et Informations légales',
     '',
     `- [Accueil VIDNEX (FR)](${base}/) | [VIDNEX Home (EN)](${base}/en)`,
+    `- [Découper une image (FR)](${base}/tools/split-image) | [Split Image Online (EN)](${base}/en/tools/split-image)`,
     `- [VIDNEX Editorial Blog (English)](${base}/blog)`,
     `- [Blog VIDNEX (Français)](${base}/fr/blog)`,
     `- [À propos (FR)](${base}${getLocalizedPagePath('fr', 'about')}) | [About Us (EN)](${base}${getLocalizedPagePath('en', 'about')}) | [من نحن (AR)](${base}${getLocalizedPagePath('ar', 'about')})`,

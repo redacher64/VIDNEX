@@ -11,6 +11,7 @@ import {
   type SupportedLocale,
 } from '../i18n/config.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 
 interface FooterProps {
@@ -28,6 +29,7 @@ export const Footer: React.FC<FooterProps> = ({
 }) => {
   const bundle = getLocaleBundleSync(language);
   const f = bundle.ui.footer;
+  const splitCopy = getSplitImageContent(language);
 
   const pageForLangSwitch: PageKey =
     activePageKey === 'not_found'
@@ -37,6 +39,8 @@ export const Footer: React.FC<FooterProps> = ({
       : activePageKey;
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const splitImageHref = getLocalizedPagePath(language, 'split_image');
+  const isSplitImageActive = activePageKey === 'split_image';
   const blogHref = getLocalizedPagePath(language, 'blog');
   const isBlogActive =
     activePageKey === 'blog' || activePageKey === 'blog_article';
@@ -109,6 +113,21 @@ export const Footer: React.FC<FooterProps> = ({
                   </li>
                 );
               })}
+              <li>
+                <a
+                  href={splitImageHref}
+                  title={splitCopy.h1}
+                  data-testid="footer-split-image"
+                  onClick={(e) => handlePageClick(e, 'split_image')}
+                  className={`min-h-[40px] inline-flex items-center gap-2 py-1 transition-colors ${
+                    isSplitImageActive
+                      ? 'text-orange-600 dark:text-amber-400 font-bold'
+                      : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
+                  }`}
+                >
+                  <span>{splitCopy.navLabel} — {splitCopy.breadcrumbLabel}</span>
+                </a>
+              </li>
             </ul>
           </div>
 

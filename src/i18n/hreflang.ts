@@ -43,6 +43,7 @@ import {
   type SupportedLocale,
 } from './config.ts';
 import { getLocaleBundleSync } from './localeLoader.ts';
+import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 
 export interface ShareUrls {
   canonicalUrl: string;
@@ -783,6 +784,115 @@ export function buildHeadMetadataForRoute(
             '@type': 'ListItem',
             position: 2,
             name: p.breadcrumbLabel,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ];
+
+    return {
+      lang: localeMeta.code,
+      dir: localeMeta.dir,
+      title,
+      description,
+      canonicalUrl,
+      robots: 'index, follow',
+      themeColor: THEME_COLOR,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
+      ogTitle,
+      ogDescription,
+      ogUrl: canonicalUrl,
+      ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
+      ogLocale,
+      ogLocaleAlternates,
+      twitterCard: 'summary_large_image',
+      twitterTitle: ogTitle,
+      twitterDescription: ogDescription,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
+      hreflangs,
+      jsonLdGraph: {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+      },
+    };
+  }
+
+  if (pageKey === 'split_image') {
+    const s = getSplitImageContent(locale);
+    const title = clampSocialText(s.metaTitle, 60);
+    const description = clampSocialText(s.metaDescription, 150);
+    const ogTitle = clampSocialText(s.ogTitle || s.metaTitle, 60);
+    const ogDescription = clampSocialText(
+      s.ogDescription || s.metaDescription,
+      150
+    );
+    const ogImageAlt = s.ogImageAlt || ogTitle;
+
+    const graph: Record<string, unknown>[] = [
+      {
+        '@type': 'WebApplication',
+        '@id': `${canonicalUrl}#webapp`,
+        name: `${SITE_NAME} — ${s.h1}`,
+        url: canonicalUrl,
+        inLanguage: localeMeta.hreflang,
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'All',
+        description,
+        image: ogImage,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+      {
+        '@type': 'HowTo',
+        '@id': `${canonicalUrl}#howto`,
+        name: `${bundle.ui.sections.howToHeading} — ${s.h1}`,
+        description: s.subtitle,
+        inLanguage: localeMeta.hreflang,
+        step: s.howToSteps.map((step, idx) => ({
+          '@type': 'HowToStep',
+          position: idx + 1,
+          name: step.title,
+          text: step.description,
+          url: `${canonicalUrl}#step-${idx + 1}`,
+        })),
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faq`,
+        inLanguage: localeMeta.hreflang,
+        mainEntity: s.faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: bundle.ui.sections.breadcrumbHome,
+            item: homeUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: s.breadcrumbLabel,
             item: canonicalUrl,
           },
         ],

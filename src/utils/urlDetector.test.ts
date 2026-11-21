@@ -1567,8 +1567,8 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://vidnex.space/'
     );
 
-    // 5. 75 routes publiques au total (60 principales + 15 légales)
-    assert.equal(getAllPublicRoutes().length, 75);
+    // 5. 85 routes publiques au total (70 principales + outils + 15 légales)
+    assert.equal(getAllPublicRoutes().length, 85);
     assert.equal(
       getLocalizedPagePath('fr', 'linkedin'),
       '/telecharger-photo-profil-linkedin'
@@ -2664,11 +2664,11 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'ru',
     ]);
 
-    // 1. Existing 75 core routes remain untouched; blog routes add 2 hubs (/blog, /fr/blog) + 13 published article pages (7 EN + 6 FR) = 15 routes -> 90 total
-    assert.equal(getAllPublicRoutes().length, 75);
+    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 2 hubs (/blog, /fr/blog) + 13 published article pages (7 EN + 6 FR) = 15 routes -> 100 total
+    assert.equal(getAllPublicRoutes().length, 85);
     const blogRoutes = getAllBlogPublicRoutes();
     assert.equal(blogRoutes.length, 15);
-    assert.equal(getAllIndexableRoutes().length, 90);
+    assert.equal(getAllIndexableRoutes().length, 100);
 
     // 2. Only the 7 specified English articles are published at /blog/{slug}; es and de have 0 published articles
     const enArticles = getPublishedArticlesForLocale('en');
@@ -4969,6 +4969,125 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       next: async () => new Response('root content', { status: 200 }),
     });
     assert.equal(rootResMw.status, 200, 'Root "/" in middleware must pass through with status 200');
+  });
+
+  it('OUTIL DÉCOUPER UNE IMAGE (/tools/split-image) — Redimensionnement auto > 8000 px, grilles 2x2/3x3/1x3/3x1/personnalisée, ordre Instagram inversé, JSZip et SEO 10 langues', async () => {
+    const JSZip = (await import('jszip')).default;
+    const {
+      computeDownscaledDimensions,
+      getPresetDimensions,
+      computeSplitGridCells,
+      buildZipArchiveWithJSZip,
+      getSplitImageContent,
+    } = await import('./splitImageLogic.ts');
+    const {
+      SUPPORTED_LOCALES,
+      getLocalizedPagePath,
+      resolveRouteFromPathname,
+      buildLlmsTxt,
+    } = await import('../i18n/config.ts');
+    const { buildHeadMetadataForRoute, buildHreflangCluster } = await import(
+      '../i18n/hreflang.ts'
+    );
+
+    // 1. Auto-downscale > 8000 px
+    const normalDim = computeDownscaledDimensions(1920, 1080);
+    assert.equal(normalDim.wasDownscaled, false);
+    assert.equal(normalDim.width, 1920);
+    assert.equal(normalDim.height, 1080);
+
+    const wideOversized = computeDownscaledDimensions(12000, 6000);
+    assert.equal(wideOversized.wasDownscaled, true);
+    assert.equal(wideOversized.width, 8000);
+    assert.equal(wideOversized.height, 4000);
+
+    const tallOversized = computeDownscaledDimensions(5000, 10000);
+    assert.equal(tallOversized.wasDownscaled, true);
+    assert.equal(tallOversized.width, 4000);
+    assert.equal(tallOversized.height, 8000);
+
+    // 2. Presets: 2x2, 3x3, 1x3, 3x1, custom
+    assert.deepEqual(getPresetDimensions('2x2'), { rows: 2, cols: 2 });
+    assert.deepEqual(getPresetDimensions('3x3'), { rows: 3, cols: 3 });
+    assert.deepEqual(getPresetDimensions('1x3'), { rows: 1, cols: 3 });
+    assert.deepEqual(getPresetDimensions('3x1'), { rows: 3, cols: 1 });
+    assert.deepEqual(getPresetDimensions('custom', 4, 5), { rows: 4, cols: 5 });
+
+    // 3. Standard numbering vs Instagram Order reversed numbering
+    const standard3x3 = computeSplitGridCells({
+      imageWidth: 900,
+      imageHeight: 900,
+      rows: 3,
+      cols: 3,
+      instagramOrder: false,
+      format: 'png',
+    });
+    assert.equal(standard3x3.length, 9);
+    assert.equal(standard3x3[0].orderNumber, 1);
+    assert.equal(standard3x3[0].filename, 'image-1.png');
+    assert.equal(standard3x3[0].width, 300);
+    assert.equal(standard3x3[0].height, 300);
+    assert.equal(standard3x3[8].orderNumber, 9);
+    assert.equal(standard3x3[8].filename, 'image-9.png');
+
+    const igOrder3x3 = computeSplitGridCells({
+      imageWidth: 900,
+      imageHeight: 900,
+      rows: 3,
+      cols: 3,
+      instagramOrder: true,
+      format: 'jpg',
+    });
+    assert.equal(igOrder3x3.length, 9);
+    // Top-left cell is posted last (#9), bottom-right cell is posted first (#1)
+    assert.equal(igOrder3x3[0].orderNumber, 9);
+    assert.equal(igOrder3x3[0].filename, 'image-9.jpg');
+    assert.equal(igOrder3x3[8].orderNumber, 1);
+    assert.equal(igOrder3x3[8].filename, 'image-1.jpg');
+
+    // 4. JSZip archive generation
+    const zipBlob = await buildZipArchiveWithJSZip([
+      { filename: 'image-1.jpg', data: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) },
+      { filename: 'image-2.jpg', data: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) },
+    ]);
+    assert.ok(zipBlob.size > 0);
+    const loadedZip = await JSZip.loadAsync(await zipBlob.arrayBuffer());
+    assert.ok(loadedZip.file('image-1.jpg'));
+    assert.ok(loadedZip.file('image-2.jpg'));
+
+    // 5. Routing, SEO metadata, hreflang & llms.txt across all 10 languages
+    assert.equal(getLocalizedPagePath('fr', 'split_image'), '/tools/split-image');
+    assert.equal(getLocalizedPagePath('en', 'split_image'), '/en/tools/split-image');
+    assert.equal(getLocalizedPagePath('ar', 'split_image'), '/ar/tools/split-image');
+
+    const resolvedFr = resolveRouteFromPathname('/tools/split-image');
+    assert.equal(resolvedFr.isValidRoute, true);
+    assert.equal(resolvedFr.locale, 'fr');
+    assert.equal(resolvedFr.pageKey, 'split_image');
+
+    const resolvedEn = resolveRouteFromPathname('/en/tools/split-image');
+    assert.equal(resolvedEn.isValidRoute, true);
+    assert.equal(resolvedEn.locale, 'en');
+    assert.equal(resolvedEn.pageKey, 'split_image');
+
+    const hreflangs = buildHreflangCluster('split_image');
+    assert.equal(hreflangs.length, 11);
+    assert.equal(
+      hreflangs.find((h) => h.hreflang === 'x-default')?.href,
+      'https://vidnex.space/en/tools/split-image'
+    );
+
+    for (const loc of SUPPORTED_LOCALES) {
+      const copy = getSplitImageContent(loc);
+      const head = buildHeadMetadataForRoute(loc, 'split_image');
+      assert.ok(head.title.length >= 15 && head.title.length <= 60);
+      assert.ok(head.description.length >= 90 && head.description.length <= 150);
+      assert.ok(copy.navLabel.length > 0);
+    }
+
+    const llms = buildLlmsTxt();
+    assert.ok(llms.includes('/tools/split-image'));
+    assert.ok(llms.includes('Découper une image'));
   });
 });
 

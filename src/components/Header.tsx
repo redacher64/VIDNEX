@@ -11,6 +11,7 @@ import {
   type SupportedLocale,
 } from '../i18n/config.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 
 export interface ToolTab {
   id: PlatformPageKey;
@@ -100,6 +101,9 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const splitImageHref = getLocalizedPagePath(language, 'split_image');
+  const splitImageCopy = getSplitImageContent(language);
+  const isSplitImageActive = activePageKey === 'split_image';
   const blogHref = getLocalizedPagePath(language, 'blog');
   const isBlogActive =
     activePageKey === 'blog' || activePageKey === 'blog_article';
@@ -170,6 +174,23 @@ export const Header: React.FC<HeaderProps> = ({
               </a>
             );
           })}
+
+          <a
+            href={splitImageHref}
+            data-testid="nav-split-image"
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileMenuOpen(false);
+              onNavigatePage('split_image');
+            }}
+            className={`min-h-[44px] md:min-h-[36px] px-3 md:px-2.5 lg:px-3.5 py-2 md:py-1.5 rounded-xl md:rounded-lg text-xs font-semibold whitespace-nowrap flex items-center justify-center md:justify-start gap-1.5 transition-all ${
+              isSplitImageActive
+                ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
+                : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
+            }`}
+          >
+            <span>{splitImageCopy.navLabel}</span>
+          </a>
 
           <a
             href={blogHref}

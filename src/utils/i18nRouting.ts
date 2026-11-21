@@ -76,6 +76,9 @@ export function pageKeyToPrimaryToolSlug(
 export function toolSlugToPageKey(slug?: string | null): PageKey {
   if (!slug) return 'home';
   const clean = slug.replace(/^\/+|\/+$/g, '');
+  if (clean === 'split_image' || clean === 'tools/split-image') {
+    return 'split_image';
+  }
   if (
     clean === 'home' ||
     clean === 'blog' ||

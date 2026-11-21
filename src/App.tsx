@@ -9,6 +9,7 @@ import { LanguageSuggestionBanner } from './components/LanguageSuggestionBanner.
 import { LegalPageView } from './components/LegalPageView.tsx';
 import { BlogIndexView } from './components/BlogIndexView.tsx';
 import { BlogArticleView } from './components/BlogArticleView.tsx';
+import { SplitImageToolView } from './components/SplitImageToolView.tsx';
 import { NotFoundView } from './components/NotFoundView.tsx';
 import { AdSlot } from './components/AdSlot.tsx';
 import { Footer } from './components/Footer.tsx';
@@ -484,6 +485,11 @@ export function App({ initialPath }: AppProps = {}) {
       <main className="flex-1 relative z-10">
         {pageKey === 'not_found' ? (
           <NotFoundView
+            locale={language}
+            onNavigatePage={(target) => handleNavigatePage(target)}
+          />
+        ) : pageKey === 'split_image' ? (
+          <SplitImageToolView
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
           />

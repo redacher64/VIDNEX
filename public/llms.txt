@@ -1,11 +1,12 @@
 # VIDNEX
 
-> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.
+> VIDNEX (https://vidnex.space) est un outil web gratuit, sans inscription ni compte, permettant d’enregistrer uniquement des vidéos publiques et médias publics depuis TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn, ainsi que de découper des images en grille directement dans le navigateur. VIDNEX ne stocke aucun fichier média sur ses serveurs et ne prend pas en charge YouTube, Snapchat ni les comptes privés.
 
 ## Définition et périmètre technique (Verified Facts)
 
-- **Nature du service** : Résolveur web de métadonnées publiques à la demande (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).
+- **Nature du service** : Résolveur web de métadonnées publiques à la demande et boîte à outils créateurs 100 % côté navigateur (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).
 - **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).
+- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`), traitement local HTML5 Canvas et JSZip sans aucun upload serveur.
 - **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.
 - **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.
 
@@ -21,10 +22,13 @@
   - Formats : Vidéos publiques (`/watch/`, `/videos/`, `fb.watch`) et Reels Facebook publics (`/reel/`) en MP4 HD ou SD avec son.
 - **LinkedIn** — [FR: https://vidnex.space/telecharger-photo-profil-linkedin](https://vidnex.space/telecharger-photo-profil-linkedin) | [EN: https://vidnex.space/en/linkedin-profile-picture-downloader](https://vidnex.space/en/linkedin-profile-picture-downloader)
   - Formats : Photo de profil publique LinkedIn (`linkedin.com/in/...`) en résolution JPG d’origine.
+- **Découper une image (Split Image)** — [FR: https://vidnex.space/tools/split-image](https://vidnex.space/tools/split-image) | [EN: https://vidnex.space/en/tools/split-image](https://vidnex.space/en/tools/split-image)
+  - Fonction : Découpe d’images JPG, PNG et WebP en grille 2×2, 3×3 (grille profil Instagram), 1×3 (carrousel), 3×1 ou personnalisée (lignes × colonnes), avec option « Ordre Instagram » inversant la numérotation, export PNG ou JPG (qualité réglable), téléchargement individuel (`image-1`, `image-2`...) ou archive complète `.ZIP` via JSZip. Gratuit, sans inscription, traitement 100 % local côté navigateur (HTML5 Canvas, aucune API, aucun upload serveur, réduction automatique > 8000 px).
 
 ## Pages principales et Informations légales
 
 - [Accueil VIDNEX (FR)](https://vidnex.space/) | [VIDNEX Home (EN)](https://vidnex.space/en)
+- [Découper une image (FR)](https://vidnex.space/tools/split-image) | [Split Image Online (EN)](https://vidnex.space/en/tools/split-image)
 - [VIDNEX Editorial Blog (English)](https://vidnex.space/blog)
 - [Blog VIDNEX (Français)](https://vidnex.space/fr/blog)
 - [À propos (FR)](https://vidnex.space/a-propos) | [About Us (EN)](https://vidnex.space/en/about) | [من نحن (AR)](https://vidnex.space/ar/about)

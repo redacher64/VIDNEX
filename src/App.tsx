@@ -17,6 +17,7 @@ import {
   PlatformId,
 } from './utils/urlDetector.ts';
 import {
+  ExtractionError,
   extractMediaFromUrl,
   MediaResult,
 } from './services/extractorService.ts';
@@ -123,6 +124,9 @@ export function App({ initialPath }: AppProps = {}) {
   // Extraction State Machine
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionError, setExtractionError] = useState<string | null>(null);
+  const [extractionErrorCode, setExtractionErrorCode] = useState<string | null>(
+    null
+  );
   const [mediaResult, setMediaResult] = useState<MediaResult | null>(null);
   const [lastRequest, setLastRequest] = useState<{
     url: string;
@@ -351,12 +355,16 @@ export function App({ initialPath }: AppProps = {}) {
       setLastRequest({ url, detected });
       setIsExtracting(true);
       setExtractionError(null);
+      setExtractionErrorCode(null);
 
       try {
         const result = await extractMediaFromUrl(url, detected, language);
         setMediaResult(result);
       } catch (err) {
         setMediaResult(null);
+        setExtractionErrorCode(
+          err instanceof ExtractionError ? err.code : 'BLOCKED_BY_PLATFORM'
+        );
         setExtractionError(
           err instanceof Error
             ? err.message
@@ -372,6 +380,7 @@ export function App({ initialPath }: AppProps = {}) {
   const handleCloseDrawer = useCallback(() => {
     setIsExtracting(false);
     setExtractionError(null);
+    setExtractionErrorCode(null);
     setMediaResult(null);
   }, []);
 
@@ -521,6 +530,7 @@ export function App({ initialPath }: AppProps = {}) {
             <ResultDrawer
               isLoading={isExtracting}
               error={extractionError}
+              errorCode={extractionErrorCode}
               result={mediaResult}
               onClose={handleCloseDrawer}
               onRetry={handleRetryExtraction}

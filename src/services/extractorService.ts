@@ -41,7 +41,6 @@ export interface CarouselSlideItem {
   mediaType: 'image' | 'video';
   quality?: string;
   isThumbnail?: boolean;
-  sourceUrl?: string;
   width?: number;
   height?: number;
   dimensions?: string;
@@ -95,8 +94,6 @@ export interface CarouselMediaResult extends BaseMediaResult {
   totalItems: number;
   archiveSize?: string;
   selectionContext?: 'carousel' | 'story' | 'highlight' | 'profile';
-  unverifiedFallback?: boolean;
-  unverifiedLabel?: string;
   items: CarouselSlideItem[];
   audioTrack?: {
     title: string;
@@ -110,6 +107,16 @@ export type MediaResult =
   | VideoMediaResult
   | ProfileDpMediaResult
   | CarouselMediaResult;
+
+export class ExtractionError extends Error {
+  readonly code: string;
+
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'ExtractionError';
+    this.code = code;
+  }
+}
 
 const PROFILE_ERROR_MESSAGES: Record<
   LanguageCode,
@@ -236,7 +243,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
 > = {
   fr: {
     LOGIN_WALL:
-      'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
+      "LinkedIn bloque l'accès à cette photo pour le moment. Importez-la manuellement ci-dessous.",
     RATE_LIMITED:
       'Trop de requêtes envoyées vers LinkedIn (limite atteinte). Patientez quelques instants ou utilisez l’import manuel d’image ci-dessous.',
     PROFILE_NOT_FOUND:
@@ -252,7 +259,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Ce profil LinkedIn est introuvable ou a été supprimé (404). Vérifiez l’identifiant du profil dans l’URL.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
+      "LinkedIn bloque l'accès à cette photo pour le moment. Importez-la manuellement ci-dessous.",
     PRIVATE_OR_LOGIN_REQUIRED:
       'Aucune photo de profil publique n’est disponible sur ce compte LinkedIn (avatar absent ou par défaut).',
     TIMEOUT:
@@ -260,7 +267,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   en: {
     LOGIN_WALL:
-      'LinkedIn returned a login wall for this profile. Use the image search fallback results or upload an image manually below.',
+      'LinkedIn is blocking access to this photo right now. Upload it manually below.',
     RATE_LIMITED:
       'Too many requests to LinkedIn (rate limit reached). Please wait a moment or use manual image upload below.',
     PROFILE_NOT_FOUND:
@@ -276,7 +283,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Profile not found. This LinkedIn profile does not exist or has been removed.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn returned a login wall for this profile. Use the image search fallback results or upload an image manually below.',
+      'LinkedIn is blocking access to this photo right now. Upload it manually below.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'This LinkedIn profile is not public or has no public profile photo.',
     TIMEOUT:
@@ -284,7 +291,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   ar: {
     LOGIN_WALL:
-      'يعرض لينكدإن جدار تسجيل دخول لهذا الحساب. استخدم نتائج البحث عن الصور البديلة أو ارفع صورة يدوياً أدناه.',
+      'يحظر لينكدإن الوصول إلى هذه الصورة حالياً. ارفعها يدوياً أدناه.',
     RATE_LIMITED:
       'تم تجاوز حد الطلبات نحو لينكدإن. يرجى الانتظار قليلاً أو استخدام الرفع اليدوي للصورة أدناه.',
     PROFILE_NOT_FOUND:
@@ -299,14 +306,14 @@ const LINKEDIN_ERROR_MESSAGES: Record<
       'تعذر الاتصال بلينكدإن بسبب خطأ في الشبكة. تحقق من اتصالك أو ارفع صورة يدوياً أدناه.',
     NOT_FOUND: 'الملف الشخصي غير موجود. حساب لينكدإن هذا غير موجود أو تم حذفه.',
     BLOCKED_BY_PLATFORM:
-      'يعرض لينكدإن جدار تسجيل دخول لهذا الحساب. استخدم نتائج البحث عن الصور البديلة أو ارفع صورة يدوياً أدناه.',
+      'يحظر لينكدإن الوصول إلى هذه الصورة حالياً. ارفعها يدوياً أدناه.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'ملف لينكدإن الشخصي هذا غير عام أو لا يحتوي على صورة ملف شخصي عامة.',
     TIMEOUT: 'انتهت مهلة الاتصال أثناء جلب صورة ملف لينكدإن الشخصي.',
   },
   es: {
     LOGIN_WALL:
-      'LinkedIn muestra un muro de inicio de sesión para este perfil. Usa los resultados de búsqueda alternativa o sube una imagen manualmente abajo.',
+      'LinkedIn bloquea el acceso a esta foto por el momento. Súbela manualmente abajo.',
     RATE_LIMITED:
       'Demasiadas solicitudes a LinkedIn (límite alcanzado). Espera unos instantes o sube una imagen manualmente abajo.',
     PROFILE_NOT_FOUND:
@@ -322,7 +329,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Perfil no encontrado. Este perfil de LinkedIn no existe o fue eliminado.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn muestra un muro de inicio de sesión para este perfil. Usa los resultados de búsqueda alternativa o sube una imagen manualmente abajo.',
+      'LinkedIn bloquea el acceso a esta foto por el momento. Súbela manualmente abajo.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Este perfil de LinkedIn no es público o no tiene foto de perfil pública.',
     TIMEOUT:
@@ -330,7 +337,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   pt: {
     LOGIN_WALL:
-      'O LinkedIn exibe um muro de login para este perfil. Use os resultados alternativos de busca de imagens ou envie uma imagem manualmente abaixo.',
+      'O LinkedIn está bloqueando o acesso a esta foto no momento. Envie-a manualmente abaixo.',
     RATE_LIMITED:
       'Muitas solicitações para o LinkedIn (limite atingido). Aguarde um momento ou use o envio manual de imagem abaixo.',
     PROFILE_NOT_FOUND:
@@ -346,7 +353,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Perfil não encontrado. Este perfil do LinkedIn não existe ou foi removido.',
     BLOCKED_BY_PLATFORM:
-      'O LinkedIn exibe um muro de login para este perfil. Use os resultados alternativos de busca de imagens ou envie uma imagem manualmente abaixo.',
+      'O LinkedIn está bloqueando o acesso a esta foto no momento. Envie-a manualmente abaixo.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Este perfil do LinkedIn não é público ou não possui foto de perfil pública.',
     TIMEOUT:
@@ -354,7 +361,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   de: {
     LOGIN_WALL:
-      'LinkedIn zeigt für dieses Profil eine Login-Wall an. Nutzen Sie die alternative Bildersuche oder laden Sie unten manuell ein Bild hoch.',
+      'LinkedIn blockiert derzeit den Zugriff auf dieses Foto. Laden Sie es unten manuell hoch.',
     RATE_LIMITED:
       'Zu viele Anfragen an LinkedIn (Ratenlimit erreicht). Bitte warten Sie kurz oder nutzen Sie den manuellen Bildupload.',
     PROFILE_NOT_FOUND:
@@ -370,7 +377,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Profil nicht gefunden. Dieses LinkedIn-Profil existiert nicht oder wurde gelöscht.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn zeigt für dieses Profil eine Login-Wall an. Nutzen Sie die alternative Bildersuche oder laden Sie unten manuell ein Bild hoch.',
+      'LinkedIn blockiert derzeit den Zugriff auf dieses Foto. Laden Sie es unten manuell hoch.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Dieses LinkedIn-Profil ist nicht öffentlich oder hat kein öffentliches Profilbild.',
     TIMEOUT:
@@ -378,7 +385,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   tr: {
     LOGIN_WALL:
-      'LinkedIn bu profil için giriş duvarı gösteriyor. Alternatif görsel arama sonuçlarını kullanın veya aşağıdan manuel görsel yükleyin.',
+      'LinkedIn şu anda bu fotoğrafa erişimi engelliyor. Aşağıdan manuel olarak yükleyin.',
     RATE_LIMITED:
       'LinkedIn istek sınırı aşıldı. Biraz bekleyin veya aşağıdan manuel görsel yüklemeyi kullanın.',
     PROFILE_NOT_FOUND:
@@ -394,7 +401,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Profil bulunamadı. Bu LinkedIn profili mevcut değil veya silinmiş.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn bu profil için giriş duvarı gösteriyor. Alternatif görsel arama sonuçlarını kullanın veya aşağıdan manuel görsel yükleyin.',
+      'LinkedIn şu anda bu fotoğrafa erişimi engelliyor. Aşağıdan manuel olarak yükleyin.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Bu LinkedIn profili herkese açık değil veya profil fotoğrafı yok.',
     TIMEOUT:
@@ -402,7 +409,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   id: {
     LOGIN_WALL:
-      'LinkedIn menampilkan dinding login untuk profil ini. Gunakan hasil pencarian gambar alternatif atau unggah gambar secara manual di bawah.',
+      'LinkedIn memblokir akses ke foto ini saat ini. Unggah secara manual di bawah.',
     RATE_LIMITED:
       'Terlalu banyak permintaan ke LinkedIn (batas tercapai). Tunggu sebentar atau gunakan unggah gambar manual di bawah.',
     PROFILE_NOT_FOUND:
@@ -418,7 +425,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Profil tidak ditemukan. Profil LinkedIn ini tidak ada atau telah dihapus.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn menampilkan dinding login untuk profil ini. Gunakan hasil pencarian gambar alternatif atau unggah gambar secara manual di bawah.',
+      'LinkedIn memblokir akses ke foto ini saat ini. Unggah secara manual di bawah.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Profil LinkedIn ini tidak publik atau tidak memiliki foto profil publik.',
     TIMEOUT:
@@ -426,7 +433,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   it: {
     LOGIN_WALL:
-      'LinkedIn mostra un muro di accesso per questo profilo. Usa i risultati di ricerca immagini alternativi o carica manualmente un’immagine qui sotto.',
+      'LinkedIn blocca l’accesso a questa foto al momento. Caricala manualmente qui sotto.',
     RATE_LIMITED:
       'Troppe richieste verso LinkedIn (limite raggiunto). Attendi qualche istante o usa il caricamento manuale qui sotto.',
     PROFILE_NOT_FOUND:
@@ -442,7 +449,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Profilo non trovato. Questo profilo LinkedIn non esiste o è stato rimosso.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn mostra un muro di accesso per questo profilo. Usa i risultati di ricerca immagini alternativi o carica manualmente un’immagine qui sotto.',
+      'LinkedIn blocca l’accesso a questa foto al momento. Caricala manualmente qui sotto.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Questo profilo LinkedIn non è pubblico o non ha una foto del profilo pubblica.',
     TIMEOUT:
@@ -450,7 +457,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
   },
   ru: {
     LOGIN_WALL:
-      'LinkedIn показывает стену входа для этого профиля. Используйте результаты поиска альтернативных изображений или загрузите изображение вручную ниже.',
+      'LinkedIn сейчас блокирует доступ к этому фото. Загрузите его вручную ниже.',
     RATE_LIMITED:
       'Слишком много запросов к LinkedIn (достигнут лимит). Подождите немного или загрузите изображение вручную ниже.',
     PROFILE_NOT_FOUND:
@@ -466,7 +473,7 @@ const LINKEDIN_ERROR_MESSAGES: Record<
     NOT_FOUND:
       'Профиль не найден. Этот профиль LinkedIn не существует или был удалён.',
     BLOCKED_BY_PLATFORM:
-      'LinkedIn показывает стену входа для этого профиля. Используйте результаты поиска альтернативных изображений или загрузите изображение вручную ниже.',
+      'LinkedIn сейчас блокирует доступ к этому фото. Загрузите его вручную ниже.',
     PRIVATE_OR_LOGIN_REQUIRED:
       'Этот профиль LinkedIn не является публичным или не имеет публичного фото профиля.',
     TIMEOUT:
@@ -1211,20 +1218,22 @@ export async function extractMediaFromUrl(
     detected.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
     (detected.platform === 'facebook' && detected.mediaType === 'photo')
   ) {
-    throw new Error(
+    throw new ExtractionError(
       getLocalizedErrorMessage('UNSUPPORTED_FB_PHOTO', language, {
         platform: 'facebook',
         mediaType: 'photo',
-      })
+      }),
+      'UNSUPPORTED_FB_PHOTO'
     );
   }
 
   if (!detected.isValid || !detected.platform) {
-    throw new Error(
+    throw new ExtractionError(
       getLocalizedErrorMessage('UNSUPPORTED_URL', language, {
         platform: detected.platform,
         mediaType: detected.mediaType,
-      })
+      }),
+      'UNSUPPORTED_URL'
     );
   }
 
@@ -1260,13 +1269,14 @@ export async function extractMediaFromUrl(
         }),
       });
     } catch {
-      throw new Error(
+      throw new ExtractionError(
         getLocalizedErrorMessage('NETWORK_ERROR', language, {
           platform: detected.platform,
           mediaType: detected.mediaType,
           isProfile:
             detected.mediaType === 'profile' || detected.platform === 'linkedin',
-        })
+        }),
+        'NETWORK_ERROR'
       );
     }
   }
@@ -1284,7 +1294,7 @@ export async function extractMediaFromUrl(
       mediaType: detected.mediaType,
       serverMessage: data?.error?.message,
     });
-    throw new Error(localized);
+    throw new ExtractionError(localized, errCode);
   }
 
   return mapExtractResponseToMediaResult(data, url, detected);
@@ -1429,7 +1439,6 @@ export function mapExtractResponseToMediaResult(
         isThumbnail:
           Boolean(it.isThumbnail) ||
           String(defaultQuality).toLowerCase() === 'miniature',
-        sourceUrl: typeof it.sourceUrl === 'string' ? it.sourceUrl : undefined,
         width,
         height,
         dimensions:
@@ -1476,13 +1485,6 @@ export function mapExtractResponseToMediaResult(
       totalItems: items.length,
       archiveSize: undefined,
       selectionContext,
-      unverifiedFallback: Boolean(data.unverifiedFallback),
-      unverifiedLabel:
-        typeof data.unverifiedLabel === 'string'
-          ? data.unverifiedLabel
-          : data.unverifiedFallback
-          ? 'Résultats non vérifiés, peut-être pas la bonne personne'
-          : undefined,
       items,
       audioTrack: audioItem
         ? {
@@ -1602,3 +1604,30 @@ export function mapExtractResponseToMediaResult(
     formats,
   };
 }
+
+const LINKEDIN_RETRYABLE_ERROR_CODES = new Set<string>([
+  'RATE_LIMITED',
+  'TIMEOUT',
+  'NETWORK_ERROR',
+  'IMAGE_EXPIRED',
+]);
+
+const LINKEDIN_NON_RETRYABLE_ERROR_CODES = new Set<string>([
+  'LOGIN_WALL',
+  'PROFILE_NOT_FOUND',
+  'PHOTO_NOT_AVAILABLE',
+  'INVALID_IMAGE',
+]);
+
+export function shouldShowRetryButton(
+  platform: string | null | undefined,
+  errorCode: string | null | undefined
+): boolean {
+  if (platform === 'linkedin') {
+    if (!errorCode) return false;
+    if (LINKEDIN_NON_RETRYABLE_ERROR_CODES.has(errorCode)) return false;
+    return LINKEDIN_RETRYABLE_ERROR_CODES.has(errorCode);
+  }
+  return true;
+}
+

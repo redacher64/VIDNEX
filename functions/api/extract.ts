@@ -489,9 +489,7 @@ async function handleExtract(
   } else if (detection.platform === 'facebook') {
     result = await extractFacebook(detection.cleanUrl, detection.identifier);
   } else if (detection.platform === 'linkedin') {
-    result = await extractLinkedIn(detection.identifier || '', {
-      allowFallbackSearch: settings.allow_third_party !== false,
-    });
+    result = await extractLinkedIn(detection.identifier || '');
   } else {
     return createErrorResponse(
       'UNSUPPORTED_URL',
@@ -589,10 +587,9 @@ async function handleExtract(
 
   const primaryLinkedInExt =
     (isLinkedInProfile && result.items?.[0]?.ext) || 'jpg';
-  const linkedInAutoHealSrc =
-    isLinkedInProfile && !result.unverifiedFallback
-      ? detection.cleanUrl
-      : undefined;
+  const linkedInAutoHealSrc = isLinkedInProfile
+    ? detection.cleanUrl
+    : undefined;
 
   const transformedItems = (result.items || []).map((item, idx) => {
     const ext =
@@ -604,9 +601,7 @@ async function handleExtract(
         ? `instagram_${profileUsername}_profile.jpg`
         : `instagram_${profileUsername}_story_${idx}.${ext}`
       : isLinkedInProfile
-      ? (result.items || []).length > 1
-        ? `linkedin_${profileUsername}_candidat_${idx + 1}.${ext}`
-        : `linkedin_${profileUsername}_profile.${ext}`
+      ? `linkedin_${profileUsername}_profile.${ext}`
       : result.platform === 'tiktok' && item.kind === 'audio'
       ? `tiktok_${tweetOrMediaId}.${ext}`
       : result.platform === 'facebook'
@@ -633,9 +628,7 @@ async function handleExtract(
                 ? `instagram_${profileUsername}_profile.jpg`
                 : `instagram_${profileUsername}_story_thumb_${idx}.jpg`
               : isLinkedInProfile
-              ? (result.items || []).length > 1
-                ? `linkedin_${profileUsername}_thumb_${idx + 1}.${ext}`
-                : `linkedin_${profileUsername}_profile.${ext}`
+              ? `linkedin_${profileUsername}_profile.${ext}`
               : result.platform === 'facebook'
               ? `facebook_${tweetOrMediaId}_thumb_${idx + 1}.jpg`
               : result.platform === 'x'
@@ -651,7 +644,7 @@ async function handleExtract(
       url: wrapDownloadUrl(item.url, safeFilename, false, {
         cookie: itemCookie,
         backupUrl: item.backupUrl,
-        sourceUrl: item.sourceUrl || detection.cleanUrl,
+        sourceUrl: detection.cleanUrl,
       }),
     };
   });
@@ -711,7 +704,5 @@ async function handleExtract(
     author: transformedAuthor,
     thumbnail: proxyThumbnail,
     items: transformedItems,
-    unverifiedFallback: result.unverifiedFallback,
-    unverifiedLabel: result.unverifiedLabel,
   });
 }

@@ -29,7 +29,6 @@ export interface ExtractMediaItem {
   kind: 'video' | 'image' | 'audio';
   url: string;
   backupUrl?: string;
-  sourceUrl?: string;
   cookie?: string;
   thumbnail?: string;
   quality?: string;
@@ -60,8 +59,6 @@ export interface ExtractResponse {
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];
-  unverifiedFallback?: boolean;
-  unverifiedLabel?: string;
   stage?: 'direct' | 'tiers';
   engineStage?: string;
   httpStatus?: number | null;

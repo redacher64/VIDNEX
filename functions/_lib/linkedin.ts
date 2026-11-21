@@ -1,20 +1,15 @@
 import { BROWSER_USER_AGENT } from './http.ts';
 import { isAllowedMediaUrl } from './allowlist.ts';
-import type { ErrorCode, ExtractMediaItem, ExtractResponse } from './normalize.ts';
+import type { ErrorCode, ExtractResponse } from './normalize.ts';
 
 const LINKEDIN_ATTEMPT_TIMEOUT_MS = 6500;
 const IMAGE_VALIDATION_TIMEOUT_MS = 4500;
-const FALLBACK_SEARCH_TIMEOUT_MS = 4500;
 const MAX_REDIRECT_HOPS = 4;
 const LINKEDIN_CACHE_DEFAULT_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const LINKEDIN_CACHE_MAX_ENTRIES = 250;
 
 export const MAX_LINKEDIN_IMAGE_BYTES = 10 * 1024 * 1024; // 10 Mo max
 export const MIN_LINKEDIN_IMAGE_BYTES = 12; // Au moins 12 octets pour l'en-tête binaire
-export const MAX_FALLBACK_CANDIDATES = 6;
-
-export const LINKEDIN_UNVERIFIED_FALLBACK_LABEL =
-  'Résultats non vérifiés, peut-être pas la bonne personne';
 
 const LINKEDIN_ALLOWED_REDIRECT_HOST_REGEX =
   /^(?:(?:www|m|mobile|[a-z]{2})\.)?linkedin\.com$/i;
@@ -31,11 +26,11 @@ export type LinkedInErrorCode =
 
 /**
  * Messages d'erreur français distincts pour chaque code d'erreur LinkedIn.
- * Pour LOGIN_WALL, ne jamais dire « réessayez » — proposer la solution de repli.
+ * Pour LOGIN_WALL, aucune mention de « résultats proposés » ni de « réessayez ».
  */
 export const LINKEDIN_FRENCH_ERROR_MESSAGES: Record<LinkedInErrorCode, string> = {
   LOGIN_WALL:
-    'LinkedIn affiche un mur de connexion pour ce profil. Utilisez les résultats de recherche d’images proposés ou importez une image manuellement ci-dessous.',
+    "LinkedIn bloque l'accès à cette photo pour le moment. Importez-la manuellement ci-dessous.",
   RATE_LIMITED:
     'Trop de requêtes envoyées vers LinkedIn (limite atteinte). Patientez quelques instants ou utilisez l’import manuel d’image ci-dessous.',
   PROFILE_NOT_FOUND:
@@ -600,78 +595,6 @@ export function isPublicProfileWithoutPhotoHtml(html: string): boolean {
     lower.includes('"@type":"profilepage"') ||
     lower.includes('"@type": "profilepage"');
   return hasPublicProfileMarkers;
-}
-
-/**
- * Extrait un nom de personne propre depuis le titre de la page (si disponible et non générique)
- * ou depuis le slug de l'URL LinkedIn (ex: `jean-dupont-98a1b234` -> `Jean Dupont`).
- */
-export function extractPersonNameFromSlugOrHtml(slug: string, html?: string): string {
-  if (html && html.trim()) {
-    const titleCandidates: string[] = [];
-    const ogTitleMatch = html.match(
-      /<meta\b[^>]*(?:property|name)\s*=\s*["'](?:og:title|twitter:title)["'][^>]*content\s*=\s*["']([^"']+)["']/i
-    );
-    if (ogTitleMatch?.[1]) {
-      titleCandidates.push(decodeHtmlEntities(ogTitleMatch[1].trim()));
-    }
-    const titleTagMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    if (titleTagMatch?.[1]) {
-      titleCandidates.push(decodeHtmlEntities(titleTagMatch[1].trim()));
-    }
-
-    for (const rawTitle of titleCandidates) {
-      const cleaned = rawTitle
-        .replace(/\s*\|\s*LinkedIn.*$/i, '')
-        .replace(/\s*-\s*LinkedIn.*$/i, '')
-        .split(/\s+[-–—|]\s+/)[0]
-        ?.trim();
-      if (
-        cleaned &&
-        cleaned.length >= 2 &&
-        cleaned.length <= 70 &&
-        !/^(?:linkedin|sign\s*in|sign\s*up|log\s*in|s['’]identifier|s['’]inscrire|rejoindre|authwall|security\s*verification|page\s*not\s*found|404)/i.test(
-          cleaned
-        )
-      ) {
-        return cleaned;
-      }
-    }
-  }
-
-  let decodedSlug = slug.trim();
-  try {
-    decodedSlug = decodeURIComponent(decodedSlug);
-  } catch {
-    // Garder tel quel
-  }
-
-  const parts = decodedSlug
-    .replace(/^@+/, '')
-    .split(/[-_.\s]+/)
-    .filter(Boolean);
-
-  // Retirer les suffixes d'identifiant LinkedIn (ex: 8a1b2c3d, 123456789, a1b2c3) s'il reste au moins 1 mot
-  while (
-    parts.length > 1 &&
-    (/^\d+$/.test(parts[parts.length - 1]) ||
-      (/^[0-9a-f]{6,}$/i.test(parts[parts.length - 1]) && /\d/.test(parts[parts.length - 1])) ||
-      (/^[0-9a-z]{7,}$/i.test(parts[parts.length - 1]) && /\d/.test(parts[parts.length - 1])))
-  ) {
-    parts.pop();
-  }
-
-  const words = parts
-    .map((w) => w.replace(/[^a-zA-ZÀ-ÿ0-9']/g, ''))
-    .filter((w) => w.length > 0);
-
-  if (words.length === 0) {
-    return slug.trim() || 'LinkedIn';
-  }
-
-  return words
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ');
 }
 
 /**
@@ -1362,14 +1285,6 @@ export function parseLinkedInProfileHtml(
   };
 }
 
-interface RawFallbackCandidate {
-  imageUrl: string;
-  thumbnailUrl: string;
-  sourceUrl: string;
-  width?: number;
-  height?: number;
-}
-
 function formatBytesHuman(bytes?: number): string | undefined {
   if (!bytes || !Number.isFinite(bytes) || bytes <= 0) return undefined;
   if (bytes < 1024) return `${bytes} B`;
@@ -1378,181 +1293,54 @@ function formatBytesHuman(bytes?: number): string | undefined {
 }
 
 /**
- * Étape 2 — Recherche d'images de repli via des sources publiques gratuites compatibles Worker
- * (Wikimedia Commons API + Wikipedia PageImages API, sans clé payante ni scraping illégitime).
- * Valide chaque image (HTTP 200, image/*, magic bytes, limite de taille, redirections) et retourne
- * jusqu'à 6 candidats avec miniature + lien source, marqués comme non vérifiés.
+ * Journalise un échec LinkedIn de manière structurée et 100 % anonyme :
+ * code d'erreur, étape, statut HTTP et durée (ms).
+ * Aucune donnée personnelle : ni slug, ni URL, ni nom, ni IP, ni cookie.
  */
-export async function searchLinkedInFallbackImages(
-  personName: string,
-  parentSignal?: AbortSignal
-): Promise<ExtractMediaItem[]> {
-  const cleanQuery = personName.trim();
-  if (!cleanQuery || cleanQuery.length < 2) return [];
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FALLBACK_SEARCH_TIMEOUT_MS);
-  const onParentAbort = () => controller.abort();
-  parentSignal?.addEventListener('abort', onParentAbort, { once: true });
-
-  const rawCandidates: RawFallbackCandidate[] = [];
-  const seenImageUrls = new Set<string>();
-
-  const pushCandidate = (c: RawFallbackCandidate) => {
-    if (!c.imageUrl || !c.sourceUrl) return;
-    if (!isAllowedMediaUrl(c.imageUrl)) return;
-    const key = c.imageUrl.split('?')[0];
-    if (seenImageUrls.has(key)) return;
-    seenImageUrls.add(key);
-    rawCandidates.push(c);
-  };
-
-  try {
-    // Source 1 : Wikipedia PageImages (FR + EN) pour portraits d'articles encyclopédiques publics
-    const wikiEndpoints = [
-      `https://fr.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=4&prop=pageimages|info&inprop=url&piprop=thumbnail&pithumbsize=360&format=json&origin=*`,
-      `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=4&prop=pageimages|info&inprop=url&piprop=thumbnail&pithumbsize=360&format=json&origin=*`,
-      // Source 2 : Wikimedia Commons API (images bitmap libres)
-      `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`filetype:bitmap ${cleanQuery}`)}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime|size|dimensions&iiurlwidth=360&format=json&origin=*`,
-    ];
-
-    const responses = await Promise.allSettled(
-      wikiEndpoints.map((endpoint) =>
-        fetch(endpoint, {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            'User-Agent': 'VIDNEX-Worker/1.0 (https://vidnex.space; public-commons-search)',
-            Accept: 'application/json',
-          },
-        }).then((r) => (r.ok ? r.json() : null))
-      )
-    );
-
-    for (const settled of responses) {
-      if (settled.status !== 'fulfilled' || !settled.value) continue;
-      const data = settled.value as Record<string, any>;
-      const pages = data?.query?.pages;
-      if (!pages || typeof pages !== 'object') continue;
-
-      for (const page of Object.values(pages) as Array<Record<string, any>>) {
-        // Format Wikipedia PageImages
-        if (page?.thumbnail?.source && typeof page.fullurl === 'string') {
-          const thumbUrl = String(page.thumbnail.source);
-          pushCandidate({
-            imageUrl: thumbUrl,
-            thumbnailUrl: thumbUrl,
-            sourceUrl: String(page.fullurl),
-            width: typeof page.thumbnail.width === 'number' ? page.thumbnail.width : undefined,
-            height: typeof page.thumbnail.height === 'number' ? page.thumbnail.height : undefined,
-          });
-        }
-
-        // Format Wikimedia Commons imageinfo
-        const ii = Array.isArray(page?.imageinfo) ? page.imageinfo[0] : null;
-        if (ii) {
-          const mime = String(ii.mime || '').toLowerCase();
-          if (mime.startsWith('image/') && !mime.includes('svg')) {
-            const imgUrl = String(ii.thumburl || ii.url || '');
-            const srcUrl = String(
-              ii.descriptionurl ||
-                (page.title
-                  ? `https://commons.wikimedia.org/wiki/${encodeURIComponent(String(page.title))}`
-                  : '')
-            );
-            if (imgUrl && srcUrl) {
-              pushCandidate({
-                imageUrl: imgUrl,
-                thumbnailUrl: imgUrl,
-                sourceUrl: srcUrl,
-                width: typeof ii.thumbwidth === 'number' ? ii.thumbwidth : ii.width,
-                height: typeof ii.thumbheight === 'number' ? ii.thumbheight : ii.height,
-              });
-            }
-          }
-        }
-      }
-    }
-
-    if (rawCandidates.length === 0) {
-      return [];
-    }
-
-    // Valider chaque candidat avant de le retourner (max 6 candidats validés)
-    const toValidate = rawCandidates.slice(0, MAX_FALLBACK_CANDIDATES + 2);
-    const validations = await Promise.all(
-      toValidate.map(async (candidate) => {
-        const check = await validateLinkedInImageUrl(candidate.imageUrl, {
-          signal: controller.signal,
-        });
-        return { candidate, check };
-      })
-    );
-
-    const validatedItems: ExtractMediaItem[] = [];
-    for (const { candidate, check } of validations) {
-      if (!check.ok || !check.finalUrl) continue;
-      const idx = validatedItems.length + 1;
-      const width = check.width ?? candidate.width;
-      const height = check.height ?? candidate.height;
-      const isThumb =
-        check.isThumbnail ??
-        isSmallOrThumbnailImage(check.finalUrl, width, height, check.byteLength);
-
-      validatedItems.push({
-        id: `linkedin-fallback-${idx}`,
-        index: idx,
-        selected: idx === 1,
-        kind: 'image',
-        url: check.finalUrl,
-        thumbnail: check.finalUrl,
-        sourceUrl: candidate.sourceUrl,
-        ext: check.ext || 'jpg',
-        quality: isThumb ? 'Miniature' : 'Standard',
-        isThumbnail: isThumb,
-        width,
-        height,
-        size: formatBytesHuman(check.byteLength),
-      });
-
-      if (validatedItems.length >= MAX_FALLBACK_CANDIDATES) {
-        break;
-      }
-    }
-
-    return validatedItems;
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timer);
-    parentSignal?.removeEventListener('abort', onParentAbort);
-  }
+function logLinkedInExtractionFailure(
+  errorCode: ErrorCode,
+  stage: string,
+  httpStatus: number | null,
+  durationMs: number
+): void {
+  console.warn('[VIDNEX][LinkedIn] Extraction failed', {
+    errorCode,
+    stage,
+    httpStatus,
+    durationMs: Math.max(0, Math.round(durationMs)),
+  });
 }
 
 export interface ExtractLinkedInOptions {
   bypassCache?: boolean;
-  allowFallbackSearch?: boolean;
 }
 
 /**
- * Extracteur de photo de profil LinkedIn en 3 niveaux avec cache intelligent :
- * 1. Primaire : requête de la page publique avec en-têtes navigateur normaux (`og:image` -> `twitter:image` -> JSON-LD -> métadonnées embarquées).
- *    Si mur de connexion (`/authwall`, `/login`, statut 999), arrêt immédiat sans contournement et passage à l'étape 2.
- * 2. Repli (recherche d'images optionnelle) : extrait le nom depuis le slug ou le titre de la page, cherche jusqu'à 6 images candidates via Wikimedia/Wikipedia, valide chaque image (HTTP 200, `image/*`, magic bytes, limite de taille) et les marque explicitement comme non vérifiées (`unverifiedFallback: true`).
- * 3. Dernier recours : en cas d'absence de candidat ou d'échec, retourne un code d'erreur précis (`PROFILE_NOT_FOUND`, `LOGIN_WALL`, `RATE_LIMITED`, `PHOTO_NOT_AVAILABLE`, `INVALID_IMAGE`, `IMAGE_EXPIRED`, `TIMEOUT`, `NETWORK_ERROR`).
+ * Extracteur de photo de profil LinkedIn avec cache mémoire d'URLs :
+ * 1. Requête de la page publique avec en-têtes navigateur normaux (`og:image` -> `twitter:image` -> JSON-LD -> métadonnées publiques embarquées).
+ * 2. Validation stricte de l'image (statut HTTP, type MIME, signature binaire, dimensions, taille, expiration).
+ * 3. En cas de mur de connexion (`/authwall`, `/login`, statut 999) ou d'erreur, arrêt immédiat sans contournement et retour d'un code d'erreur précis (`PROFILE_NOT_FOUND`, `LOGIN_WALL`, `RATE_LIMITED`, `PHOTO_NOT_AVAILABLE`, `INVALID_IMAGE`, `IMAGE_EXPIRED`, `TIMEOUT`, `NETWORK_ERROR`).
  */
 export async function extractLinkedIn(
   slug: string,
   options?: ExtractLinkedInOptions
 ): Promise<ExtractResponse> {
+  const startTimeMs = Date.now();
   const normalizedSlug = slug.trim().toLowerCase();
   if (!normalizedSlug) {
-    return errorResponse(
+    const res = errorResponse(
       'linkedin',
       'PROFILE_NOT_FOUND',
       LINKEDIN_FRENCH_ERROR_MESSAGES.PROFILE_NOT_FOUND,
       { engineStage: 'direct', httpStatus: 404, engineFn: 'linkedin.profile' }
     );
+    logLinkedInExtractionFailure(
+      'PROFILE_NOT_FOUND',
+      'direct',
+      404,
+      Date.now() - startTimeMs
+    );
+    return res;
   }
 
   syncCacheWithFetchEnv();
@@ -1568,15 +1356,23 @@ export async function extractLinkedIn(
     }
   }
 
-  const extractionPromise = performLinkedInExtraction(normalizedSlug, options);
+  const extractionPromise = performLinkedInExtraction(normalizedSlug);
   if (!options?.bypassCache) {
     inFlightLinkedInExtractions.set(normalizedSlug, extractionPromise);
   }
 
   try {
     const result = await extractionPromise;
-    if (result.ok && !result.unverifiedFallback) {
+    if (result.ok) {
       setCachedLinkedInResult(normalizedSlug, result);
+    } else {
+      const errCode = result.error?.code || 'LOGIN_WALL';
+      logLinkedInExtractionFailure(
+        errCode,
+        result.engineStage || 'direct',
+        result.httpStatus ?? null,
+        Date.now() - startTimeMs
+      );
     }
     return result;
   } finally {
@@ -1585,16 +1381,12 @@ export async function extractLinkedIn(
 }
 
 async function performLinkedInExtraction(
-  normalizedSlug: string,
-  options?: ExtractLinkedInOptions
+  normalizedSlug: string
 ): Promise<ExtractResponse> {
   const initialUrl = `https://www.linkedin.com/in/${encodeURIComponent(normalizedSlug)}`;
-  const allowFallbackSearch = options?.allowFallbackSearch ?? true;
 
   let blockedStage = 'authwall';
   let lastHttpStatus: number | null = null;
-  let capturedHtml = '';
-  let hitLoginWall = false;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), LINKEDIN_ATTEMPT_TIMEOUT_MS);
@@ -1606,7 +1398,7 @@ async function performLinkedInExtraction(
     let redirectedToAuthwall = false;
     let redirectedToNotFound = false;
 
-    // Étape 1 : Requête avec en-têtes navigateur normaux (jusqu'à MAX_REDIRECT_HOPS redirections canoniques /in/)
+    // Requête avec en-têtes navigateur normaux (jusqu'à MAX_REDIRECT_HOPS redirections canoniques /in/)
     for (let hop = 0; hop < MAX_REDIRECT_HOPS; hop++) {
       const cookieHeader =
         cookieJar.size > 0
@@ -1645,7 +1437,6 @@ async function performLinkedInExtraction(
         }
         if (!location || isLoginOrAuthwallRedirect(location)) {
           redirectedToAuthwall = true;
-          hitLoginWall = true;
           blockedStage = 'authwall';
           lastHttpStatus = res.status;
           break;
@@ -1656,7 +1447,6 @@ async function performLinkedInExtraction(
           nextUrl = new URL(location, currentUrl);
         } catch {
           redirectedToAuthwall = true;
-          hitLoginWall = true;
           blockedStage = 'authwall';
           lastHttpStatus = res.status;
           break;
@@ -1668,7 +1458,6 @@ async function performLinkedInExtraction(
           !nextUrl.pathname.toLowerCase().startsWith('/in/')
         ) {
           redirectedToAuthwall = true;
-          hitLoginWall = true;
           blockedStage = 'authwall';
           lastHttpStatus = res.status;
           break;
@@ -1712,10 +1501,9 @@ async function performLinkedInExtraction(
       }
 
       if (status === 999 || status === 401 || status === 403) {
-        hitLoginWall = true;
         blockedStage = 'authwall';
       } else if (status >= 200 && status < 300) {
-        capturedHtml = await res.text();
+        const capturedHtml = await res.text();
         const parsed = parseLinkedInProfileHtml(capturedHtml, normalizedSlug, status);
 
         if (parsed.ok && parsed.items && parsed.items[0]) {
@@ -1779,8 +1567,6 @@ async function performLinkedInExtraction(
           return parsed;
         }
 
-        // Sinon, c'est un mur de connexion ou une réponse sans métadonnées -> passer à l'étape 2
-        hitLoginWall = true;
         blockedStage = parsed.engineStage || 'authwall';
       } else if (status >= 500 && status <= 599) {
         return errorResponse(
@@ -1790,7 +1576,6 @@ async function performLinkedInExtraction(
           { engineStage: 'direct', httpStatus: status, engineFn: 'linkedin.profile' }
         );
       } else {
-        hitLoginWall = true;
         blockedStage = 'authwall';
       }
     }
@@ -1811,7 +1596,6 @@ async function performLinkedInExtraction(
     const isStatus999RangeError =
       err instanceof RangeError && /status|999/i.test(err.message);
     if (isStatus999RangeError) {
-      hitLoginWall = true;
       blockedStage = 'authwall';
       lastHttpStatus = 999;
     } else if (lastHttpStatus === null) {
@@ -1822,40 +1606,10 @@ async function performLinkedInExtraction(
         { engineStage: 'direct', httpStatus: null, engineFn: 'linkedin.profile' }
       );
     } else {
-      hitLoginWall = true;
       blockedStage = 'authwall';
     }
   } finally {
     clearTimeout(timer);
-  }
-
-  // Étape 2 : Repli par recherche d'images publiques gratuites à partir du nom extrait du titre ou du slug
-  if (hitLoginWall && allowFallbackSearch) {
-    const personName = extractPersonNameFromSlugOrHtml(normalizedSlug, capturedHtml);
-    const candidates = await searchLinkedInFallbackImages(personName);
-
-    if (candidates.length > 0) {
-      return {
-        ok: true,
-        id: normalizedSlug,
-        platform: 'linkedin',
-        type: 'carousel',
-        title: `@${normalizedSlug}`,
-        unverifiedFallback: true,
-        unverifiedLabel: LINKEDIN_UNVERIFIED_FALLBACK_LABEL,
-        author: {
-          username: normalizedSlug,
-          avatar: candidates[0].thumbnail || candidates[0].url,
-        },
-        thumbnail: candidates[0].thumbnail || candidates[0].url,
-        items: candidates,
-        stage: 'tiers',
-        engineStage: 'fallback_search',
-        httpStatus: 200,
-        engineFn: 'linkedin.profile',
-        contentKind: 'profile',
-      };
-    }
   }
 
   return errorResponse(
@@ -1869,3 +1623,4 @@ async function performLinkedInExtraction(
     }
   );
 }
+

@@ -581,7 +581,6 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       } else if (detection.isValid && detection.platform === 'linkedin') {
         const fresh = await extractLinkedIn(detection.identifier || '', {
           bypassCache: true,
-          allowFallbackSearch: false,
         });
         if (fresh.ok && fresh.items?.length) {
           const freshItem = fresh.items[0];

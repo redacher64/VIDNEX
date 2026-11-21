@@ -1694,19 +1694,21 @@ test('VisitorsMap buildD1VisitorsMapSummary: builds D1 mock visitor origins, ran
   assert.ok(scaled7d.regions[0].visitors >= scaled7d.regions[1].visitors);
 });
 
-test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON-LD), magic-byte image validation, fallback search candidates, miniature label, and 5 distinct French error codes', async () => {
+test('LinkedIn direct flow: metadata priority (og:image -> twitter:image -> JSON-LD), magic-byte image validation, LOGIN_WALL without fallback candidates, structured anonymized failure logs, and error-code retry button visibility', async () => {
   const {
     extractTwitterImageFromHtml,
-    extractPersonNameFromSlugOrHtml,
     detectImageMagicBytes,
     validateLinkedInImageUrl,
     LINKEDIN_FRENCH_ERROR_MESSAGES,
-    LINKEDIN_UNVERIFIED_FALLBACK_LABEL,
   } = await import('../functions/_lib/linkedin.ts');
-  const {
-    getLocalizedErrorMessage,
-    mapExtractResponseToMediaResult,
-  } = await import('../src/services/extractorService.ts');
+  const { isAllowedMediaHost } = await import('../functions/_lib/allowlist.ts');
+  const { getLocalizedErrorMessage, shouldShowRetryButton } = await import(
+    '../src/services/extractorService.ts'
+  );
+
+  // 0. upload.wikimedia.org is removed from the media allowlist
+  assert.equal(isAllowedMediaHost('upload.wikimedia.org'), false);
+  assert.equal(isAllowedMediaHost('media.licdn.com'), true);
 
   // 1. Metadata priority: og:image -> twitter:image -> JSON-LD "image"
   const twitterImgUrl =
@@ -1734,17 +1736,7 @@ test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON
   assert.equal(parsedTwitter.items?.[0]?.quality, 'Miniature');
   assert.equal(parsedTwitter.items?.[0]?.isThumbnail, true);
 
-  // 2. Name extraction from slug or page title (ignoring generic authwall titles)
-  assert.equal(
-    extractPersonNameFromSlugOrHtml('jean-dupont-98a1b2c3', '<title>Sign Up | LinkedIn</title>'),
-    'Jean Dupont'
-  );
-  assert.equal(
-    extractPersonNameFromSlugOrHtml('claire-martin-12345', htmlWithTwitterAndJsonLd),
-    'Claire Martin'
-  );
-
-  // 3. Magic bytes validation: accepts JPEG/PNG/WebP/GIF and rejects HTML disguised as image
+  // 2. Magic bytes validation: accepts JPEG/PNG/WebP/GIF and rejects HTML disguised as image
   const validJpegBytes = new Uint8Array([
     0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
     0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9,
@@ -1760,8 +1752,14 @@ test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON
   assert.equal(detectImageMagicBytes(validPngBytes), 'png');
   assert.equal(detectImageMagicBytes(htmlDisguisedBytes), null);
 
-  // 4. Remote image validation + Fallback search when LinkedIn returns HTTP 999 or /authwall
+  // 3. Remote image validation + LOGIN_WALL without fallback search + structured console.warn log without PII
   const origFetch = globalThis.fetch;
+  const origWarn = console.warn;
+  const capturedWarns: Array<unknown[]> = [];
+  console.warn = (...args: unknown[]) => {
+    capturedWarns.push(args);
+  };
+
   try {
     // Case A: Upstream returns text/html or HTML magic bytes even with 200 -> INVALID_IMAGE
     globalThis.fetch = (async () => {
@@ -1807,92 +1805,74 @@ test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON
     assert.equal(goodImgCheck.isThumbnail, true);
     assert.equal(goodImgCheck.qualityLabel, 'Miniature');
 
-    // Case C: LinkedIn returns status 999 (login wall) -> stops Step 1 immediately and runs Step 2 fallback search, returning up to 6 validated candidates with thumbnail + sourceUrl + unverified label
-    let linkedinFetchCount = 0;
+    // Case C: LinkedIn returns status 999 (login wall) -> returns LOGIN_WALL directly without fallback search
+    const fetchUrlsCalled: string[] = [];
+    capturedWarns.length = 0;
+
     globalThis.fetch = (async (input: RequestInfo | URL) => {
       const u = typeof input === 'string' ? input : input.toString();
-      if (u.includes('linkedin.com/in/')) {
-        linkedinFetchCount += 1;
-        return new Response('<html>Request denied</html>', { status: 999 });
-      }
-      if (u.includes('wikipedia.org/w/api.php') || u.includes('commons.wikimedia.org/w/api.php')) {
-        const pages: Record<string, any> = {};
-        for (let i = 1; i <= 8; i++) {
-          pages[String(i)] = {
-            pageid: i,
-            title: `File:Candidate_${i}.jpg`,
-            fullurl: `https://fr.wikipedia.org/wiki/Candidat_${i}`,
-            thumbnail: {
-              source: `https://upload.wikimedia.org/wikipedia/commons/thumb/${i}/candidate_${i}.png`,
-              width: 200,
-              height: 200,
-            },
-          };
-        }
-        return new Response(JSON.stringify({ query: { pages } }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-      if (u.includes('upload.wikimedia.org')) {
-        return new Response(validPngBytes, {
-          status: 200,
-          headers: {
-            'Content-Type': 'image/png',
-            'Content-Length': String(validPngBytes.byteLength),
-          },
-        });
-      }
-      return new Response('Not found', { status: 404 });
+      fetchUrlsCalled.push(u);
+      return new Response('<html>Request denied</html>', { status: 999 });
     }) as typeof fetch;
 
-    const fallbackRes = await extractLinkedIn('marie-curie-123456');
+    const loginWallResult = await extractLinkedIn('marie-curie-123456', {
+      bypassCache: true,
+    });
     assert.equal(
-      linkedinFetchCount,
+      fetchUrlsCalled.length,
       1,
-      'Must stop after 1 normal browser fetch on status 999 without trying to bypass login wall'
+      'Must make only 1 profile fetch and never query Wikipedia/Wikimedia fallback'
     );
-    assert.equal(fallbackRes.ok, true);
-    assert.equal(fallbackRes.type, 'carousel');
-    assert.equal(fallbackRes.unverifiedFallback, true);
+    assert.ok(
+      !fetchUrlsCalled.some((u) => u.includes('wikipedia') || u.includes('wikimedia')),
+      'No fallback search request may be made'
+    );
+    assert.equal(loginWallResult.ok, false);
+    assert.equal(loginWallResult.error?.code, 'LOGIN_WALL');
     assert.equal(
-      fallbackRes.unverifiedLabel,
-      'Résultats non vérifiés, peut-être pas la bonne personne'
+      loginWallResult.error?.message,
+      "LinkedIn bloque l'accès à cette photo pour le moment. Importez-la manuellement ci-dessous."
     );
-    assert.equal(fallbackRes.unverifiedLabel, LINKEDIN_UNVERIFIED_FALLBACK_LABEL);
-    assert.ok(fallbackRes.items && fallbackRes.items.length === 6, 'Should cap at 6 candidates');
-    for (const item of fallbackRes.items!) {
-      assert.ok(item.thumbnail?.includes('upload.wikimedia.org'));
-      assert.ok(item.sourceUrl?.startsWith('https://'));
-      assert.equal(item.quality, 'Miniature');
-      assert.equal(item.isThumbnail, true);
-    }
+    assert.equal(loginWallResult.items, undefined);
 
-    // Verify frontend mapping preserves unverifiedLabel, Miniature quality, sourceUrl, and single default selection
-    const detectedInfo = detectMediaUrl('https://www.linkedin.com/in/marie-curie-123456', 'linkedin');
-    const uiResult = mapExtractResponseToMediaResult(
-      fallbackRes,
-      'https://www.linkedin.com/in/marie-curie-123456',
-      detectedInfo
+    // Verify structured console.warn log has ONLY { errorCode, stage, httpStatus, durationMs } and zero PII
+    assert.equal(capturedWarns.length, 1);
+    const [warnPrefix, warnPayload] = capturedWarns[0] as [
+      string,
+      Record<string, unknown>,
+    ];
+    assert.equal(warnPrefix, '[VIDNEX][LinkedIn] Extraction failed');
+    assert.deepEqual(
+      Object.keys(warnPayload).sort(),
+      ['durationMs', 'errorCode', 'httpStatus', 'stage'],
+      'Structured log must only contain errorCode, stage, httpStatus, durationMs'
     );
-    assert.equal(uiResult.payloadType, 'carousel');
-    if (uiResult.payloadType === 'carousel') {
-      assert.equal(uiResult.unverifiedFallback, true);
-      assert.equal(
-        uiResult.unverifiedLabel,
-        'Résultats non vérifiés, peut-être pas la bonne personne'
-      );
-      assert.equal(uiResult.items.length, 6);
-      assert.equal(uiResult.items[0].quality, 'Miniature');
-      assert.ok(uiResult.items[0].sourceUrl?.startsWith('https://'));
-      const selectedOnlyFirst = uiResult.items.filter((it) => it.selected === true);
-      assert.equal(selectedOnlyFirst.length, 1);
-    }
+    assert.equal(warnPayload.errorCode, 'LOGIN_WALL');
+    assert.equal(warnPayload.stage, 'authwall');
+    assert.equal(warnPayload.httpStatus, 999);
+    assert.equal(typeof warnPayload.durationMs, 'number');
+    const serializedWarn = JSON.stringify(capturedWarns[0]);
+    assert.ok(
+      !serializedWarn.includes('marie-curie'),
+      'Structured log must not contain profile slug or personal data'
+    );
   } finally {
     globalThis.fetch = origFetch;
+    console.warn = origWarn;
   }
 
-  // 5. Verify all 5 required error codes have distinct French messages and LOGIN_WALL never says "réessayez"
+  // 4. Verify LOGIN_WALL message across French and backend constants
+  const expectedFrLoginWall =
+    "LinkedIn bloque l'accès à cette photo pour le moment. Importez-la manuellement ci-dessous.";
+  assert.equal(LINKEDIN_FRENCH_ERROR_MESSAGES.LOGIN_WALL, expectedFrLoginWall);
+  assert.equal(
+    getLocalizedErrorMessage('LOGIN_WALL', 'fr', {
+      platform: 'linkedin',
+      isProfile: true,
+    }),
+    expectedFrLoginWall
+  );
+
   const errorCodes = [
     'LOGIN_WALL',
     'RATE_LIMITED',
@@ -1918,9 +1898,38 @@ test('LinkedIn 3-tier flow: metadata priority (og:image -> twitter:image -> JSON
     'LOGIN_WALL French message must not say "réessayez"'
   );
   assert.ok(
-    !LINKEDIN_FRENCH_ERROR_MESSAGES.LOGIN_WALL.toLowerCase().includes('réessayez'),
-    'Backend LOGIN_WALL message must not say "réessayez"'
+    !frenchMessages[0].toLowerCase().includes('résultats proposés'),
+    'LOGIN_WALL French message must not mention "résultats proposés"'
   );
+
+  // 5. Verify "Réessayer" button visibility by error code on LinkedIn
+  const retryVisibleCodes = [
+    'RATE_LIMITED',
+    'TIMEOUT',
+    'NETWORK_ERROR',
+    'IMAGE_EXPIRED',
+  ] as const;
+  for (const code of retryVisibleCodes) {
+    assert.equal(
+      shouldShowRetryButton('linkedin', code),
+      true,
+      `Retry button must be visible for LinkedIn error code ${code}`
+    );
+  }
+
+  const retryHiddenCodes = [
+    'LOGIN_WALL',
+    'PROFILE_NOT_FOUND',
+    'PHOTO_NOT_AVAILABLE',
+    'INVALID_IMAGE',
+  ] as const;
+  for (const code of retryHiddenCodes) {
+    assert.equal(
+      shouldShowRetryButton('linkedin', code),
+      false,
+      `Retry button must be hidden for LinkedIn error code ${code}`
+    );
+  }
 });
 
 test('Adsterra integration: verifies centralized config, srcdoc iframe atOptions builders, and independent ads_adsterra_enabled / ads_enabled switches', async () => {
@@ -2126,25 +2135,17 @@ test('LinkedIn Production 10-Scenario Suite: URL variants, embedded Voyager JSON
     'Should select the 800x800 artifact over the 100x100 og:image'
   );
 
-  // SCENARIO 3: Profile returning a login wall (when fallback search has no candidates -> LOGIN_WALL)
+  // SCENARIO 3: Profile returning a login wall -> LOGIN_WALL directly
   const origFetch = globalThis.fetch;
   try {
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
-      const u = typeof input === 'string' ? input : input.toString();
-      if (u.includes('linkedin.com/in/')) {
-        return new Response('<html><head><title>Sign In | LinkedIn</title></head><body>authwall</body></html>', {
-          status: 999,
-        });
-      }
-      return new Response(JSON.stringify({ query: { pages: {} } }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
+    globalThis.fetch = (async () => {
+      return new Response('<html><head><title>Sign In | LinkedIn</title></head><body>authwall</body></html>', {
+        status: 999,
       });
     }) as typeof fetch;
 
     const loginWallRes = await extractLinkedIn('private-executive', {
       bypassCache: true,
-      allowFallbackSearch: false,
     });
     assert.equal(loginWallRes.ok, false);
     assert.equal(loginWallRes.error?.code, 'LOGIN_WALL');

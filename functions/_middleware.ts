@@ -49,7 +49,7 @@ export function isPreviewHostRequiringNoindex(
 
 /**
  * Cloudflare Pages / Worker Middleware:
- * - Redirects /en/blog and /en/blog/{slug} (plus legacy blog slugs) with HTTP 301 to /blog and /blog/{slug}.
+ * - Redirects /blog and /blog/{slug} (plus legacy blog slugs) with HTTP 301 to /en/blog and /en/blog/{slug}.
  * - Protects all /api/admin/* routes (except /api/admin/login and OPTIONS) by verifying the signed HMAC session cookie,
  *   re-reading D1 user permissions/session_version, and enforcing `requirePermission` with default = deny (owner only).
  * - Adds X-Robots-Tag: noindex, nofollow on /admin, /api/*, and .pages.dev / .workers.dev preview domains.

@@ -2626,18 +2626,20 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     }
   });
 
-  it('MULTILINGUAL BLOG & SEO SYSTEM — 5 published articles (en/fr), es/de drafts, 301 redirects (/en/blog -> /blog), self-referencing canonicals, reciprocal hreflang, and JSON-LD', async () => {
+  it('MULTILINGUAL BLOG & SEO SYSTEM — published articles (en/fr/es/de/ar), 301 redirects (/blog -> /en/blog), self-referencing canonicals, reciprocal hreflang, og:locale:alternate, and JSON-LD', async () => {
     const {
       resolveRouteFromPathname,
       resolveBlogRedirectPath,
       getAllPublicRoutes,
       getAllBlogPublicRoutes,
       getAllIndexableRoutes,
+      BLOG_NAV_LABELS,
       SUPPORTED_LOCALES,
     } = await import('../i18n/config.ts');
     const {
       buildBlogHreflangCluster,
       buildHeadMetadataForRoute,
+      getOgLocales,
     } = await import('../i18n/hreflang.ts');
     const {
       getPublishedArticlesForLocale,
@@ -2664,13 +2666,20 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'ru',
     ]);
 
-    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 2 hubs (/blog, /fr/blog) + 15 published article pages (8 EN + 7 FR) = 17 routes -> 102 total
+    // 0b. Blog nav labels exist for all 10 languages (translated in ar & ru)
+    for (const loc of SUPPORTED_LOCALES) {
+      assert.ok(BLOG_NAV_LABELS[loc] && BLOG_NAV_LABELS[loc].length > 0);
+    }
+    assert.equal(BLOG_NAV_LABELS.ar, 'المدونة');
+    assert.equal(BLOG_NAV_LABELS.ru, 'Блог');
+
+    // 1. 85 core routes (60 main + 10 split-image tool + 15 legal); blog routes add 5 hubs (/en/blog, /fr/blog, /es/blog, /de/blog, /ar/blog) + 24 published article pages (8 EN + 7 FR + 2 ES + 3 DE + 4 AR) = 29 routes -> 114 total
     assert.equal(getAllPublicRoutes().length, 85);
     const blogRoutes = getAllBlogPublicRoutes();
-    assert.equal(blogRoutes.length, 17);
-    assert.equal(getAllIndexableRoutes().length, 102);
+    assert.equal(blogRoutes.length, 29);
+    assert.equal(getAllIndexableRoutes().length, 114);
 
-    // 2. Only the 8 specified English articles are published at /blog/{slug}; es and de have 0 published articles
+    // 2. Published articles across all 5 blog locales (en=8, fr=7, es=2, de=3, ar=4)
     const enArticles = getPublishedArticlesForLocale('en');
     assert.equal(enArticles.length, 8);
     const expectedEnIds = [
@@ -2687,58 +2696,59 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       enArticles.map((a) => a.article.id),
       expectedEnIds
     );
-    assert.equal(getPublishedArticlesForLocale('es').length, 0);
-    assert.equal(getPublishedArticlesForLocale('de').length, 0);
     assert.equal(getPublishedArticlesForLocale('fr').length, 7);
+    assert.equal(getPublishedArticlesForLocale('es').length, 2);
+    assert.equal(getPublishedArticlesForLocale('de').length, 3);
+    assert.equal(getPublishedArticlesForLocale('ar').length, 4);
 
-    // 3. English default blog hub (/blog) is 200; /en/blog and /en/blog/{slug} are 301 redirects (no longer 200 aliases)
-    const resBlogEn = resolveRouteFromPathname('/blog');
+    // 3. English canonical blog hub (/en/blog) is 200; /blog and /blog/{slug} are 301 redirects
+    const resBlogEn = resolveRouteFromPathname('/en/blog');
     assert.equal(resBlogEn.isValidRoute, true);
     assert.equal(resBlogEn.locale, 'en');
     assert.equal(resBlogEn.pageKey, 'blog');
-    assert.equal(resBlogEn.canonicalPath, '/blog');
+    assert.equal(resBlogEn.canonicalPath, '/en/blog');
 
-    const resBlogEnAlias = resolveRouteFromPathname('/en/blog');
-    assert.equal(resBlogEnAlias.isValidRoute, false);
-    assert.equal(resBlogEnAlias.isNotFound, true);
-    assert.equal(resolveBlogRedirectPath('/en/blog'), '/blog');
+    const resBlogLegacy = resolveRouteFromPathname('/blog');
+    assert.equal(resBlogLegacy.isValidRoute, false);
+    assert.equal(resBlogLegacy.isNotFound, true);
+    assert.equal(resolveBlogRedirectPath('/blog'), '/en/blog');
     assert.equal(
       resolveBlogRedirectPath(
-        '/en/blog/save-public-tiktok-videos-without-watermark-guide'
+        '/blog/save-public-tiktok-videos-without-watermark-guide'
       ),
-      '/blog/save-public-tiktok-videos-without-watermark-guide'
+      '/en/blog/save-public-tiktok-videos-without-watermark-guide'
     );
 
     const redirectHubRes = await worker.fetch(
-      new Request('https://vidnex.space/en/blog')
+      new Request('https://vidnex.space/blog')
     );
     assert.equal(redirectHubRes.status, 301);
     assert.equal(
       redirectHubRes.headers.get('Location'),
-      'https://vidnex.space/blog'
+      'https://vidnex.space/en/blog'
     );
 
     const redirectArtRes = await worker.fetch(
       new Request(
-        'https://vidnex.space/en/blog/why-is-downloaded-video-low-quality'
+        'https://vidnex.space/blog/why-is-downloaded-video-low-quality'
       )
     );
     assert.equal(redirectArtRes.status, 301);
     assert.equal(
       redirectArtRes.headers.get('Location'),
-      'https://vidnex.space/blog/why-is-downloaded-video-low-quality'
+      'https://vidnex.space/en/blog/why-is-downloaded-video-low-quality'
     );
 
-    // 4. Localized blog hub (/fr/blog) vs draft/unpublished blog hubs (/es/blog, /de/blog, /ar/blog -> 404)
-    const resBlogFr = resolveRouteFromPathname('/fr/blog');
-    assert.equal(resBlogFr.isValidRoute, true);
-    assert.equal(resBlogFr.locale, 'fr');
-    assert.equal(resBlogFr.pageKey, 'blog');
-    assert.equal(resBlogFr.canonicalPath, '/fr/blog');
-
-    assert.equal(resolveRouteFromPathname('/es/blog').isNotFound, true);
-    assert.equal(resolveRouteFromPathname('/de/blog').isNotFound, true);
-    assert.equal(resolveRouteFromPathname('/ar/blog').isNotFound, true);
+    // 4. Localized blog hubs (/fr/blog, /es/blog, /de/blog, /ar/blog) are 200; unsupported blog hubs (/pt/blog, /ru/blog) -> 404
+    for (const loc of ['fr', 'es', 'de', 'ar'] as const) {
+      const resHub = resolveRouteFromPathname(`/${loc}/blog`);
+      assert.equal(resHub.isValidRoute, true);
+      assert.equal(resHub.locale, loc);
+      assert.equal(resHub.pageKey, 'blog');
+      assert.equal(resHub.canonicalPath, `/${loc}/blog`);
+    }
+    assert.equal(resolveRouteFromPathname('/pt/blog').isNotFound, true);
+    assert.equal(resolveRouteFromPathname('/ru/blog').isNotFound, true);
 
     // 5. Localized article slugs & self-referencing canonicals (never canonicalized to English)
     const resArtFr = resolveRouteFromPathname(
@@ -2769,7 +2779,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
 
     // 6. Draft articles & draft translations are strictly excluded (404, not in hreflang, not in routes)
     const draftArtRes = resolveRouteFromPathname(
-      '/blog/how-to-download-x-videos'
+      '/en/blog/how-to-download-x-videos'
     );
     assert.equal(draftArtRes.isNotFound, true);
     assert.equal(
@@ -2777,7 +2787,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       null
     );
 
-    // 'why-is-downloaded-video-low-quality' is published in EN but 'draft' in FR => no hreflang="fr"
+    // 'why-is-downloaded-video-low-quality' is published in EN but 'draft' in FR => no hreflang="fr" and 0 og:locale:alternate
     const draftTransRes = resolveRouteFromPathname(
       '/fr/blog/pourquoi-video-telechargee-basse-qualite'
     );
@@ -2797,24 +2807,55 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       art7Hreflangs.map((h) => h.hreflang),
       ['en', 'x-default']
     );
+    const art7Og = getOgLocales(
+      'en',
+      'blog_article',
+      'why-is-downloaded-video-low-quality'
+    );
+    assert.equal(art7Og.ogLocale, 'en_US');
+    assert.deepEqual(art7Og.ogLocaleAlternates, []);
 
-    // 7. 'troubleshooting-expired-blocked-social-media-links' has 2 published translations (en, fr) + x-default
+    // 7. 'troubleshooting-expired-blocked-social-media-links' has 4 published translations (en, fr, es, de) + x-default
     const art1Hreflangs = buildBlogHreflangCluster(
       'blog_article',
       'troubleshooting-expired-blocked-social-media-links'
     );
-    assert.equal(art1Hreflangs.length, 3);
+    assert.equal(art1Hreflangs.length, 5);
     assert.equal(
       art1Hreflangs.find((h) => h.hreflang === 'en')?.href,
-      'https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links'
+      'https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links'
     );
     assert.equal(
       art1Hreflangs.find((h) => h.hreflang === 'fr')?.href,
       'https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme'
     );
     assert.equal(
+      art1Hreflangs.find((h) => h.hreflang === 'es')?.href,
+      'https://vidnex.space/es/blog/por-que-no-se-descarga-video-tiktok'
+    );
+    assert.equal(
+      art1Hreflangs.find((h) => h.hreflang === 'de')?.href,
+      'https://vidnex.space/de/blog/tiktok-video-laedt-nicht-herunter-loesung'
+    );
+    assert.equal(
       art1Hreflangs.find((h) => h.hreflang === 'x-default')?.href,
-      'https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links'
+      'https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links'
+    );
+
+    // 7b. og:locale:alternate declares ALL other locales of the page (never just ru_RU)
+    const homeOgFr = getOgLocales('fr', 'home');
+    assert.equal(homeOgFr.ogLocale, 'fr_FR');
+    assert.equal(homeOgFr.ogLocaleAlternates.length, 9);
+    assert.ok(homeOgFr.ogLocaleAlternates.includes('en_US'));
+    assert.ok(homeOgFr.ogLocaleAlternates.includes('ar_AR'));
+    assert.ok(homeOgFr.ogLocaleAlternates.includes('ru_RU'));
+    assert.ok(!homeOgFr.ogLocaleAlternates.includes('fr_FR'));
+
+    const blogHubOgEs = getOgLocales('es', 'blog');
+    assert.equal(blogHubOgEs.ogLocale, 'es_ES');
+    assert.deepEqual(
+      [...blogHubOgEs.ogLocaleAlternates].sort(),
+      ['ar_AR', 'de_DE', 'en_US', 'fr_FR']
     );
 
     // 8. Verify Schema.org JSON-LD graph on blog article (Article + BreadcrumbList + FAQPage) and tool page (WebApplication + HowTo + FAQPage + BreadcrumbList)
@@ -4916,12 +4957,13 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const testCases = [
       { input: 'https://vidnex.space/telecharger-video-tiktok/', expected: 'https://vidnex.space/telecharger-video-tiktok' },
       { input: 'https://vidnex.space/en/', expected: 'https://vidnex.space/en' },
-      { input: 'https://vidnex.space/blog/', expected: 'https://vidnex.space/blog' },
+      { input: 'https://vidnex.space/blog/', expected: 'https://vidnex.space/en/blog' },
+      { input: 'https://vidnex.space/en/blog/', expected: 'https://vidnex.space/en/blog' },
       { input: 'https://vidnex.space/fr/blog/', expected: 'https://vidnex.space/fr/blog' },
       { input: 'https://vidnex.space/a-propos/', expected: 'https://vidnex.space/a-propos' },
       { input: 'https://vidnex.space/en/privacy/', expected: 'https://vidnex.space/en/privacy' },
       { input: 'https://www.vidnex.space/en/', expected: 'https://vidnex.space/en' },
-      { input: 'https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide/', expected: 'https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide' },
+      { input: 'https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide/', expected: 'https://vidnex.space/en/blog/save-public-tiktok-videos-without-watermark-guide' },
     ];
 
     for (const tc of testCases) {
@@ -5091,7 +5133,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('Découper une image'));
   });
 
-  it('validates SEO, GEO, and AEO upgrades across all 100 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, and llms.txt + About alignment)', async () => {
+  it('validates SEO, GEO, and AEO upgrades across all 114 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
     const {
       SUPPORTED_LOCALES,
       getAllIndexableRoutes,
@@ -5102,7 +5144,18 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     const { getSplitImageContent } = await import('./splitImageLogic.ts');
 
     const allRoutes = getAllIndexableRoutes();
-    assert.equal(allRoutes.length, 102);
+    assert.equal(allRoutes.length, 114);
+
+    // Verify Arabic private-account FAQ answer is accurate (does not list platforms)
+    const arBundle = getLocaleBundleSync('ar');
+    const arPrivateFaq = arBundle.home.faqs[1];
+    assert.ok(arPrivateFaq.question.includes('حساب خاص'));
+    assert.ok(
+      arPrivateFaq.answer.includes('لا') &&
+        arPrivateFaq.answer.includes('العامة') &&
+        !arPrivateFaq.answer.includes('خمس منصات'),
+      `Arabic private-account FAQ answer mismatch: "${arPrivateFaq.answer}"`
+    );
 
     const forbiddenPattern =
       /100\s*%\s*s[ûu]r|100\s*%\s*safe|illimit[ée]|unlimited|le meilleur|the best/i;

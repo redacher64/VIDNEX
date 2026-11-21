@@ -3,6 +3,7 @@ import {
   BLOG_HUB_SEO,
   type BlogInternalLink,
   type BlogLocale,
+  getBlogArticlePath,
   getBlogHomePath,
   getBlogUiLabels,
   getPublishedArticleById,
@@ -81,13 +82,11 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
       if (targetArt) {
         const localTr = targetArt.translations[blogLocale];
         if (localTr && localTr.translationStatus === 'published') {
-          return blogLocale === 'en'
-            ? `/blog/${localTr.localizedSlug}`
-            : `/${blogLocale}/blog/${localTr.localizedSlug}`;
+          return getBlogArticlePath(blogLocale, localTr.localizedSlug);
         }
         const enTr = targetArt.translations.en;
         if (enTr && enTr.translationStatus === 'published') {
-          return `/blog/${enTr.localizedSlug}`;
+          return getBlogArticlePath('en', enTr.localizedSlug);
         }
       }
     }

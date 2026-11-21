@@ -30,24 +30,27 @@
 
 - [Accueil VIDNEX (FR)](https://vidnex.space/) | [VIDNEX Home (EN)](https://vidnex.space/en)
 - [Découper une image (FR)](https://vidnex.space/tools/split-image) | [Split Image Online (EN)](https://vidnex.space/en/tools/split-image)
-- [VIDNEX Editorial Blog (English)](https://vidnex.space/blog)
+- [VIDNEX Editorial Blog (English)](https://vidnex.space/en/blog)
 - [Blog VIDNEX (Français)](https://vidnex.space/fr/blog)
+- [Blog de VIDNEX (Español)](https://vidnex.space/es/blog)
+- [VIDNEX Blog (Deutsch)](https://vidnex.space/de/blog)
+- [مدونة VIDNEX (العربية)](https://vidnex.space/ar/blog)
 - [À propos (FR)](https://vidnex.space/a-propos) | [About Us (EN)](https://vidnex.space/en/about) | [من نحن (AR)](https://vidnex.space/ar/about)
 - [Politique de confidentialité (FR)](https://vidnex.space/confidentialite) | [Privacy Policy (EN)](https://vidnex.space/en/privacy)
 - [Conditions d’utilisation (FR)](https://vidnex.space/conditions) | [Terms of Service (EN)](https://vidnex.space/en/terms)
 - [Contact (FR)](https://vidnex.space/contact) | [Contact (EN)](https://vidnex.space/en/contact)
 - [Droits d’auteur et DMCA (FR)](https://vidnex.space/dmca) | [DMCA & Copyright (EN)](https://vidnex.space/en/dmca)
 
-## Guides techniques publiés (English — /blog)
+## Guides techniques publiés (English — /en/blog)
 
-- [Why Is My TikTok Video Not Downloading? 7 Causes and Fixes](https://vidnex.space/blog/troubleshooting-expired-blocked-social-media-links)
-- [Instagram Reel Downloaded Without Sound? Here's Why](https://vidnex.space/blog/instagram-reels-carousels-resolution-compression-guide)
-- [MP4 vs MP3: What's the Difference?](https://vidnex.space/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide)
-- [Why Is My Downloaded Video Low Quality?](https://vidnex.space/blog/why-is-downloaded-video-low-quality)
-- [How to Save Public TikTok Videos Without a Watermark on Any Device](https://vidnex.space/blog/save-public-tiktok-videos-without-watermark-guide)
-- [How to Save Public Instagram Reels, Carousels, and Posts with Sound](https://vidnex.space/blog/download-public-instagram-reels-carousels-guide)
-- [How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos](https://vidnex.space/blog/download-public-x-twitter-videos-gifs-mp4-guide)
-- [How to Save Public Facebook Videos and Reels in HD or SD MP4](https://vidnex.space/blog/download-public-facebook-videos-reels-hd-sd-guide)
+- [Why Is My TikTok Video Not Downloading? 7 Causes and Fixes](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links)
+- [Instagram Reel Downloaded Without Sound? Here's Why](https://vidnex.space/en/blog/instagram-reels-carousels-resolution-compression-guide)
+- [MP4 vs MP3: What's the Difference?](https://vidnex.space/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide)
+- [Why Is My Downloaded Video Low Quality?](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality)
+- [How to Save Public TikTok Videos Without a Watermark on Any Device](https://vidnex.space/en/blog/save-public-tiktok-videos-without-watermark-guide)
+- [How to Save Public Instagram Reels, Carousels, and Posts with Sound](https://vidnex.space/en/blog/download-public-instagram-reels-carousels-guide)
+- [How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos](https://vidnex.space/en/blog/download-public-x-twitter-videos-gifs-mp4-guide)
+- [How to Save Public Facebook Videos and Reels in HD or SD MP4](https://vidnex.space/en/blog/download-public-facebook-videos-reels-hd-sd-guide)
 
 ## Guides techniques publiés (Français — /fr/blog)
 
@@ -58,6 +61,24 @@
 - [Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son](https://vidnex.space/fr/blog/telecharger-reels-carrousels-instagram-publics-guide)
 - [Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)](https://vidnex.space/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide)
 - [Comment enregistrer une vidéo ou un Reel Facebook public en MP4 HD ou SD](https://vidnex.space/fr/blog/telecharger-videos-reels-facebook-publics-hd-sd-guide)
+
+## Guides techniques publiés (Español — /es/blog)
+
+- [¿Por qué no se descarga mi vídeo de TikTok? 7 causas y soluciones](https://vidnex.space/es/blog/por-que-no-se-descarga-video-tiktok)
+- [¿Reel de Instagram descargado sin sonido? Por qué ocurre y solución](https://vidnex.space/es/blog/reel-instagram-descargado-sin-audio)
+
+## Guides techniques publiés (Deutsch — /de/blog)
+
+- [Warum lädt mein TikTok-Video nicht herunter? 7 Ursachen & Lösungen](https://vidnex.space/de/blog/tiktok-video-laedt-nicht-herunter-loesung)
+- [Instagram Reel ohne Ton heruntergeladen? Ursachen & Lösung](https://vidnex.space/de/blog/instagram-reel-ohne-ton-heruntergeladen)
+- [MP4 vs. MP3: Was ist der technische Unterschied?](https://vidnex.space/de/blog/mp4-vs-mp3-unterschied-erklaert)
+
+## Guides techniques publiés (العربية — /ar/blog)
+
+- [كيفية تنزيل فيديو تيك توك عام بدون علامة مائية على الهاتف والكمبيوتر](https://vidnex.space/ar/blog/tanzil-video-tiktok-bidun-alama-maiya-dalil)
+- [كيفية تنزيل ريلز ومنشورات كاروسيل إنستغرام العامة مع الصوت بجودة عالية](https://vidnex.space/ar/blog/tanzil-reels-carousel-instagram-ama-maa-alsawt-dalil)
+- [كيفية تنزيل فيديو أو صورة متحركة GIF (بصيغة MP4) أو صور من منصة إكس (تويتر)](https://vidnex.space/ar/blog/tanzil-video-gif-x-twitter-mp4-dalil)
+- [كيفية تنزيل فيديو أو ريلز فيسبوك عام بصيغة MP4 بجودة HD أو SD](https://vidnex.space/ar/blog/tanzil-video-reels-facebook-ama-hd-sd-dalil)
 
 ## Langues disponibles (10)
 

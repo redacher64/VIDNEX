@@ -157,7 +157,7 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
           </li>
         </ol>
 
-        {/* Blog Editorial Language Editions Switcher (Strictly the 4 published blog hubs) */}
+        {/* Blog Editorial Language Editions Switcher (Strictly the 5 published blog hubs) */}
         <div
           className="flex items-center gap-1.5"
           aria-label={ui.availableLanguagesLabel}

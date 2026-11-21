@@ -13,14 +13,25 @@ import path from 'node:path';
 import { SITE_URL } from '../src/config/site.ts';
 import {
   getAllIndexableRoutes,
+  getLocalizedPagePath,
   isLegalPageKey,
   LEGAL_SUPPORTED_LOCALES,
+  LOCALES_CONFIG,
   SUPPORTED_LOCALES,
 } from '../src/i18n/config.ts';
-import { BLOG_ARTICLES } from '../src/data/blogArticles.ts';
+import {
+  buildHreflangCluster,
+  getOgLocales,
+} from '../src/i18n/hreflang.ts';
+import {
+  BLOG_ARTICLES,
+  getBlogArticlePath,
+  getPublishedArticleById,
+} from '../src/data/blogArticles.ts';
 import { validateStaticBlogRepository } from '../src/utils/blogValidation.ts';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
+const LOCALES_DIR = path.join(process.cwd(), 'src', 'i18n', 'locales');
 
 function fail(message) {
   console.error(`✗ [SEO Verification Failed] ${message}`);
@@ -30,6 +41,111 @@ function fail(message) {
 function extractTagContent(html, regex) {
   const m = html.match(regex);
   return m ? m[1].trim() : null;
+}
+
+function validateBlogAndLocaleInternalLinks(validInternalPaths) {
+  let dataLinksChecked = 0;
+
+  // 1. Validate primaryToolRoute, secondaryToolRoute, and internalLinks on all published articles
+  for (const article of BLOG_ARTICLES) {
+    if (article.status !== 'published') continue;
+
+    for (const field of ['primaryToolRoute', 'secondaryToolRoute']) {
+      const routeVal = article[field];
+      if (typeof routeVal === 'string' && routeVal.startsWith('/')) {
+        dataLinksChecked++;
+        const clean = routeVal.replace(/\/+$/, '') || '/';
+        if (!validInternalPaths.has(clean)) {
+          fail(
+            `Broken ${field} "${routeVal}" in published blog article "${article.id}"`
+          );
+        }
+      }
+    }
+
+    for (const [loc, tr] of Object.entries(article.translations)) {
+      if (!tr || tr.translationStatus !== 'published') continue;
+
+      for (const link of tr.internalLinks || []) {
+        dataLinksChecked++;
+        if (link.targetType === 'home') {
+          const href = getLocalizedPagePath(loc, 'home');
+          if (!validInternalPaths.has(href)) {
+            fail(`Broken internalLink home "${href}" in "${article.id}:${loc}"`);
+          }
+        } else if (link.targetType === 'platform' && link.platformKey) {
+          const href = getLocalizedPagePath(loc, link.platformKey);
+          if (!validInternalPaths.has(href)) {
+            fail(
+              `Broken internalLink platform "${href}" in "${article.id}:${loc}"`
+            );
+          }
+        } else if (link.targetType === 'blog_article' && link.targetArticleId) {
+          const targetArt = getPublishedArticleById(link.targetArticleId);
+          if (!targetArt) {
+            fail(
+              `Broken internalLink targetArticleId "${link.targetArticleId}" (not published) in "${article.id}:${loc}"`
+            );
+          }
+          const localTr = targetArt.translations[loc];
+          const resolvedHref =
+            localTr && localTr.translationStatus === 'published'
+              ? getBlogArticlePath(loc, localTr.localizedSlug)
+              : targetArt.translations.en?.translationStatus === 'published'
+              ? getBlogArticlePath('en', targetArt.translations.en.localizedSlug)
+              : null;
+          if (!resolvedHref || !validInternalPaths.has(resolvedHref)) {
+            fail(
+              `Broken internalLink blog target "${resolvedHref}" in "${article.id}:${loc}"`
+            );
+          }
+        }
+      }
+
+      // Scan markdown links [label](/path) in prose for any broken internal paths
+      const textFields = [
+        ...(tr.introduction || []),
+        ...(tr.content || []).flatMap((s) => [
+          ...(s.paragraphs || []),
+          ...(s.bullets || []),
+          s.technicalCallout?.text || '',
+        ]),
+        ...(tr.faq || []).flatMap((f) => [f.question, f.answer]),
+      ];
+      for (const text of textFields) {
+        const mdRe = /\]\((\/[^)\s#?]+)\)/g;
+        let m;
+        while ((m = mdRe.exec(text)) !== null) {
+          dataLinksChecked++;
+          const clean = m[1].replace(/\/+$/, '') || '/';
+          if (!validInternalPaths.has(clean)) {
+            fail(
+              `Broken inline markdown link "${m[1]}" in published blog article "${article.id}:${loc}"`
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Scan all locale JSON files for markdown links [label](/path) or explicit VIDNEX internal URLs
+  if (fs.existsSync(LOCALES_DIR)) {
+    for (const file of fs.readdirSync(LOCALES_DIR)) {
+      if (!file.endsWith('.json')) continue;
+      const raw = fs.readFileSync(path.join(LOCALES_DIR, file), 'utf8');
+      const urlRe = /(?:https:\/\/vidnex\.space|\]\()(\/[a-z0-9/_-]+)/gi;
+      let m;
+      while ((m = urlRe.exec(raw)) !== null) {
+        const candidate = m[1].replace(/\/+$/, '') || '/';
+        dataLinksChecked++;
+        if (!validInternalPaths.has(candidate)) {
+          fail(`Broken internal link "${candidate}" found in locale file ${file}`);
+        }
+      }
+    }
+  }
+
+  return dataLinksChecked;
 }
 
 function main() {
@@ -46,6 +162,8 @@ function main() {
   const routes = getAllIndexableRoutes();
   const validInternalPaths = new Set(routes.map((r) => r.path));
   validInternalPaths.add('/admin');
+
+  const dataLinksChecked = validateBlogAndLocaleInternalLinks(validInternalPaths);
 
   const titlesSeen = new Map();
   const descriptionsSeen = new Map();
@@ -122,17 +240,38 @@ function main() {
       fail(`Route ${route.path}: missing or empty <h1> in pre-rendered HTML`);
     }
 
-    // 6. Check hreflang tags
+    // 6. Check exact hreflang + x-default tags across ALL indexable routes (main, legal, blog hubs & articles)
     const hreflangRegex =
       /<link\s+rel="alternate"\s+hreflang="([^"]+)"\s+href="([^"]+)"/gi;
     const pageHreflangs = new Map();
     let match;
     while ((match = hreflangRegex.exec(html)) !== null) {
+      if (pageHreflangs.has(match[1])) {
+        fail(
+          `Route ${route.path}: duplicate hreflang="${match[1]}" tag found`
+        );
+      }
       pageHreflangs.set(match[1], match[2]);
     }
 
+    const expectedCluster = buildHreflangCluster(
+      route.pageKey,
+      route.blogArticleId
+    );
+    if (pageHreflangs.size !== expectedCluster.length) {
+      fail(
+        `Route ${route.path}: expected ${expectedCluster.length} hreflang tags, found ${pageHreflangs.size}`
+      );
+    }
+    for (const expectedEntry of expectedCluster) {
+      if (pageHreflangs.get(expectedEntry.hreflang) !== expectedEntry.href) {
+        fail(
+          `Route ${route.path}: hreflang="${expectedEntry.hreflang}" mismatch — expected "${expectedEntry.href}", got "${pageHreflangs.get(expectedEntry.hreflang)}"`
+        );
+      }
+    }
+
     if (isLegalPageKey(route.pageKey)) {
-      // Legal pages (fr, en, ar) must have 3 locales + x-default = 4 reciprocal hreflang links
       if (pageHreflangs.size !== LEGAL_SUPPORTED_LOCALES.length + 1) {
         fail(
           `Legal route ${route.path}: expected ${
@@ -140,33 +279,13 @@ function main() {
           } hreflang tags, found ${pageHreflangs.size}`
         );
       }
-      if (pageHreflangs.get(route.locale) !== expectedCanonical) {
-        fail(
-          `Legal route ${route.path}: missing or mismatched self-referencing hreflang="${route.locale}"`
-        );
-      }
-      if (!pageHreflangs.has('x-default')) {
-        fail(`Legal route ${route.path}: missing hreflang="x-default"`);
-      }
-      hreflangGraph.set(expectedCanonical, pageHreflangs);
     } else if (route.pageKey === 'blog' || route.pageKey === 'blog_article') {
-      // Blog hubs and blog articles must have self-referencing hreflang + x-default + only published translations
       if (pageHreflangs.size < 2) {
         fail(
           `Blog route ${route.path}: expected at least 2 hreflang tags (self + x-default), found ${pageHreflangs.size}`
         );
       }
-      if (pageHreflangs.get(route.locale) !== expectedCanonical) {
-        fail(
-          `Blog route ${route.path}: missing or mismatched self-referencing hreflang="${route.locale}"`
-        );
-      }
-      if (!pageHreflangs.has('x-default')) {
-        fail(`Blog route ${route.path}: missing hreflang="x-default"`);
-      }
-      hreflangGraph.set(expectedCanonical, pageHreflangs);
     } else {
-      // Main pages (home + 5 platforms) must have all 10 locales + x-default = 11 hreflang links
       if (pageHreflangs.size !== SUPPORTED_LOCALES.length + 1) {
         fail(
           `Route ${route.path}: expected ${
@@ -174,16 +293,62 @@ function main() {
           } hreflang tags, found ${pageHreflangs.size}`
         );
       }
-      // Self-reference check
-      if (pageHreflangs.get(route.locale) !== expectedCanonical) {
-        fail(
-          `Route ${route.path}: missing or mismatched self-referencing hreflang="${route.locale}"`
-        );
-      }
-      if (!pageHreflangs.has('x-default')) {
-        fail(`Route ${route.path}: missing hreflang="x-default"`);
-      }
-      hreflangGraph.set(expectedCanonical, pageHreflangs);
+    }
+
+    const selfHreflang = LOCALES_CONFIG[route.locale].hreflang;
+    if (pageHreflangs.get(selfHreflang) !== expectedCanonical) {
+      fail(
+        `Route ${route.path}: missing or mismatched self-referencing hreflang="${selfHreflang}"`
+      );
+    }
+    const xDefaultUrl = pageHreflangs.get('x-default');
+    if (!xDefaultUrl) {
+      fail(`Route ${route.path}: missing hreflang="x-default"`);
+    }
+    const xDefaultPath =
+      new URL(xDefaultUrl).pathname.replace(/\/+$/, '') || '/';
+    if (!validInternalPaths.has(xDefaultPath)) {
+      fail(
+        `Route ${route.path}: hreflang="x-default" points to non-indexable route "${xDefaultUrl}"`
+      );
+    }
+    hreflangGraph.set(expectedCanonical, pageHreflangs);
+
+    // 6b. Verify og:locale and ALL og:locale:alternate tags match expected page alternates (never collapsed to a single ru_RU)
+    const ogLocale = extractTagContent(
+      html,
+      /<meta\s+property="og:locale"\s+content="([^"]+)"/i
+    );
+    const {
+      ogLocale: expectedOgLocale,
+      ogLocaleAlternates: expectedOgAlternates,
+    } = getOgLocales(route.locale, route.pageKey, route.blogArticleId);
+    if (ogLocale !== expectedOgLocale) {
+      fail(
+        `Route ${route.path}: expected og:locale="${expectedOgLocale}", got "${ogLocale}"`
+      );
+    }
+    const ogAltRegex =
+      /<meta\s+property="og:locale:alternate"\s+content="([^"]+)"/gi;
+    const actualOgAlternates = [];
+    let ogAltMatch;
+    while ((ogAltMatch = ogAltRegex.exec(html)) !== null) {
+      actualOgAlternates.push(ogAltMatch[1]);
+    }
+    const expectedSorted = [...expectedOgAlternates].sort();
+    const actualSorted = [...actualOgAlternates].sort();
+    if (
+      actualOgAlternates.length !== expectedOgAlternates.length ||
+      expectedSorted.some((val, idx) => actualSorted[idx] !== val)
+    ) {
+      fail(
+        `Route ${route.path}: og:locale:alternate mismatch — expected [${expectedSorted.join(', ')}], got [${actualSorted.join(', ')}]`
+      );
+    }
+    if (actualOgAlternates.includes(expectedOgLocale)) {
+      fail(
+        `Route ${route.path}: og:locale:alternate must not include self og:locale "${expectedOgLocale}"`
+      );
     }
 
     // 7. Verify all internal <a href="/..."> links (must be canonical without trailing slash on non-root)
@@ -213,7 +378,7 @@ function main() {
       const targetMap = hreflangGraph.get(targetUrl);
       if (!targetMap) {
         fail(
-          `Hreflang target "${targetUrl}" referenced from "${sourceUrl}" is not an indexed main page`
+          `Hreflang target "${targetUrl}" referenced from "${sourceUrl}" is not an indexed page`
         );
       }
       for (const [expectedLang, expectedUrl] of linksMap.entries()) {
@@ -284,9 +449,14 @@ function main() {
   console.log(`  • ${routes.length} pre-rendered HTML pages verified in dist/`);
   console.log(`  • ${titlesSeen.size} unique <title> tags & ${descriptionsSeen.size} unique meta descriptions`);
   console.log(
-    `  • ${hreflangGraph.size} multilingual pages with 100% reciprocal & self-referencing hreflang`
+    `  • ${hreflangGraph.size} multilingual pages with 100% reciprocal & self-referencing hreflang + x-default`
   );
-  console.log(`  • ${totalLinksChecked} internal <a href> links verified (0 broken)`);
+  console.log(
+    `  • ${routes.length} pages verified for complete og:locale + og:locale:alternate tags`
+  );
+  console.log(
+    `  • ${totalLinksChecked} HTML internal <a href> links + ${dataLinksChecked} data/locale links verified (0 broken)`
+  );
   console.log(`  • sitemap.xml (${locCount} URLs), robots.txt & llms.txt validated`);
   console.log('==========================================================');
 }

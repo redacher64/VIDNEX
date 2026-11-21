@@ -3,6 +3,8 @@ import {
   getBlogArticlePath,
   getBlogUiLabels,
   getPublishedArticleById,
+  getPublishedArticlesForLocale,
+  isBlogHubLocale,
   type BlogLocale,
 } from '../data/blogArticles.ts';
 import {
@@ -56,20 +58,36 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
     pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
   const editorial = pageContent.editorial;
 
+  // Strictly match an article published in the page's current language; never fall back to English on non-EN tool pages.
+  const currentBlogLocale: BlogLocale | null = isBlogHubLocale(language)
+    ? language
+    : null;
   const pillarArticleId =
     pageKey !== 'home' ? PILLAR_BLOG_ARTICLE_IDS[pageKey] : undefined;
   const pillarArticle = pillarArticleId
     ? getPublishedArticleById(pillarArticleId)
     : null;
-  const pillarBlogLocale: BlogLocale =
-    language === 'fr' &&
-    pillarArticle?.translations.fr?.translationStatus === 'published'
-      ? 'fr'
-      : 'en';
-  const pillarTranslation = pillarArticle?.translations[pillarBlogLocale];
+
+  let matchedTranslation =
+    currentBlogLocale &&
+    pillarArticle?.translations[currentBlogLocale]?.translationStatus ===
+      'published'
+      ? pillarArticle.translations[currentBlogLocale]
+      : null;
+
+  if (!matchedTranslation && currentBlogLocale && pageKey !== 'home') {
+    const platformGuideInLocale = getPublishedArticlesForLocale(
+      currentBlogLocale
+    ).find((item) => item.article.primaryPlatform === pageKey);
+    if (platformGuideInLocale) {
+      matchedTranslation = platformGuideInLocale.translation;
+    }
+  }
+
+  const pillarTranslation = matchedTranslation;
   const pillarHref =
-    pillarTranslation && pillarTranslation.translationStatus === 'published'
-      ? getBlogArticlePath(pillarBlogLocale, pillarTranslation.localizedSlug)
+    currentBlogLocale && pillarTranslation
+      ? getBlogArticlePath(currentBlogLocale, pillarTranslation.localizedSlug)
       : null;
   const blogUi = getBlogUiLabels(language);
 

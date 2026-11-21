@@ -18,6 +18,7 @@ import {
   isPlatformPageKey,
   LOCALES_CONFIG,
 } from '../src/i18n/config.ts';
+import { getOgLocales } from '../src/i18n/hreflang.ts';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const MAX_IMAGE_BYTES = 300 * 1024; // 300 KB max
@@ -342,11 +343,29 @@ function main() {
     }
     langDescs.set(ogDesc, route.path);
 
-    // 7. Check og:locale consistency with route.locale
-    const expectedOgLocale = LOCALES_CONFIG[route.locale].ogLocale;
+    // 7. Check og:locale and og:locale:alternate consistency with route.locale
+    const {
+      ogLocale: expectedOgLocale,
+      ogLocaleAlternates: expectedOgAlternates,
+    } = getOgLocales(route.locale, route.pageKey, route.blogArticleId);
     if (ogLocale !== expectedOgLocale) {
       fail(
         `Route ${route.path}: expected og:locale="${expectedOgLocale}" for lang="${route.locale}", got "${ogLocale}"`
+      );
+    }
+    const actualOgAlternates = [
+      ...html.matchAll(
+        /<meta\s+property="og:locale:alternate"\s+content="([^"]*)"/gi
+      ),
+    ].map((m) => decodeHtmlEntities(m[1]));
+    const sortedExpectedAlts = [...expectedOgAlternates].sort();
+    const sortedActualAlts = [...actualOgAlternates].sort();
+    if (
+      actualOgAlternates.length !== expectedOgAlternates.length ||
+      sortedExpectedAlts.some((val, idx) => sortedActualAlts[idx] !== val)
+    ) {
+      fail(
+        `Route ${route.path}: expected og:locale:alternate=[${sortedExpectedAlts.join(', ')}], got [${sortedActualAlts.join(', ')}]`
       );
     }
 

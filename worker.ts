@@ -47,6 +47,7 @@ import {
 import { onRequestGet as adminVisitorsGet } from './functions/api/admin/visitors.ts';
 import { onRequest as adminMiddleware } from './functions/_middleware.ts';
 import type { ExecutionContextLike } from './functions/_lib/db.ts';
+import { resolveBlogRedirectPath } from './src/i18n/config.ts';
 
 export interface WorkerEnv extends ExtractEnv {
   ASSETS?: {
@@ -296,9 +297,11 @@ export default {
       const cleanPathname = hasTrailingSlash
         ? url.pathname.replace(/\/+$/, '') || '/'
         : url.pathname;
+      const finalPathname =
+        resolveBlogRedirectPath(cleanPathname) || cleanPathname;
       const targetHost = isWww ? 'vidnex.space' : url.host;
       const targetProtocol = isWww ? 'https:' : url.protocol;
-      const targetUrl = `${targetProtocol}//${targetHost}${cleanPathname}${url.search}`;
+      const targetUrl = `${targetProtocol}//${targetHost}${finalPathname}${url.search}`;
       return new Response(null, {
         status: 301,
         headers: {

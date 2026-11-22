@@ -19,7 +19,23 @@ export type ErrorCode =
   | 'PROFILE_NOT_FOUND'
   | 'PHOTO_NOT_AVAILABLE'
   | 'INVALID_IMAGE'
-  | 'IMAGE_EXPIRED';
+  | 'IMAGE_EXPIRED'
+  | 'STORIES_UNAVAILABLE'
+  | 'STORY_ACCOUNT_PRIVATE'
+  | 'STORY_ACCOUNT_NOT_FOUND'
+  | 'STORY_NO_ACTIVE'
+  | 'STORY_RATE_LIMITED';
+
+export const STORIES_UNAVAILABLE_MESSAGE =
+  'Les stories sont temporairement indisponibles.';
+
+export interface ExtractStoryMeta {
+  username: string;
+  storyId?: string;
+  takenAt?: string;
+  expiresAt?: string;
+  canListAll: boolean;
+}
 
 export interface ExtractMediaItem {
   index?: number;
@@ -59,6 +75,7 @@ export interface ExtractResponse {
   };
   thumbnail?: string;
   items?: ExtractMediaItem[];
+  storyMeta?: ExtractStoryMeta;
   stage?: 'direct' | 'tiers';
   engineStage?: string;
   httpStatus?: number | null;
@@ -84,9 +101,12 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'LOGIN_WALL':
     case 'PLATFORM_DISABLED':
     case 'BLOCKED':
+    case 'STORY_ACCOUNT_PRIVATE':
       return 403;
     case 'NOT_FOUND':
     case 'PROFILE_NOT_FOUND':
+    case 'STORY_ACCOUNT_NOT_FOUND':
+    case 'STORY_NO_ACTIVE':
       return 404;
     case 'IMAGE_EXPIRED':
       return 410;
@@ -95,8 +115,10 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'INVALID_IMAGE':
       return 422;
     case 'RATE_LIMITED':
+    case 'STORY_RATE_LIMITED':
       return 429;
     case 'MAINTENANCE':
+    case 'STORIES_UNAVAILABLE':
       return 503;
     case 'TIMEOUT':
       return 504;

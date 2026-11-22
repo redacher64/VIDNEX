@@ -64,6 +64,14 @@ export interface BaseMediaResult {
   extractedAt: string;
 }
 
+export interface StoryResultMeta {
+  username: string;
+  storyId?: string;
+  takenAt?: string;
+  expiresAt?: string;
+  canListAll: boolean;
+}
+
 export interface VideoMediaResult extends BaseMediaResult {
   payloadType: 'video';
   title: string;
@@ -73,6 +81,7 @@ export interface VideoMediaResult extends BaseMediaResult {
   codec?: string;
   thumbnailUrl: string;
   formats: VideoFormatOption[];
+  storyMeta?: StoryResultMeta;
 }
 
 export interface ProfileDpMediaResult extends BaseMediaResult {
@@ -1069,6 +1078,19 @@ export function getLocalizedErrorMessage(
     normalizeErrorPlatform(options?.platform) || prefixPlatform;
 
   const storyDict = STORY_ERROR_MESSAGES[language] || STORY_ERROR_MESSAGES.fr;
+  const storyFeatureDict =
+    STORY_FEATURE_ERROR_MESSAGES[language] || STORY_FEATURE_ERROR_MESSAGES.fr;
+
+  if (
+    effectiveCode === 'STORIES_UNAVAILABLE' ||
+    effectiveCode === 'STORY_ACCOUNT_PRIVATE' ||
+    effectiveCode === 'STORY_ACCOUNT_NOT_FOUND' ||
+    effectiveCode === 'STORY_NO_ACTIVE' ||
+    effectiveCode === 'STORY_RATE_LIMITED'
+  ) {
+    return storyFeatureDict[effectiveCode];
+  }
+
   const serverMsg = (options?.serverMessage || '').toLowerCase();
   const isStoryContext =
     options?.isStory ||
@@ -1338,11 +1360,18 @@ export function mapExtractResponseToMediaResult(
     (it: any) => it.kind === 'image' || it.kind === 'video'
   );
 
+  const hasSingleStoryMeta = Boolean(
+    data.storyMeta &&
+      typeof data.storyMeta.username === 'string' &&
+      visualItems.length === 1
+  );
+
   const isMultiItemSelection =
-    data.type === 'carousel' ||
-    ((detected.mediaType === 'story' || detected.mediaType === 'highlight') &&
-      visualItems.length > 0) ||
-    (data.type !== 'video' && visualItems.length > 1);
+    !hasSingleStoryMeta &&
+    (data.type === 'carousel' ||
+      ((detected.mediaType === 'story' || detected.mediaType === 'highlight') &&
+        visualItems.length > 0) ||
+      (data.type !== 'video' && visualItems.length > 1));
 
   // 1. Format Photo de Profil (DP) unique (sans stories actives multiples)
   const isProfilePayload =
@@ -1580,6 +1609,22 @@ export function mapExtractResponseToMediaResult(
         : `${primaryMedia.quality} HD`
       : undefined;
 
+  const storyMeta: StoryResultMeta | undefined = data.storyMeta
+    ? {
+        username: String(data.storyMeta.username || '').replace(/^@/, ''),
+        storyId: data.storyMeta.storyId
+          ? String(data.storyMeta.storyId)
+          : undefined,
+        takenAt: data.storyMeta.takenAt
+          ? String(data.storyMeta.takenAt)
+          : undefined,
+        expiresAt: data.storyMeta.expiresAt
+          ? String(data.storyMeta.expiresAt)
+          : undefined,
+        canListAll: Boolean(data.storyMeta.canListAll),
+      }
+    : undefined;
+
   return {
     id: resolvedVideoId,
     payloadType: 'video',
@@ -1602,6 +1647,224 @@ export function mapExtractResponseToMediaResult(
     codec: undefined,
     thumbnailUrl: resolveApiUrl(data.thumbnail || primaryMedia?.url || ''),
     formats,
+    ...(storyMeta ? { storyMeta } : {}),
+  };
+}
+
+export const STORY_FEATURE_ERROR_MESSAGES: Record<
+  LanguageCode,
+  {
+    STORIES_UNAVAILABLE: string;
+    STORY_ACCOUNT_PRIVATE: string;
+    STORY_ACCOUNT_NOT_FOUND: string;
+    STORY_NO_ACTIVE: string;
+    STORY_RATE_LIMITED: string;
+  }
+> = {
+  fr: {
+    STORIES_UNAVAILABLE: 'Les stories sont temporairement indisponibles.',
+    STORY_ACCOUNT_PRIVATE:
+      'Ce compte Instagram est privé. Seules les stories des comptes publics peuvent être consultées.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Compte Instagram introuvable. Vérifiez le nom d’utilisateur.',
+    STORY_NO_ACTIVE:
+      'Aucune story active trouvée pour ce compte (les stories disparaissent après 24 h).',
+    STORY_RATE_LIMITED:
+      'Limite horaire atteinte pour le chargement des stories. Veuillez réessayer plus tard.',
+  },
+  en: {
+    STORIES_UNAVAILABLE: 'Stories are temporarily unavailable.',
+    STORY_ACCOUNT_PRIVATE:
+      'This Instagram account is private. Only stories from public accounts can be viewed.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Instagram account not found. Please check the username.',
+    STORY_NO_ACTIVE:
+      'No active stories found for this account (stories expire after 24 hours).',
+    STORY_RATE_LIMITED:
+      'Hourly limit reached for loading stories. Please try again later.',
+  },
+  ar: {
+    STORIES_UNAVAILABLE: 'القصص غير متاحة مؤقتاً.',
+    STORY_ACCOUNT_PRIVATE:
+      'حساب إنستغرام هذا خاص. يمكن عرض قصص الحسابات العامة فقط.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'لم يتم العثور على حساب إنستغرام هذا. يرجى التحقق من اسم المستخدم.',
+    STORY_NO_ACTIVE:
+      'لا توجد قصص نشطة لهذا الحساب حالياً (تختفي القصص بعد 24 ساعة).',
+    STORY_RATE_LIMITED:
+      'تم بلوغ الحد الساعي لتحميل القصص. يرجى المحاولة لاحقاً.',
+  },
+  es: {
+    STORIES_UNAVAILABLE: 'Las historias no están disponibles temporalmente.',
+    STORY_ACCOUNT_PRIVATE:
+      'Esta cuenta de Instagram es privada. Solo se pueden consultar historias de cuentas públicas.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Cuenta de Instagram no encontrada. Verifica el nombre de usuario.',
+    STORY_NO_ACTIVE:
+      'No hay historias activas para esta cuenta (las historias desaparecen tras 24 h).',
+    STORY_RATE_LIMITED:
+      'Se alcanzó el límite por hora para cargar historias. Inténtalo más tarde.',
+  },
+  pt: {
+    STORIES_UNAVAILABLE: 'Os stories estão temporariamente indisponíveis.',
+    STORY_ACCOUNT_PRIVATE:
+      'Esta conta do Instagram é privada. Apenas stories de contas públicas podem ser acessados.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Conta do Instagram não encontrada. Verifique o nome de usuário.',
+    STORY_NO_ACTIVE:
+      'Nenhum story ativo encontrado para esta conta (os stories expiram após 24 h).',
+    STORY_RATE_LIMITED:
+      'Limite por hora atingido para listar stories. Tente novamente mais tarde.',
+  },
+  de: {
+    STORIES_UNAVAILABLE: 'Stories sind vorübergehend nicht verfügbar.',
+    STORY_ACCOUNT_PRIVATE:
+      'Dieses Instagram-Konto ist privat. Nur Stories öffentlicher Konten können abgerufen werden.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Instagram-Konto nicht gefunden. Bitte prüfe den Benutzernamen.',
+    STORY_NO_ACTIVE:
+      'Keine aktiven Stories für dieses Konto gefunden (Stories laufen nach 24 Std. ab).',
+    STORY_RATE_LIMITED:
+      'Stündliches Limit für das Laden von Stories erreicht. Bitte versuche es später erneut.',
+  },
+  tr: {
+    STORIES_UNAVAILABLE: 'Hikayeler geçici olarak kullanılamıyor.',
+    STORY_ACCOUNT_PRIVATE:
+      'Bu Instagram hesabı gizlidir. Yalnızca herkese açık hesapların hikayeleri görüntülenebilir.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Instagram hesabı bulunamadı. Kullanıcı adını kontrol edin.',
+    STORY_NO_ACTIVE:
+      'Bu hesap için aktif hikaye bulunamadı (hikayeler 24 saat sonra silinir).',
+    STORY_RATE_LIMITED:
+      'Hikayeleri yükleme saatlik sınırına ulaşıldı. Lütfen daha sonra tekrar deneyin.',
+  },
+  id: {
+    STORIES_UNAVAILABLE: 'Story sementara tidak tersedia.',
+    STORY_ACCOUNT_PRIVATE:
+      'Akun Instagram ini bersifat privat. Hanya story dari akun publik yang dapat dilihat.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Akun Instagram tidak ditemukan. Periksa kembali nama pengguna.',
+    STORY_NO_ACTIVE:
+      'Tidak ada story aktif untuk akun ini (story menghilang setelah 24 jam).',
+    STORY_RATE_LIMITED:
+      'Batas per jam untuk memuat story telah tercapai. Silakan coba lagi nanti.',
+  },
+  it: {
+    STORIES_UNAVAILABLE: 'Le storie non sono temporaneamente disponibili.',
+    STORY_ACCOUNT_PRIVATE:
+      'Questo account Instagram è privato. È possibile consultare solo le storie di account pubblici.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Account Instagram non trovato. Controlla il nome utente.',
+    STORY_NO_ACTIVE:
+      'Nessuna storia attiva trovata per questo account (le storie scompaiono dopo 24 ore).',
+    STORY_RATE_LIMITED:
+      'Limite orario raggiunto per il caricamento delle storie. Riprova più tardi.',
+  },
+  ru: {
+    STORIES_UNAVAILABLE: 'Истории временно недоступны.',
+    STORY_ACCOUNT_PRIVATE:
+      'Этот аккаунт Instagram закрыт. Доступны только истории публичных аккаунтов.',
+    STORY_ACCOUNT_NOT_FOUND:
+      'Аккаунт Instagram не найден. Проверьте имя пользователя.',
+    STORY_NO_ACTIVE:
+      'У этого аккаунта нет активных историй (истории исчезают через 24 ч).',
+    STORY_RATE_LIMITED:
+      'Достигнут часовой лимит загрузки историй. Попробуйте позже.',
+  },
+};
+
+export async function fetchAccountStories(
+  username: string,
+  language: LanguageCode = 'fr',
+  options?: {
+    linkedStoryId?: string;
+    sourceUrl?: string;
+  }
+): Promise<CarouselMediaResult> {
+  const cleanUser = (username || '').trim().replace(/^@+/, '').toLowerCase();
+  const url = resolveApiUrl(
+    `/api/stories?username=${encodeURIComponent(cleanUser)}`
+  );
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+  } catch {
+    throw new ExtractionError(
+      getLocalizedErrorMessage('NETWORK_ERROR', language, {
+        platform: 'instagram',
+        isStory: true,
+      }),
+      'NETWORK_ERROR'
+    );
+  }
+
+  const data: any = await response.json().catch(() => null);
+  if (!data || !data.ok || data.error) {
+    const errCode = data?.error?.code || 'STORIES_UNAVAILABLE';
+    const localized = getLocalizedErrorMessage(errCode, language, {
+      platform: 'instagram',
+      isStory: true,
+      mediaType: 'story',
+      serverMessage: data?.error?.message,
+    });
+    throw new ExtractionError(localized, errCode);
+  }
+
+  const rawItems: any[] = Array.isArray(data.items) ? data.items : [];
+  const linkedId = options?.linkedStoryId ? String(options.linkedStoryId) : null;
+  const hasLinkedMatch =
+    Boolean(linkedId) && rawItems.some((it) => String(it.id) === linkedId);
+
+  const items: CarouselSlideItem[] = rawItems.map((it, idx) => {
+    const itemId = String(it.id || idx + 1);
+    const isVideo = it.kind === 'video';
+    const width = typeof it.width === 'number' ? it.width : undefined;
+    const height = typeof it.height === 'number' ? it.height : undefined;
+    return {
+      id: `story-${itemId}-${idx + 1}`,
+      index: typeof it.index === 'number' ? it.index : idx + 1,
+      mediaType: isVideo ? 'video' : 'image',
+      quality: String(it.quality || (isVideo ? '1080p' : 'HD')),
+      width,
+      height,
+      dimensions: width && height ? `${width} × ${height}` : undefined,
+      date: typeof it.taken_at === 'string' ? it.taken_at : undefined,
+      selected: hasLinkedMatch ? itemId === linkedId : undefined,
+      label: 'story',
+      thumbnailUrl: resolveApiUrl(it.thumbnail || it.url),
+      downloadUrl: resolveApiUrl(it.url),
+    };
+  });
+
+  const resolvedUser = String(data.author?.username || data.username || cleanUser).replace(
+    /^@/,
+    ''
+  );
+  const creatorHandle = `@${resolvedUser}`;
+  const creatorName = data.author?.full_name || creatorHandle;
+
+  return {
+    id: `stories-${resolvedUser}-${Date.now()}`,
+    payloadType: 'carousel',
+    platform: 'instagram',
+    badgeLabel: `Instagram Stories (${creatorHandle})`,
+    sourceUrl:
+      options?.sourceUrl || `https://www.instagram.com/stories/${resolvedUser}/`,
+    creatorHandle,
+    creatorName,
+    verified: Boolean(data.author?.verified),
+    extractedAt: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    caption: creatorHandle,
+    totalItems: items.length,
+    selectionContext: 'story',
+    items,
   };
 }
 

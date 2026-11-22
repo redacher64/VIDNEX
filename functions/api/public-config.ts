@@ -31,6 +31,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       },
       ads_enabled: settings.ads_enabled,
       ads_adsterra_enabled: settings.ads_adsterra_enabled,
+      feature_stories: settings.feature_stories,
     }),
     {
       status: 200,

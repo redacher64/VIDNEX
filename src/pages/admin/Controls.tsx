@@ -22,6 +22,53 @@ interface SystemSettings {
   download_limit_per_min: number;
   ads_enabled: boolean;
   ads_adsterra_enabled: boolean;
+  feature_stories: boolean;
+  stories_provider_order: Array<'session' | 'relay' | 'paid'>;
+  stories_list_rate_limit_per_hour: number;
+  stories_global_hourly_cap: number;
+}
+
+const STORY_PROVIDER_LABELS: Record<
+  'session' | 'relay' | 'paid',
+  { title: string; hint: string }
+> = {
+  session: {
+    title: 'Session Instagram (IG_SESSION_ID / IG_COOKIES)',
+    hint: 'API authentifiée Instagram si une session serveur est configurée',
+  },
+  relay: {
+    title: 'Relais interne (RELAY_URL)',
+    hint: 'Service relais HTTP privé avec jeton optionnel RELAY_TOKEN',
+  },
+  paid: {
+    title: 'Fournisseur payant à l’usage (STORIES_PAID_API_URL)',
+    hint: 'Adaptateur API externe authentifié côté serveur (STORIES_PAID_API_TOKEN)',
+  },
+};
+
+function normalizeProviderOrder(
+  raw: unknown
+): Array<'session' | 'relay' | 'paid'> {
+  const valid: Array<'session' | 'relay' | 'paid'> = ['session', 'relay', 'paid'];
+  const list = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+    ? raw.split(',')
+    : [];
+  const out: Array<'session' | 'relay' | 'paid'> = [];
+  for (const item of list) {
+    const clean = String(item || '').trim().toLowerCase() as
+      | 'session'
+      | 'relay'
+      | 'paid';
+    if (valid.includes(clean) && !out.includes(clean)) {
+      out.push(clean);
+    }
+  }
+  for (const p of valid) {
+    if (!out.includes(p)) out.push(p);
+  }
+  return out;
 }
 
 interface BlocklistItem {
@@ -44,6 +91,10 @@ export const Controls: React.FC = () => {
     download_limit_per_min: 60,
     ads_enabled: true,
     ads_adsterra_enabled: true,
+    feature_stories: false,
+    stories_provider_order: ['session', 'relay', 'paid'],
+    stories_list_rate_limit_per_hour: 5,
+    stories_global_hourly_cap: 200,
   });
   const [blocklist, setBlocklist] = useState<BlocklistItem[]>([]);
   const [blockType, setBlockType] = useState<'ip_hash' | 'domain' | 'url'>('domain');
@@ -74,6 +125,14 @@ export const Controls: React.FC = () => {
           ads_enabled: settingsJson.settings.ads_enabled !== false,
           ads_adsterra_enabled:
             settingsJson.settings.ads_adsterra_enabled !== false,
+          feature_stories: Boolean(settingsJson.settings.feature_stories),
+          stories_provider_order: normalizeProviderOrder(
+            settingsJson.settings.stories_provider_order
+          ),
+          stories_list_rate_limit_per_hour:
+            Number(settingsJson.settings.stories_list_rate_limit_per_hour) || 5,
+          stories_global_hourly_cap:
+            Number(settingsJson.settings.stories_global_hourly_cap) || 200,
         });
       }
       if (blockRes.ok && blockJson.ok) {
@@ -116,6 +175,14 @@ export const Controls: React.FC = () => {
           ads_enabled: data.settings.ads_enabled !== false,
           ads_adsterra_enabled:
             data.settings.ads_adsterra_enabled !== false,
+          feature_stories: Boolean(data.settings.feature_stories),
+          stories_provider_order: normalizeProviderOrder(
+            data.settings.stories_provider_order
+          ),
+          stories_list_rate_limit_per_hour:
+            Number(data.settings.stories_list_rate_limit_per_hour) || 5,
+          stories_global_hourly_cap:
+            Number(data.settings.stories_global_hourly_cap) || 200,
         });
         setStatusMessage('Paramètres enregistrés dans Cloudflare D1.');
         await fetchPublicConfig();
@@ -567,6 +634,202 @@ export const Controls: React.FC = () => {
                 settings.platform_linkedin !== false ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
+          </button>
+        </div>
+      </div>
+
+      {/* Stories Instagram (feature_stories, ordre des fournisseurs & plafonds horaires) */}
+      <div className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-5 shadow-2xs">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Sliders className="w-4 h-4 text-admin-text-muted" />
+              <h3 className="font-display text-sm font-bold text-admin-text">
+                Stories Instagram (<code className="font-mono">feature_stories</code>)
+              </h3>
+              <span
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
+                  settings.feature_stories
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
+                }`}
+              >
+                {settings.feature_stories ? 'Actif' : 'Désactivé (défaut)'}
+              </span>
+            </div>
+            <p className="text-xs text-admin-text-muted">
+              Active la récupération d’une story publique et le listage de toutes les stories actives d’un compte (<code className="font-mono">/api/stories</code>). Désactivé par défaut : renvoie « Les stories sont temporairement indisponibles. ».
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Stories Instagram (feature_stories)"
+            aria-checked={settings.feature_stories}
+            onClick={() =>
+              persistSettings({
+                ...settings,
+                feature_stories: !settings.feature_stories,
+              })
+            }
+            className={`w-12 h-7 rounded-full transition-colors p-1 shrink-0 cursor-pointer ${
+              settings.feature_stories
+                ? 'bg-emerald-600 dark:bg-emerald-500'
+                : 'bg-admin-muted border border-admin-border-strong'
+            }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white shadow-2xs transition-transform ${
+                settings.feature_stories ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="border-t border-admin-border pt-4 space-y-2.5">
+          <div>
+            <h4 className="font-display text-xs font-bold text-admin-text">
+              Ordre de priorité des fournisseurs (<code className="font-mono">stories_provider_order</code>)
+            </h4>
+            <p className="text-xs text-admin-text-muted">
+              Essayés dans cet ordre ; seuls les fournisseurs configurés côté serveur sont appelés. Les comptes privés ou introuvables stoppent immédiatement le repli.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {settings.stories_provider_order.map((providerId, idx) => {
+              const info = STORY_PROVIDER_LABELS[providerId];
+              const moveProvider = (direction: -1 | 1) => {
+                const target = idx + direction;
+                if (target < 0 || target >= settings.stories_provider_order.length) {
+                  return;
+                }
+                const nextOrder = [...settings.stories_provider_order];
+                const [moved] = nextOrder.splice(idx, 1);
+                nextOrder.splice(target, 0, moved);
+                persistSettings({
+                  ...settings,
+                  stories_provider_order: nextOrder,
+                });
+              };
+              return (
+                <div
+                  key={providerId}
+                  className="px-3.5 py-2.5 rounded-lg border border-admin-border bg-admin-muted/40 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-6 h-6 rounded-md bg-admin-surface border border-admin-border text-xs font-mono font-bold text-admin-text flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-admin-text truncate">
+                        {info.title}
+                      </div>
+                      <div className="text-xs text-admin-text-muted truncate">
+                        {info.hint}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      disabled={saving || idx === 0}
+                      onClick={() => moveProvider(-1)}
+                      aria-label={`Monter ${providerId}`}
+                      className="px-2 py-1 rounded-md border border-admin-border-strong bg-admin-surface text-xs font-mono text-admin-text disabled:opacity-40 cursor-pointer hover:bg-admin-hover"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      disabled={
+                        saving || idx === settings.stories_provider_order.length - 1
+                      }
+                      onClick={() => moveProvider(1)}
+                      aria-label={`Descendre ${providerId}`}
+                      className="px-2 py-1 rounded-md border border-admin-border-strong bg-admin-surface text-xs font-mono text-admin-text disabled:opacity-40 cursor-pointer hover:bg-admin-hover"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-admin-border pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h4 className="font-display text-xs font-bold text-admin-text">
+                Liste complète par IP (<code className="font-mono">stories_list_rate_limit_per_hour</code>)
+              </h4>
+              <p className="text-xs text-admin-text-muted">
+                Appels « Voir toutes les stories » par IP hachée et par heure (défaut : 5).
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <input
+                type="number"
+                min={1}
+                max={200}
+                aria-label="Limite horaire de listage des stories par IP"
+                value={settings.stories_list_rate_limit_per_hour}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    stories_list_rate_limit_per_hour: Math.max(
+                      1,
+                      parseInt(e.target.value || '1', 10)
+                    ),
+                  })
+                }
+                className="w-20 px-2.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
+              />
+              <span className="text-xs font-mono text-admin-text-secondary">/ h</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h4 className="font-display text-xs font-bold text-admin-text">
+                Plafond global horaire (<code className="font-mono">stories_global_hourly_cap</code>)
+              </h4>
+              <p className="text-xs text-admin-text-muted">
+                Appels fournisseur maximum par heure pour contrôler les coûts (défaut : 200).
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <input
+                type="number"
+                min={1}
+                max={50000}
+                aria-label="Plafond global horaire des stories"
+                value={settings.stories_global_hourly_cap}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    stories_global_hourly_cap: Math.max(
+                      1,
+                      parseInt(e.target.value || '1', 10)
+                    ),
+                  })
+                }
+                className="w-24 px-2.5 py-2 rounded-lg bg-admin-muted border border-admin-border-strong text-sm text-admin-text font-mono text-center focus:outline-none focus:border-orange-600"
+              />
+              <span className="text-xs font-mono text-admin-text-secondary">/ h</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => persistSettings(settings)}
+            className="px-4 py-2 rounded-md bg-admin-accent hover:opacity-90 text-white font-display font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Save className="w-3.5 h-3.5" />
+            <span>Enregistrer les réglages Stories</span>
           </button>
         </div>
       </div>

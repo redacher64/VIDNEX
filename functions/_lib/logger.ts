@@ -34,7 +34,10 @@ export type DailyMetricEvent =
   | 'download_started'
   | 'download_success'
   | 'selection_started'
-  | 'selection_download';
+  | 'selection_download'
+  | 'story_opened'
+  | 'story_list_opened'
+  | 'story_download';
 
 export interface ExtractionLogEvent {
   platform: MetricPlatform;

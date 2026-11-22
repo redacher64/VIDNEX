@@ -118,6 +118,13 @@ export interface UiDictionary {
     progressDone: string;
     checkboxAria: string;
     iosFilesHint: string;
+    viewAllStoriesBtn: string;
+    loadingAllStories: string;
+    storiesNotice24h: string;
+    storyLimitMaxItems: string;
+    storyLimitMaxSize: string;
+    backToSingleStory: string;
+    storyPublishedAt: string;
   };
   sections: {
     workflowProtocol: string;
@@ -161,6 +168,13 @@ export interface SelectionUiDictionary {
   progressZipping: string;
   progressDone: string;
   checkboxAria: string;
+  viewAllStoriesBtn: string;
+  loadingAllStories: string;
+  storiesNotice24h: string;
+  storyLimitMaxItems: string;
+  storyLimitMaxSize: string;
+  backToSingleStory: string;
+  storyPublishedAt: string;
 }
 
 export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
@@ -184,6 +198,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Assemblage du fichier ZIP ({count} éléments)…',
     progressDone: 'Téléchargement de la sélection prêt ({count} élément(s)).',
     checkboxAria: 'Sélectionner l’élément #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Voir toutes les stories de @{username}',
+    loadingAllStories: 'Chargement des stories actives…',
+    storiesNotice24h:
+      'Les stories disparaissent après 24 h ; téléchargez uniquement ce que vous avez le droit de sauvegarder.',
+    storyLimitMaxItems:
+      'Limite atteinte : 30 éléments ou 150 Mo maximum par archive ZIP de stories.',
+    storyLimitMaxSize:
+      'Taille maximale dépassée : la sélection dépasse 150 Mo (30 éléments ou 150 Mo maximum).',
+    backToSingleStory: 'Retour à la story demandée',
+    storyPublishedAt: 'Publiée le',
   },
   en: {
     slidesDetected: 'items found',
@@ -205,6 +229,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Building ZIP archive ({count} items)…',
     progressDone: 'Selection download ready ({count} item(s)).',
     checkboxAria: 'Select item #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'View all stories from @{username}',
+    loadingAllStories: 'Loading active stories…',
+    storiesNotice24h:
+      'Stories disappear after 24 hours; only download content you have the right to save.',
+    storyLimitMaxItems:
+      'Limit reached: 30 items or 150 MB maximum per stories ZIP archive.',
+    storyLimitMaxSize:
+      'Maximum size exceeded: selection exceeds 150 MB (30 items or 150 MB max).',
+    backToSingleStory: 'Back to requested story',
+    storyPublishedAt: 'Published',
   },
   ar: {
     slidesDetected: 'عناصر تم العثور عليها',
@@ -226,6 +260,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'جاري تجميع ملف ZIP ({count} عناصر)…',
     progressDone: 'اكتمل تجهيز التنزيل ({count} عنصر).',
     checkboxAria: 'تحديد العنصر #{index} ({type}، {quality})',
+    viewAllStoriesBtn: 'عرض جميع قصص @{username}',
+    loadingAllStories: 'جاري تحميل القصص النشطة…',
+    storiesNotice24h:
+      'تختفي القصص بعد 24 ساعة؛ قم بتنزيل المحتوى الذي لديك حق حفظه فقط.',
+    storyLimitMaxItems:
+      'تم الوصول إلى الحد الأقصى: 30 عنصراً أو 150 ميجابايت كحد أقصى لأرشيف ZIP للقصص.',
+    storyLimitMaxSize:
+      'تم تجاوز الحجم الأقصى: التحديد يتجاوز 150 ميجابايت (الحد الأقصى 30 عنصراً أو 150 ميجابايت).',
+    backToSingleStory: 'العودة إلى القصة المطلوبة',
+    storyPublishedAt: 'نُشرت في',
   },
   es: {
     slidesDetected: 'elementos encontrados',
@@ -247,6 +291,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Creando archivo ZIP ({count} elementos)…',
     progressDone: 'Descarga de la selección lista ({count} elemento(s)).',
     checkboxAria: 'Seleccionar elemento #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Ver todas las historias de @{username}',
+    loadingAllStories: 'Cargando historias activas…',
+    storiesNotice24h:
+      'Las historias desaparecen después de 24 h; descarga solo lo que tengas derecho a guardar.',
+    storyLimitMaxItems:
+      'Límite alcanzado: máximo 30 elementos o 150 MB por archivo ZIP de historias.',
+    storyLimitMaxSize:
+      'Tamaño máximo superado: la selección supera los 150 MB (máximo 30 elementos o 150 MB).',
+    backToSingleStory: 'Volver a la historia solicitada',
+    storyPublishedAt: 'Publicada el',
   },
   pt: {
     slidesDetected: 'itens encontrados',
@@ -268,6 +322,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Montando arquivo ZIP ({count} itens)…',
     progressDone: 'Download da seleção pronto ({count} item(ns)).',
     checkboxAria: 'Selecionar item #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Ver todos os stories de @{username}',
+    loadingAllStories: 'Carregando stories ativos…',
+    storiesNotice24h:
+      'Os stories desaparecem após 24 h; baixe apenas o que você tem direito de salvar.',
+    storyLimitMaxItems:
+      'Limite atingido: máximo de 30 itens ou 150 MB por arquivo ZIP de stories.',
+    storyLimitMaxSize:
+      'Tamanho máximo excedido: a seleção ultrapassa 150 MB (máximo de 30 itens ou 150 MB).',
+    backToSingleStory: 'Voltar ao story solicitado',
+    storyPublishedAt: 'Publicado em',
   },
   de: {
     slidesDetected: 'Elemente gefunden',
@@ -289,6 +353,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'ZIP-Archiv wird erstellt ({count} Elemente)…',
     progressDone: 'Auswahl-Download bereit ({count} Element(e)).',
     checkboxAria: 'Element #{index} auswählen ({type}, {quality})',
+    viewAllStoriesBtn: 'Alle Stories von @{username} anzeigen',
+    loadingAllStories: 'Aktive Stories werden geladen…',
+    storiesNotice24h:
+      'Stories verschwinden nach 24 Std.; lade nur Inhalte herunter, die du speichern darfst.',
+    storyLimitMaxItems:
+      'Limit erreicht: maximal 30 Elemente oder 150 MB pro Stories-ZIP-Archiv.',
+    storyLimitMaxSize:
+      'Maximale Größe überschritten: Die Auswahl überschreitet 150 MB (maximal 30 Elemente oder 150 MB).',
+    backToSingleStory: 'Zur angeforderten Story zurück',
+    storyPublishedAt: 'Veröffentlicht',
   },
   tr: {
     slidesDetected: 'öğe bulundu',
@@ -310,6 +384,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'ZIP arşivi hazırlanıyor ({count} öğe)…',
     progressDone: 'Seçim indirmesi hazır ({count} öğe).',
     checkboxAria: 'Öğe #{index} seç ({type}, {quality})',
+    viewAllStoriesBtn: '@{username} hesabının tüm hikayelerini gör',
+    loadingAllStories: 'Aktif hikayeler yükleniyor…',
+    storiesNotice24h:
+      'Hikayeler 24 saat sonra kaybolur; yalnızca kaydetme hakkınız olan içerikleri indirin.',
+    storyLimitMaxItems:
+      'Sınıra ulaşıldı: hikaye ZIP arşivi başına en fazla 30 öğe veya 150 MB.',
+    storyLimitMaxSize:
+      'Maksimum boyut aşıldı: seçim 150 MB sınırını aşıyor (en fazla 30 öğe veya 150 MB).',
+    backToSingleStory: 'İstenen hikayeye dön',
+    storyPublishedAt: 'Yayınlanma',
   },
   id: {
     slidesDetected: 'item ditemukan',
@@ -331,6 +415,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Merakit arsip ZIP ({count} item)…',
     progressDone: 'Unduhan pilihan siap ({count} item).',
     checkboxAria: 'Pilih item #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Lihat semua story dari @{username}',
+    loadingAllStories: 'Memuat story aktif…',
+    storiesNotice24h:
+      'Story hilang setelah 24 jam; unduh hanya konten yang berhak Anda simpan.',
+    storyLimitMaxItems:
+      'Batas tercapai: maksimal 30 item atau 150 MB per arsip ZIP story.',
+    storyLimitMaxSize:
+      'Ukuran maksimum terlampaui: pilihan melebihi 150 MB (maksimal 30 item atau 150 MB).',
+    backToSingleStory: 'Kembali ke story yang diminta',
+    storyPublishedAt: 'Dipublikasikan',
   },
   it: {
     slidesDetected: 'elementi trovati',
@@ -352,6 +446,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Creazione archivio ZIP ({count} elementi)…',
     progressDone: 'Download selezione pronto ({count} elemento/i).',
     checkboxAria: 'Seleziona elemento #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Vedi tutte le storie di @{username}',
+    loadingAllStories: 'Caricamento storie attive…',
+    storiesNotice24h:
+      'Le storie scompaiono dopo 24 ore; scarica solo ciò che hai il diritto di salvare.',
+    storyLimitMaxItems:
+      'Limite raggiunto: massimo 30 elementi o 150 MB per archivio ZIP di storie.',
+    storyLimitMaxSize:
+      'Dimensione massima superata: la selezione supera 150 MB (massimo 30 elementi o 150 MB).',
+    backToSingleStory: 'Torna alla storia richiesta',
+    storyPublishedAt: 'Pubblicata il',
   },
   ru: {
     slidesDetected: 'элементов найдено',
@@ -373,6 +477,16 @@ export const SELECTION_UI_TEXTS: Record<LanguageCode, SelectionUiDictionary> = {
     progressZipping: 'Сборка ZIP-архива ({count} эл.)…',
     progressDone: 'Скачивание выбранного готово ({count} эл.).',
     checkboxAria: 'Выбрать элемент #{index} ({type}, {quality})',
+    viewAllStoriesBtn: 'Посмотреть все истории @{username}',
+    loadingAllStories: 'Загрузка активных историй…',
+    storiesNotice24h:
+      'Истории исчезают через 24 ч; скачивайте только то, что имеете право сохранять.',
+    storyLimitMaxItems:
+      'Достигнут лимит: максимум 30 элементов или 150 МБ для ZIP-архива историй.',
+    storyLimitMaxSize:
+      'Превышен максимальный размер: выбор превышает 150 МБ (максимум 30 элементов или 150 МБ).',
+    backToSingleStory: 'Вернуться к выбранной истории',
+    storyPublishedAt: 'Опубликовано',
   },
 };
 
@@ -467,6 +581,13 @@ export function getUiDictionary(lang: LanguageCode): UiDictionary {
       progressDone: sel.progressDone,
       checkboxAria: sel.checkboxAria,
       iosFilesHint: b.drawer.iosFilesHint,
+      viewAllStoriesBtn: sel.viewAllStoriesBtn,
+      loadingAllStories: sel.loadingAllStories,
+      storiesNotice24h: sel.storiesNotice24h,
+      storyLimitMaxItems: sel.storyLimitMaxItems,
+      storyLimitMaxSize: sel.storyLimitMaxSize,
+      backToSingleStory: sel.backToSingleStory,
+      storyPublishedAt: sel.storyPublishedAt,
     },
     sections: {
       workflowProtocol: b.sections.workflowProtocol,

@@ -1,14 +1,21 @@
 /**
  * Assemblage d'archives .ZIP directement dans le navigateur avec `fflate` (méthode STORE level 0,
  * compatible Windows/macOS/Linux/iOS/Android) et validation stricte des limites de sélection :
- * - Maximum 20 éléments par sélection
- * - Maximum 100 Mo (104 857 600 octets) au total
+ * - Par défaut : 20 éléments ou 100 Mo maximum
+ * - Pour les Stories Instagram : 30 éléments ou 150 Mo maximum
  */
 
 import { zipSync, type Zippable } from 'fflate';
 
 export const MAX_SELECTION_ITEMS = 20;
 export const MAX_SELECTION_TOTAL_BYTES = 100 * 1024 * 1024; // 100 Mo
+export const STORY_MAX_SELECTION_ITEMS = 30;
+export const STORY_MAX_SELECTION_TOTAL_BYTES = 150 * 1024 * 1024; // 150 Mo
+
+export interface SelectionLimitsConfig {
+  maxItems?: number;
+  maxBytes?: number;
+}
 
 const CRC32_TABLE = (() => {
   const table = new Uint32Array(256);
@@ -64,8 +71,11 @@ export function parseEstimatedSizeBytes(sizeLabel?: string): number {
 
 export function validateSelectionLimits(
   itemCount: number,
-  totalBytes = 0
+  totalBytes = 0,
+  limits?: SelectionLimitsConfig
 ): SelectionValidationResult {
+  const maxItems = limits?.maxItems ?? MAX_SELECTION_ITEMS;
+  const maxBytes = limits?.maxBytes ?? MAX_SELECTION_TOTAL_BYTES;
   if (itemCount <= 0) {
     return {
       valid: false,
@@ -74,7 +84,7 @@ export function validateSelectionLimits(
       totalBytes,
     };
   }
-  if (itemCount > MAX_SELECTION_ITEMS) {
+  if (itemCount > maxItems) {
     return {
       valid: false,
       reason: 'MAX_ITEMS_EXCEEDED',
@@ -82,7 +92,7 @@ export function validateSelectionLimits(
       totalBytes,
     };
   }
-  if (totalBytes > MAX_SELECTION_TOTAL_BYTES) {
+  if (totalBytes > maxBytes) {
     return {
       valid: false,
       reason: 'MAX_SIZE_EXCEEDED',
@@ -100,12 +110,15 @@ export function validateSelectionLimits(
 /**
  * Assemble une archive .ZIP standard dans le navigateur via `fflate.zipSync` (level: 0).
  */
-export function buildUncompressedZipBytes(files: ZipEntryInput[]): Uint8Array {
+export function buildUncompressedZipBytes(
+  files: ZipEntryInput[],
+  limits?: SelectionLimitsConfig
+): Uint8Array {
   let totalBytes = 0;
   for (const f of files) {
     totalBytes += f.data.byteLength;
   }
-  const check = validateSelectionLimits(files.length, totalBytes);
+  const check = validateSelectionLimits(files.length, totalBytes, limits);
   if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
     throw new Error('MAX_ITEMS_EXCEEDED');
   }
@@ -134,8 +147,11 @@ export function buildUncompressedZipBytes(files: ZipEntryInput[]): Uint8Array {
   return zipSync(zippable, { level: 0 });
 }
 
-export function buildUncompressedZipArchive(files: ZipEntryInput[]): Blob {
-  const zipBytes = buildUncompressedZipBytes(files);
+export function buildUncompressedZipArchive(
+  files: ZipEntryInput[],
+  limits?: SelectionLimitsConfig
+): Blob {
+  const zipBytes = buildUncompressedZipBytes(files, limits);
   return new Blob([zipBytes as BlobPart], {
     type: 'application/zip',
   });

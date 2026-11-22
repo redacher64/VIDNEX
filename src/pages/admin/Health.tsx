@@ -26,6 +26,38 @@ interface EngineRow {
   test_url: string;
 }
 
+interface StoriesProviderStatusItem {
+  name: 'session' | 'relay' | 'paid' | 'mock';
+  configured: boolean;
+  callsLastHour: number;
+  lastSuccessTs: number | null;
+  lastFailureTs: number | null;
+  lastErrorCode: string | null;
+  lastHttpStatus: number | null;
+}
+
+interface StoriesProviderEvent {
+  ts: number;
+  provider: 'session' | 'relay' | 'paid' | 'mock';
+  action: 'getStory' | 'listStories';
+  ok: boolean;
+  errorCode: string | null;
+  httpStatus: number | null;
+}
+
+interface StoriesStatusSnapshot {
+  enabled: boolean;
+  activeProvider: 'session' | 'relay' | 'paid' | 'mock' | null;
+  providerOrder: Array<'session' | 'relay' | 'paid'>;
+  perIpHourlyLimit: number;
+  globalHourlyCap: number;
+  callsLastHour: number;
+  listCallsLastHour: number;
+  providers: StoriesProviderStatusItem[];
+  recentSuccesses: StoriesProviderEvent[];
+  recentFailures: StoriesProviderEvent[];
+}
+
 import {
   DEFAULT_ENGINE_TEST_URLS,
   DEFAULT_X_TEST_URL,
@@ -105,6 +137,8 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
     valid: boolean;
     message: string;
   } | null>(null);
+  const [storiesStatus, setStoriesStatus] =
+    useState<StoriesStatusSnapshot | null>(null);
 
   const loadHealth = async () => {
     try {
@@ -152,6 +186,9 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
             : prev.linkedin,
         }));
         setIgCookieConfigured(Boolean(data.instagramCookie?.configured));
+        if (data.storiesStatus) {
+          setStoriesStatus(data.storiesStatus);
+        }
         if (data.engines?.tiktok?.test_url) {
           setTiktokUrl(data.engines.tiktok.test_url);
         }
@@ -535,6 +572,188 @@ export const Health: React.FC<HealthProps> = ({ readOnly = false }) => {
           </p>
         </div>
       </div>
+
+      {/* Statut des fournisseurs Stories Instagram */}
+      {storiesStatus && (
+        <div
+          data-testid="stories-health-panel"
+          className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-4 shadow-2xs"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display text-sm font-bold text-admin-text">
+                État des fournisseurs Stories Instagram
+              </h3>
+              <p className="text-xs text-admin-text-muted">
+                Fournisseur actif, configuration (sans aucun secret exposé), appels sur la dernière heure et derniers succès / échecs
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+                  storiesStatus.enabled
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                    : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-300'
+                }`}
+              >
+                {storiesStatus.enabled ? 'Fonction active' : 'Désactivée'}
+              </span>
+              <span className="text-xs font-mono px-2.5 py-1 rounded-md border border-admin-border bg-admin-muted text-admin-text">
+                Fournisseur actif :{' '}
+                <strong>{storiesStatus.activeProvider || 'aucun'}</strong>
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 rounded-lg border border-admin-border">
+              <span className="text-admin-text-secondary block font-medium">
+                Appels fournisseurs (heure en cours)
+              </span>
+              <span className="font-mono text-lg font-bold text-admin-text tabular-nums">
+                {storiesStatus.callsLastHour}
+              </span>
+              <span className="text-admin-text-muted block">
+                Listages /api/stories : {storiesStatus.listCallsLastHour} /{' '}
+                {storiesStatus.globalHourlyCap} max
+              </span>
+            </div>
+
+            <div className="p-3 rounded-lg border border-admin-border">
+              <span className="text-admin-text-secondary block font-medium">
+                Ordre de priorité configuré
+              </span>
+              <span className="font-mono text-sm font-bold text-admin-text block mt-1">
+                {storiesStatus.providerOrder.join(' → ')}
+              </span>
+              <span className="text-admin-text-muted block">
+                Limite par IP : {storiesStatus.perIpHourlyLimit} / h
+              </span>
+            </div>
+
+            <div className="p-3 rounded-lg border border-admin-border">
+              <span className="text-admin-text-secondary block font-medium">
+                Succès / Échecs récents (mémoire + D1)
+              </span>
+              <div className="mt-1 flex items-baseline gap-2 font-mono">
+                <span className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
+                  {storiesStatus.recentSuccesses.length} OK
+                </span>
+                <span className="text-admin-text-muted">/</span>
+                <span className="text-lg font-bold text-red-800 dark:text-red-400">
+                  {storiesStatus.recentFailures.length} err
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {storiesStatus.providers.map((prov) => (
+              <div
+                key={prov.name}
+                className="p-3.5 rounded-lg border border-admin-border space-y-2 text-xs"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-bold text-admin-text">
+                    {prov.name}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-md border font-semibold ${
+                      prov.configured
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700/60 text-emerald-900 dark:text-emerald-300'
+                        : 'bg-admin-muted border-admin-border text-admin-text-muted'
+                    }`}
+                  >
+                    {prov.configured ? 'Configuré' : 'Non configuré'}
+                  </span>
+                </div>
+                <div className="space-y-1 text-admin-text-secondary">
+                  <div className="flex justify-between">
+                    <span>Appels (1 h) :</span>
+                    <span className="font-mono text-admin-text">
+                      {prov.callsLastHour}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span>Dernier succès :</span>
+                    <span className="font-mono text-admin-text truncate">
+                      {formatTs(prov.lastSuccessTs)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span>Dernier échec :</span>
+                    <span className="font-mono text-admin-text truncate">
+                      {formatTs(prov.lastFailureTs)}
+                    </span>
+                  </div>
+                  {prov.lastErrorCode && (
+                    <div className="text-red-800 dark:text-red-300 font-mono truncate">
+                      {prov.lastErrorCode}
+                      {prov.lastHttpStatus ? ` (HTTP ${prov.lastHttpStatus})` : ''}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {(storiesStatus.recentSuccesses.length > 0 ||
+            storiesStatus.recentFailures.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-lg border border-admin-border space-y-1.5">
+                <span className="font-semibold text-admin-text-secondary block">
+                  Derniers succès
+                </span>
+                {storiesStatus.recentSuccesses.length === 0 ? (
+                  <p className="text-admin-text-muted">Aucun succès récent.</p>
+                ) : (
+                  <ul className="space-y-1 font-mono">
+                    {storiesStatus.recentSuccesses.slice(0, 5).map((ev, i) => (
+                      <li
+                        key={`ok-${ev.ts}-${i}`}
+                        className="flex items-center justify-between gap-2 text-emerald-900 dark:text-emerald-300"
+                      >
+                        <span>
+                          {ev.provider} · {ev.action}
+                        </span>
+                        <span className="text-admin-text-muted">
+                          {formatTs(ev.ts)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="p-3 rounded-lg border border-admin-border space-y-1.5">
+                <span className="font-semibold text-admin-text-secondary block">
+                  Derniers échecs
+                </span>
+                {storiesStatus.recentFailures.length === 0 ? (
+                  <p className="text-admin-text-muted">Aucun échec récent.</p>
+                ) : (
+                  <ul className="space-y-1 font-mono">
+                    {storiesStatus.recentFailures.slice(0, 5).map((ev, i) => (
+                      <li
+                        key={`err-${ev.ts}-${i}`}
+                        className="flex items-center justify-between gap-2 text-red-900 dark:text-red-300"
+                      >
+                        <span className="truncate">
+                          {ev.provider} · {ev.errorCode || 'ERR'}
+                          {ev.httpStatus ? ` (${ev.httpStatus})` : ''}
+                        </span>
+                        <span className="text-admin-text-muted shrink-0">
+                          {formatTs(ev.ts)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

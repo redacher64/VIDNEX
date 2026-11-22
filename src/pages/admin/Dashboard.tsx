@@ -802,6 +802,11 @@ interface StatsResponse {
   };
   errors: Array<{ code: string; count: number }>;
   daily: DailyBucket[];
+  stories?: {
+    story_opened: number;
+    story_list_opened: number;
+    story_download: number;
+  };
 }
 
 interface DashboardProps {
@@ -928,6 +933,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
   const daily = data?.daily || [];
   const maxDaily = Math.max(1, ...daily.map((d) => d.total));
   const totalErrors = (data?.errors || []).reduce((acc, item) => acc + item.count, 0);
+  const storyCounters = data?.stories || {
+    story_opened: 0,
+    story_list_opened: 0,
+    story_download: 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -1067,6 +1077,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
             </span>
             <span className="text-xs text-admin-text-muted block">
               <span className="font-mono">download_success</span> ({funnel.downloadCompletionRate}% des flux)
+            </span>
+          </div>
+        </div>
+
+        {/* Compteurs agrégés Stories Instagram (30 jours, sans identifiant personnel) */}
+        <div className="border-t border-admin-border pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
+              Stories ouvertes (30j)
+            </span>
+            <span className="font-mono text-xl font-bold text-admin-text tabular-nums">
+              {storyCounters.story_opened}
+            </span>
+            <span className="text-xs text-admin-text-muted block font-mono">
+              story_opened
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
+              Listes de stories ouvertes (30j)
+            </span>
+            <span className="font-mono text-xl font-bold text-admin-text tabular-nums">
+              {storyCounters.story_list_opened}
+            </span>
+            <span className="text-xs text-admin-text-muted block font-mono">
+              story_list_opened
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border border-admin-border">
+            <span className="text-xs font-medium text-admin-text-secondary block">
+              Stories téléchargées (30j)
+            </span>
+            <span className="font-mono text-xl font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
+              {storyCounters.story_download}
+            </span>
+            <span className="text-xs text-admin-text-muted block font-mono">
+              story_download
             </span>
           </div>
         </div>

@@ -21,6 +21,7 @@ export interface PublicConfig {
   };
   ads_enabled: boolean;
   ads_adsterra_enabled: boolean;
+  feature_stories?: boolean;
 }
 
 const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
@@ -34,6 +35,7 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   },
   ads_enabled: ENABLE_ADS,
   ads_adsterra_enabled: true,
+  feature_stories: false,
 };
 
 let currentPublicConfig: PublicConfig = { ...DEFAULT_PUBLIC_CONFIG };
@@ -115,6 +117,7 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
           typeof data.ads_adsterra_enabled === 'boolean'
             ? data.ads_adsterra_enabled
             : true,
+        feature_stories: Boolean(data.feature_stories),
       };
       setRuntimePlatformStates(currentPublicConfig.platforms);
       if (!currentPublicConfig.ads_adsterra_enabled && typeof document !== 'undefined') {

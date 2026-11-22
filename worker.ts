@@ -8,6 +8,11 @@ import {
   onRequestGet as downloadGet,
   onRequestOptions as downloadOptions,
 } from './functions/api/download.ts';
+import {
+  onRequestGet as storiesGet,
+  onRequestPost as storiesPost,
+  onRequestOptions as storiesOptions,
+} from './functions/api/stories.ts';
 import { onRequestGet as publicConfigGet } from './functions/api/public-config.ts';
 import {
   onRequestGet as adminLoginGet,
@@ -83,6 +88,17 @@ async function routeInner(
         env,
         ctx,
       });
+    }
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/stories') {
+    if (request.method === 'OPTIONS') return storiesOptions();
+    if (request.method === 'GET') {
+      return storiesGet({ request, env, ctx });
+    }
+    if (request.method === 'POST') {
+      return storiesPost({ request, env, ctx });
     }
     return new Response('Method Not Allowed', { status: 405 });
   }

@@ -101,6 +101,7 @@ function cloudflarePagesFunctionsDevBridge(): Plugin {
           const mergedEnv = {
             ...process.env,
             ...env,
+            VIDNEX_LOCAL_DEV: 'true',
             DB: localDevDb,
             ADMIN_PASSWORD:
               env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'vidnex-admin-dev',

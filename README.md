@@ -255,10 +255,17 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
   - **Niveau 2 (Repli direct)** : Si TikWM échoue, parse directement le HTML de la page TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, ou `__NEXT_DATA__`), extrait `playAddr` / `downloadAddr` / `bitrateInfo` (ou `imagePost.images` pour les carrousels) et transmet les cookies de session au proxy `/api/download`.
 
 #### Instagram (`functions/_lib/instagram.ts`)
-- **Détection prioritaire Stories & Highlights (`functions/_lib/detect.ts`)** : `/stories/highlights/{id}/` est classé `highlight` et `/stories/{username}/{id}/` est classé `story` **avant** toute règle Reels/Post (y compris après redirection d'un lien court `/share/...`). Aucun lien `/stories/` n'est jamais classé `reel` ni envoyé au moteur Reels.
-- **Cas Stories & Highlights (`kind = 'story' | 'highlight'`)** :
-  - Si `env.IG_SESSION_ID` est défini, interroge exclusivement le moteur story authentifié (`/api/v1/media/{mediaId}/info/` et `/api/v1/feed/reels_media/`).
-  - Si `env.IG_SESSION_ID` est absent, renvoie immédiatement `PRIVATE_OR_LOGIN_REQUIRED` (`403`) avec le message explicite (« Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte. », traduit dans les 10 langues) et journalise `content_kind = "story"` ou `"highlight"` dans `request_log`.
+- **Détection prioritaire Stories & Highlights (`functions/_lib/detect.ts`)** : `/stories/highlights/{id}/` est classé `highlight` et `/stories/{username}/{id}/` (avec ou sans paramètres de requête) est classé `story` **avant** toute règle Reels/Post (y compris après redirection d'un lien court `/share/...`). Aucun lien `/stories/` n'est jamais classé `reel` ni envoyé au moteur Reels.
+- **Architecture « fournisseur de stories » (`functions/_lib/instagramStories.ts` & `functions/api/stories.ts`)** :
+  - Interface unique `getStory(url)` et `listStories(username)` renvoyant `items[{ id, kind: 'photo' | 'video', url, thumbnail, taken_at, expires_at }]`.
+  - Fournisseurs essayés dans l'ordre configuré dans `/admin` → **Contrôles** (`stories_provider_order`, défaut `session,relay,paid`) :
+    1. **`session`** : session Instagram serveur (`IG_SESSION_ID` / `IG_COOKIES`) si configurée.
+    2. **`relay`** : service relais HTTP privé (`RELAY_URL`, jeton optionnel `RELAY_TOKEN`).
+    3. **`paid`** : adaptateur API externe à l'usage (`STORIES_PAID_API_URL`, `STORIES_PAID_API_TOKEN`, en-tête optionnel `STORIES_PAID_API_HEADER`, jamais exposés au front).
+    4. **`mock`** : réservé au développement local et aux tests (`VIDNEX_LOCAL_DEV` / `STORIES_ALLOW_MOCK`), **jamais actif en production** (`vidnex.space` / `CF_PAGES=1`).
+  - Interrupteur `feature_stories` **désactivé par défaut** (`false`) dans D1 (`migrations/0008_stories.sql`). Si désactivé ou sans fournisseur configuré, renvoie `503 STORIES_UNAVAILABLE` (« Les stories sont temporairement indisponibles. »).
+  - **Flux utilisateur** : un lien de story affiche la story demandée (aperçu, date/heure, bouton Télécharger, note 24 h) et un bouton **« Voir toutes les stories de @username »** qui appelle `/api/stories` et ouvre la grille de sélection existante (`CarouselResultView`, 1 fichier direct ou ZIP `fflate` côté navigateur limité à **30 éléments / 150 Mo**, `aria-live="polite"`, 10 langues, RTL).
+  - **Protections & quotas** : comptes publics uniquement (messages distincts pour compte privé `403`, introuvable `404` ou sans story active `404`, sans contournement), limitation horaire par IP hachée sur `/api/stories` (`stories_list_rate_limit_per_hour`, défaut **5/h**), plafond global horaire (`stories_global_hourly_cap`, défaut **200/h**), cache mémoire de **5 minutes** des métadonnées uniquement (aucun média stocké), compteurs agrégés `story_opened`, `story_list_opened` et `story_download` dans `daily_metrics`.
 - **Cas Publications, Reels, IGTV et Carrousels (`extractInstagram`)** :
   - Détection par type d'URL : `/p/` = `post` (publication : photo, vidéo ou carrousel), `/reel/` ou `/reels/` = `reel`, `/tv/` = `video`, `/stories/` = `story`, `/stories/highlights/` = `highlight`, `/{user}/` = `profile`.
   - Une publication `/p/` ne passe jamais par un chemin « Reel seulement » : `parseMediaNode` et `extractViaInstagramEmbedAndOg` déterminent **photo** (`media_type === 1` / `GraphImage`), **vidéo** (`media_type === 2` / `GraphVideo`) ou **carrousel** (`media_type === 8` / `GraphSidecar` / `carousel_media`) exclusivement d'après les données renvoyées et renvoient les photos comme `items` de type `image` (`kind: 'image'`).
@@ -677,9 +684,15 @@ npm run indexnow
 | `SESSION_SECRET` | **Oui** (pour `/admin`) | Clé secrète aléatoire utilisée pour signer et vérifier le cookie `vidnex_admin_session` en `HMAC-SHA256` (`functions/_lib/auth.ts`). |
 | `IP_HASH_SALT` | **Oui** (recommandé) | Sel cryptographique ajouté à l'adresse IP avant le hachage `SHA-256` (`functions/_lib/db.ts`) pour le rate-limiting et la blocklist. |
 | `ALERT_WEBHOOK_URL` | Non (optionnel) | URL de webhook Discord ou Telegram appelée en `ctx.waitUntil` à 5 échecs consécutifs d'un moteur et lors du retour à la normale (`functions/_lib/logger.ts`). |
-| `IG_SESSION_ID` | Non (optionnel) | Identifiant de session Instagram utilisé en repli (Niveau 0 / Niveau 2) dans `functions/_lib/instagram.ts`. |
+| `IG_SESSION_ID` | Non (optionnel) | Identifiant de session Instagram utilisé en repli (Niveau 0 / Niveau 2) dans `functions/_lib/instagram.ts` et par le fournisseur Stories `session`. |
 | `IG_CSRF_TOKEN` | Non (optionnel) | Jeton CSRF compagnon optionnel pour les requêtes Instagram authentifiées (`functions/_lib/instagram.ts`). |
-| `IG_COOKIES` | Non (optionnel) | Chaîne de cookies ou tableau JSON Cookie-Editor optionnel pour Instagram (`functions/_lib/instagram.ts`). |
+| `IG_COOKIES` | Non (optionnel) | Chaîne de cookies ou tableau JSON Cookie-Editor optionnel pour Instagram (`functions/_lib/instagram.ts` et fournisseur Stories `session`). |
+| `RELAY_URL` | Non (optionnel) | URL de base du service relais interne pour le fournisseur Stories `relay` (`functions/_lib/instagramStories.ts`). |
+| `RELAY_TOKEN` | Non (optionnel) | Jeton Bearer secret transmis côté serveur au service relais `RELAY_URL` (jamais exposé au navigateur). |
+| `STORIES_PAID_API_URL` | Non (optionnel) | URL de base du fournisseur Stories payant à l'usage (`paid`). |
+| `STORIES_PAID_API_TOKEN` | Non (optionnel) | Jeton/clé secrète côté serveur pour le fournisseur Stories payant à l'usage (jamais exposé au navigateur). |
+| `STORIES_PAID_API_HEADER` | Non (optionnel) | Nom d'en-tête HTTP d'authentification personnalisé pour le fournisseur `paid` (ex. `X-API-Key` ; par défaut `Authorization: Bearer ...`). |
+| `STORIES_ALLOW_MOCK` | Non (dev local uniquement) | Active le fournisseur `mock` en développement local uniquement ; ignoré en production. |
 | `TIKWM_API_KEY` | Non (optionnel) | Clé API TikWM optionnelle si un quota supérieur à la limite publique gratuite est souhaité (`functions/_lib/tiktok.ts`). |
 | `TT_COOKIE` | Non (optionnel) | Cookie TikTok optionnel transmis lors de la récupération de la page officielle (`functions/_lib/tiktok.ts`). |
 | `DB_DISABLED` | Non (tests/debug) | Si défini à `'true'` ou `'1'`, désactive l'accès D1 dans `functions/_lib/db.ts` pour tester le repli sans base de données. |

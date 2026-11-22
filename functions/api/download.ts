@@ -825,16 +825,21 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const shouldTrackDownloadMetric =
     !isInline && method !== 'HEAD' && rate.firstRequestForFile !== false;
   const isSelectionDownload = reqUrl.searchParams.get('sel') === '1';
+  const isStoryDownload = reqUrl.searchParams.get('story') === '1';
 
   if (shouldTrackDownloadMetric) {
+    const startEvents: Array<
+      'download_started' | 'selection_download' | 'story_download'
+    > = ['download_started'];
+    if (isSelectionDownload) startEvents.push('selection_download');
+    if (isStoryDownload) startEvents.push('story_download');
+
     scheduleBackground(
       context,
       incrementDailyMetrics(
         context.env,
-        downloadPlatform,
-        isSelectionDownload
-          ? ['download_started', 'selection_download']
-          : ['download_started']
+        isStoryDownload ? 'instagram' : downloadPlatform,
+        startEvents
       )
     );
 

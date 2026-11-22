@@ -3351,10 +3351,13 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       ),
       adminEnv
     );
-    assert.equal(igStoryApiRes.status, 403);
+    assert.equal(igStoryApiRes.status, 503);
     const igStoryApiJson: any = await igStoryApiRes.json();
-    assert.equal(igStoryApiJson.error?.code, 'PRIVATE_OR_LOGIN_REQUIRED');
-    assert.equal(igStoryApiJson.error?.message, IG_STORY_LOGIN_REQUIRED_MESSAGE);
+    assert.equal(igStoryApiJson.error?.code, 'STORIES_UNAVAILABLE');
+    assert.equal(
+      igStoryApiJson.error?.message,
+      'Les stories sont temporairement indisponibles.'
+    );
 
     const igHighlightApiRes = await worker.fetch(
       new Request(
@@ -4284,7 +4287,14 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       assert.ok(xCarouselJson.items[0].thumbnail.includes('inline=1'));
       assert.equal(xCarouselJson.items[1].index, 2);
 
-      // 4. Story Instagram avec IG_SESSION_ID : liste toutes les stories actives du compte + présélectionne la story du lien (#2)
+      // 4. Story Instagram avec feature_stories activé et IG_SESSION_ID :
+      //    /api/extract renvoie la story demandée (+ storyMeta.canListAll) et /api/stories liste toutes les stories actives (#2 présélectionnée)
+      await db
+        .prepare(
+          'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+        )
+        .bind('feature_stories', 'true')
+        .run();
       const igStoryRes = await worker.fetch(
         new Request(
           'https://vidnex.space/api/extract?url=https://www.instagram.com/stories/storycreator/2222222222222222222/'
@@ -4294,32 +4304,43 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       assert.equal(igStoryRes.status, 200);
       const igStoryJson: any = await igStoryRes.json();
       assert.equal(igStoryJson.ok, true);
-      assert.equal(igStoryJson.type, 'carousel');
-      assert.equal(igStoryJson.items.length, 2);
-      assert.equal(igStoryJson.items[0].index, 1);
-      assert.equal(igStoryJson.items[0].kind, 'image');
-      assert.equal(igStoryJson.items[0].selected, false);
-      assert.ok(igStoryJson.items[0].date);
-      assert.equal(igStoryJson.items[1].index, 2);
-      assert.equal(igStoryJson.items[1].kind, 'video');
-      assert.equal(igStoryJson.items[1].selected, true);
-      assert.equal(igStoryJson.items[1].quality, '1080p');
-      assert.ok(igStoryJson.items[1].thumbnail.startsWith('/api/download?'));
+      assert.equal(igStoryJson.type, 'video');
+      assert.equal(igStoryJson.storyMeta?.username, 'storycreator');
+      assert.equal(igStoryJson.storyMeta?.storyId, '2222222222222222222');
+      assert.equal(igStoryJson.storyMeta?.canListAll, true);
+      assert.ok(igStoryJson.thumbnail.startsWith('/api/download?'));
 
-      const mappedStoryResult = mapExtractResponseToMediaResult(
+      const mappedSingleStory = mapExtractResponseToMediaResult(
         igStoryJson,
         'https://www.instagram.com/stories/storycreator/2222222222222222222/',
         detectMediaUrl(
           'https://www.instagram.com/stories/storycreator/2222222222222222222/'
         )
       );
-      assert.equal(mappedStoryResult.payloadType, 'carousel');
-      if (mappedStoryResult.payloadType === 'carousel') {
-        assert.equal(mappedStoryResult.selectionContext, 'story');
-        assert.equal(mappedStoryResult.items.length, 2);
-        assert.equal(mappedStoryResult.items[0].selected, false);
-        assert.equal(mappedStoryResult.items[1].selected, true);
+      assert.equal(mappedSingleStory.payloadType, 'video');
+      if (mappedSingleStory.payloadType === 'video') {
+        assert.equal(mappedSingleStory.storyMeta?.username, 'storycreator');
+        assert.equal(mappedSingleStory.storyMeta?.canListAll, true);
       }
+
+      const igStoryListRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/stories?username=storycreator&story_id=2222222222222222222'
+        ),
+        { DB: db, IG_SESSION_ID: 'mock_session_id_123', IP_HASH_SALT: 'sel-salt-2026' }
+      );
+      assert.equal(igStoryListRes.status, 200);
+      const igStoryListJson: any = await igStoryListRes.json();
+      assert.equal(igStoryListJson.ok, true);
+      assert.equal(igStoryListJson.items.length, 2);
+      assert.equal(igStoryListJson.items[0].index, 1);
+      assert.equal(igStoryListJson.items[0].kind, 'photo');
+      assert.equal(igStoryListJson.items[0].selected, false);
+      assert.ok(igStoryListJson.items[0].taken_at);
+      assert.equal(igStoryListJson.items[1].index, 2);
+      assert.equal(igStoryListJson.items[1].kind, 'video');
+      assert.equal(igStoryListJson.items[1].selected, true);
+      assert.ok(igStoryListJson.items[1].thumbnail.startsWith('/api/download?'));
 
       // 5. Profil Instagram avec IG_SESSION_ID et stories actives : photo de profil (présélectionnée) + stories actives
       const igProfileWithStoriesRes = await worker.fetch(
@@ -4340,19 +4361,19 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       assert.equal(igProfileJson.items[2].label, 'story');
       assert.equal(igProfileJson.items[2].selected, false);
 
-      // 6. Story sans IG_SESSION_ID : conserve le message clair PRIVATE_OR_LOGIN_REQUIRED
+      // 6. Story sans aucun fournisseur configuré : renvoie 503 STORIES_UNAVAILABLE
       const igStoryNoSessionRes = await worker.fetch(
         new Request(
           'https://vidnex.space/api/extract?url=https://www.instagram.com/stories/storycreator/2222222222222222222/'
         ),
         { DB: db, IP_HASH_SALT: 'sel-salt-2026' }
       );
-      assert.equal(igStoryNoSessionRes.status, 403);
+      assert.equal(igStoryNoSessionRes.status, 503);
       const igStoryNoSessionJson: any = await igStoryNoSessionRes.json();
-      assert.equal(igStoryNoSessionJson.error.code, 'PRIVATE_OR_LOGIN_REQUIRED');
+      assert.equal(igStoryNoSessionJson.error.code, 'STORIES_UNAVAILABLE');
       assert.equal(
         igStoryNoSessionJson.error.message,
-        'Les stories Instagram exigent une connexion : elles ne peuvent pas être téléchargées sans compte.'
+        'Les stories sont temporairement indisponibles.'
       );
 
       // 7. Téléchargement depuis l'écran de sélection (&sel=1) -> incrémente selection_download dans daily_metrics sans identifiant

@@ -4,6 +4,7 @@ import {
   VideoMediaResult,
   ProfileDpMediaResult,
   CarouselMediaResult,
+  fetchAccountStories,
   resolveApiUrl,
   shouldShowRetryButton,
 } from '../services/extractorService';
@@ -17,6 +18,8 @@ import {
   buildUncompressedZipArchive,
   MAX_SELECTION_ITEMS,
   MAX_SELECTION_TOTAL_BYTES,
+  STORY_MAX_SELECTION_ITEMS,
+  STORY_MAX_SELECTION_TOTAL_BYTES,
   parseEstimatedSizeBytes,
   validateSelectionLimits,
 } from '../utils/zipArchive';
@@ -24,7 +27,8 @@ import type { CarouselSlideItem } from '../services/extractorService';
 import { AdSlot } from './AdSlot';
 
 export function getInitialSelectedSlideIds(
-  items: CarouselSlideItem[]
+  items: CarouselSlideItem[],
+  maxItems: number = MAX_SELECTION_ITEMS
 ): string[] {
   if (!Array.isArray(items) || items.length === 0) return [];
   const hasExplicitPartialSelection =
@@ -33,10 +37,10 @@ export function getInitialSelectedSlideIds(
   if (hasExplicitPartialSelection) {
     return items
       .filter((it) => it.selected === true)
-      .slice(0, MAX_SELECTION_ITEMS)
+      .slice(0, maxItems)
       .map((it) => it.id);
   }
-  return items.slice(0, MAX_SELECTION_ITEMS).map((it) => it.id);
+  return items.slice(0, maxItems).map((it) => it.id);
 }
 
 export function formatSlideDateTime(
@@ -435,6 +439,42 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
       errorCode
     );
 
+  const [allStoriesResult, setAllStoriesResult] =
+    useState<CarouselMediaResult | null>(null);
+  const [isLoadingAllStories, setIsLoadingAllStories] = useState(false);
+  const [allStoriesError, setAllStoriesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAllStoriesResult(null);
+    setIsLoadingAllStories(false);
+    setAllStoriesError(null);
+  }, [result?.id]);
+
+  const handleLoadAllStories = async (
+    username: string,
+    linkedStoryId?: string,
+    sourceUrl?: string
+  ) => {
+    if (!username || isLoadingAllStories) return;
+    setIsLoadingAllStories(true);
+    setAllStoriesError(null);
+    try {
+      const storiesCarousel = await fetchAccountStories(username, language, {
+        linkedStoryId,
+        sourceUrl,
+      });
+      setAllStoriesResult(storiesCarousel);
+    } catch (err) {
+      setAllStoriesError(
+        err instanceof Error
+          ? err.message
+          : t.extractionInterrupted
+      );
+    } finally {
+      setIsLoadingAllStories(false);
+    }
+  };
+
   // ÉTAPE 5: Smooth automatic scroll to result drawer when extraction starts or completes
   useEffect(() => {
     if ((isLoading || error || result) && sectionRef.current) {
@@ -561,14 +601,32 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
               ×
             </button>
 
-            {result.payloadType === 'video' && (
-              <VideoResultView data={result} t={t} />
-            )}
-            {result.payloadType === 'profile_dp' && (
-              <ProfileDpResultView data={result} t={t} />
-            )}
-            {result.payloadType === 'carousel' && (
-              <CarouselResultView data={result} t={t} language={language} />
+            {allStoriesResult ? (
+              <CarouselResultView
+                data={allStoriesResult}
+                t={t}
+                language={language}
+                onBackToSingleStory={() => setAllStoriesResult(null)}
+              />
+            ) : (
+              <>
+                {result.payloadType === 'video' && (
+                  <VideoResultView
+                    data={result}
+                    t={t}
+                    language={language}
+                    onViewAllStories={handleLoadAllStories}
+                    isLoadingAllStories={isLoadingAllStories}
+                    allStoriesError={allStoriesError}
+                  />
+                )}
+                {result.payloadType === 'profile_dp' && (
+                  <ProfileDpResultView data={result} t={t} />
+                )}
+                {result.payloadType === 'carousel' && (
+                  <CarouselResultView data={result} t={t} language={language} />
+                )}
+              </>
             )}
           </div>
         )}
@@ -592,7 +650,22 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
 const VideoResultView: React.FC<{
   data: VideoMediaResult;
   t: UiDictionary['drawer'];
-}> = ({ data, t }) => {
+  language: LanguageCode;
+  onViewAllStories?: (
+    username: string,
+    linkedStoryId?: string,
+    sourceUrl?: string
+  ) => void;
+  isLoadingAllStories?: boolean;
+  allStoriesError?: string | null;
+}> = ({
+  data,
+  t,
+  language,
+  onViewAllStories,
+  isLoadingAllStories,
+  allStoriesError,
+}) => {
   const [activeDownloadId, setActiveDownloadId] = useState<string | null>(null);
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -731,6 +804,16 @@ const VideoResultView: React.FC<{
               {technicalSpecsParts.join(' · ')}
             </p>
           )}
+
+          {data.storyMeta?.takenAt && (
+            <p
+              data-testid="single-story-published-at"
+              className="mt-1 font-mono text-xs text-orange-800/85 dark:text-amber-300/85"
+            >
+              {t.storyPublishedAt}{' '}
+              {formatSlideDateTime(data.storyMeta.takenAt, language)}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2.5 w-full">
@@ -823,6 +906,79 @@ const VideoResultView: React.FC<{
                   </span>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Instagram Story: Bouton "Voir toutes les stories de @username" + note 24 h */}
+          {data.storyMeta && (
+            <div className="space-y-2.5 pt-1">
+              {data.storyMeta.canListAll &&
+                data.storyMeta.username &&
+                onViewAllStories && (
+                  <button
+                    type="button"
+                    data-testid="view-all-stories-btn"
+                    disabled={isLoadingAllStories}
+                    onClick={() =>
+                      onViewAllStories(
+                        data.storyMeta!.username,
+                        data.storyMeta!.storyId,
+                        data.sourceUrl
+                      )
+                    }
+                    className="w-full min-h-[48px] px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 bg-orange-50 dark:bg-[#2a1b12] border-2 border-orange-300 dark:border-orange-700 hover:bg-orange-100 dark:hover:bg-orange-950 text-orange-950 dark:text-orange-100 font-display text-sm font-bold transition-all disabled:opacity-60 cursor-pointer"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden="true"
+                      className={`w-4 h-4 shrink-0 ${isLoadingAllStories ? 'animate-spin' : ''}`}
+                    >
+                      {isLoadingAllStories ? (
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      ) : (
+                        <>
+                          <rect x="3" y="3" width="7" height="7" rx="1" />
+                          <rect x="14" y="3" width="7" height="7" rx="1" />
+                          <rect x="3" y="14" width="7" height="7" rx="1" />
+                          <rect x="14" y="14" width="7" height="7" rx="1" />
+                        </>
+                      )}
+                    </svg>
+                    <span>
+                      {isLoadingAllStories ? (
+                        t.loadingAllStories
+                      ) : (
+                        <>
+                          {t.viewAllStoriesBtn.split('@{username}')[0]}
+                          <span dir="ltr" className="font-mono">
+                            @{data.storyMeta.username}
+                          </span>
+                          {t.viewAllStoriesBtn.split('@{username}')[1] || ''}
+                        </>
+                      )}
+                    </span>
+                  </button>
+                )}
+
+              {allStoriesError && (
+                <div
+                  role="alert"
+                  data-testid="all-stories-error"
+                  className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-300 dark:border-red-800/80 text-xs sm:text-sm font-medium text-red-800 dark:text-red-200"
+                >
+                  {allStoriesError}
+                </div>
+              )}
+
+              <p
+                data-testid="stories-24h-notice"
+                className="px-3.5 py-2.5 rounded-xl bg-amber-50/90 dark:bg-[#241911] border border-amber-200/80 dark:border-amber-900/50 text-xs text-[#5d4030] dark:text-amber-100/85 leading-relaxed"
+              >
+                {t.storiesNotice24h}
+              </p>
             </div>
           )}
 
@@ -1025,9 +1181,24 @@ const CarouselResultView: React.FC<{
   data: CarouselMediaResult;
   t: UiDictionary['drawer'];
   language: LanguageCode;
-}> = ({ data, t, language }) => {
+  onBackToSingleStory?: () => void;
+}> = ({ data, t, language, onBackToSingleStory }) => {
+  const isStoryMode = data.selectionContext === 'story';
+  const maxSelectionItems = isStoryMode
+    ? STORY_MAX_SELECTION_ITEMS
+    : MAX_SELECTION_ITEMS;
+  const maxSelectionBytes = isStoryMode
+    ? STORY_MAX_SELECTION_TOTAL_BYTES
+    : MAX_SELECTION_TOTAL_BYTES;
+  const limitMaxItemsMessage = isStoryMode
+    ? t.storyLimitMaxItems
+    : t.limitMaxItems;
+  const limitMaxSizeMessage = isStoryMode
+    ? t.storyLimitMaxSize
+    : t.limitMaxSize;
+
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
-    getInitialSelectedSlideIds(data.items)
+    getInitialSelectedSlideIds(data.items, maxSelectionItems)
   );
   const [zipDownloading, setZipDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
@@ -1036,11 +1207,11 @@ const CarouselResultView: React.FC<{
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
 
   useEffect(() => {
-    setSelectedIds(getInitialSelectedSlideIds(data.items));
+    setSelectedIds(getInitialSelectedSlideIds(data.items, maxSelectionItems));
     setHasTriggeredDownload(false);
     setLimitError(null);
     setLiveAnnouncement('');
-  }, [data.id, data.items]);
+  }, [data.id, data.items, maxSelectionItems]);
 
   const selectedSlides = data.items.filter((i) => selectedIds.includes(i.id));
   const estimatedBytes = selectedSlides.reduce(
@@ -1049,7 +1220,8 @@ const CarouselResultView: React.FC<{
   );
   const validation = validateSelectionLimits(
     selectedSlides.length,
-    estimatedBytes
+    estimatedBytes,
+    { maxItems: maxSelectionItems, maxBytes: maxSelectionBytes }
   );
 
   const allSelected =
@@ -1066,17 +1238,20 @@ const CarouselResultView: React.FC<{
       (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
       0
     );
-    const check = validateSelectionLimits(allIds.length, totalEst);
+    const check = validateSelectionLimits(allIds.length, totalEst, {
+      maxItems: maxSelectionItems,
+      maxBytes: maxSelectionBytes,
+    });
     if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
-      setSelectedIds(allIds.slice(0, MAX_SELECTION_ITEMS));
-      setLimitError(t.limitMaxItems);
-      setLiveAnnouncement(t.limitMaxItems);
+      setSelectedIds(allIds.slice(0, maxSelectionItems));
+      setLimitError(limitMaxItemsMessage);
+      setLiveAnnouncement(limitMaxItemsMessage);
       return;
     }
     if (!check.valid && check.reason === 'MAX_SIZE_EXCEEDED') {
       setSelectedIds(allIds);
-      setLimitError(t.limitMaxSize);
-      setLiveAnnouncement(t.limitMaxSize);
+      setLimitError(limitMaxSizeMessage);
+      setLiveAnnouncement(limitMaxSizeMessage);
       return;
     }
     setLimitError(null);
@@ -1092,7 +1267,10 @@ const CarouselResultView: React.FC<{
           (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
           0
         );
-        const check = validateSelectionLimits(next.length, nextBytes);
+        const check = validateSelectionLimits(next.length, nextBytes, {
+          maxItems: maxSelectionItems,
+          maxBytes: maxSelectionBytes,
+        });
         if (check.valid || check.reason === 'EMPTY_SELECTION') {
           setLimitError(null);
         }
@@ -1105,15 +1283,18 @@ const CarouselResultView: React.FC<{
         (sum, s) => sum + parseEstimatedSizeBytes(s.fileSize),
         0
       );
-      const check = validateSelectionLimits(next.length, nextBytes);
+      const check = validateSelectionLimits(next.length, nextBytes, {
+        maxItems: maxSelectionItems,
+        maxBytes: maxSelectionBytes,
+      });
       if (!check.valid && check.reason === 'MAX_ITEMS_EXCEEDED') {
-        setLimitError(t.limitMaxItems);
-        setLiveAnnouncement(t.limitMaxItems);
+        setLimitError(limitMaxItemsMessage);
+        setLiveAnnouncement(limitMaxItemsMessage);
         return prev;
       }
       if (!check.valid && check.reason === 'MAX_SIZE_EXCEEDED') {
-        setLimitError(t.limitMaxSize);
-        setLiveAnnouncement(t.limitMaxSize);
+        setLimitError(limitMaxSizeMessage);
+        setLiveAnnouncement(limitMaxSizeMessage);
       } else {
         setLimitError(null);
       }
@@ -1127,8 +1308,8 @@ const CarouselResultView: React.FC<{
     if (!validation.valid) {
       const msg =
         validation.reason === 'MAX_ITEMS_EXCEEDED'
-          ? t.limitMaxItems
-          : t.limitMaxSize;
+          ? limitMaxItemsMessage
+          : limitMaxSizeMessage;
       setLimitError(msg);
       setLiveAnnouncement(msg);
       return;
@@ -1181,18 +1362,18 @@ const CarouselResultView: React.FC<{
           );
           if (
             contentLenHeader > 0 &&
-            totalDownloadedBytes + contentLenHeader > MAX_SELECTION_TOTAL_BYTES
+            totalDownloadedBytes + contentLenHeader > maxSelectionBytes
           ) {
-            setLimitError(t.limitMaxSize);
-            setLiveAnnouncement(t.limitMaxSize);
+            setLimitError(limitMaxSizeMessage);
+            setLiveAnnouncement(limitMaxSizeMessage);
             return;
           }
 
           const buf = await resp.arrayBuffer();
           totalDownloadedBytes += buf.byteLength;
-          if (totalDownloadedBytes > MAX_SELECTION_TOTAL_BYTES) {
-            setLimitError(t.limitMaxSize);
-            setLiveAnnouncement(t.limitMaxSize);
+          if (totalDownloadedBytes > maxSelectionBytes) {
+            setLimitError(limitMaxSizeMessage);
+            setLiveAnnouncement(limitMaxSizeMessage);
             return;
           }
 
@@ -1207,7 +1388,10 @@ const CarouselResultView: React.FC<{
         setLiveAnnouncement(
           t.progressZipping.replace('{count}', String(zipEntries.length))
         );
-        const zipBlob = buildUncompressedZipArchive(zipEntries);
+        const zipBlob = buildUncompressedZipArchive(zipEntries, {
+          maxItems: maxSelectionItems,
+          maxBytes: maxSelectionBytes,
+        });
         triggerBlobDownload(
           zipBlob,
           `VIDNEX_${cleanHandle}_selection_${zipEntries.length}.zip`
@@ -1229,11 +1413,11 @@ const CarouselResultView: React.FC<{
       }
     } catch (err: any) {
       if (err?.message === 'MAX_SIZE_EXCEEDED') {
-        setLimitError(t.limitMaxSize);
-        setLiveAnnouncement(t.limitMaxSize);
+        setLimitError(limitMaxSizeMessage);
+        setLiveAnnouncement(limitMaxSizeMessage);
       } else if (err?.message === 'MAX_ITEMS_EXCEEDED') {
-        setLimitError(t.limitMaxItems);
-        setLiveAnnouncement(t.limitMaxItems);
+        setLimitError(limitMaxItemsMessage);
+        setLiveAnnouncement(limitMaxItemsMessage);
       } else {
         selectedSlides.forEach((slide, idx) => {
           const ext = slide.mediaType === 'video' ? 'mp4' : 'jpg';
@@ -1295,7 +1479,26 @@ const CarouselResultView: React.FC<{
               {t.activeStoriesSubtitle}
             </span>
           )}
+          {onBackToSingleStory && (
+            <button
+              type="button"
+              data-testid="back-to-single-story-btn"
+              onClick={onBackToSingleStory}
+              className="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-[#2a1b12] border border-orange-200 dark:border-orange-800/70 font-mono text-[11px] font-semibold text-orange-800 dark:text-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
+            >
+              ← {t.backToSingleStory}
+            </button>
+          )}
         </div>
+
+        {isStoryMode && (
+          <p
+            data-testid="stories-24h-notice"
+            className="px-3.5 py-2.5 rounded-xl bg-amber-50/90 dark:bg-[#241911] border border-amber-200/80 dark:border-amber-900/50 text-xs text-[#5d4030] dark:text-amber-100/85 leading-relaxed"
+          >
+            {t.storiesNotice24h}
+          </p>
+        )}
 
         {/* Action Bar: Select All, Counter, Download Selection */}
         <div

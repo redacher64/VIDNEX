@@ -5,6 +5,48 @@
 
 import { type AdminEnv, getDb } from './db.ts';
 
+export type StoryProviderId = 'session' | 'relay' | 'paid' | 'mock';
+
+export const CONFIGURABLE_STORY_PROVIDERS: readonly StoryProviderId[] = [
+  'session',
+  'relay',
+  'paid',
+];
+
+const VALID_STORY_PROVIDER_IDS = new Set<StoryProviderId>([
+  'session',
+  'relay',
+  'paid',
+  'mock',
+]);
+
+export function parseStoryProviderOrder(
+  raw: unknown,
+  fallback: StoryProviderId[] = ['session', 'relay', 'paid']
+): StoryProviderId[] {
+  let parts: string[] = [];
+  if (Array.isArray(raw)) {
+    parts = raw.map((item) => String(item ?? '').trim().toLowerCase());
+  } else if (typeof raw === 'string') {
+    parts = raw
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+  }
+  const seen = new Set<StoryProviderId>();
+  const order: StoryProviderId[] = [];
+  for (const part of parts) {
+    if (VALID_STORY_PROVIDER_IDS.has(part as StoryProviderId)) {
+      const id = part as StoryProviderId;
+      if (!seen.has(id)) {
+        seen.add(id);
+        order.push(id);
+      }
+    }
+  }
+  return order.length > 0 ? order : [...fallback];
+}
+
 export interface SystemSettings {
   maintenance: boolean;
   allow_third_party: boolean;
@@ -13,6 +55,10 @@ export interface SystemSettings {
   platform_x: boolean;
   platform_facebook: boolean;
   platform_linkedin: boolean;
+  feature_stories: boolean;
+  stories_provider_order: StoryProviderId[];
+  stories_list_rate_limit_per_hour: number;
+  stories_global_hourly_cap: number;
   rate_limit_per_min: number;
   download_limit_per_min: number;
   ads_enabled: boolean;
@@ -40,6 +86,10 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   platform_x: true,
   platform_facebook: true,
   platform_linkedin: true,
+  feature_stories: false,
+  stories_provider_order: ['session', 'relay', 'paid'],
+  stories_list_rate_limit_per_hour: 5,
+  stories_global_hourly_cap: 200,
   rate_limit_per_min: 30,
   download_limit_per_min: 60,
   ads_enabled: true,
@@ -59,7 +109,10 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings> {
   const db = getDb(env);
   if (!db) {
-    return { ...DEFAULT_SETTINGS };
+    return {
+      ...DEFAULT_SETTINGS,
+      stories_provider_order: [...DEFAULT_SETTINGS.stories_provider_order],
+    };
   }
 
   try {
@@ -86,6 +139,18 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
         ? Math.floor(rawDownloadRate)
         : DEFAULT_SETTINGS.download_limit_per_min;
 
+    const rawStoryPerIp = Number(map.get('stories_list_rate_limit_per_hour'));
+    const storyPerIpLimit =
+      Number.isFinite(rawStoryPerIp) && rawStoryPerIp >= 1 && rawStoryPerIp <= 500
+        ? Math.floor(rawStoryPerIp)
+        : DEFAULT_SETTINGS.stories_list_rate_limit_per_hour;
+
+    const rawStoryGlobal = Number(map.get('stories_global_hourly_cap'));
+    const storyGlobalCap =
+      Number.isFinite(rawStoryGlobal) && rawStoryGlobal >= 1 && rawStoryGlobal <= 50_000
+        ? Math.floor(rawStoryGlobal)
+        : DEFAULT_SETTINGS.stories_global_hourly_cap;
+
     return {
       maintenance: map.get('maintenance') === 'true',
       allow_third_party: map.has('allow_third_party')
@@ -106,6 +171,13 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       platform_linkedin: map.has('platform_linkedin')
         ? map.get('platform_linkedin') !== 'false'
         : true,
+      feature_stories: map.get('feature_stories') === 'true',
+      stories_provider_order: parseStoryProviderOrder(
+        map.get('stories_provider_order'),
+        DEFAULT_SETTINGS.stories_provider_order
+      ),
+      stories_list_rate_limit_per_hour: storyPerIpLimit,
+      stories_global_hourly_cap: storyGlobalCap,
       rate_limit_per_min: rateLimit,
       download_limit_per_min: downloadLimit,
       ads_enabled: map.has('ads_enabled')
@@ -122,7 +194,10 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       test_url_linkedin: map.get('test_url_linkedin') ?? '',
     };
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return {
+      ...DEFAULT_SETTINGS,
+      stories_provider_order: [...DEFAULT_SETTINGS.stories_provider_order],
+    };
   }
 }
 
@@ -159,6 +234,30 @@ export async function updateSystemSettings(
   }
   if (typeof partial.platform_linkedin === 'boolean') {
     entries.push(['platform_linkedin', String(partial.platform_linkedin)]);
+  }
+  if (typeof partial.feature_stories === 'boolean') {
+    entries.push(['feature_stories', String(partial.feature_stories)]);
+  }
+  if (partial.stories_provider_order !== undefined) {
+    const normalizedOrder = parseStoryProviderOrder(
+      partial.stories_provider_order,
+      DEFAULT_SETTINGS.stories_provider_order
+    );
+    entries.push(['stories_provider_order', normalizedOrder.join(',')]);
+  }
+  if (typeof partial.stories_list_rate_limit_per_hour === 'number') {
+    const clamped = Math.max(
+      1,
+      Math.min(500, Math.floor(partial.stories_list_rate_limit_per_hour))
+    );
+    entries.push(['stories_list_rate_limit_per_hour', String(clamped)]);
+  }
+  if (typeof partial.stories_global_hourly_cap === 'number') {
+    const clamped = Math.max(
+      1,
+      Math.min(50_000, Math.floor(partial.stories_global_hourly_cap))
+    );
+    entries.push(['stories_global_hourly_cap', String(clamped)]);
   }
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));

@@ -93,15 +93,18 @@ export function checkRateLimit(
 
 const downloadFileWindowSeen = new Map<string, { window: number; result: D1RateLimitResult }>();
 const MAX_DOWNLOAD_FILE_SEEN = 10_000;
+const d1HourlyFallbackBuckets = new Map<string, { window: number; count: number }>();
 
 export function resetRateLimitBuckets(): void {
   buckets.clear();
   downloadFileWindowSeen.clear();
+  d1HourlyFallbackBuckets.clear();
 }
 
 export function resetD1RateLimitFallback(): void {
   buckets.clear();
   downloadFileWindowSeen.clear();
+  d1HourlyFallbackBuckets.clear();
 }
 
 export interface D1RateLimitResult {
@@ -242,3 +245,152 @@ export async function checkD1DownloadRateLimit(
 
   return finalResult;
 }
+
+export interface HourlyRateLimitResult {
+  allowed: boolean;
+  count: number;
+  remaining: number;
+  limit: number;
+  retryAfterSec: number;
+}
+
+/**
+ * Calcule une fenêtre horaire alignée sur l'échelle des minutes (dernière minute de l'heure UTC)
+ * afin qu'elle cohabite avec la table `rate_limits` sans être purgée prématurément par `purgeOldLogs`.
+ */
+export function getHourlyWindowKey(nowMs: number = Date.now()): number {
+  return Math.floor(nowMs / 3_600_000) * 60 + 59;
+}
+
+function computeHourlyRetryAfterSec(nowMs: number): number {
+  const nextHourMs = (Math.floor(nowMs / 3_600_000) + 1) * 3_600_000;
+  return Math.max(1, Math.ceil((nextHourMs - nowMs) / 1000));
+}
+
+export async function checkD1HourlyRateLimit(
+  env: AdminEnv | undefined,
+  bucketKey: string,
+  limitPerHour: number,
+  nowMs: number = Date.now()
+): Promise<HourlyRateLimitResult> {
+  const safeLimit = Math.max(1, Math.floor(limitPerHour));
+  const hourWindow = getHourlyWindowKey(nowMs);
+  const retryAfterSec = computeHourlyRetryAfterSec(nowMs);
+  const db = getDb(env);
+
+  if (db) {
+    try {
+      const existing = await db
+        .prepare('SELECT count FROM rate_limits WHERE ip_hash = ? AND window = ?')
+        .bind(bucketKey, hourWindow)
+        .first<{ count: number }>();
+      const existingCount = Number(existing?.count ?? 0);
+      if (existingCount >= safeLimit) {
+        return {
+          allowed: false,
+          count: existingCount,
+          remaining: 0,
+          limit: safeLimit,
+          retryAfterSec,
+        };
+      }
+
+      const updated = await db
+        .prepare(
+          'INSERT INTO rate_limits (ip_hash, window, count) VALUES (?, ?, 1) ON CONFLICT(ip_hash, window) DO UPDATE SET count = count + 1 RETURNING count'
+        )
+        .bind(bucketKey, hourWindow)
+        .first<{ count: number }>();
+
+      const count = Number(updated?.count ?? existingCount + 1);
+      const allowed = count <= safeLimit;
+      return {
+        allowed,
+        count,
+        remaining: Math.max(0, safeLimit - count),
+        limit: safeLimit,
+        retryAfterSec: allowed ? 0 : retryAfterSec,
+      };
+    } catch {
+      // Fall back to in-memory counter if D1 fails
+    }
+  }
+
+  const memKey = `${bucketKey}:${hourWindow}`;
+  const current = d1HourlyFallbackBuckets.get(memKey);
+  const currentCount = current ? current.count : 0;
+  if (currentCount >= safeLimit) {
+    return {
+      allowed: false,
+      count: currentCount,
+      remaining: 0,
+      limit: safeLimit,
+      retryAfterSec,
+    };
+  }
+  const nextCount = currentCount + 1;
+  d1HourlyFallbackBuckets.set(memKey, { window: hourWindow, count: nextCount });
+  if (d1HourlyFallbackBuckets.size > 4000) {
+    for (const [k, v] of d1HourlyFallbackBuckets.entries()) {
+      if (v.window < hourWindow) {
+        d1HourlyFallbackBuckets.delete(k);
+      }
+    }
+  }
+  return {
+    allowed: true,
+    count: nextCount,
+    remaining: Math.max(0, safeLimit - nextCount),
+    limit: safeLimit,
+    retryAfterSec: 0,
+  };
+}
+
+export async function incrementD1HourlyCounter(
+  env: AdminEnv | undefined,
+  bucketKey: string,
+  nowMs: number = Date.now()
+): Promise<number> {
+  const hourWindow = getHourlyWindowKey(nowMs);
+  const db = getDb(env);
+  if (db) {
+    try {
+      const row = await db
+        .prepare(
+          'INSERT INTO rate_limits (ip_hash, window, count) VALUES (?, ?, 1) ON CONFLICT(ip_hash, window) DO UPDATE SET count = count + 1 RETURNING count'
+        )
+        .bind(bucketKey, hourWindow)
+        .first<{ count: number }>();
+      return Number(row?.count ?? 1);
+    } catch {
+      // Fall back to memory
+    }
+  }
+  const memKey = `${bucketKey}:${hourWindow}`;
+  const current = d1HourlyFallbackBuckets.get(memKey);
+  const nextCount = (current?.count ?? 0) + 1;
+  d1HourlyFallbackBuckets.set(memKey, { window: hourWindow, count: nextCount });
+  return nextCount;
+}
+
+export async function getD1HourlyCount(
+  env: AdminEnv | undefined,
+  bucketKey: string,
+  nowMs: number = Date.now()
+): Promise<number> {
+  const hourWindow = getHourlyWindowKey(nowMs);
+  const db = getDb(env);
+  if (db) {
+    try {
+      const row = await db
+        .prepare('SELECT count FROM rate_limits WHERE ip_hash = ? AND window = ?')
+        .bind(bucketKey, hourWindow)
+        .first<{ count: number }>();
+      return Number(row?.count ?? 0);
+    } catch {
+      // Fall back to memory
+    }
+  }
+  return d1HourlyFallbackBuckets.get(`${bucketKey}:${hourWindow}`)?.count ?? 0;
+}
+

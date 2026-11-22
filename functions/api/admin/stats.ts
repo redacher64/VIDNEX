@@ -121,6 +121,12 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     downloadCompletionRate: 0,
   };
 
+  const emptyStories = {
+    story_opened: 0,
+    story_list_opened: 0,
+    story_download: 0,
+  };
+
   if (!db) {
     return new Response(
       JSON.stringify({
@@ -128,6 +134,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         dbConnected: false,
         counts: { today: 0, last7d: 0, last30d: 0 },
         funnel: emptyFunnel,
+        stories: emptyStories,
         platforms,
         errors: [],
         daily: Array.from(dailyMap.values()),
@@ -254,6 +261,12 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         if (p) platforms[p].selection_download += count;
         const bucket = dailyMap.get(dayKey);
         if (bucket) bucket.selection_download += count;
+      } else if (ev === 'story_opened') {
+        emptyStories.story_opened += count;
+      } else if (ev === 'story_list_opened') {
+        emptyStories.story_list_opened += count;
+      } else if (ev === 'story_download') {
+        emptyStories.story_download += count;
       }
     }
 
@@ -338,6 +351,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
           last30d: last30dCount,
         },
         funnel,
+        stories: emptyStories,
         platforms,
         errors,
         daily: Array.from(dailyMap.values()),

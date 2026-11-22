@@ -8,6 +8,7 @@ import { extractFacebook, resolveFacebookRedirect } from '../../_lib/facebook.ts
 import { extractLinkedIn } from '../../_lib/linkedin.ts';
 import { getSystemSettings, updateSystemSettings } from '../../_lib/settings.ts';
 import { logExtractionEvent, recordEngineHealthTest } from '../../_lib/logger.ts';
+import { getStoriesAdminStatusSnapshot } from '../../_lib/instagramStories.ts';
 
 export interface PagesContext {
   request: Request;
@@ -121,6 +122,12 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     }
   }
 
+  const storiesStatus = await getStoriesAdminStatusSnapshot(
+    env,
+    settings,
+    context.request
+  );
+
   return new Response(
     JSON.stringify({
       ok: true,
@@ -128,6 +135,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       instagramCookie: {
         configured: igCookieConfigured,
       },
+      storiesStatus,
     }),
     {
       status: 200,

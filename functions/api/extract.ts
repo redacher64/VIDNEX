@@ -25,6 +25,7 @@ import {
   createErrorResponse,
   mapErrorCodeToHttpStatus,
   optionsResponse,
+  STORIES_UNAVAILABLE_MESSAGE,
   type ExtractResponse,
 } from '../_lib/normalize.ts';
 import {
@@ -35,7 +36,8 @@ import {
 } from '../_lib/db.ts';
 import { getSystemSettings, isRequestBlocked } from '../_lib/settings.ts';
 import { checkD1RateLimit } from '../_lib/ratelimit.ts';
-import { logExtractionEvent } from '../_lib/logger.ts';
+import { incrementDailyMetrics, logExtractionEvent } from '../_lib/logger.ts';
+import { resolveStoryWithProviders } from '../_lib/instagramStories.ts';
 
 export interface Env extends AdminEnv {
   IG_SESSION_ID?: string;
@@ -84,6 +86,7 @@ function wrapDownloadUrl(
     cookie?: string;
     backupUrl?: string;
     sourceUrl?: string;
+    story?: boolean;
   }
 ): string {
   if (!rawUrl || rawUrl.startsWith('/api/download')) return rawUrl;
@@ -93,6 +96,9 @@ function wrapDownloadUrl(
   });
   if (inline) {
     params.set('inline', '1');
+  }
+  if (options?.story) {
+    params.set('story', '1');
   }
   if (options?.cookie) {
     const b64 = encodeBase64Safe(options.cookie);
@@ -468,14 +474,171 @@ async function handleExtract(
       detection.identifier,
       settings.allow_third_party
     );
+  } else if (detection.platform === 'instagram' && detection.kind === 'story') {
+    const storyOutcome = await resolveStoryWithProviders(
+      detection.cleanUrl,
+      env,
+      settings,
+      { request }
+    );
+
+    for (const attempt of storyOutcome.attempts) {
+      if (!attempt.ok) {
+        scheduleAsyncLog(
+          ctx,
+          logExtractionEvent(env, {
+            platform: 'instagram',
+            status: 'error',
+            errorCode: attempt.errorCode || 'BLOCKED_BY_PLATFORM',
+            durationMs: attempt.durationMs,
+            ipHash,
+            engineStage: attempt.provider,
+            httpStatus: attempt.httpStatus ?? null,
+            contentKind: 'story',
+            engineFn: 'instagram.story',
+          })
+        );
+      }
+    }
+
+    if (!storyOutcome.ok || storyOutcome.items.length === 0) {
+      const errCode = storyOutcome.errorCode || 'STORIES_UNAVAILABLE';
+      const mappedStatus = mapErrorCodeToHttpStatus(errCode);
+      const errMsg =
+        storyOutcome.message ||
+        (errCode === 'STORY_ACCOUNT_PRIVATE'
+          ? 'Ce compte Instagram est privé. Seules les stories des comptes publics peuvent être téléchargées.'
+          : errCode === 'STORY_ACCOUNT_NOT_FOUND'
+          ? 'Compte Instagram introuvable.'
+          : errCode === 'STORY_NO_ACTIVE'
+          ? 'Aucune story active trouvée pour ce lien (les stories disparaissent après 24 h).'
+          : STORIES_UNAVAILABLE_MESSAGE);
+
+      if (storyOutcome.attempts.length === 0) {
+        scheduleAsyncLog(
+          ctx,
+          logExtractionEvent(env, {
+            platform: 'instagram',
+            status: 'error',
+            errorCode: errCode,
+            durationMs: Date.now() - startedAt,
+            ipHash,
+            engineStage: !settings.feature_stories
+              ? 'feature_disabled'
+              : storyOutcome.provider || 'no_provider',
+            httpStatus: storyOutcome.httpStatus ?? mappedStatus,
+            contentKind: 'story',
+            engineFn: 'instagram.story',
+          })
+        );
+      }
+      return createErrorResponse(errCode, errMsg, mappedStatus);
+    }
+
+    const singleItem = storyOutcome.items[0];
+    const storyUsername = (
+      storyOutcome.username ||
+      storyOutcome.author?.username ||
+      ''
+    )
+      .replace(/^@/, '')
+      .toLowerCase();
+    const isVideoStory = singleItem.kind === 'video';
+    const storyExt = isVideoStory ? 'mp4' : 'jpg';
+    const safeUser = storyUsername.replace(/[^a-z0-9._-]/g, '') || 'instagram';
+    const safeStoryId = (
+      singleItem.id ||
+      storyOutcome.storyId ||
+      'story'
+    ).replace(/[^a-zA-Z0-9_-]/g, '');
+
+    scheduleAsyncLog(
+      ctx,
+      Promise.all([
+        logExtractionEvent(env, {
+          platform: 'instagram',
+          status: 'success',
+          errorCode: null,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          stage: storyOutcome.provider === 'session' ? 'direct' : 'tiers',
+          engineStage: storyOutcome.provider || 'story',
+          httpStatus: 200,
+          contentKind: 'story',
+          engineFn: 'instagram.story',
+        }),
+        incrementDailyMetrics(env, 'instagram', ['story_opened']),
+      ])
+    );
+
+    const proxiedThumb = wrapDownloadUrl(
+      singleItem.thumbnail,
+      `instagram_${safeUser}_story_${safeStoryId}_thumb.jpg`,
+      true,
+      { story: true }
+    );
+    const proxiedMedia = wrapDownloadUrl(
+      singleItem.url,
+      `instagram_${safeUser}_story_${safeStoryId}.${storyExt}`,
+      false,
+      { story: true }
+    );
+    const proxiedAuthor = storyOutcome.author
+      ? {
+          ...storyOutcome.author,
+          avatar:
+            storyOutcome.author.avatar &&
+            (storyOutcome.author.avatar.startsWith('http://') ||
+              storyOutcome.author.avatar.startsWith('https://'))
+              ? wrapDownloadUrl(
+                  storyOutcome.author.avatar,
+                  `instagram_${safeUser}_avatar.jpg`,
+                  true,
+                  { story: true }
+                )
+              : storyOutcome.author.avatar,
+        }
+      : { username: safeUser };
+
+    return createSuccessResponse(
+      {
+        id: safeStoryId,
+        platform: 'instagram',
+        type: isVideoStory ? 'video' : 'image',
+        title: `Story @${safeUser}`,
+        author: proxiedAuthor,
+        thumbnail: proxiedThumb,
+        items: [
+          {
+            index: 1,
+            id: singleItem.id,
+            kind: isVideoStory ? 'video' : 'image',
+            url: proxiedMedia,
+            thumbnail: proxiedThumb,
+            ext: storyExt,
+            quality: isVideoStory ? '1080p' : 'HD',
+            width: singleItem.width,
+            height: singleItem.height,
+            date: singleItem.taken_at,
+            label: 'story',
+          },
+        ],
+        storyMeta: {
+          username: safeUser,
+          storyId: singleItem.id,
+          takenAt: singleItem.taken_at,
+          expiresAt: singleItem.expires_at,
+          canListAll: Boolean(storyUsername),
+        },
+      },
+      { 'Cache-Control': 'no-store' }
+    );
   } else if (detection.platform === 'instagram') {
     result = await extractInstagram(
       detection.identifier || '',
       extractorEnv,
       detection.kind === 'profile'
         ? 'profile'
-        : detection.kind === 'story'
-        ? 'story'
         : detection.kind === 'highlight'
         ? 'highlight'
         : detection.kind === 'reel'

@@ -19,7 +19,8 @@
  */
 
 import { type AdminEnv, getDb } from './db.ts';
-import { cleanEscapedUrl, parseInstagramCookies } from './instagram.ts';
+import { BROWSER_USER_AGENT } from './http.ts';
+import { cleanEscapedUrl, parseInstagramCookies, type ParsedInstagramAuth } from './instagram.ts';
 import { isAllowedMediaUrl } from './allowlist.ts';
 import {
   STORIES_UNAVAILABLE_MESSAGE,
@@ -154,8 +155,6 @@ const STORY_LIFETIME_MS = 24 * 60 * 60 * 1000; // 24 heures
 const MAX_CACHE_ENTRIES = 250;
 const PROVIDER_FETCH_TIMEOUT_MS = 12_000;
 const IG_WEB_APP_ID = '936619743392459';
-const IG_DESKTOP_UA =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 const RESERVED_IG_STORY_SEGMENTS = new Set([
   'highlights',
@@ -395,19 +394,87 @@ async function fetchWithTimeout(
   }
 }
 
-function buildIgSessionHeaders(cookieHeader: string, csrfToken: string): Record<string, string> {
+interface CachedIgUserProfile {
+  userId: string;
+  isPrivate: boolean;
+  author: StoryAuthorInfo;
+  expiresAt: number;
+}
+
+const igUserProfileCache = new Map<string, CachedIgUserProfile>();
+
+function getCachedIgUserProfile(
+  username: string,
+  nowMs: number
+): CachedIgUserProfile | null {
+  const key = username.toLowerCase();
+  const entry = igUserProfileCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= nowMs) {
+    igUserProfileCache.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function setCachedIgUserProfile(
+  username: string,
+  entry: Omit<CachedIgUserProfile, 'expiresAt'>,
+  nowMs: number
+): void {
+  const key = username.toLowerCase();
+  if (!key) return;
+  if (igUserProfileCache.size >= MAX_CACHE_ENTRIES) {
+    const oldestKey = igUserProfileCache.keys().next().value;
+    if (oldestKey) igUserProfileCache.delete(oldestKey);
+  }
+  igUserProfileCache.set(key, {
+    ...entry,
+    expiresAt: nowMs + STORY_METADATA_CACHE_TTL_MS,
+  });
+}
+
+function buildIgSessionHeaders(
+  cookieHeader: string,
+  csrfToken: string,
+  referer = 'https://www.instagram.com/'
+): Record<string, string> {
   return {
-    'User-Agent': IG_DESKTOP_UA,
+    'User-Agent': BROWSER_USER_AGENT,
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
     'X-IG-App-ID': IG_WEB_APP_ID,
     'X-ASBD-ID': '129477',
+    'X-IG-WWW-Claim': '0',
     'X-Requested-With': 'XMLHttpRequest',
     'X-CSRFToken': csrfToken || 'missing',
-    Referer: 'https://www.instagram.com/',
-    Origin: 'https://www.instagram.com',
+    Referer: referer,
     Cookie: cookieHeader,
   };
+}
+
+function isIgAuthOrRateLimitPayload(json: Record<string, unknown> | null): boolean {
+  if (!json) return false;
+  const msg = String(json.message || '').toLowerCase();
+  return (
+    json.require_login === true ||
+    json.status === 'fail' ||
+    msg === 'login_required' ||
+    msg === 'checkpoint_required' ||
+    msg.includes('please wait a few minutes') ||
+    msg.includes('rate limit') ||
+    json.error_type === 'rate_limit_error'
+  );
+}
+
+function isIgPrivatePayload(json: Record<string, unknown> | null): boolean {
+  if (!json) return false;
+  const msg = String(json.message || '').toLowerCase();
+  return (
+    msg.includes('not authorized to view user') ||
+    msg.includes('private account') ||
+    msg.includes('user is private')
+  );
 }
 
 function parseInstagramApiStoryItem(
@@ -442,26 +509,50 @@ function parseInstagramApiStoryItem(
 
   const bestVideo = sortedVideos[0];
   const bestImage = sortedImages[0];
-  const isVideo = Boolean(bestVideo?.url) || node.media_type === 2;
+  const fallbackVideoUrl =
+    typeof node.video_url === 'string' && node.video_url ? node.video_url : '';
+  const displayResources = Array.isArray(node.display_resources)
+    ? (node.display_resources as Array<Record<string, unknown>>)
+    : [];
+  const fallbackImageUrl =
+    (typeof node.display_url === 'string' && node.display_url) ||
+    (displayResources.length > 0 &&
+    typeof displayResources[displayResources.length - 1]?.src === 'string'
+      ? String(displayResources[displayResources.length - 1].src)
+      : '') ||
+    (typeof node.thumbnail_src === 'string' && node.thumbnail_src
+      ? node.thumbnail_src
+      : '');
 
-  const primaryUrl = cleanEscapedUrl(
-    String(isVideo ? bestVideo?.url || '' : bestImage?.url || '')
-  );
+  const rawVideoUrl = String(bestVideo?.url || fallbackVideoUrl || '');
+  const rawImageUrl = String(bestImage?.url || fallbackImageUrl || '');
+  const isVideo = Boolean(rawVideoUrl);
+
+  const primaryUrl = cleanEscapedUrl(isVideo ? rawVideoUrl : rawImageUrl);
   if (!primaryUrl || !isAllowedMediaUrl(primaryUrl)) {
     return null;
   }
 
-  const thumbUrl = cleanEscapedUrl(String(bestImage?.url || primaryUrl));
+  const thumbUrl = cleanEscapedUrl(rawImageUrl || primaryUrl);
   const safeThumb = thumbUrl && isAllowedMediaUrl(thumbUrl) ? thumbUrl : primaryUrl;
   const rawId = String(node.pk || node.id || '').split('_')[0];
-  const takenAt = toIsoTimestamp(node.taken_at, nowMs);
+  const takenAt = toIsoTimestamp(
+    node.taken_at ?? node.taken_at_timestamp ?? node.device_timestamp,
+    nowMs
+  );
   const expiresAt = computeExpiresAt(takenAt, node.expiring_at);
 
   const width = Number(
-    (isVideo ? bestVideo?.width : bestImage?.width) || node.original_width || 0
+    (isVideo ? bestVideo?.width : bestImage?.width) ||
+      node.original_width ||
+      (node.dimensions as Record<string, unknown> | undefined)?.width ||
+      0
   );
   const height = Number(
-    (isVideo ? bestVideo?.height : bestImage?.height) || node.original_height || 0
+    (isVideo ? bestVideo?.height : bestImage?.height) ||
+      node.original_height ||
+      (node.dimensions as Record<string, unknown> | undefined)?.height ||
+      0
   );
 
   return {
@@ -474,6 +565,749 @@ function parseInstagramApiStoryItem(
     ...(width > 0 ? { width } : {}),
     ...(height > 0 ? { height } : {}),
   };
+}
+
+async function resolveIgUserProfileByUsername(
+  normalized: string,
+  auth: ParsedInstagramAuth,
+  nowMs: number,
+  customFetch?: typeof fetch
+): Promise<
+  | { ok: true; userId: string; author: StoryAuthorInfo }
+  | { ok: false; errorCode: StoryErrorCode; httpStatus: number }
+> {
+  // Cas d'un identifiant numérique passé à la place du nom d'utilisateur (`/stories/12345678/...`)
+  if (/^\d{4,30}$/.test(normalized)) {
+    return {
+      ok: true,
+      userId: normalized,
+      author: { username: normalized },
+    };
+  }
+
+  const cached = getCachedIgUserProfile(normalized, nowMs);
+  if (cached) {
+    if (cached.isPrivate) {
+      return {
+        ok: false,
+        errorCode: 'STORY_ACCOUNT_PRIVATE',
+        httpStatus: 403,
+      };
+    }
+    return {
+      ok: true,
+      userId: cached.userId,
+      author: cached.author,
+    };
+  }
+
+  const notFoundSources = new Set<string>();
+  let explicitUserNullOk = false;
+  let blockedByPlatform = false;
+  let timedOut = false;
+  let lastHttpStatus = 502;
+
+  const inspectWebProfileResponse = async (
+    res: Response,
+    sourceTag: string
+  ): Promise<
+    | { ok: true; userId: string; author: StoryAuthorInfo }
+    | { ok: false; errorCode: StoryErrorCode; httpStatus: number }
+    | null
+  > => {
+    lastHttpStatus = res.status;
+
+    if (res.status === 404) {
+      notFoundSources.add(sourceTag);
+      return null;
+    }
+
+    if (res.status >= 300 && res.status < 400) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    if (
+      res.status === 401 ||
+      res.status === 403 ||
+      res.status === 429 ||
+      res.status >= 500
+    ) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    const rawText = await res.text().catch(() => '');
+    if (!rawText.trim()) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    let profileJson: {
+      status?: string;
+      message?: string;
+      require_login?: boolean;
+      error_type?: string;
+      data?: {
+        user?: {
+          id?: string;
+          pk?: string;
+          username?: string;
+          full_name?: string;
+          profile_pic_url?: string;
+          profile_pic_url_hd?: string;
+          is_private?: boolean;
+          is_verified?: boolean;
+        } | null;
+      };
+    } | null = null;
+
+    try {
+      profileJson = JSON.parse(rawText);
+    } catch {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    if (
+      !profileJson ||
+      isIgAuthOrRateLimitPayload(profileJson as unknown as Record<string, unknown>)
+    ) {
+      blockedByPlatform = true;
+      return null;
+    }
+
+    if (profileJson.data && profileJson.data.user === null) {
+      notFoundSources.add(sourceTag);
+      if (profileJson.status === 'ok') {
+        explicitUserNullOk = true;
+      }
+      return null;
+    }
+
+    const user = profileJson.data?.user;
+    if (user && typeof user === 'object') {
+      const userId = String(user.id || user.pk || '').trim();
+      const author: StoryAuthorInfo = {
+        username: String(user.username || normalized).replace(/^@/, ''),
+        full_name: user.full_name || undefined,
+        avatar: user.profile_pic_url_hd || user.profile_pic_url || undefined,
+        verified: Boolean(user.is_verified),
+      };
+      if (user.is_private === true) {
+        if (userId) {
+          setCachedIgUserProfile(
+            normalized,
+            { userId, isPrivate: true, author },
+            nowMs
+          );
+        }
+        return {
+          ok: false,
+          errorCode: 'STORY_ACCOUNT_PRIVATE',
+          httpStatus: 403,
+        };
+      }
+      if (userId) {
+        setCachedIgUserProfile(
+          normalized,
+          { userId, isPrivate: false, author },
+          nowMs
+        );
+        return { ok: true, userId, author };
+      }
+    }
+
+    return null;
+  };
+
+  const webProfileUrl = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(normalized)}`;
+  const sessionHeaders = buildIgSessionHeaders(
+    auth.cookieHeader,
+    auth.csrfToken,
+    `https://www.instagram.com/${encodeURIComponent(normalized)}/`
+  );
+
+  // 1. web_profile_info avec session
+  try {
+    const resAuth = await fetchWithTimeout(
+      webProfileUrl,
+      { method: 'GET', headers: sessionHeaders, redirect: 'manual' },
+      customFetch
+    );
+    const parsedAuth = await inspectWebProfileResponse(resAuth, 'web_profile_auth');
+    if (parsedAuth) return parsedAuth;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      timedOut = true;
+    } else {
+      blockedByPlatform = true;
+    }
+  }
+
+  // 2. web_profile_info sans cookies (comme extractInstagramProfile Niveau 1)
+  if (!explicitUserNullOk) {
+    try {
+      const resPub = await fetchWithTimeout(
+        webProfileUrl,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent': BROWSER_USER_AGENT,
+            Accept: 'application/json, text/plain, */*',
+            'X-IG-App-ID': IG_WEB_APP_ID,
+            'X-ASBD-ID': '129477',
+            'X-Requested-With': 'XMLHttpRequest',
+            Referer: `https://www.instagram.com/${encodeURIComponent(normalized)}/`,
+          },
+          redirect: 'manual',
+        },
+        customFetch
+      );
+      const parsedPub = await inspectWebProfileResponse(resPub, 'web_profile_public');
+      if (parsedPub) return parsedPub;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        timedOut = true;
+      }
+    }
+  }
+
+  // 3. Recherche authentifiée exacte (`/api/v1/users/search/`) si web_profile_info a été bloqué/filtré
+  if (notFoundSources.size < 2 && !explicitUserNullOk) {
+    try {
+      const searchRes = await fetchWithTimeout(
+        `https://www.instagram.com/api/v1/users/search/?q=${encodeURIComponent(normalized)}&count=5`,
+        { method: 'GET', headers: sessionHeaders, redirect: 'manual' },
+        customFetch
+      );
+      if (searchRes.ok) {
+        const sJson = (await searchRes.json().catch(() => null)) as {
+          status?: string;
+          users?: Array<{
+            pk?: string | number;
+            id?: string | number;
+            username?: string;
+            full_name?: string;
+            profile_pic_url?: string;
+            is_private?: boolean;
+            is_verified?: boolean;
+          }>;
+        } | null;
+        if (sJson && Array.isArray(sJson.users)) {
+          const exact = sJson.users.find(
+            (u) => String(u?.username || '').toLowerCase() === normalized
+          );
+          if (exact) {
+            const userId = String(exact.pk || exact.id || '').trim();
+            const author: StoryAuthorInfo = {
+              username: String(exact.username || normalized).replace(/^@/, ''),
+              full_name: exact.full_name || undefined,
+              avatar: exact.profile_pic_url || undefined,
+              verified: Boolean(exact.is_verified),
+            };
+            if (exact.is_private === true) {
+              if (userId) {
+                setCachedIgUserProfile(
+                  normalized,
+                  { userId, isPrivate: true, author },
+                  nowMs
+                );
+              }
+              return {
+                ok: false,
+                errorCode: 'STORY_ACCOUNT_PRIVATE',
+                httpStatus: 403,
+              };
+            }
+            if (userId) {
+              setCachedIgUserProfile(
+                normalized,
+                { userId, isPrivate: false, author },
+                nowMs
+              );
+              return { ok: true, userId, author };
+            }
+          }
+        }
+      }
+    } catch {
+      // Continuer vers le repli embed
+    }
+  }
+
+  // 4. Repli page publique `/embed/` (éprouvé sur Cloudflare Workers dans instagram.ts)
+  if (notFoundSources.size < 2 && !explicitUserNullOk) {
+    try {
+      const embedRes = await fetchWithTimeout(
+        `https://www.instagram.com/${encodeURIComponent(normalized)}/embed/`,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            Referer: 'https://www.instagram.com/',
+          },
+          redirect: 'manual',
+        },
+        customFetch
+      );
+      if (embedRes.status === 404) {
+        notFoundSources.add('embed_page');
+      } else if (embedRes.status === 200) {
+        const embedHtml = await embedRes.text().catch(() => '');
+        const ctxMatch = embedHtml.match(/"contextJSON"\s*:\s*"((?:\\.|[^"\\])*)"/);
+        if (ctxMatch?.[1]) {
+          try {
+            const unescaped = JSON.parse(`"${ctxMatch[1]}"`);
+            const ctxPayload = JSON.parse(unescaped) as {
+              context?: {
+                owner_id?: string | number;
+                profile_id?: string | number;
+                id?: string | number;
+                username?: string;
+                full_name?: string;
+                profile_pic_url?: string;
+                is_private?: boolean;
+                is_verified?: boolean;
+              };
+            };
+            const ctx = ctxPayload?.context;
+            const ownerId = String(
+              ctx?.owner_id || ctx?.profile_id || ctx?.id || ''
+            ).trim();
+            if (ctx?.is_private === true) {
+              return {
+                ok: false,
+                errorCode: 'STORY_ACCOUNT_PRIVATE',
+                httpStatus: 403,
+              };
+            }
+            if (ownerId && /^\d+$/.test(ownerId)) {
+              const author: StoryAuthorInfo = {
+                username: String(ctx?.username || normalized).replace(/^@/, ''),
+                full_name: ctx?.full_name || undefined,
+                avatar: ctx?.profile_pic_url || undefined,
+                verified: Boolean(ctx?.is_verified),
+              };
+              setCachedIgUserProfile(
+                normalized,
+                { userId: ownerId, isPrivate: false, author },
+                nowMs
+              );
+              return { ok: true, userId: ownerId, author };
+            }
+          } catch {
+            // Ignorer
+          }
+        } else if (
+          embedHtml.includes('EmbedIsBroken') ||
+          embedHtml.includes('"contextJSON":null')
+        ) {
+          notFoundSources.add('embed_page');
+        }
+      }
+    } catch {
+      // Ignorer
+    }
+  }
+
+  if (notFoundSources.size >= 2 || (explicitUserNullOk && !blockedByPlatform)) {
+    return {
+      ok: false,
+      errorCode: 'STORY_ACCOUNT_NOT_FOUND',
+      httpStatus: 404,
+    };
+  }
+  if (timedOut && !blockedByPlatform) {
+    return {
+      ok: false,
+      errorCode: 'TIMEOUT',
+      httpStatus: 504,
+    };
+  }
+  return {
+    ok: false,
+    errorCode: 'BLOCKED_BY_PLATFORM',
+    httpStatus: lastHttpStatus || 502,
+  };
+}
+
+async function fetchIgSingleStoryByMediaId(
+  storyId: string,
+  fallbackUsername: string | null,
+  auth: ParsedInstagramAuth,
+  nowMs: number,
+  customFetch?: typeof fetch
+): Promise<StoryProviderResult> {
+  const referer = fallbackUsername
+    ? `https://www.instagram.com/stories/${encodeURIComponent(fallbackUsername)}/${encodeURIComponent(storyId)}/`
+    : 'https://www.instagram.com/';
+  const headers = buildIgSessionHeaders(auth.cookieHeader, auth.csrfToken, referer);
+
+  const endpoints = [
+    `https://www.instagram.com/api/v1/media/${encodeURIComponent(storyId)}/info/`,
+    `https://i.instagram.com/api/v1/media/${encodeURIComponent(storyId)}/info/`,
+  ];
+
+  let lastError: StoryProviderResult = {
+    ok: false,
+    provider: 'session',
+    items: [],
+    errorCode: 'BLOCKED_BY_PLATFORM',
+    httpStatus: 502,
+  };
+
+  for (const endpoint of endpoints) {
+    try {
+      const infoRes = await fetchWithTimeout(
+        endpoint,
+        { method: 'GET', headers, redirect: 'manual' },
+        customFetch
+      );
+
+      if (infoRes.status === 404) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_NO_ACTIVE',
+          httpStatus: 404,
+        };
+      }
+
+      if (infoRes.status >= 300 && infoRes.status < 400) {
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: infoRes.status,
+        };
+        continue;
+      }
+
+      const rawText = await infoRes.text().catch(() => '');
+      let json: {
+        status?: string;
+        message?: string;
+        require_login?: boolean;
+        items?: Array<Record<string, unknown>>;
+      } | null = null;
+      try {
+        json = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        json = null;
+      }
+
+      if (infoRes.status === 403) {
+        if (isIgPrivatePayload(json as unknown as Record<string, unknown> | null)) {
+          return {
+            ok: false,
+            provider: 'session',
+            items: [],
+            errorCode: 'STORY_ACCOUNT_PRIVATE',
+            httpStatus: 403,
+          };
+        }
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: 403,
+        };
+        continue;
+      }
+
+      if (!infoRes.ok || !json) {
+        const msg = String(json?.message || '').toLowerCase();
+        if (msg.includes('media not found') || msg.includes('unavailable')) {
+          return {
+            ok: false,
+            provider: 'session',
+            items: [],
+            errorCode: 'STORY_NO_ACTIVE',
+            httpStatus: 404,
+          };
+        }
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: infoRes.status || 502,
+        };
+        continue;
+      }
+
+      if (isIgPrivatePayload(json as unknown as Record<string, unknown>)) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_ACCOUNT_PRIVATE',
+          httpStatus: 403,
+        };
+      }
+
+      if (isIgAuthOrRateLimitPayload(json as unknown as Record<string, unknown>)) {
+        const msg = String(json.message || '').toLowerCase();
+        if (msg.includes('media not found') || msg.includes('unavailable')) {
+          return {
+            ok: false,
+            provider: 'session',
+            items: [],
+            errorCode: 'STORY_NO_ACTIVE',
+            httpStatus: 404,
+          };
+        }
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: infoRes.status,
+        };
+        continue;
+      }
+
+      const firstNode = json.items?.[0];
+      if (!firstNode) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_NO_ACTIVE',
+          httpStatus: 404,
+        };
+      }
+
+      const nodeUser = (firstNode.user || firstNode.owner) as
+        | Record<string, unknown>
+        | undefined;
+      if (nodeUser?.is_private === true) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_ACCOUNT_PRIVATE',
+          httpStatus: 403,
+        };
+      }
+
+      const parsed = parseInstagramApiStoryItem(firstNode, nowMs);
+      if (!parsed) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_NO_ACTIVE',
+          httpStatus: 404,
+        };
+      }
+
+      const resolvedUsername = String(
+        nodeUser?.username || fallbackUsername || 'instagram'
+      ).replace(/^@/, '');
+      const author: StoryAuthorInfo = {
+        username: resolvedUsername,
+        full_name: nodeUser?.full_name ? String(nodeUser.full_name) : undefined,
+        avatar: nodeUser?.profile_pic_url
+          ? String(nodeUser.profile_pic_url)
+          : undefined,
+        verified: Boolean(nodeUser?.is_verified),
+      };
+
+      // Mémoriser username -> userId en cache 5 min (métadonnées uniquement)
+      // pour accélérer et fiabiliser « Voir toutes les stories de @username »
+      const resolvedUserId = String(
+        nodeUser?.pk || nodeUser?.id || nodeUser?.pk_id || ''
+      ).trim();
+      if (resolvedUserId && /^\d+$/.test(resolvedUserId)) {
+        const normFromNode = normalizeInstagramStoryUsername(resolvedUsername);
+        if (normFromNode) {
+          setCachedIgUserProfile(
+            normFromNode,
+            { userId: resolvedUserId, isPrivate: false, author },
+            nowMs
+          );
+        }
+        if (fallbackUsername && fallbackUsername !== normFromNode) {
+          setCachedIgUserProfile(
+            fallbackUsername,
+            { userId: resolvedUserId, isPrivate: false, author },
+            nowMs
+          );
+        }
+      }
+
+      return {
+        ok: true,
+        provider: 'session',
+        items: [parsed],
+        author,
+        httpStatus: 200,
+      };
+    } catch (err) {
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      lastError = {
+        ok: false,
+        provider: 'session',
+        items: [],
+        errorCode: isTimeout ? 'TIMEOUT' : 'BLOCKED_BY_PLATFORM',
+        httpStatus: isTimeout ? 504 : 502,
+      };
+    }
+  }
+
+  return lastError;
+}
+
+async function fetchIgUserStoriesReel(
+  userId: string,
+  authorHint: StoryAuthorInfo,
+  auth: ParsedInstagramAuth,
+  nowMs: number,
+  customFetch?: typeof fetch
+): Promise<StoryProviderResult> {
+  const referer = authorHint.username
+    ? `https://www.instagram.com/stories/${encodeURIComponent(authorHint.username)}/`
+    : 'https://www.instagram.com/';
+  const headers = buildIgSessionHeaders(auth.cookieHeader, auth.csrfToken, referer);
+
+  const endpoints = [
+    `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(userId)}`,
+    `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(userId)}`,
+  ];
+
+  let lastError: StoryProviderResult = {
+    ok: false,
+    provider: 'session',
+    items: [],
+    errorCode: 'BLOCKED_BY_PLATFORM',
+    httpStatus: 502,
+  };
+
+  for (const endpoint of endpoints) {
+    try {
+      const reelsRes = await fetchWithTimeout(
+        endpoint,
+        { method: 'GET', headers, redirect: 'manual' },
+        customFetch
+      );
+
+      if (!reelsRes.ok) {
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: reelsRes.status,
+        };
+        continue;
+      }
+
+      const rawText = await reelsRes.text().catch(() => '');
+      let reelsJson: {
+        status?: string;
+        message?: string;
+        require_login?: boolean;
+        reels_media?: Array<{
+          user?: Record<string, unknown>;
+          items?: Array<Record<string, unknown>>;
+        }>;
+        reels?: Record<
+          string,
+          {
+            user?: Record<string, unknown>;
+            items?: Array<Record<string, unknown>>;
+          }
+        >;
+      } | null = null;
+      try {
+        reelsJson = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        reelsJson = null;
+      }
+
+      if (
+        !reelsJson ||
+        isIgAuthOrRateLimitPayload(reelsJson as unknown as Record<string, unknown>)
+      ) {
+        lastError = {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'BLOCKED_BY_PLATFORM',
+          httpStatus: reelsRes.status || 502,
+        };
+        continue;
+      }
+
+      const reelObj = reelsJson.reels?.[userId] || reelsJson.reels_media?.[0];
+      const reelUser = reelObj?.user;
+      if (reelUser?.is_private === true) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          errorCode: 'STORY_ACCOUNT_PRIVATE',
+          httpStatus: 403,
+        };
+      }
+
+      const mergedAuthor: StoryAuthorInfo = {
+        username: String(reelUser?.username || authorHint.username).replace(/^@/, ''),
+        full_name:
+          (reelUser?.full_name ? String(reelUser.full_name) : undefined) ||
+          authorHint.full_name,
+        avatar:
+          (reelUser?.profile_pic_url
+            ? String(reelUser.profile_pic_url)
+            : undefined) || authorHint.avatar,
+        verified: Boolean(reelUser?.is_verified ?? authorHint.verified),
+      };
+
+      const rawItems = reelObj?.items || [];
+      const items: StoryMediaItem[] = [];
+      for (const rawNode of rawItems) {
+        const parsed = parseInstagramApiStoryItem(rawNode, nowMs);
+        if (parsed) items.push(parsed);
+      }
+
+      if (items.length === 0) {
+        return {
+          ok: false,
+          provider: 'session',
+          items: [],
+          author: mergedAuthor,
+          errorCode: 'STORY_NO_ACTIVE',
+          httpStatus: 404,
+        };
+      }
+
+      return {
+        ok: true,
+        provider: 'session',
+        items,
+        author: mergedAuthor,
+        httpStatus: 200,
+      };
+    } catch (err) {
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      lastError = {
+        ok: false,
+        provider: 'session',
+        items: [],
+        errorCode: isTimeout ? 'TIMEOUT' : 'BLOCKED_BY_PLATFORM',
+        httpStatus: isTimeout ? 504 : 502,
+      };
+    }
+  }
+
+  return lastError;
 }
 
 /**
@@ -514,152 +1348,30 @@ export const sessionStoryProvider: StoryProvider = {
       };
     }
 
-    const headers = buildIgSessionHeaders(auth.cookieHeader, auth.csrfToken);
     const nowMs = ctx?.nowMs ?? Date.now();
-
-    try {
-      const profileRes = await fetchWithTimeout(
-        `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(normalized)}`,
-        { method: 'GET', headers, redirect: 'manual' },
-        ctx?.customFetch
-      );
-
-      if (profileRes.status === 404) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'STORY_ACCOUNT_NOT_FOUND',
-          httpStatus: 404,
-        };
-      }
-      if (!profileRes.ok) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'BLOCKED_BY_PLATFORM',
-          httpStatus: profileRes.status,
-        };
-      }
-
-      const profileJson = (await profileRes.json().catch(() => null)) as {
-        data?: {
-          user?: {
-            id?: string;
-            pk?: string;
-            username?: string;
-            full_name?: string;
-            profile_pic_url?: string;
-            is_private?: boolean;
-            is_verified?: boolean;
-          } | null;
-        };
-      } | null;
-
-      const user = profileJson?.data?.user;
-      if (!user) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'STORY_ACCOUNT_NOT_FOUND',
-          httpStatus: 404,
-        };
-      }
-
-      // Comptes publics uniquement : aucune tentative de contournement
-      if (user.is_private === true) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'STORY_ACCOUNT_PRIVATE',
-          httpStatus: 403,
-        };
-      }
-
-      const userId = String(user.id || user.pk || '').trim();
-      if (!userId) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'STORY_ACCOUNT_NOT_FOUND',
-          httpStatus: 404,
-        };
-      }
-
-      const reelsRes = await fetchWithTimeout(
-        `https://www.instagram.com/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(userId)}`,
-        { method: 'GET', headers, redirect: 'manual' },
-        ctx?.customFetch
-      );
-
-      if (!reelsRes.ok) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: 'BLOCKED_BY_PLATFORM',
-          httpStatus: reelsRes.status,
-        };
-      }
-
-      const reelsJson = (await reelsRes.json().catch(() => null)) as {
-        reels_media?: Array<{ items?: Array<Record<string, unknown>> }>;
-        reels?: Record<string, { items?: Array<Record<string, unknown>> }>;
-      } | null;
-
-      const rawItems =
-        reelsJson?.reels_media?.[0]?.items ||
-        reelsJson?.reels?.[userId]?.items ||
-        [];
-
-      const items: StoryMediaItem[] = [];
-      for (const rawNode of rawItems) {
-        const parsed = parseInstagramApiStoryItem(rawNode, nowMs);
-        if (parsed) items.push(parsed);
-      }
-
-      if (items.length === 0) {
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          author: {
-            username: user.username || normalized,
-            full_name: user.full_name || undefined,
-            avatar: user.profile_pic_url || undefined,
-            verified: Boolean(user.is_verified),
-          },
-          errorCode: 'STORY_NO_ACTIVE',
-          httpStatus: 404,
-        };
-      }
-
-      return {
-        ok: true,
-        provider: 'session',
-        items,
-        author: {
-          username: user.username || normalized,
-          full_name: user.full_name || undefined,
-          avatar: user.profile_pic_url || undefined,
-          verified: Boolean(user.is_verified),
-        },
-        httpStatus: 200,
-      };
-    } catch (err) {
-      const isTimeout = err instanceof Error && err.name === 'AbortError';
+    const profileRes = await resolveIgUserProfileByUsername(
+      normalized,
+      auth,
+      nowMs,
+      ctx?.customFetch
+    );
+    if (!profileRes.ok) {
       return {
         ok: false,
         provider: 'session',
         items: [],
-        errorCode: isTimeout ? 'TIMEOUT' : 'BLOCKED_BY_PLATFORM',
-        httpStatus: isTimeout ? 504 : 502,
+        errorCode: profileRes.errorCode,
+        httpStatus: profileRes.httpStatus,
       };
     }
+
+    return fetchIgUserStoriesReel(
+      profileRes.userId,
+      profileRes.author,
+      auth,
+      nowMs,
+      ctx?.customFetch
+    );
   },
 
   async getStory(
@@ -682,23 +1394,40 @@ export const sessionStoryProvider: StoryProvider = {
     const { username, storyId } = parseStoryUrl(url);
     const nowMs = ctx?.nowMs ?? Date.now();
 
-    // 1. Si le nom d'utilisateur est présent, vérifier son statut public + ses stories actives
+    // 1. Si un storyId numérique est présent, interroger directement `/api/v1/media/{storyId}/info/`
+    // (même endpoint fiable que les Reels & Publications, 1 seule requête authentifiée,
+    // et pré-remplit le cache username -> userId pour « Voir toutes les stories »).
+    let mediaInfoRes: StoryProviderResult | null = null;
+    if (storyId) {
+      mediaInfoRes = await fetchIgSingleStoryByMediaId(
+        storyId,
+        username,
+        auth,
+        nowMs,
+        ctx?.customFetch
+      );
+      if (mediaInfoRes.ok || mediaInfoRes.errorCode === 'STORY_ACCOUNT_PRIVATE') {
+        return mediaInfoRes;
+      }
+    }
+
+    // 2. Repli (ou lien `/stories/{username}/` sans storyId) : lister les stories actives du compte
     if (username) {
       const listRes = await this.listStories(username, env, ctx);
-      if (!listRes.ok) {
-        // Si le compte est privé / introuvable / sans story active, on propage immédiatement
-        if (
-          listRes.errorCode === 'STORY_ACCOUNT_PRIVATE' ||
-          listRes.errorCode === 'STORY_ACCOUNT_NOT_FOUND' ||
-          listRes.errorCode === 'STORY_NO_ACTIVE'
-        ) {
-          return listRes;
-        }
-        // Si le profil a échoué (ex: endpoint profil bloqué) mais qu'on a un storyId, essayer media/info
-        if (!storyId) {
-          return listRes;
-        }
-      } else {
+      if (listRes.ok) {
+        // Préchauffer le cache de liste 5 min (métadonnées uniquement)
+        setStoryMetadataCacheEntry(
+          getListStoriesCacheKey(username),
+          {
+            ok: true,
+            provider: 'session',
+            items: listRes.items,
+            author: listRes.author || { username },
+            username,
+            httpStatus: 200,
+          },
+          nowMs
+        );
         const matched = storyId
           ? listRes.items.find(
               (item) =>
@@ -714,7 +1443,6 @@ export const sessionStoryProvider: StoryProvider = {
             httpStatus: 200,
           };
         }
-        // Story précise expirée ou supprimée alors que d'autres stories existent
         return {
           ok: false,
           provider: 'session',
@@ -724,102 +1452,23 @@ export const sessionStoryProvider: StoryProvider = {
           httpStatus: 404,
         };
       }
+
+      if (
+        listRes.errorCode === 'STORY_ACCOUNT_PRIVATE' ||
+        listRes.errorCode === 'STORY_ACCOUNT_NOT_FOUND' ||
+        listRes.errorCode === 'STORY_NO_ACTIVE'
+      ) {
+        return listRes;
+      }
+
+      if (mediaInfoRes && mediaInfoRes.errorCode === 'STORY_NO_ACTIVE') {
+        return mediaInfoRes;
+      }
+      return listRes;
     }
 
-    // 2. Fallback direct sur `/api/v1/media/{storyId}/info/`
-    if (storyId) {
-      const headers = buildIgSessionHeaders(auth.cookieHeader, auth.csrfToken);
-      try {
-        const infoRes = await fetchWithTimeout(
-          `https://www.instagram.com/api/v1/media/${encodeURIComponent(storyId)}/info/`,
-          { method: 'GET', headers, redirect: 'manual' },
-          ctx?.customFetch
-        );
-        if (infoRes.status === 404) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'STORY_NO_ACTIVE',
-            httpStatus: 404,
-          };
-        }
-        if (infoRes.status === 403) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'STORY_ACCOUNT_PRIVATE',
-            httpStatus: 403,
-          };
-        }
-        if (!infoRes.ok) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'BLOCKED_BY_PLATFORM',
-            httpStatus: infoRes.status,
-          };
-        }
-
-        const json = (await infoRes.json().catch(() => null)) as {
-          items?: Array<Record<string, unknown>>;
-        } | null;
-        const firstNode = json?.items?.[0];
-        if (!firstNode) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'STORY_NO_ACTIVE',
-            httpStatus: 404,
-          };
-        }
-        const nodeUser = firstNode.user as Record<string, unknown> | undefined;
-        if (nodeUser?.is_private === true) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'STORY_ACCOUNT_PRIVATE',
-            httpStatus: 403,
-          };
-        }
-        const parsed = parseInstagramApiStoryItem(firstNode, nowMs);
-        if (!parsed) {
-          return {
-            ok: false,
-            provider: 'session',
-            items: [],
-            errorCode: 'STORY_NO_ACTIVE',
-            httpStatus: 404,
-          };
-        }
-        return {
-          ok: true,
-          provider: 'session',
-          items: [parsed],
-          author: {
-            username: String(nodeUser?.username || username || 'instagram'),
-            full_name: nodeUser?.full_name ? String(nodeUser.full_name) : undefined,
-            avatar: nodeUser?.profile_pic_url
-              ? String(nodeUser.profile_pic_url)
-              : undefined,
-            verified: Boolean(nodeUser?.is_verified),
-          },
-          httpStatus: 200,
-        };
-      } catch (err) {
-        const isTimeout = err instanceof Error && err.name === 'AbortError';
-        return {
-          ok: false,
-          provider: 'session',
-          items: [],
-          errorCode: isTimeout ? 'TIMEOUT' : 'BLOCKED_BY_PLATFORM',
-          httpStatus: isTimeout ? 504 : 502,
-        };
-      }
+    if (mediaInfoRes) {
+      return mediaInfoRes;
     }
 
     return {
@@ -1409,6 +2058,7 @@ const storyMetadataCache = new Map<string, StoryCacheEntry>();
 
 export function clearStoryMetadataCache(): void {
   storyMetadataCache.clear();
+  igUserProfileCache.clear();
 }
 
 export function getStoryMetadataCacheEntry(

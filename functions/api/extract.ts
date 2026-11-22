@@ -12,7 +12,7 @@ import {
   type SupportedPlatform,
 } from '../_lib/detect.ts';
 import { extractTikTok } from '../_lib/tiktok.ts';
-import { extractInstagram } from '../_lib/instagram.ts';
+import { extractInstagram, parseInstagramCookies } from '../_lib/instagram.ts';
 import { extractX, resolveTcoShortLink } from '../_lib/x.ts';
 import {
   extractFacebook,
@@ -316,7 +316,13 @@ async function handleExtract(
 
   // Résolution des liens courts Instagram (/share/...) pour reclasser si redirection vers /stories/ ou /reel/
   if (detection.platform === 'instagram' && detection.isShortLink) {
-    const resolvedIg = await resolveAndDetectUrl(detection.cleanUrl, 'instagram');
+    const igAuth = parseInstagramCookies(env);
+    const resolvedIg = await resolveAndDetectUrl(
+      detection.cleanUrl,
+      'instagram',
+      globalThis.fetch,
+      igAuth.hasSession ? igAuth.cookieHeader : undefined
+    );
     if (resolvedIg.isValid && resolvedIg.platform === 'instagram') {
       detection = resolvedIg;
     }

@@ -442,6 +442,26 @@ export function detectUrl(
     }
 
     // 1C. Liens courts / partage Instagram (/share/...)
+    const igShareStoryDirectMatch = pathname.match(
+      /^\/share\/stories\/([A-Za-z0-9._]{1,30})\/([0-9A-Za-z_-]+)\/?$/i
+    );
+    if (
+      igShareStoryDirectMatch &&
+      igShareStoryDirectMatch[1].toLowerCase() !== 'highlights'
+    ) {
+      const username = igShareStoryDirectMatch[1];
+      const storyId = igShareStoryDirectMatch[2];
+      return {
+        isValid: true,
+        platform: 'instagram',
+        kind: 'story',
+        contentKind: 'story',
+        content_kind: 'story',
+        identifier: `${username}/${storyId}`,
+        cleanUrl: `https://www.instagram.com/stories/${username}/${storyId}/`,
+      };
+    }
+
     const igShareMatch = pathname.match(
       /^\/share\/(?:(stories|s|reel|reels|p)\/)?([A-Za-z0-9_-]{3,60})\/?$/i
     );
@@ -1045,7 +1065,8 @@ export function detectUrl(
 export async function resolveAndDetectUrl(
   rawInput: string,
   preferredPlatform: SupportedPlatform = 'instagram',
-  customFetch: typeof fetch = globalThis.fetch
+  customFetch: typeof fetch = globalThis.fetch,
+  cookieHeader?: string
 ): Promise<DetectionResult> {
   const initial = detectUrl(rawInput, preferredPlatform);
   if (!initial.isValid || !initial.isShortLink || !initial.cleanUrl) {
@@ -1063,14 +1084,21 @@ export async function resolveAndDetectUrl(
     }
 
     try {
+      const reqHeaders: Record<string, string> = {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      };
+      if (
+        cookieHeader &&
+        (parsed.hostname.endsWith('instagram.com') || parsed.hostname === 'instagr.am')
+      ) {
+        reqHeaders.Cookie = cookieHeader;
+      }
       const res = await customFetch(parsed.toString(), {
         method: 'GET',
         redirect: 'manual',
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
+        headers: reqHeaders,
       });
 
       if (

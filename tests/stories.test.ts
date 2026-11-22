@@ -667,4 +667,188 @@ describe('Instagram Stories feature (providers, API, limits, admin, i18n)', () =
       }
     }
   });
+
+  it('resolves single story via /api/v1/media/{storyId}/info/ with IG cookie even when web_profile_info fails, caches userId for /api/stories, and avoids false NOT_FOUND', async () => {
+    const db = createMemoryD1Database();
+    await enableStories(db);
+    const env: AdminEnv = {
+      DB: db,
+      ADMIN_PASSWORD: 'stories-admin-secret',
+      SESSION_SECRET: 'stories-session-hmac-secret-2026',
+      IP_HASH_SALT: 'stories-ip-salt-2026',
+      IG_COOKIES: 'sessionid=987654321%3Aabcde%3A1; csrftoken=csrf123; ds_user_id=987654321',
+    };
+
+    const fetchedUrls: string[] = [];
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      fetchedUrls.push(url);
+      const headers = new Headers(init?.headers);
+
+      if (url.includes('/api/v1/media/3891234567890123456/info/')) {
+        // Must not send Origin on GET, must send X-IG-WWW-Claim and Cookie
+        assert.equal(headers.get('Origin'), null);
+        assert.equal(headers.get('X-IG-WWW-Claim'), '0');
+        assert.ok((headers.get('Cookie') || '').includes('sessionid=987654321'));
+        return new Response(
+          JSON.stringify({
+            status: 'ok',
+            items: [
+              {
+                pk: '3891234567890123456',
+                media_type: 2,
+                taken_at: 1775000000,
+                expiring_at: 1775086400,
+                user: {
+                  pk: '44556677',
+                  username: 'real_creator',
+                  full_name: 'Real Creator',
+                  is_private: false,
+                  is_verified: true,
+                },
+                video_versions: [
+                  {
+                    width: 1080,
+                    height: 1920,
+                    url: 'https://scontent.cdninstagram.com/v/t50.2886-16/story_video.mp4',
+                  },
+                ],
+                image_versions2: {
+                  candidates: [
+                    {
+                      width: 1080,
+                      height: 1920,
+                      url: 'https://scontent.cdninstagram.com/v/t51.2885-15/story_thumb.jpg',
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (url.includes('/api/v1/users/web_profile_info/')) {
+        // Simulate Cloudflare-IP login HTML wall / 404 on web_profile_info
+        return new Response('<html>Login • Instagram</html>', {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        });
+      }
+
+      if (url.includes('/api/v1/feed/reels_media/?reel_ids=44556677')) {
+        return new Response(
+          JSON.stringify({
+            status: 'ok',
+            reels: {
+              '44556677': {
+                user: {
+                  pk: '44556677',
+                  username: 'real_creator',
+                  full_name: 'Real Creator',
+                  is_private: false,
+                },
+                items: [
+                  {
+                    pk: '3891234567890123456',
+                    media_type: 2,
+                    taken_at: 1775000000,
+                    video_versions: [
+                      {
+                        width: 1080,
+                        height: 1920,
+                        url: 'https://scontent.cdninstagram.com/v/t50.2886-16/story_video.mp4',
+                      },
+                    ],
+                    image_versions2: {
+                      candidates: [
+                        {
+                          width: 1080,
+                          height: 1920,
+                          url: 'https://scontent.cdninstagram.com/v/t51.2885-15/story_thumb.jpg',
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    pk: '3891234567890123999',
+                    media_type: 1,
+                    taken_at: 1775003600,
+                    image_versions2: {
+                      candidates: [
+                        {
+                          width: 1080,
+                          height: 1920,
+                          url: 'https://scontent.cdninstagram.com/v/t51.2885-15/story_photo_2.jpg',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response('not found', { status: 404 });
+    }) as typeof fetch;
+
+    try {
+      // 1. Single story succeeds in 1 call via /api/v1/media/{storyId}/info/ without calling web_profile_info
+      const singleRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/extract?url=https://www.instagram.com/stories/real_creator/3891234567890123456/',
+          { headers: { 'CF-Connecting-IP': '198.51.100.88' } }
+        ),
+        env
+      );
+      assert.equal(singleRes.status, 200);
+      const singleJson: any = await singleRes.json();
+      assert.equal(singleJson.ok, true);
+      assert.equal(singleJson.type, 'video');
+      assert.equal(singleJson.storyMeta?.username, 'real_creator');
+      assert.equal(singleJson.storyMeta?.storyId, '3891234567890123456');
+
+      // 2. Listing all stories uses cached userId 44556677 directly even though web_profile_info returns HTML!
+      const listRes = await worker.fetch(
+        new Request(
+          'https://vidnex.space/api/stories?username=real_creator&story_id=3891234567890123456',
+          { headers: { 'CF-Connecting-IP': '198.51.100.88' } }
+        ),
+        env
+      );
+      assert.equal(listRes.status, 200);
+      const listJson: any = await listRes.json();
+      assert.equal(listJson.ok, true);
+      assert.equal(listJson.items.length, 2);
+      assert.equal(listJson.items[0].selected, true);
+      assert.equal(listJson.items[1].selected, false);
+      assert.ok(
+        !fetchedUrls.some((u) => u.includes('web_profile_info')),
+        'web_profile_info should not be needed when media/info already resolved userId'
+      );
+
+      // 3. When web_profile_info returns HTML wall for an uncached user, do NOT falsely return STORY_ACCOUNT_NOT_FOUND
+      const blockedRes = await worker.fetch(
+        new Request('https://vidnex.space/api/stories?username=other_user', {
+          headers: { 'CF-Connecting-IP': '198.51.100.89' },
+        }),
+        env
+      );
+      const blockedJson: any = await blockedRes.json();
+      assert.notEqual(blockedJson.error?.code, 'STORY_ACCOUNT_NOT_FOUND');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });
+

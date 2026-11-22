@@ -814,7 +814,9 @@ function main() {
         fail(`Blog article ${route.path}: unable to resolve article/translation in repository`);
       }
       const effectivePublishedAt = trObj.publishedAt || artObj.publishedAt;
-      const isNewlyPublished = effectivePublishedAt >= '2026-11-22';
+      const effectiveUpdatedAt = trObj.updatedAt || artObj.updatedAt;
+      const isStrictEditorialGuide =
+        effectivePublishedAt >= '2026-11-22' || effectiveUpdatedAt >= '2026-11-22';
 
       // Extract outer <article> ... </article> (note: related cards use nested <article>, so slice from first <article to last </article>)
       const firstArtIdx = html.indexOf('<article');
@@ -895,18 +897,39 @@ function main() {
         }
       }
 
-      if (isNewlyPublished) {
-        // Slice main article body column [data-blog-article-body="true"] up to the related-articles section (excluding sources & CTA cards from pure editorial word check? Wait: include editorial prose + quickAnswer + sections + FAQ, exclude related articles)
-        const bodyMarker = outerArticleHtml.indexOf('data-blog-article-body="true"');
-        if (bodyMarker === -1) {
-          fail(`Blog article ${route.path}: missing data-blog-article-body="true" container`);
-        }
-        const relatedMarker = outerArticleHtml.indexOf('id="blog-related-heading"');
-        const bodySlice =
-          relatedMarker > bodyMarker
-            ? outerArticleHtml.slice(bodyMarker, relatedMarker)
-            : outerArticleHtml.slice(bodyMarker);
+      // Slice main article body column [data-blog-article-body="true"] up to the related-articles section
+      // and enforce a universal >= 1,000 editorial word minimum across ALL published blog articles
+      const bodyMarker = outerArticleHtml.indexOf('data-blog-article-body="true"');
+      if (bodyMarker === -1) {
+        fail(`Blog article ${route.path}: missing data-blog-article-body="true" container`);
+      }
+      const relatedMarker = outerArticleHtml.indexOf('id="blog-related-heading"');
+      const bodySlice =
+        relatedMarker > bodyMarker
+          ? outerArticleHtml.slice(bodyMarker, relatedMarker)
+          : outerArticleHtml.slice(bodyMarker);
 
+      const sourcesIdx = bodySlice.indexOf('id="blog-article-sources-heading"');
+      const editorialHtml =
+        sourcesIdx > 0 ? bodySlice.slice(0, sourcesIdx) : bodySlice;
+      const bodyPlain = decodeHtmlEntities(
+        editorialHtml
+          .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+          .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+          .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
+          .replace(/<[^>]+>/g, ' ')
+      )
+        .replace(/\s+/g, ' ')
+        .trim();
+      const bodyWc = bodyPlain ? bodyPlain.split(/\s+/).length : 0;
+
+      if (bodyWc < 1000) {
+        fail(
+          `Blog article ${route.path}: rendered editorial body has ${bodyWc} words (all published articles must have >= 1000 words)`
+        );
+      }
+
+      if (isStrictEditorialGuide) {
         // Quick answer 40-60 words
         const qaInner = extractTagContent(
           bodySlice,
@@ -936,7 +959,7 @@ function main() {
         // FAQ count 4..5 and each answer 40..60 words
         if (domFaqQ.length < 4 || domFaqQ.length > 5) {
           fail(
-            `Blog article ${route.path}: newly published article must have 4..5 FAQs, found ${domFaqQ.length}`
+            `Blog article ${route.path}: strict editorial article must have 4..5 FAQs, found ${domFaqQ.length}`
           );
         }
         for (let i = 0; i < domFaqA.length; i++) {
@@ -949,19 +972,6 @@ function main() {
         }
 
         // Editorial body word count (1,200..1,800 words excluding SVG diagram markup, scripts, styles, and external sources list)
-        const sourcesIdx = bodySlice.indexOf('id="blog-article-sources-heading"');
-        const editorialHtml =
-          sourcesIdx > 0 ? bodySlice.slice(0, sourcesIdx) : bodySlice;
-        const bodyPlain = decodeHtmlEntities(
-          editorialHtml
-            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-            .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
-            .replace(/<[^>]+>/g, ' ')
-        )
-          .replace(/\s+/g, ' ')
-          .trim();
-        const bodyWc = bodyPlain ? bodyPlain.split(/\s+/).length : 0;
         if (bodyWc < 1200 || bodyWc > 1800) {
           fail(
             `Blog article ${route.path}: rendered editorial body has ${bodyWc} words (expected 1200..1800)`

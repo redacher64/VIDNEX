@@ -102,7 +102,11 @@
         "problem": "HD düğmesi yerine yalnızca SD MP4 seçeneği görünüyor",
         "solution": "VIDNEX videoları yapay olarak büyütmez. İçerik üreticisi videoyu standart çözünürlükte yüklediyse veya Facebook herkese açık akışta yalnızca SD sürüm sunuyorsa araç mevcut gerçek SD MP4 dosyasını gösterir."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen Facebook videosunu cihazınızda nerede bulabilirsiniz?",
@@ -155,6 +159,11 @@
       "x"
     ],
     "privacyLabel": "Gizlilik politikası ve veri güvenliği",
-    "privacyDescription": "Facebook bağlantılarının sunucuda tutulmadan nasıl işlendiğini ayrıntılarıyla okuyun."
+    "privacyDescription": "Facebook bağlantılarının sunucuda tutulmadan nasıl işlendiğini ayrıntılarıyla okuyun.",
+    "guideLink": {
+      "label": "iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "description": "Safari ile iPhone veya iPad’e indirilen MP4 videoların Dosyalar uygulamasında tam olarak nereye kaydedildiğini ve Fotoğraflar galerisine nasıl aktarıldığını adım adım öğrenin.",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   }
 }

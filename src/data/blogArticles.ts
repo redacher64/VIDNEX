@@ -12,14 +12,29 @@
  */
 
 import type { PlatformPageKey, SupportedLocale } from '../i18n/config.ts';
+import { EN_BLOG_TRANSLATIONS } from './blog/locales/en.ts';
+import { FR_BLOG_TRANSLATIONS } from './blog/locales/fr.ts';
+import { ES_BLOG_TRANSLATIONS } from './blog/locales/es.ts';
+import { PT_BLOG_TRANSLATIONS } from './blog/locales/pt.ts';
+import { DE_BLOG_TRANSLATIONS } from './blog/locales/de.ts';
+import { TR_BLOG_TRANSLATIONS } from './blog/locales/tr.ts';
+import { ID_BLOG_TRANSLATIONS } from './blog/locales/id.ts';
+import { IT_BLOG_TRANSLATIONS } from './blog/locales/it.ts';
+import { RU_BLOG_TRANSLATIONS } from './blog/locales/ru.ts';
+import { AR_BLOG_TRANSLATIONS } from './blog/locales/ar.ts';
 
-export type BlogLocale = 'en' | 'fr' | 'es' | 'de' | 'ar';
+export type BlogLocale = SupportedLocale;
 
 export const BLOG_HUB_LOCALES: readonly BlogLocale[] = [
   'en',
   'fr',
   'es',
+  'pt',
   'de',
+  'tr',
+  'id',
+  'it',
+  'ru',
   'ar',
 ] as const;
 
@@ -28,6 +43,7 @@ export type BlogCategoryKey =
   | 'instagram-guides'
   | 'facebook-guides'
   | 'x-twitter-guides'
+  | 'linkedin-guides'
   | 'video-audio'
   | 'troubleshooting'
   | 'privacy-safety'
@@ -40,6 +56,7 @@ export const BLOG_CATEGORY_KEYS: readonly BlogCategoryKey[] = [
   'instagram-guides',
   'facebook-guides',
   'x-twitter-guides',
+  'linkedin-guides',
   'video-audio',
   'troubleshooting',
   'privacy-safety',
@@ -62,6 +79,7 @@ export interface BlogContentSection {
   heading: string;
   paragraphs: string[];
   bullets?: string[];
+  orderedSteps?: string[];
   table?: {
     headers: string[];
     rows: string[][];
@@ -118,7 +136,8 @@ export interface BlogFeaturedIllustration {
     | 'video-bitrate-compression'
     | 'tiktok-watermark-layers'
     | 'x-gif-mp4-transcode'
-    | 'downloader-security-audit';
+    | 'downloader-security-audit'
+    | 'linkedin-profile-photo';
   alt: Partial<Record<BlogLocale, string>> & { en: string };
   caption: Partial<Record<BlogLocale, string>> & { en: string };
 }
@@ -127,6 +146,8 @@ export interface BlogArticleTranslation {
   locale: BlogLocale;
   localizedSlug: string;
   translationStatus: 'published' | 'draft';
+  publishedAt?: string;
+  updatedAt?: string;
   title: string;
   excerpt: string;
   metaTitle: string;
@@ -178,12 +199,17 @@ export interface BlogHubSeoMeta {
 export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
   editorialTeam: {
     id: 'vidnex-editorial',
-    name: 'VIDNEX',
+    name: 'Équipe VIDNEX',
     role: {
       en: 'Editorial Team',
       fr: 'Équipe éditoriale',
       es: 'Equipo editorial',
+      pt: 'Equipe editorial',
       de: 'Redaktion',
+      tr: 'Yayın Ekibi',
+      id: 'Tim Editorial',
+      it: 'Redazione',
+      ru: 'Редакция',
       ar: 'فريق التحرير',
     },
   },
@@ -194,50 +220,100 @@ export const BLOG_HUB_SEO: Record<BlogLocale, BlogHubSeoMeta> = {
     locale: 'en',
     title: 'VIDNEX Editorial & Media Engineering Guides',
     subtitle:
-      'In-depth technical guides, troubleshooting workflows, container format comparisons, and privacy practices for saving publicly accessible videos and audio.',
+      'In-depth technical guides, troubleshooting workflows, container format comparisons, and privacy practices for saving publicly accessible videos, audio, and profile photos.',
     metaTitle: 'VIDNEX Blog — Video Download & Media Format Guides',
     metaDescription:
-      'Read expert guides on fixing TikTok, Instagram, Facebook, and X video downloads, comparing MP4 vs MP3 formats, iPhone file storage, and web safety.',
+      'Read practical guides on TikTok, Instagram, Facebook, X, and LinkedIn public media, MP4 vs MP3 formats, and finding iPhone Files app downloads.',
     breadcrumbLabel: 'Blog',
   },
   fr: {
     locale: 'fr',
     title: 'Blog VIDNEX — Guides Techniques & Dépannage Vidéo',
     subtitle:
-      'Analyses techniques, résolutions de pannes de téléchargement, comparatifs des formats MP4/MP3 et bonnes pratiques de sécurité pour les médias publics.',
+      'Analyses techniques, résolutions de pannes de téléchargement, comparatifs des formats MP4/MP3 et bonnes pratiques pour les médias publics et photos LinkedIn.',
     metaTitle: 'Blog VIDNEX — Guides et Astuces Téléchargement Vidéo',
     metaDescription:
-      'Consultez nos guides pour résoudre les erreurs de téléchargement TikTok, Instagram, Facebook et X, comprendre MP4 vs MP3 et gérer vos fichiers iOS.',
+      'Consultez nos guides sur TikTok, Instagram, Facebook, X et LinkedIn, la comparaison MP4 vs MP3 et l’app Fichiers sur iPhone et iPad.',
     breadcrumbLabel: 'Blog',
   },
   es: {
     locale: 'es',
     title: 'Blog de VIDNEX — Guías Técnicas y Solución de Problemas',
     subtitle:
-      'Tutoriales prácticos, diagnóstico de enlaces públicos de TikTok, Instagram y iPhone, y guías sobre calidad de vídeo y formatos de audio.',
-    metaTitle: 'Blog VIDNEX — Guías de Descarga de Vídeos y Audio',
+      'Tutoriales prácticos sobre vídeos públicos de TikTok sin marca de agua, Reels de Instagram sin sonido, la app Archivos en iPhone y fotos de perfil de LinkedIn.',
+    metaTitle: 'Blog VIDNEX — Guías de TikTok, Instagram, iPhone y LinkedIn',
     metaDescription:
-      'Explora guías prácticas para solucionar fallos al descargar vídeos de TikTok e Instagram sin audio, guardar archivos en iPhone y usar formatos MP4.',
+      'Guías para guardar vídeos de TikTok sin marca de agua, arreglar Reels de Instagram sin sonido, hallar descargas en iPhone y fotos de LinkedIn.',
+    breadcrumbLabel: 'Blog',
+  },
+  pt: {
+    locale: 'pt',
+    title: 'Blog VIDNEX — Guias Técnicos de Mídia Pública',
+    subtitle:
+      'Tutoriais claros para salvar vídeos públicos do TikTok sem marca d’água, corrigir Reels do Instagram sem som, achar downloads no iPhone e fotos do LinkedIn.',
+    metaTitle: 'Blog VIDNEX — Guias de TikTok, Instagram, iPhone e LinkedIn',
+    metaDescription:
+      'Guias práticos para baixar vídeos do TikTok sem marca d’água, corrigir Reels do Instagram sem som, achar arquivos no iPhone e fotos do LinkedIn.',
     breadcrumbLabel: 'Blog',
   },
   de: {
     locale: 'de',
     title: 'VIDNEX Blog — Technische Ratgeber & Medienformate',
     subtitle:
-      'Praxisnahe Anleitungen zur Fehlerbehebung bei TikTok- und Instagram-Downloads, Audio-Spuren sowie fundierte Vergleiche zwischen MP4 und MP3.',
-    metaTitle: 'VIDNEX Blog — Ratgeber für Video-Downloads & MP4/MP3',
+      'Praxisnahe Anleitungen für öffentliche TikTok-Videos ohne Wasserzeichen, Instagram Reels, LinkedIn-Profilbilder, die iPhone-Dateien-App sowie MP4 und MP3.',
+    metaTitle: 'VIDNEX Blog — Ratgeber für TikTok, Instagram & iPhone',
     metaDescription:
-      'Technische Anleitungen zur Behebung von TikTok- und Instagram-Downloadfehlern, fehlendem Reel-Ton sowie detaillierte Vergleiche zwischen MP4 und MP3.',
+      'Ratgeber für TikTok ohne Wasserzeichen, Instagram Reels ohne Ton, LinkedIn-Profilbilder, iPhone-Downloads in der Dateien-App und MP4 vs MP3.',
     breadcrumbLabel: 'Blog',
+  },
+  tr: {
+    locale: 'tr',
+    title: 'VIDNEX Blog — Teknik Rehberler ve Çözümler',
+    subtitle:
+      'Filigransız herkese açık TikTok videoları, sessiz Instagram Reels çözümleri, iPhone Dosyalar uygulaması ve LinkedIn profil fotoğrafı için pratik rehberler.',
+    metaTitle: 'VIDNEX Blog — TikTok, Instagram, iPhone ve LinkedIn Rehberi',
+    metaDescription:
+      'Filigransız TikTok kaydetme, indirme hataları, iPhone Dosyalar uygulaması, sessiz Instagram Reels çözümü ve LinkedIn profil fotoğrafı rehberleri.',
+    breadcrumbLabel: 'Blog',
+  },
+  id: {
+    locale: 'id',
+    title: 'Blog VIDNEX — Panduan Teknis Media Publik',
+    subtitle:
+      'Panduan praktis menyimpan video TikTok publik tanpa watermark, mengatasi Reels Instagram tanpa suara, menemukan file di iPhone, dan foto profil LinkedIn.',
+    metaTitle: 'Blog VIDNEX — Panduan TikTok, Instagram, iPhone & LinkedIn',
+    metaDescription:
+      'Pelajari cara simpan video TikTok tanpa watermark, atasi gagal unduh, temukan file di iPhone, perbaiki Reels tanpa suara, dan foto profil LinkedIn.',
+    breadcrumbLabel: 'Blog',
+  },
+  it: {
+    locale: 'it',
+    title: 'Blog VIDNEX — Guide Tecniche e Soluzioni Pratiche',
+    subtitle:
+      'Guide chiare per salvare video pubblici di TikTok senza filigrana, risolvere Reel Instagram senza audio, trovare i download su iPhone e foto LinkedIn.',
+    metaTitle: 'Blog VIDNEX — Guide TikTok, Instagram, iPhone e LinkedIn',
+    metaDescription:
+      'Guide pratiche per salvare video TikTok senza filigrana, risolvere errori e Reel Instagram senza audio, trovare file su iPhone e foto LinkedIn.',
+    breadcrumbLabel: 'Blog',
+  },
+  ru: {
+    locale: 'ru',
+    title: 'Блог VIDNEX — Технические руководства и решения',
+    subtitle:
+      'Пошаговые инструкции по сохранению публичных видео TikTok без водяного знака, решению проблем с Reels Instagram без звука, файлам на iPhone и фото LinkedIn.',
+    metaTitle: 'Блог VIDNEX — Гиды по TikTok, Instagram, iPhone и LinkedIn',
+    metaDescription:
+      'Практические руководства: TikTok без водяного знака, ошибки загрузки, приложение Файлы на iPhone, Reels Instagram без звука и фото профиля LinkedIn.',
+    breadcrumbLabel: 'Блог',
   },
   ar: {
     locale: 'ar',
-    title: 'مدونة VIDNEX — أدلة تقنية وحلول تنزيل الفيديو',
+    title: 'مدونة VIDNEX — أدلة تقنية وحلول تنزيل الوسائط العامة',
     subtitle:
-      'شروحات عملية وأدلة تقنية لحفظ الفيديوهات العامة من تيك توك وإنستغرام وإكس وفيسبوك بجودة عالية وبدون علامة مائية.',
-    metaTitle: 'مدونة VIDNEX — أدلة تنزيل الفيديو وصيغ الوسائط',
+      'شروحات عملية لحفظ الفيديوهات العامة من تيك توك وإنستغرام وإكس وفيسبوك وصور لينكدإن، مع حلول مشكلات الروابط وحفظ الملفات على الآيفون.',
+    metaTitle: 'مدونة VIDNEX — أدلة تيك توك وإنستغرام ولينكدإن وآيفون',
     metaDescription:
-      'اقرأ أدلة شاملة حول تنزيل الفيديوهات العامة من تيك توك وإنستغرام وإكس وفيسبوك بصيغة MP4، وحل مشاكل الروابط وحفظ الملفات على الآيفون والأندرويد.',
+      'أدلة تقنية لحفظ فيديوهات تيك توك وإنستغرام وإكس وفيسبوك العامة، وعرض صور لينكدإن، وحل مشكلات الروابط والعثور على الملفات على الآيفون.',
     breadcrumbLabel: 'المدونة',
   },
 };
@@ -302,6 +378,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       'instagram-guides': 'Instagram Guides',
       'facebook-guides': 'Facebook Guides',
       'x-twitter-guides': 'X / Twitter Guides',
+      'linkedin-guides': 'LinkedIn Guides',
       'video-audio': 'Video & Audio',
       troubleshooting: 'Troubleshooting',
       'privacy-safety': 'Privacy & Safety',
@@ -318,7 +395,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
     searchClearLabel: 'Effacer la recherche',
     noResultsTitle: 'Aucun article ne correspond à votre recherche',
     noResultsBody:
-      'Essayez un autre mot-clé ou consultez l’édition anglaise pour accéder à l’intégralité des articles publiés.',
+      'Essayez un autre mot-clé ou réinitialisez le filtre pour parcourir tous les articles publiés.',
     readArticleCta: 'Lire le dossier',
     minReadSuffix: 'min de lecture',
     publishedOnLabel: 'Publié le',
@@ -339,6 +416,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       'instagram-guides': 'Guides Instagram',
       'facebook-guides': 'Guides Facebook',
       'x-twitter-guides': 'Guides X / Twitter',
+      'linkedin-guides': 'Guides LinkedIn',
       'video-audio': 'Vidéo & Audio',
       troubleshooting: 'Dépannage',
       'privacy-safety': 'Sécurité & Vie privée',
@@ -355,7 +433,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
     searchClearLabel: 'Borrar búsqueda',
     noResultsTitle: 'No se encontraron artículos coincidentes',
     noResultsBody:
-      'Prueba con otro término o cambia al idioma inglés para explorar el catálogo completo de artículos técnicos.',
+      'Prueba con otro término o limpia el filtro para ver todas las guías publicadas en español.',
     readArticleCta: 'Leer guía completa',
     minReadSuffix: 'min de lectura',
     publishedOnLabel: 'Publicado',
@@ -366,7 +444,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
     relatedArticlesTitle: 'Guías técnicas relacionadas',
     faqSectionTitle: 'Preguntas frecuentes',
     sourcesSectionTitle: 'Referencias técnicas y fuentes oficiales',
-    toolCtaHeading: 'Herramientas gratuitas de VIDNEX relacionadas',
+    toolCtaHeading: 'Herramientas de VIDNEX relacionadas',
     toolCtaButton: 'Abrir herramienta',
     backToBlogLabel: 'Volver al Blog',
     loadMoreLabel: 'Mostrar más artículos',
@@ -376,10 +454,49 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       'instagram-guides': 'Guías de Instagram',
       'facebook-guides': 'Guías de Facebook',
       'x-twitter-guides': 'Guías de X / Twitter',
+      'linkedin-guides': 'Guías de LinkedIn',
       'video-audio': 'Vídeo y Audio',
       troubleshooting: 'Solución de problemas',
       'privacy-safety': 'Privacidad y Seguridad',
       tutorials: 'Tutoriales',
+    },
+  },
+  pt: {
+    navBlogLabel: 'Blog',
+    editorialBadge: 'REVISTA TÉCNICA VIDNEX',
+    featuredLabel: 'Guia em destaque',
+    latestArticlesTitle: 'Todos os guias técnicos e tutoriais',
+    allCategoriesLabel: 'Todos os temas',
+    searchPlaceholder: 'Pesquisar guia por plataforma, erro ou formato…',
+    searchClearLabel: 'Limpar pesquisa',
+    noResultsTitle: 'Nenhum artigo encontrado',
+    noResultsBody:
+      'Tente outro termo ou limpe o filtro para ver todos os guias publicados em português.',
+    readArticleCta: 'Ler guia completo',
+    minReadSuffix: 'min de leitura',
+    publishedOnLabel: 'Publicado em',
+    updatedOnLabel: 'Atualizado em',
+    authorLabel: 'Por',
+    tocTitle: 'Neste artigo',
+    availableLanguagesLabel: 'Idiomas disponíveis',
+    relatedArticlesTitle: 'Guias técnicos relacionados',
+    faqSectionTitle: 'Perguntas frequentes',
+    sourcesSectionTitle: 'Referências técnicas e fontes oficiais',
+    toolCtaHeading: 'Ferramentas VIDNEX relacionadas',
+    toolCtaButton: 'Abrir ferramenta',
+    backToBlogLabel: 'Voltar ao Blog',
+    loadMoreLabel: 'Mostrar mais artigos',
+    showingCountLabel: 'artigos publicados neste idioma',
+    categories: {
+      'tiktok-guides': 'Guias de TikTok',
+      'instagram-guides': 'Guias de Instagram',
+      'facebook-guides': 'Guias de Facebook',
+      'x-twitter-guides': 'Guias de X / Twitter',
+      'linkedin-guides': 'Guias de LinkedIn',
+      'video-audio': 'Vídeo e Áudio',
+      troubleshooting: 'Solução de problemas',
+      'privacy-safety': 'Privacidade e Segurança',
+      tutorials: 'Tutoriais',
     },
   },
   de: {
@@ -392,7 +509,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
     searchClearLabel: 'Suche löschen',
     noResultsTitle: 'Keine passenden Artikel gefunden',
     noResultsBody:
-      'Bitte setzen Sie den Filter zurück oder wechseln Sie zur englischen Ausgabe für alle 10 Fachartikel.',
+      'Bitte setzen Sie den Filter zurück, um alle veröffentlichten deutschsprachigen Fachartikel anzuzeigen.',
     readArticleCta: 'Ratgeber lesen',
     minReadSuffix: 'Min. Lesezeit',
     publishedOnLabel: 'Veröffentlicht',
@@ -413,10 +530,163 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       'instagram-guides': 'Instagram-Ratgeber',
       'facebook-guides': 'Facebook-Ratgeber',
       'x-twitter-guides': 'X / Twitter-Ratgeber',
+      'linkedin-guides': 'LinkedIn-Ratgeber',
       'video-audio': 'Video & Audio',
       troubleshooting: 'Fehlerbehebung',
       'privacy-safety': 'Datenschutz & Sicherheit',
       tutorials: 'Tutorials',
+    },
+  },
+  tr: {
+    navBlogLabel: 'Blog',
+    editorialBadge: 'VIDNEX TEKNİK DERGİ',
+    featuredLabel: 'Öne Çıkan Rehber',
+    latestArticlesTitle: 'Tüm Teknik Rehberler ve Kılavuzlar',
+    allCategoriesLabel: 'Tüm Konular',
+    searchPlaceholder: 'Platform, hata veya formata göre rehber ara…',
+    searchClearLabel: 'Aramayı temizle',
+    noResultsTitle: 'Eşleşen makale bulunamadı',
+    noResultsBody:
+      'Türkçe yayımlanan tüm rehberleri görmek için arama filtresini temizleyin veya farklı bir terim deneyin.',
+    readArticleCta: 'Rehberi oku',
+    minReadSuffix: 'dk okuma',
+    publishedOnLabel: 'Yayın tarihi',
+    updatedOnLabel: 'Güncelleme',
+    authorLabel: 'Yazar',
+    tocTitle: 'İçindekiler',
+    availableLanguagesLabel: 'Mevcut diller',
+    relatedArticlesTitle: 'İlgili teknik rehberler',
+    faqSectionTitle: 'Sık Sorulan Sorular',
+    sourcesSectionTitle: 'Resmî Kaynaklar ve Teknik Referanslar',
+    toolCtaHeading: 'İlgili VIDNEX araçlarını kullanın',
+    toolCtaButton: 'Aracı aç',
+    backToBlogLabel: 'Bloga dön',
+    loadMoreLabel: 'Daha fazla makale göster',
+    showingCountLabel: 'bu dilde yayımlanan makale',
+    categories: {
+      'tiktok-guides': 'TikTok Rehberleri',
+      'instagram-guides': 'Instagram Rehberleri',
+      'facebook-guides': 'Facebook Rehberleri',
+      'x-twitter-guides': 'X / Twitter Rehberleri',
+      'linkedin-guides': 'LinkedIn Rehberleri',
+      'video-audio': 'Video ve Ses',
+      troubleshooting: 'Sorun Giderme',
+      'privacy-safety': 'Gizlilik ve Güvenlik',
+      tutorials: 'Kılavuzlar',
+    },
+  },
+  id: {
+    navBlogLabel: 'Blog',
+    editorialBadge: 'JURNAL TEKNIS VIDNEX',
+    featuredLabel: 'Panduan Unggulan',
+    latestArticlesTitle: 'Semua Panduan Teknis dan Tutorial',
+    allCategoriesLabel: 'Semua Topik',
+    searchPlaceholder: 'Cari panduan menurut platform, kendala, atau format…',
+    searchClearLabel: 'Hapus pencarian',
+    noResultsTitle: 'Tidak ada artikel yang cocok',
+    noResultsBody:
+      'Hapus filter pencarian atau coba kata kunci lain untuk melihat semua panduan berbahasa Indonesia.',
+    readArticleCta: 'Baca panduan lengkap',
+    minReadSuffix: 'menit baca',
+    publishedOnLabel: 'Diterbitkan',
+    updatedOnLabel: 'Diperbarui',
+    authorLabel: 'Oleh',
+    tocTitle: 'Daftar isi',
+    availableLanguagesLabel: 'Bahasa yang tersedia',
+    relatedArticlesTitle: 'Panduan teknis terkait',
+    faqSectionTitle: 'Pertanyaan yang Sering Diajukan',
+    sourcesSectionTitle: 'Referensi Teknis & Dokumentasi Resmi',
+    toolCtaHeading: 'Gunakan alat VIDNEX terkait',
+    toolCtaButton: 'Buka alat',
+    backToBlogLabel: 'Kembali ke Blog',
+    loadMoreLabel: 'Tampilkan lebih banyak artikel',
+    showingCountLabel: 'artikel diterbitkan dalam bahasa ini',
+    categories: {
+      'tiktok-guides': 'Panduan TikTok',
+      'instagram-guides': 'Panduan Instagram',
+      'facebook-guides': 'Panduan Facebook',
+      'x-twitter-guides': 'Panduan X / Twitter',
+      'linkedin-guides': 'Panduan LinkedIn',
+      'video-audio': 'Video & Audio',
+      troubleshooting: 'Pemecahan Masalah',
+      'privacy-safety': 'Privasi & Keamanan',
+      tutorials: 'Tutorial',
+    },
+  },
+  it: {
+    navBlogLabel: 'Blog',
+    editorialBadge: 'RIVISTA TECNICA VIDNEX',
+    featuredLabel: 'Guida in evidenza',
+    latestArticlesTitle: 'Tutte le guide tecniche e i tutorial',
+    allCategoriesLabel: 'Tutti gli argomenti',
+    searchPlaceholder: 'Cerca guida per piattaforma, errore o formato…',
+    searchClearLabel: 'Cancella ricerca',
+    noResultsTitle: 'Nessun articolo trovato',
+    noResultsBody:
+      'Rimuovi il filtro o prova un altro termine per visualizzare tutte le guide pubblicate in italiano.',
+    readArticleCta: 'Leggi la guida',
+    minReadSuffix: 'min di lettura',
+    publishedOnLabel: 'Pubblicato il',
+    updatedOnLabel: 'Aggiornato il',
+    authorLabel: 'A cura di',
+    tocTitle: 'Indice dell’articolo',
+    availableLanguagesLabel: 'Lingue disponibili',
+    relatedArticlesTitle: 'Guide tecniche correlate',
+    faqSectionTitle: 'Domande frequenti',
+    sourcesSectionTitle: 'Fonti ufficiali e riferimenti tecnici',
+    toolCtaHeading: 'Usa gli strumenti VIDNEX correlati',
+    toolCtaButton: 'Apri strumento',
+    backToBlogLabel: 'Torna al Blog',
+    loadMoreLabel: 'Mostra altri articoli',
+    showingCountLabel: 'articoli pubblicati in questa lingua',
+    categories: {
+      'tiktok-guides': 'Guide TikTok',
+      'instagram-guides': 'Guide Instagram',
+      'facebook-guides': 'Guide Facebook',
+      'x-twitter-guides': 'Guide X / Twitter',
+      'linkedin-guides': 'Guide LinkedIn',
+      'video-audio': 'Video e Audio',
+      troubleshooting: 'Risoluzione problemi',
+      'privacy-safety': 'Privacy e Sicurezza',
+      tutorials: 'Tutorial',
+    },
+  },
+  ru: {
+    navBlogLabel: 'Блог',
+    editorialBadge: 'ТЕХНИЧЕСКИЙ ЖУРНАЛ VIDNEX',
+    featuredLabel: 'Рекомендуемое руководство',
+    latestArticlesTitle: 'Все технические руководства и инструкции',
+    allCategoriesLabel: 'Все темы',
+    searchPlaceholder: 'Поиск по платформе, ошибке или формату…',
+    searchClearLabel: 'Очистить поиск',
+    noResultsTitle: 'Подходящие статьи не найдены',
+    noResultsBody:
+      'Очистите фильтр поиска или введите другой запрос, чтобы увидеть все опубликованные статьи на русском языке.',
+    readArticleCta: 'Читать руководство',
+    minReadSuffix: 'мин чтения',
+    publishedOnLabel: 'Опубликовано',
+    updatedOnLabel: 'Обновлено',
+    authorLabel: 'Автор',
+    tocTitle: 'Содержание статьи',
+    availableLanguagesLabel: 'Доступные языки',
+    relatedArticlesTitle: 'Похожие технические руководства',
+    faqSectionTitle: 'Часто задаваемые вопросы',
+    sourcesSectionTitle: 'Официальные источники и документация',
+    toolCtaHeading: 'Связанные инструменты VIDNEX',
+    toolCtaButton: 'Открыть инструмент',
+    backToBlogLabel: 'Назад в блог',
+    loadMoreLabel: 'Показать больше статей',
+    showingCountLabel: 'статей опубликовано на этом языке',
+    categories: {
+      'tiktok-guides': 'Руководства TikTok',
+      'instagram-guides': 'Руководства Instagram',
+      'facebook-guides': 'Руководства Facebook',
+      'x-twitter-guides': 'Руководства X / Twitter',
+      'linkedin-guides': 'Руководства LinkedIn',
+      'video-audio': 'Видео и аудио',
+      troubleshooting: 'Решение проблем',
+      'privacy-safety': 'Приватность и безопасность',
+      tutorials: 'Инструкции',
     },
   },
   ar: {
@@ -429,7 +699,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
     searchClearLabel: 'مسح البحث',
     noResultsTitle: 'لم يتم العثور على مقالات مطابقة',
     noResultsBody:
-      'جرّب مسح عامل البحث أو الانتقال إلى النسخة الإنجليزية لتصفح مكتبة الأدلة التقنية الكاملة.',
+      'جرّب مسح عامل البحث أو استخدام كلمة مفتاحية أخرى لتصفح جميع الأدلة المنشورة بالعربية.',
     readArticleCta: 'اقرأ الدليل الكامل',
     minReadSuffix: 'دقائق قراءة',
     publishedOnLabel: 'نُشر في',
@@ -450,6 +720,7 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
       'instagram-guides': 'أدلة إنستغرام',
       'facebook-guides': 'أدلة فيسبوك',
       'x-twitter-guides': 'أدلة إكس / تويتر',
+      'linkedin-guides': 'أدلة لينكدإن',
       'video-audio': 'فيديو وصوت',
       troubleshooting: 'حل المشكلات',
       'privacy-safety': 'الخصوصية والأمان',
@@ -459,25 +730,11 @@ const BLOG_UI_BY_LOCALE: Record<BlogLocale, BlogUiLabels> = {
 };
 
 export function getBlogUiLabels(locale: SupportedLocale): BlogUiLabels {
-  if (
-    locale === 'fr' ||
-    locale === 'es' ||
-    locale === 'de' ||
-    locale === 'ar'
-  ) {
-    return BLOG_UI_BY_LOCALE[locale];
-  }
-  return BLOG_UI_BY_LOCALE.en;
+  return BLOG_UI_BY_LOCALE[locale] ?? BLOG_UI_BY_LOCALE.en;
 }
 
 export function isBlogHubLocale(locale: string): locale is BlogLocale {
-  return (
-    locale === 'en' ||
-    locale === 'fr' ||
-    locale === 'es' ||
-    locale === 'de' ||
-    locale === 'ar'
-  );
+  return (BLOG_HUB_LOCALES as readonly string[]).includes(locale);
 }
 
 /**
@@ -528,13 +785,25 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         en: 'Technical diagram of TikTok URL resolution, privacy gates, and signed CDN token verification',
         fr: 'Schéma technique de la résolution d’URL TikTok, des verrous de confidentialité et des jetons CDN',
         es: 'Diagrama técnico de resolución de enlaces de TikTok, permisos de privacidad y tokens CDN',
+        pt: 'Diagrama técnico de resolução de links do TikTok, verificação de privacidade e tokens CDN',
         de: 'Technisches Diagramm der TikTok-URL-Auflösung, Datenschutzeinstellungen und CDN-Signaturprüfung',
+        tr: 'TikTok bağlantı çözümleme, gizlilik kontrolü ve imzalı CDN akış doğrulama şeması',
+        id: 'Diagram teknis resolusi tautan TikTok, pemeriksaan privasi, dan verifikasi token CDN',
+        it: 'Diagramma tecnico della risoluzione dei link TikTok, controlli di privacy e token CDN',
+        ru: 'Техническая схема обработки ссылки TikTok, проверки приватности и временных токенов CDN',
+        ar: 'مخطط تقني لفك توجيه رابط تيك توك وفحص الخصوصية والتحقق من توقيع خادم التوزيع CDN',
       },
       caption: {
         en: 'Figure 1 — How a public TikTok share link is resolved through redirect hops, visibility checks, and signed CDN stream tokens.',
         fr: 'Figure 1 — Chaîne de résolution d’un lien TikTok public : redirections courtes, contrôle de visibilité et jetons CDN temporaires.',
         es: 'Figura 1 — Flujo de validación de un enlace público de TikTok: redirecciones cortas, visibilidad y firma temporal del CDN.',
+        pt: 'Figura 1 — Etapas de validação de um link público do TikTok: redirecionamento curto, privacidade e token temporário do CDN.',
         de: 'Abbildung 1 — Auflösungsprozess eines öffentlichen TikTok-Links über Kurz-URLs, Sichtbarkeitsprüfung und signierte CDN-Streams.',
+        tr: 'Şekil 1 — Herkese açık TikTok bağlantısının yönlendirme, görünürlük kontrolü ve geçici CDN imzası adımları.',
+        id: 'Gambar 1 — Alur validasi tautan TikTok publik: pengalihan tautan pendek, pengecekan privasi, dan token CDN.',
+        it: 'Figura 1 — Come un link pubblico TikTok viene risolto tra reindirizzamenti brevi, controlli di visibilità e token CDN.',
+        ru: 'Рисунок 1 — Цепочка проверки публичной ссылки TikTok: короткий редирект, статус приватности и временный токен CDN.',
+        ar: 'الشكل 1 — مراحل معالجة رابط تيك توك العام عبر فك التوجيه المختصر وفحص الخصوصية وتوقيع خادم CDN.',
       },
     },
     translations: {
@@ -1135,6 +1404,12 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           },
         ],
       },
+      pt: PT_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
+      id: ID_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
+      tr: TR_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
+      it: IT_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
+      ru: RU_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
+      ar: AR_BLOG_TRANSLATIONS['troubleshooting-expired-blocked-social-media-links'],
     },
   },
 
@@ -1162,13 +1437,25 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         en: 'Diagram comparing DASH split video/audio tracks versus muxed MP4 progressive streams on Instagram Reels',
         fr: 'Schéma comparant les flux DASH séparés (vidéo + audio) et les fichiers MP4 multiplexés sur Instagram Reels',
         es: 'Diagrama comparativo de pistas DASH separadas frente a archivos MP4 multiplexados con audio en Instagram Reels',
+        pt: 'Diagrama comparando faixas DASH separadas e fluxo MP4 progressivo com áudio AAC nos Reels do Instagram',
         de: 'Diagramm zum Vergleich getrennter DASH-Video-/Audiospuren mit gemuxten MP4-Streams bei Instagram Reels',
+        tr: 'Instagram Reels için ayrılmış DASH video/ses akışları ile birleştirilmiş MP4 akışı karşılaştırma şeması',
+        id: 'Diagram perbandingan trek video/audio DASH terpisah dengan aliran MP4 terpadu di Reels Instagram',
+        it: 'Diagramma che confronta tracce DASH separate e flussi MP4 progressivi con audio AAC nei Reel di Instagram',
+        ru: 'Схема сравнения раздельных DASH-дорожек и объединённого MP4-потока со звуком AAC в Instagram Reels',
+        ar: 'مخطط يقارن بين مسارات DASH المنفصلة للفيديو والصوت وملف MP4 المدمج بصوت AAC في ريلز إنستغرام',
       },
       caption: {
         en: 'Figure 2 — Why raw DASH video segments lack audio unless paired with a muxed H.264 + AAC progressive MP4 stream.',
         fr: 'Figure 2 — Pourquoi une piste vidéo DASH brute est muette si l’outil ne sélectionne pas le flux MP4 progressif contenant la piste audio AAC.',
         es: 'Figura 2 — Diferencia entre un segmento de vídeo DASH sin pista de sonido y un contenedor MP4 progresivo con audio AAC integrado.',
+        pt: 'Figura 2 — Diferença entre um segmento de vídeo DASH mudo e um arquivo MP4 progressivo com trilha de áudio AAC integrada.',
         de: 'Abbildung 2 — Unterschied zwischen stummen DASH-Videosegmenten und einem kombinierten MP4-Stream mit integrierter AAC-Audiospur.',
+        tr: 'Şekil 2 — Sessiz DASH video segmenti ile H.264 + AAC ses izini birlikte taşıyan MP4 dosyası arasındaki fark.',
+        id: 'Gambar 2 — Perbedaan segmen video DASH tanpa suara dan berkas MP4 progresif dengan trek audio AAC.',
+        it: 'Figura 2 — Perché un segmento video DASH isolato è muto rispetto a un contenitore MP4 progressivo con traccia audio AAC.',
+        ru: 'Рисунок 2 — Почему отдельный видеопоток DASH воспроизводится без звука в отличие от объединённого MP4 с дорожкой AAC.',
+        ar: 'الشكل 2 — لماذا يصبح مسار الفيديو DASH صامتًا ما لم يُحفظ داخل حاوية MP4 مدمجة مع مسار الصوت AAC.',
       },
     },
     translations: {
@@ -1589,6 +1876,12 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           },
         ],
       },
+      pt: PT_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
+      id: ID_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
+      tr: TR_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
+      it: IT_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
+      ru: RU_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
+      ar: AR_BLOG_TRANSLATIONS['instagram-reels-carousels-resolution-compression-guide'],
     },
   },
 
@@ -2104,337 +2397,61 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
   },
 
   // ============================================================================
-  // ARTICLE 5 — How to Download Videos on iPhone: Where Do Your Files Go?
-  // Translations: en, fr, es
+  // ARTICLE 5 — Where Do Downloaded Videos Go on iPhone and iPad? (Files App)
+  // Translations: en, fr, es, pt, de, tr, id, it, ru, ar (all 10 locales)
   // ============================================================================
   {
     id: 'how-to-download-videos-on-iphone',
-    status: 'draft',
+    status: 'published',
     featured: false,
     category: 'tutorials',
     primaryPlatform: 'tiktok',
     author: BLOG_AUTHORS.editorialTeam,
-    publishedAt: '2026-02-26',
-    updatedAt: '2026-03-22',
+    publishedAt: '2026-11-22',
+    updatedAt: '2026-11-22',
     relatedArticleIds: [
-      'troubleshooting-expired-blocked-social-media-links',
+      'save-public-tiktok-videos-without-watermark-guide',
       'instagram-reels-carousels-resolution-compression-guide',
-      'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
+      'troubleshooting-expired-blocked-social-media-links',
     ],
     featuredImage: {
       diagramType: 'ios-safari-sandbox',
       alt: {
-        en: 'Diagram showing iOS Safari download manager saving MP4 files to the Files app and exporting to the Photos app',
-        fr: 'Schéma montrant le gestionnaire de téléchargement Safari iOS vers l’application Fichiers puis l’application Photos',
+        en: 'Diagram showing iOS Safari download manager saving MP4 files to the Files app and exporting to Apple Photos',
+        fr: 'Schéma montrant le gestionnaire de téléchargement Safari iOS vers l’application Fichiers puis Apple Photos',
         es: 'Diagrama del gestor de descargas de Safari en iOS hacia la app Archivos y la galería Fotos',
+        pt: 'Diagrama do gerenciador de downloads do Safari no iOS salvando arquivos MP4 no app Arquivos e no Fotos',
         de: 'Diagramm des iOS-Safari-Download-Managers zur Dateien-App und Fotos-Mediathek',
+        tr: 'iOS Safari indirme yöneticisinin MP4 dosyalarını Dosyalar uygulamasına ve Fotoğraflar arşivine aktarım şeması',
+        id: 'Diagram alur unduhan Safari iOS yang menyimpan berkas MP4 ke aplikasi File lalu ke Apple Foto',
+        it: 'Diagramma del gestore download di Safari su iOS verso l’app File e la libreria Foto di Apple',
+        ru: 'Схема сохранения MP4-файлов из Safari на iOS в приложение Файлы с последующим переносом в Фото',
+        ar: 'مخطط يوضح مسار تنزيل ملفات MP4 من متصفح Safari على iOS إلى تطبيق الملفات ثم إلى تطبيق الصور',
       },
       caption: {
-        en: 'Figure 5 — Why iOS browsers save downloaded MP4s into the Files app (`On My iPhone / iCloud Drive`) before moving to Photos.',
-        fr: 'Figure 5 — Circuit d’un fichier MP4 téléchargé sur iPhone : Safari → application Fichiers → « Enregistrer la vidéo » vers Photos.',
-        es: 'Figura 5 — Ruta de un archivo MP4 en iPhone: Safari → app Archivos → "Guardar vídeo" en la galería Fotos.',
-        de: 'Abbildung 5 — Speicherpfad unter iOS: Safari → Dateien-App → „Video sichern“ in der Fotos-App.',
+        en: 'Figure 5 — Why iOS browsers save downloaded MP4s into the Files app (On My iPhone / iCloud Drive) before saving to Photos.',
+        fr: 'Figure 5 — Circuit d’un fichier MP4 téléchargé sur iPhone : Safari → application Fichiers → Enregistrer la vidéo vers Photos.',
+        es: 'Figura 5 — Ruta de un archivo MP4 en iPhone: Safari → app Archivos → Guardar vídeo en la galería Fotos.',
+        pt: 'Figura 5 — Caminho de um vídeo MP4 no iPhone: Safari → app Arquivos → Salvar Vídeo na galeria Fotos.',
+        de: 'Abbildung 5 — Speicherpfad unter iOS: Safari → Dateien-App → Video sichern in der Fotos-App.',
+        tr: 'Şekil 5 — iPhone’da indirilen MP4 dosyasının yolu: Safari → Dosyalar uygulaması → Videoyu Kaydet ile Fotoğraflar.',
+        id: 'Gambar 5 — Alur berkas MP4 di iPhone: Safari → aplikasi File → Simpan Video ke galeri Foto.',
+        it: 'Figura 5 — Percorso di un file MP4 su iPhone: Safari → app File → Salva video nella libreria Foto.',
+        ru: 'Рисунок 5 — Путь файла MP4 на iPhone: Safari → приложение Файлы → Сохранить видео в Фото.',
+        ar: 'الشكل 5 — مسار ملف MP4 على الآيفون: Safari ← تطبيق الملفات ← حفظ الفيديو في تطبيق الصور.',
       },
     },
     translations: {
-      en: {
-        locale: 'en',
-        localizedSlug: 'how-to-download-videos-on-iphone',
-        translationStatus: 'published',
-        title: 'How to Download Videos on iPhone: Where Do Your Files Go?',
-        excerpt:
-          'Downloaded an MP4 on your iPhone and cannot find it in your Camera Roll? Learn how iOS Safari and Chrome store downloads in the Files app and how to move them to Photos.',
-        metaTitle: 'How to Download Videos on iPhone: Where Do Files Go?',
-        metaDescription:
-          'Downloaded a video on iPhone and cannot find it in Photos? Learn where Safari and Chrome save MP4 files on iOS and how to move them to your Camera Roll.',
-        primaryKeyword: 'how to download videos on iphone',
-        secondaryKeywords: [
-          'where do downloaded videos go on iphone',
-          'move mp4 from files to photos iphone',
-          'safari downloads folder ios',
-          'save online video to iphone camera roll',
-        ],
-        searchIntent:
-          'Practical iOS guide explaining where browser downloads are stored on iPhone/iPad and how to move them to Photos.',
-        readingTimeMinutes: 6,
-        introduction: [
-          'One of the most common questions from iPhone and iPad users is: "I tapped Download on an MP4 video, it finished 100%, so why isn’t it in my Photos app?"',
-          'Unlike native social apps that write directly to your Camera Roll using iOS PhotoKit permissions, web browsers like Safari and Chrome run inside a standard web sandbox. When you download an MP4 or MP3 from the web on iOS, Apple routes the file to the **Files** app first—not the Photos app. Here is exactly how to find your downloads and move them to your Camera Roll in two taps.',
-        ],
-        tableOfContents: [
-          {
-            id: 'why-safari-saves-to-files-not-photos',
-            heading: '1. Why Web Browsers Save to the iOS Files App Instead of Photos',
-          },
-          {
-            id: 'finding-downloads-in-safari-and-chrome',
-            heading: '2. How to Locate Your Downloaded MP4 in Safari and Chrome',
-          },
-          {
-            id: 'moving-mp4-from-files-to-camera-roll',
-            heading: '3. Step-by-Step: Moving a Video from Files to the iPhone Photos App',
-          },
-          {
-            id: 'changing-default-iphone-download-location',
-            heading: '4. Changing Your Default Safari Download Folder (iCloud vs On My iPhone)',
-          },
-        ],
-        content: [
-          {
-            id: 'why-safari-saves-to-files-not-photos',
-            heading: '1. Why Web Browsers Save to the iOS Files App Instead of Photos',
-            paragraphs: [
-              'Starting with iOS 13, Apple introduced a full desktop-class Download Manager inside Safari. Because web browsers can download any file type (PDFs, ZIP archives, MP3 audio, MP4 videos), iOS stores all web downloads inside a dedicated `Downloads` directory managed by the pre-installed Apple **Files** app.',
-            ],
-          },
-          {
-            id: 'finding-downloads-in-safari-and-chrome',
-            heading: '2. How to Locate Your Downloaded MP4 in Safari and Chrome',
-            paragraphs: [
-              'Immediately after tapping the download button on VIDNEX in Safari:',
-            ],
-            bullets: [
-              'Tap the blue downward arrow icon next to the address bar (top-left or bottom-left depending on your Safari bar layout).',
-              'Select **Downloads** from the pop-up menu to see the active progress bar and completed MP4 files.',
-              'Tap the magnifying glass icon next to the finished video to jump straight to its folder inside the **Files** app.',
-            ],
-          },
-          {
-            id: 'moving-mp4-from-files-to-camera-roll',
-            heading: '3. Step-by-Step: Moving a Video from Files to the iPhone Photos App',
-            paragraphs: [
-              'If you want the video to appear inside your main iPhone **Photos** library (Camera Roll) so you can edit it or upload it to another app:',
-            ],
-            bullets: [
-              'Open the **Files** app on your iPhone and go to **Browse → Downloads**.',
-              'Tap the downloaded MP4 video to open its preview, or press and hold the file icon.',
-              'Tap the **Share** icon (the square with an upward arrow in the bottom corner).',
-              'Tap **Save Video** from the share sheet. The video is now copied directly into the Recents album of your **Photos** app.',
-            ],
-            technicalCallout: {
-              label: 'Important iOS Note',
-              text: 'Note that "Save Video" only appears in the iOS Share sheet for video files (MP4/MOV). Audio files (MP3/M4A) remain in the Files app because the Apple Photos app does not store standalone audio tracks.',
-            },
-          },
-          {
-            id: 'changing-default-iphone-download-location',
-            heading: '4. Changing Your Default Safari Download Folder (iCloud vs On My iPhone)',
-            paragraphs: [
-              'By default, Safari may save downloads to **iCloud Drive → Downloads**. If your iCloud storage is full, downloads can stall. Go to **Settings → Apps → Safari → Downloads** and switch the location to **On My iPhone** so files save directly to local device flash storage.',
-            ],
-          },
-        ],
-        faq: [
-          {
-            question: 'Why does the video play in a new Safari tab instead of downloading?',
-            answer:
-              'If a server does not send a Content-Disposition attachment header, Safari opens the video player inline. Using VIDNEX’s Download button routes the stream with an attachment filename so Safari prompts "Do you want to download...?" immediately.',
-          },
-          {
-            question: 'Where do MP3 or M4A audio downloads go on iPhone?',
-            answer:
-              'Audio files are saved in the Files app under Downloads. You can play them directly inside the Files app or import them into GarageBand, CapCut, or VLC.',
-          },
-        ],
-        internalLinks: [
-          {
-            label: 'VIDNEX Universal Video Downloader',
-            description:
-              'Download public TikTok, Instagram, X, and Facebook videos directly on iPhone and Android.',
-            targetType: 'home',
-          },
-          {
-            label: 'Why Is My TikTok Video Not Downloading? 7 Causes and Fixes',
-            description:
-              'Solve common mobile browser and link issues when saving TikTok videos.',
-            targetType: 'blog_article',
-            targetArticleId: 'troubleshooting-expired-blocked-social-media-links',
-          },
-        ],
-        sources: [
-          {
-            title: 'Apple Support — Where to Find Downloaded Files on iPhone or iPad',
-            publisher: 'Apple Inc.',
-            url: 'https://support.apple.com/en-us/102440',
-          },
-        ],
-      },
-      fr: {
-        locale: 'fr',
-        localizedSlug: 'ou-vont-les-videos-telechargees-iphone',
-        translationStatus: 'published',
-        title:
-          'Comment télécharger des vidéos sur iPhone : où vont vos fichiers ?',
-        excerpt:
-          'Vous avez téléchargé une vidéo MP4 sur iPhone mais elle n’apparaît pas dans Photos ? Découvrez comment retrouver vos téléchargements Safari dans l’app Fichiers.',
-        metaTitle: 'Où vont les vidéos téléchargées sur iPhone ? Guide iOS',
-        metaDescription:
-          'Vous ne trouvez pas votre vidéo téléchargée sur iPhone ? Découvrez où Safari et Chrome enregistrent les fichiers MP4 et comment les mettre dans Photos.',
-        primaryKeyword: 'ou vont les videos telechargees sur iphone',
-        secondaryKeywords: [
-          'telecharger video sur iphone safari',
-          'deplacer mp4 fichiers vers photos iphone',
-          'dossier telechargements ios',
-        ],
-        searchIntent:
-          'Guide pratique iOS expliquant où sont stockés les téléchargements web sur iPhone et comment les transférer vers Photos.',
-        readingTimeMinutes: 5,
-        introduction: [
-          'Sur iPhone et iPad, lorsque vous téléchargez une vidéo MP4 depuis Safari ou Chrome, le fichier ne s’ajoute pas automatiquement à l’application **Photos** (Pellicule). Pour des raisons de sécurité propres à iOS, tous les téléchargements issus du web arrivent d’abord dans l’application **Fichiers** d’Apple.',
-          'Voici comment retrouver immédiatement vos vidéos et les enregistrer dans votre galerie Photos en deux gestes.',
-        ],
-        tableOfContents: [
-          {
-            id: 'pourquoi-safari-enregistre-dans-fichiers',
-            heading: '1. Pourquoi Safari enregistre dans l’app Fichiers et non dans Photos',
-          },
-          {
-            id: 'retrouver-telechargement-safari',
-            heading: '2. Accéder au gestionnaire de téléchargements de Safari',
-          },
-          {
-            id: 'transferer-video-vers-pellicule-photos',
-            heading: '3. Transférer une vidéo MP4 de Fichiers vers l’application Photos',
-          },
-          {
-            id: 'choisir-stockage-local-iphone',
-            heading: '4. Éviter la saturation d’iCloud Drive en choisissant « Sur mon iPhone »',
-          },
-        ],
-        content: [
-          {
-            id: 'pourquoi-safari-enregistre-dans-fichiers',
-            heading: '1. Pourquoi Safari enregistre dans l’app Fichiers et non dans Photos',
-            paragraphs: [
-              'Les navigateurs web sous iOS gèrent tous les formats de documents (PDF, ZIP, MP3, MP4) via un dossier unique baptisé **Téléchargements**, accessible dans l’application native **Fichiers**.',
-            ],
-          },
-          {
-            id: 'retrouver-telechargement-safari',
-            heading: '2. Accéder au gestionnaire de téléchargements de Safari',
-            paragraphs: [
-              'Dès que vous appuyez sur Télécharger dans VIDNEX sur Safari :',
-            ],
-            bullets: [
-              'Confirmez la boîte de dialogue « Voulez-vous télécharger… ? ».',
-              'Touchez la petite flèche bleue dirigée vers le bas à côté de la barre d’adresse de Safari.',
-              'Ouvrez **Téléchargements** puis touchez l’icône de loupe pour afficher le fichier MP4 dans son dossier.',
-            ],
-          },
-          {
-            id: 'transferer-video-vers-pellicule-photos',
-            heading: '3. Transférer une vidéo MP4 de Fichiers vers l’application Photos',
-            paragraphs: [
-              'Pour placer la vidéo dans votre galerie **Photos** habituelle :',
-            ],
-            bullets: [
-              'Ouvrez la vidéo dans l’application **Fichiers → Téléchargements**.',
-              'Appuyez sur le bouton **Partager** (le carré avec une flèche vers le haut en bas de l’écran).',
-              'Sélectionnez **Enregistrer la vidéo**. Le fichier MP4 apparaît immédiatement dans l’album « Récents » de l’application Photos.',
-            ],
-          },
-          {
-            id: 'choisir-stockage-local-iphone',
-            heading: '4. Éviter la saturation d’iCloud Drive en choisissant « Sur mon iPhone »',
-            paragraphs: [
-              'Si votre espace iCloud gratuit (5 Go) est plein, allez dans **Réglages → Apps → Safari → Téléchargements** et sélectionnez **Sur mon iPhone** pour utiliser la mémoire interne de l’appareil.',
-            ],
-          },
-        ],
-        faq: [
-          {
-            question: 'Où vont les fichiers audio MP3 ou M4A sur iPhone ?',
-            answer:
-              'Les fichiers audio restent dans l’application Fichiers → Téléchargements, car l’application Photos d’iOS n’accepte que les images et les vidéos.',
-          },
-        ],
-        internalLinks: [
-          {
-            label: 'Téléchargeur Vidéo Universel VIDNEX',
-            description:
-              'Enregistrez des vidéos publiques TikTok, Instagram, X et Facebook sur iPhone.',
-            targetType: 'home',
-          },
-        ],
-        sources: [
-          {
-            title: 'Assistance Apple — Où trouver les fichiers téléchargés sur votre iPhone',
-            publisher: 'Apple Inc.',
-            url: 'https://support.apple.com/fr-fr/102440',
-          },
-        ],
-      },
-      es: {
-        locale: 'es',
-        localizedSlug: 'como-descargar-videos-en-iphone-archivos',
-        translationStatus: 'draft',
-        title:
-          'Cómo descargar vídeos en iPhone: ¿dónde se guardan tus archivos?',
-        excerpt:
-          '¿Descargaste un vídeo MP4 en tu iPhone y no aparece en la galería Fotos? Aprende a encontrar las descargas de Safari en la app Archivos y pasarlas al carrete.',
-        metaTitle: 'Cómo descargar vídeos en iPhone: ¿dónde se guardan?',
-        metaDescription:
-          '¿No encuentras un vídeo descargado en tu iPhone? Descubre dónde guarda Safari los archivos MP4 en iOS y cómo pasarlos fácilmente de Archivos a Fotos.',
-        primaryKeyword: 'como descargar videos en iphone',
-        secondaryKeywords: [
-          'donde van los videos descargados en iphone',
-          'pasar video de archivos a fotos iphone',
-        ],
-        searchIntent:
-          'Tutorial práctico para localizar archivos MP4 descargados en iOS y moverlos al carrete.',
-        readingTimeMinutes: 5,
-        introduction: [
-          'Cuando descargas un vídeo MP4 desde Safari o Chrome en un iPhone o iPad, iOS no lo guarda directamente en la aplicación **Fotos**. En su lugar, todos los archivos descargados desde la web se almacenan en la carpeta **Descargas** dentro de la aplicación nativa **Archivos**.',
-        ],
-        tableOfContents: [
-          {
-            id: 'donde-guarda-safari-los-videos',
-            heading: '1. Por qué Safari guarda los vídeos en la app Archivos',
-          },
-          {
-            id: 'pasar-mp4-de-archivos-a-fotos',
-            heading: '2. Cómo mover un vídeo MP4 desde Archivos al carrete de Fotos',
-          },
-        ],
-        content: [
-          {
-            id: 'donde-guarda-safari-los-videos',
-            heading: '1. Por qué Safari guarda los vídeos en la app Archivos',
-            paragraphs: [
-              'El gestor de descargas de Safari agrupa cualquier archivo web (PDF, MP3, MP4) en la carpeta **Descargas** de la app **Archivos**. Puedes abrirla tocando el icono de la flecha azul junto a la barra de direcciones de Safari.',
-            ],
-          },
-          {
-            id: 'pasar-mp4-de-archivos-a-fotos',
-            heading: '2. Cómo mover un vídeo MP4 desde Archivos al carrete de Fotos',
-            paragraphs: [
-              'Abre el vídeo en la app **Archivos**, toca el icono de **Compartir** en la esquina inferior y pulsa **Guardar vídeo**. El clip aparecerá al instante en tu galería **Fotos**.',
-            ],
-          },
-        ],
-        faq: [
-          {
-            question: '¿Dónde se guardan los audios MP3 en iPhone?',
-            answer:
-              'Los archivos de audio MP3 o M4A permanecen en la carpeta Descargas de la app Archivos, desde donde puedes reproducirlos sin conexión.',
-          },
-        ],
-        internalLinks: [
-          {
-            label: 'Descargador de Vídeos VIDNEX',
-            description:
-              'Descarga vídeos públicos de TikTok, Instagram, X y Facebook en tu iPhone.',
-            targetType: 'home',
-          },
-        ],
-        sources: [
-          {
-            title: 'Soporte técnico de Apple — Encontrar archivos descargados en el iPhone',
-            publisher: 'Apple Inc.',
-            url: 'https://support.apple.com/es-es/102440',
-          },
-        ],
-      },
+      en: EN_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      fr: FR_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      es: ES_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      pt: PT_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      de: DE_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      tr: TR_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      id: ID_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      it: IT_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      ru: RU_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
+      ar: AR_BLOG_TRANSLATIONS['how-to-download-videos-on-iphone'],
     },
   },
 
@@ -2978,13 +2995,25 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
         en: 'Diagram comparing TikTok playAddr clean web playback stream vs downloadAddr watermarked export stream',
         fr: 'Schéma comparant le flux playAddr sans filigrane et le flux downloadAddr avec filigrane',
         es: 'Diagrama comparativo del flujo limpio playAddr frente al flujo con marca de agua',
+        pt: 'Diagrama comparando o fluxo limpo de reprodução web sem marca d’água e o fluxo exportado com selo do TikTok',
         de: 'Vergleich zwischen dem sauberen playAddr-Stream und dem downloadAddr-Stream mit Wasserzeichen',
+        tr: 'Filigransız temiz TikTok web akışı ile filigranlı yerel dışa aktarma akışının karşılaştırma şeması',
+        id: 'Diagram perbandingan aliran putar web TikTok bersih tanpa watermark dan aliran ekspor ber-watermark',
+        it: 'Diagramma comparativo tra flusso web pulito senza filigrana e flusso di esportazione con watermark di TikTok',
+        ru: 'Схема сравнения чистого веб-потока TikTok без водяного знака и экспортного файла с логотипом',
+        ar: 'مخطط يقارن بين تدفق التشغيل العام النظيف في تيك توك وتدفق التصدير الذي يحمل العلامة المائية',
       },
       caption: {
         en: 'Figure 8 — How TikTok stores both a clean web playback stream (`playAddr`) and a pre-stamped export stream (`downloadAddr`).',
         fr: 'Figure 8 — Séparation entre le flux de lecture web propre (`playAddr`) et le flux d’exportation filigrané (`downloadAddr`).',
         es: 'Figura 8 — Diferencia entre el flujo de reproducción limpio y el flujo con marca de agua.',
+        pt: 'Figura 8 — Diferença entre o fluxo de reprodução web limpo e o arquivo exportado com marca d’água pelo TikTok.',
         de: 'Abbildung 8 — Unterschied zwischen dem sauberen Wiedergabe-Stream und dem Export-Stream mit Wasserzeichen.',
+        tr: 'Şekil 8 — TikTok’un temiz web oynatma akışı ile filigranlı dışa aktarma akışı arasındaki teknik fark.',
+        id: 'Gambar 8 — Perbedaan aliran putar web bersih tanpa watermark dan berkas ekspor standar dengan logo TikTok.',
+        it: 'Figura 8 — Differenza tra il flusso web pulito e il file esportato con filigrana integrata da TikTok.',
+        ru: 'Рисунок 8 — Разница между чистым веб-потоком воспроизведения и экспортным файлом с водяным знаком TikTok.',
+        ar: 'الشكل 8 — الفرق بين تدفق التشغيل العام النظيف وتدفق التصدير المدمج بالعلامة المائية في تيك توك.',
       },
     },
     translations: {
@@ -3789,6 +3818,13 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           },
         ],
       },
+      es: ES_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      pt: PT_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      id: ID_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      tr: TR_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      it: IT_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      ru: RU_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
+      de: DE_BLOG_TRANSLATIONS['save-public-tiktok-videos-without-watermark-guide'],
     },
   },
 
@@ -6476,6 +6512,65 @@ export const BLOG_ARTICLES: readonly BlogArticle[] = [
           },
         ],
       },
+    },
+  },
+
+  // ============================================================================
+  // ARTICLE 14 — Public LinkedIn Profile Photo: How to View Full-Size and Save It
+  // Translations: en, fr, es, pt, de, tr, id, it, ru, ar (all 10 locales)
+  // ============================================================================
+  {
+    id: 'linkedin-public-profile-photo-view-save-guide',
+    status: 'published',
+    featured: false,
+    category: 'linkedin-guides',
+    primaryPlatform: 'linkedin',
+    author: BLOG_AUTHORS.editorialTeam,
+    publishedAt: '2026-11-22',
+    updatedAt: '2026-11-22',
+    relatedArticleIds: [
+      'how-to-download-videos-on-iphone',
+      'save-public-tiktok-videos-without-watermark-guide',
+      'instagram-reels-carousels-resolution-compression-guide',
+    ],
+    featuredImage: {
+      diagramType: 'linkedin-profile-photo',
+      alt: {
+        en: 'Diagram of public LinkedIn /in/ profile URL validation, public avatar metadata lookup, binary magic-bytes check, and full-size JPG save',
+        fr: 'Schéma du parcours photo de profil LinkedIn publique : validation /in/, métadonnées avatar, contrôle magic bytes et sauvegarde JPG',
+        es: 'Diagrama del flujo de foto de perfil pública de LinkedIn: validación /in/, metadatos del avatar y guardado en JPG',
+        pt: 'Diagrama do fluxo de foto de perfil pública do LinkedIn: validação /in/, metadados do avatar e salvamento em JPG',
+        de: 'Diagramm zur Prüfung öffentlicher LinkedIn-/in/-Profilbilder: Metadatenabruf, Magic-Bytes-Prüfung und JPG-Download',
+        tr: 'Herkese açık LinkedIn /in/ profil fotoğrafı akış şeması: URL doğrulama, avatar meta verisi, magic bytes kontrolü ve JPG kaydetme',
+        id: 'Diagram alur foto profil LinkedIn publik: validasi URL /in/, metadata avatar, pemeriksaan magic bytes, dan simpan JPG',
+        it: 'Diagramma del flusso per foto profilo LinkedIn pubblica: validazione /in/, metadati avatar, controllo magic bytes e salvataggio JPG',
+        ru: 'Схема обработки публичного фото профиля LinkedIn: проверка URL /in/, метаданные аватара, проверка magic bytes и сохранение JPG',
+        ar: 'مخطط معالجة صورة الملف الشخصي العامة في لينكدإن: التحقق من رابط /in/ وقراءة بيانات الصورة الرمزية وحفظ JPG',
+      },
+      caption: {
+        en: 'Figure 14 — How VIDNEX validates a public linkedin.com/in/{slug} URL, reads only public avatar metadata, and falls back locally if LinkedIn serves an authwall.',
+        fr: 'Figure 14 — Comment VIDNEX vérifie une URL publique linkedin.com/in/{slug}, lit uniquement les métadonnées d’avatar et bascule en aperçu local en cas d’authwall.',
+        es: 'Figura 14 — Cómo VIDNEX valida un enlace público linkedin.com/in/{slug}, lee solo los metadatos del avatar y ofrece vista previa local ante un muro de acceso.',
+        pt: 'Figura 14 — Como o VIDNEX valida um link público linkedin.com/in/{slug}, lê apenas metadados do avatar e usa visualização local em caso de tela de login.',
+        de: 'Abbildung 14 — Wie VIDNEX eine öffentliche linkedin.com/in/{slug}-URL prüft, nur Avatar-Metadaten liest und bei Authwall lokal ausweicht.',
+        tr: 'Şekil 14 — VIDNEX’in herkese açık linkedin.com/in/{slug} bağlantısını doğrulama, yalnızca avatar meta verisini okuma ve yerel önizleme akışı.',
+        id: 'Gambar 14 — Cara VIDNEX memvalidasi URL linkedin.com/in/{slug} publik, membaca metadata avatar saja, dan beralih ke pratinjau lokal saat authwall muncul.',
+        it: 'Figura 14 — Come VIDNEX verifica un URL pubblico linkedin.com/in/{slug}, legge solo i metadati dell’avatar e attiva l’anteprima locale in caso di authwall.',
+        ru: 'Рисунок 14 — Как VIDNEX проверяет публичный адрес linkedin.com/in/{slug}, читает только метаданные аватара и предлагает локальный просмотр при authwall.',
+        ar: 'الشكل 14 — كيف تتحقق VIDNEX من رابط linkedin.com/in/{slug} العام وتقرأ بيانات الصورة الرمزية فقط مع بديل محلي عند ظهور جدار الدخول.',
+      },
+    },
+    translations: {
+      en: EN_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      fr: FR_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      es: ES_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      pt: PT_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      de: DE_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      tr: TR_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      id: ID_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      it: IT_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      ru: RU_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
+      ar: AR_BLOG_TRANSLATIONS['linkedin-public-profile-photo-view-save-guide'],
     },
   },
 ];

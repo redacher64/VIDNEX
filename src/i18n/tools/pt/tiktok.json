@@ -42,13 +42,37 @@
   "formatsTable": {
     "heading": "Tabela de formatos e qualidades do TikTok no VIDNEX",
     "subheading": "Correspondência exata entre cada tipo de link público do TikTok e o arquivo entregue.",
-    "headers": ["Tipo de conteúdo TikTok", "Formato de saída", "Qualidade e comportamento real"],
+    "headers": [
+      "Tipo de conteúdo TikTok",
+      "Formato de saída",
+      "Qualidade e comportamento real"
+    ],
     "rows": [
-      ["Vídeo público HD", "MP4 sem marca d'água", "Fluxo H.264 em 1080p quando o TikTok expõe versão HD; reproduz nativamente em iOS, Android, Windows e macOS."],
-      ["Vídeo público SD", "MP4 sem marca d'água", "Versão compacta em 720p para downloads rápidos em dados móveis e menor espaço ocupado."],
-      ["Áudio original", "MP3 ou M4A (AAC)", "Extensão real confirmada por verificação MIME/HEAD do servidor de mídia — sem falsos MP3."],
-      ["Slides Photo Mode", "JPG avulso ou ZIP", "Grade interativa com caixas para salvar fotos separadas ou pacote ZIP local (até 20 fotos / 100 MB)."],
-      ["Foto de perfil pública", "JPG", "Extrai o avatar público a partir de tiktok.com/@usuario ou digitando diretamente @usuario."]
+      [
+        "Vídeo público HD",
+        "MP4 sem marca d'água",
+        "Fluxo H.264 em 1080p quando o TikTok expõe versão HD; reproduz nativamente em iOS, Android, Windows e macOS."
+      ],
+      [
+        "Vídeo público SD",
+        "MP4 sem marca d'água",
+        "Versão compacta em 720p para downloads rápidos em dados móveis e menor espaço ocupado."
+      ],
+      [
+        "Áudio original",
+        "MP3 ou M4A (AAC)",
+        "Extensão real confirmada por verificação MIME/HEAD do servidor de mídia — sem falsos MP3."
+      ],
+      [
+        "Slides Photo Mode",
+        "JPG avulso ou ZIP",
+        "Grade interativa com caixas para salvar fotos separadas ou pacote ZIP local (até 20 fotos / 100 MB)."
+      ],
+      [
+        "Foto de perfil pública",
+        "JPG",
+        "Extrai o avatar público a partir de tiktok.com/@usuario ou digitando diretamente @usuario."
+      ]
     ]
   },
   "troubleshooting": {
@@ -79,7 +103,11 @@
         "problem": "TikTok Live ou vídeo apagado mostra mídia não encontrada",
         "solution": "Transmissões ao vivo (/live) são fluxos contínuos não baixáveis, e vídeos excluídos ou moderados deixam de disponibilizar endereço público de mídia."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Por que um vídeo do TikTok não baixa? Links privados, expirados e bloqueios",
+      "href": "/pt/blog/por-que-video-tiktok-nao-baixa-solucoes"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar seu vídeo ou áudio do TikTok salvo",
@@ -130,8 +158,17 @@
   "relatedSection": {
     "heading": "Outras ferramentas do VIDNEX",
     "subheading": "Baixe mídias públicas de outras plataformas ou corte imagens em grade diretamente no navegador.",
-    "toolKeys": ["instagram", "x", "split_image"],
+    "toolKeys": [
+      "instagram",
+      "x",
+      "split_image"
+    ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Streaming direto sem guardar vídeos em servidor, sem cadastro e com ZIP local."
+    "privacyDescription": "Streaming direto sem guardar vídeos em servidor, sem cadastro e com ZIP local.",
+    "guideLink": {
+      "label": "Como salvar vídeo do TikTok sem marca d’água em MP4 passo a passo",
+      "description": "Veja como salvar vídeos públicos do TikTok sem marca d’água em MP4 no iPhone, Android ou computador, extrair áudio MP3/M4A e baixar carrosséis de fotos.",
+      "href": "/pt/blog/salvar-video-tiktok-sem-marca-dagua"
+    }
   }
 }

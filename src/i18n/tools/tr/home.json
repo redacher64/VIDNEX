@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "VIDNEX platformları ve gerçek çıkış formatları özeti",
     "subheading": "Desteklenen beş sosyal ağ ile yerel görsel bölme aracının sunduğu dosya türleri ve temel sınırlar.",
-    "headers": ["Platform / Araç", "Çıkış formatları", "Gerçek çalışma kapsamı"],
+    "headers": [
+      "Platform / Araç",
+      "Çıkış formatları",
+      "Gerçek çalışma kapsamı"
+    ],
     "rows": [
-      ["TikTok", "MP4, MP3/M4A, JPG, ZIP", "Filigransız HD/SD video, MIME doğrulamalı ses, en fazla 20 görsellik (100 MB) slayt ZIP arşivi ve herkese açık avatar."],
-      ["Instagram", "MP4, JPG, ZIP", "Herkese açık Reels, /p/ video ve fotoğraflar, çoklu karuseller ve profil resimleri; hikâyeler giriş gerektirir."],
-      ["X (Twitter)", "MP4, JPG, PNG, ZIP", "Bit hızına göre sıralı aşamalı MP4 video, MP4 olarak GIF ve ?name=orig kalitesinde 1–4 fotoğraf."],
-      ["Facebook", "MP4 (HD ve SD)", "Sesli herkese açık videolar, Reels ve fb.watch bağlantıları; fotoğraflar, hikâyeler ve canlı yayınlar hariçtir."],
-      ["LinkedIn", "JPG", "Yalnızca herkese açık /in/ kişisel profil fotoğrafları (en fazla 10 MB); şirket sayfaları ve videolar hariçtir."],
-      ["Görsel Bölme", "PNG, JPG, ZIP", "Tamamen tarayıcı içinde HTML5 Canvas ve JSZip ile 1×1–10×10 ızgara bölme; sunucuya dosya yüklenmez."]
+      [
+        "TikTok",
+        "MP4, MP3/M4A, JPG, ZIP",
+        "Filigransız HD/SD video, MIME doğrulamalı ses, en fazla 20 görsellik (100 MB) slayt ZIP arşivi ve herkese açık avatar."
+      ],
+      [
+        "Instagram",
+        "MP4, JPG, ZIP",
+        "Herkese açık Reels, /p/ video ve fotoğraflar, çoklu karuseller ve profil resimleri; hikâyeler giriş gerektirir."
+      ],
+      [
+        "X (Twitter)",
+        "MP4, JPG, PNG, ZIP",
+        "Bit hızına göre sıralı aşamalı MP4 video, MP4 olarak GIF ve ?name=orig kalitesinde 1–4 fotoğraf."
+      ],
+      [
+        "Facebook",
+        "MP4 (HD ve SD)",
+        "Sesli herkese açık videolar, Reels ve fb.watch bağlantıları; fotoğraflar, hikâyeler ve canlı yayınlar hariçtir."
+      ],
+      [
+        "LinkedIn",
+        "JPG",
+        "Yalnızca herkese açık /in/ kişisel profil fotoğrafları (en fazla 10 MB); şirket sayfaları ve videolar hariçtir."
+      ],
+      [
+        "Görsel Bölme",
+        "PNG, JPG, ZIP",
+        "Tamamen tarayıcı içinde HTML5 Canvas ve JSZip ile 1×1–10×10 ızgara bölme; sunucuya dosya yüklenmez."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "Çoklu fotoğraf albümünde ZIP indirme başlamıyor",
         "solution": "Karusel ve slayt ZIP arşivleri doğrudan tarayıcınızda oluşturulur ve güvenlik için 20 dosya veya 100 MB sınırına tabidir. Büyük albümlerde yalnızca istediğiniz kareleri işaretleyerek daha küçük gruplar hâlinde indirebilirsiniz."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen dosyalarınızı cihazınızda nerede bulabilirsiniz?",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Özel platform araçlarına doğrudan geçin",
     "subheading": "Her ağın format tablosunu, sorun giderme rehberini ve teknik sınırlarını ayrıntılı olarak inceleyin.",
-    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "toolKeys": [
+      "tiktok",
+      "instagram",
+      "split_image"
+    ],
     "privacyLabel": "Gizlilik politikası ve depolamasız çalışma",
-    "privacyDescription": "Bağlantıların nasıl işlendiğini, dosyaların neden saklanmadığını ve veri haklarınızı okuyun."
+    "privacyDescription": "Bağlantıların nasıl işlendiğini, dosyaların neden saklanmadığını ve veri haklarınızı okuyun.",
+    "guideLink": {
+      "label": "Filigransız TikTok Videosu Nasıl Kaydedilir? Adım Adım MP4 Rehberi",
+      "description": "Herkese açık TikTok videolarını iPhone, Android ve bilgisayarda filigransız MP4 olarak nasıl kaydedeceğinizi, ses (MP3/M4A) ve fotoğraf slaytlarını nasıl indireceğinizi öğrenin.",
+      "href": "/tr/blog/filigransiz-tiktok-videosu-kaydetme-rehberi"
+    }
   }
 }

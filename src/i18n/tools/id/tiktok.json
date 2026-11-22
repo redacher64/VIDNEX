@@ -103,7 +103,11 @@
         "problem": "Tautan TikTok Live atau video terhapus memunculkan media tidak ditemukan",
         "solution": "Siaran langsung (/live) adalah aliran berkelanjutan yang tidak didukung untuk diunduh. Begitu pula video yang sudah dihapus pemiliknya atau diturunkan TikTok tidak lagi memiliki aliran media publik."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Kenapa Video TikTok Tidak Bisa Didownload? Tautan Privat, Kedaluwarsa & Blokir",
+      "href": "/id/blog/kenapa-video-tiktok-tidak-bisa-didownload-solusi"
+    }
   },
   "whereToFind": {
     "heading": "Di mana letak file video atau audio TikTok setelah diunduh",
@@ -160,6 +164,11 @@
       "split_image"
     ],
     "privacyLabel": "Kebijakan privasi dan aliran tanpa penyimpanan",
-    "privacyDescription": "Ketahui bagaimana VIDNEX memproses tautan TikTok Anda tanpa menyimpan video atau riwayat unduhan."
+    "privacyDescription": "Ketahui bagaimana VIDNEX memproses tautan TikTok Anda tanpa menyimpan video atau riwayat unduhan.",
+    "guideLink": {
+      "label": "Cara Simpan Video TikTok Tanpa Watermark dalam Format MP4 HD",
+      "description": "Pelajari cara menyimpan video TikTok publik tanpa watermark ke format MP4 di iPhone, Android, dan laptop, plus cara unduh audio MP3/M4A dan slide foto.",
+      "href": "/id/blog/cara-simpan-video-tiktok-tanpa-watermark"
+    }
   }
 }

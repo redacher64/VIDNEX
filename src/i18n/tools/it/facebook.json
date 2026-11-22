@@ -41,13 +41,37 @@
   "formatsTable": {
     "heading": "Tabella di formati e collegamenti Facebook",
     "subheading": "Comportamento reale del motore VIDNEX per i link Facebook supportati e per quelli esclusi.",
-    "headers": ["Tipo di link Facebook", "Formato di uscita", "Comportamento reale e limiti"],
+    "headers": [
+      "Tipo di link Facebook",
+      "Formato di uscita",
+      "Comportamento reale e limiti"
+    ],
     "rows": [
-      ["Video pubblico (/watch/, /videos/)", "MP4 HD e SD", "Offre MP4 HD con audio quando la sorgente HD è presente, insieme alla variante SD più leggera."],
-      ["Reel pubblico (/reel/, /reels/)", "MP4 HD e SD", "Clip verticali Facebook Reels scaricate in MP4 con audio sincronizzato."],
-      ["Link brevi (fb.watch, /share/v/, /share/r/)", "Risoluzione → MP4", "Segue fino a 4 reindirizzamenti prima di estrarre il flusso video pubblico."],
-      ["Foto Facebook (/photo/, /share/p/)", "Non supportato", "Identificate come foto con avviso chiaro di non compatibilità, mai inviate al motore video."],
-      ["Storie Facebook (/stories/, /story.php)", "Non supportato (login richiesto)", "Distinte dai Reels; richiedono autenticazione e nessun muro di accesso viene aggirato."]
+      [
+        "Video pubblico (/watch/, /videos/)",
+        "MP4 HD e SD",
+        "Offre MP4 HD con audio quando la sorgente HD è presente, insieme alla variante SD più leggera."
+      ],
+      [
+        "Reel pubblico (/reel/, /reels/)",
+        "MP4 HD e SD",
+        "Clip verticali Facebook Reels scaricate in MP4 con audio sincronizzato."
+      ],
+      [
+        "Link brevi (fb.watch, /share/v/, /share/r/)",
+        "Risoluzione → MP4",
+        "Segue fino a 4 reindirizzamenti prima di estrarre il flusso video pubblico."
+      ],
+      [
+        "Foto Facebook (/photo/, /share/p/)",
+        "Non supportato",
+        "Identificate come foto con avviso chiaro di non compatibilità, mai inviate al motore video."
+      ],
+      [
+        "Storie Facebook (/stories/, /story.php)",
+        "Non supportato (login richiesto)",
+        "Distinte dai Reels; richiedono autenticazione e nessun muro di accesso viene aggirato."
+      ]
     ]
   },
   "troubleshooting": {
@@ -78,7 +102,11 @@
         "problem": "Compare solo il pulsante SD MP4 e manca l'opzione HD",
         "solution": "VIDNEX non forza alcun upscaling artificiale. Se il video è stato caricato a definizione standard o Facebook espone pubblicamente solo il flusso SD, viene proposta unicamente la variante SD autentica."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare i video Facebook scaricati",
@@ -125,8 +153,17 @@
   "relatedSection": {
     "heading": "Altri strumenti VIDNEX e tutela della privacy",
     "subheading": "Salva video pubblici anche da Instagram, TikTok e X direttamente dal browser.",
-    "toolKeys": ["instagram", "tiktok", "x"],
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "x"
+    ],
     "privacyLabel": "Privacy e streaming senza archiviazione",
-    "privacyDescription": "Scopri come VIDNEX gestisce i link Facebook pubblici senza salvare copie dei video."
+    "privacyDescription": "Scopri come VIDNEX gestisce i link Facebook pubblici senza salvare copie dei video.",
+    "guideLink": {
+      "label": "Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "description": "Scopri dove Safari salva esattamente i video MP4 scaricati su iPhone e iPad nell’app File, come spostarli nell’app Foto in due tocchi e come cambiare la cartella Download.",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   }
 }

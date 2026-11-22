@@ -102,7 +102,11 @@
         "problem": "Hanya tombol SD MP4 yang tampil tanpa pilihan HD",
         "solution": "VIDNEX tidak melakukan peningkatan resolusi buatan. Jika pembuat video mengunggah rekaman beresolusi standar atau Facebook hanya membuka versi SD untuk publik, maka hanya opsi SD MP4 asli yang ditampilkan."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   },
   "whereToFind": {
     "heading": "Di mana menemukan video Facebook hasil download",
@@ -155,6 +159,11 @@
       "x"
     ],
     "privacyLabel": "Kebijakan privasi dan streaming tanpa arsip",
-    "privacyDescription": "Ketahui cara VIDNEX memproses tautan Facebook publik tanpa menyimpan video Anda."
+    "privacyDescription": "Ketahui cara VIDNEX memproses tautan Facebook publik tanpa menyimpan video Anda.",
+    "guideLink": {
+      "label": "Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "description": "Cari tahu letak persis video MP4 hasil unduhan Safari di iPhone dan iPad dalam aplikasi File, cara memindahkannya ke aplikasi Foto, dan solusi masalah umum iOS.",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   }
 }

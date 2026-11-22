@@ -98,7 +98,11 @@
         "problem": "La foto linkedin_{slug}_profile.jpg non compare nell'app Foto su iPhone",
         "solution": "Su iOS Safari salva l'immagine in File > Download. Apri il file JPG dall'app File, tocca Condividi in basso a sinistra e seleziona Salva immagine per aggiungerla al rullino."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Foto profilo LinkedIn pubblica: come vederla in grande e salvarla",
+      "href": "/it/blog/vedere-salvare-foto-profilo-linkedin-grande"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare la foto profilo LinkedIn scaricata",
@@ -151,6 +155,11 @@
       "x"
     ],
     "privacyLabel": "Privacy e minimizzazione dei dati",
-    "privacyDescription": "Leggi perché non estraiamo mai dati CV e come funziona la cache temporanea di 10 minuti."
+    "privacyDescription": "Leggi perché non estraiamo mai dati CV e come funziona la cache temporanea di 10 minuti.",
+    "guideLink": {
+      "label": "Foto profilo LinkedIn pubblica: come vederla in grande e salvarla",
+      "description": "Scopri come ingrandire e salvare una foto profilo LinkedIn pubblica (/in/...), quali formati supporta VIDNEX e come usare l’importazione locale in caso di blocco login.",
+      "href": "/it/blog/vedere-salvare-foto-profilo-linkedin-grande"
+    }
   }
 }

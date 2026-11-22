@@ -2688,33 +2688,40 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(BLOG_NAV_LABELS.ar, 'المدونة');
     assert.equal(BLOG_NAV_LABELS.ru, 'Блог');
 
-    // 1. 120 core routes (60 main + 10 split-image tool + 50 legal across 10 languages); blog routes add 5 hubs (/en/blog, /fr/blog, /es/blog, /de/blog, /ar/blog) + 24 published article pages (8 EN + 7 FR + 2 ES + 3 DE + 4 AR) = 29 routes -> 149 total
+    // 1. 120 core routes (60 main + 10 split-image tool + 50 legal across 10 languages); blog routes add 10 hubs (all 10 locales) + 63 published article pages (10 EN + 9 FR + 5 ES + 5 PT + 6 DE + 5 TR + 5 ID + 5 IT + 5 RU + 8 AR) = 73 routes -> 193 total
     assert.equal(getAllPublicRoutes().length, 120);
     const blogRoutes = getAllBlogPublicRoutes();
-    assert.equal(blogRoutes.length, 29);
-    assert.equal(getAllIndexableRoutes().length, 149);
+    assert.equal(blogRoutes.length, 73);
+    assert.equal(getAllIndexableRoutes().length, 193);
 
-    // 2. Published articles across all 5 blog locales (en=8, fr=7, es=2, de=3, ar=4)
+    // 2. Published articles across all 10 blog locales (every locale has >= 5 published core guides)
     const enArticles = getPublishedArticlesForLocale('en');
-    assert.equal(enArticles.length, 8);
+    assert.equal(enArticles.length, 10);
     const expectedEnIds = [
       'troubleshooting-expired-blocked-social-media-links',
       'instagram-reels-carousels-resolution-compression-guide',
+      'how-to-download-videos-on-iphone',
       'tiktok-audio-tracks-mp3-vs-m4a-aac-guide',
       'why-is-downloaded-video-low-quality',
       'save-public-tiktok-videos-without-watermark-guide',
       'download-public-instagram-reels-carousels-guide',
       'download-public-x-twitter-videos-gifs-mp4-guide',
       'download-public-facebook-videos-reels-hd-sd-guide',
+      'linkedin-public-profile-photo-view-save-guide',
     ];
     assert.deepEqual(
       enArticles.map((a) => a.article.id),
       expectedEnIds
     );
-    assert.equal(getPublishedArticlesForLocale('fr').length, 7);
-    assert.equal(getPublishedArticlesForLocale('es').length, 2);
-    assert.equal(getPublishedArticlesForLocale('de').length, 3);
-    assert.equal(getPublishedArticlesForLocale('ar').length, 4);
+    assert.equal(getPublishedArticlesForLocale('fr').length, 9);
+    assert.equal(getPublishedArticlesForLocale('es').length, 5);
+    assert.equal(getPublishedArticlesForLocale('pt').length, 5);
+    assert.equal(getPublishedArticlesForLocale('de').length, 6);
+    assert.equal(getPublishedArticlesForLocale('tr').length, 5);
+    assert.equal(getPublishedArticlesForLocale('id').length, 5);
+    assert.equal(getPublishedArticlesForLocale('it').length, 5);
+    assert.equal(getPublishedArticlesForLocale('ru').length, 5);
+    assert.equal(getPublishedArticlesForLocale('ar').length, 8);
 
     // 3. English canonical blog hub (/en/blog) is 200; /blog and /blog/{slug} are 301 redirects
     const resBlogEn = resolveRouteFromPathname('/en/blog');
@@ -2754,16 +2761,26 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://vidnex.space/en/blog/why-is-downloaded-video-low-quality'
     );
 
-    // 4. Localized blog hubs (/fr/blog, /es/blog, /de/blog, /ar/blog) are 200; unsupported blog hubs (/pt/blog, /ru/blog) -> 404
-    for (const loc of ['fr', 'es', 'de', 'ar'] as const) {
+    // 4. All 10 localized blog hubs (/fr/blog, /en/blog, /es/blog, /pt/blog, /de/blog, /tr/blog, /id/blog, /it/blog, /ru/blog, /ar/blog) are 200
+    for (const loc of [
+      'fr',
+      'en',
+      'es',
+      'pt',
+      'de',
+      'tr',
+      'id',
+      'it',
+      'ru',
+      'ar',
+    ] as const) {
       const resHub = resolveRouteFromPathname(`/${loc}/blog`);
       assert.equal(resHub.isValidRoute, true);
       assert.equal(resHub.locale, loc);
       assert.equal(resHub.pageKey, 'blog');
       assert.equal(resHub.canonicalPath, `/${loc}/blog`);
     }
-    assert.equal(resolveRouteFromPathname('/pt/blog').isNotFound, true);
-    assert.equal(resolveRouteFromPathname('/ru/blog').isNotFound, true);
+    assert.equal(resolveRouteFromPathname('/zz/blog').isNotFound, true);
 
     // 5. Localized article slugs & self-referencing canonicals (never canonicalized to English)
     const resArtFr = resolveRouteFromPathname(
@@ -2830,12 +2847,12 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(art7Og.ogLocale, 'en_US');
     assert.deepEqual(art7Og.ogLocaleAlternates, []);
 
-    // 7. 'troubleshooting-expired-blocked-social-media-links' has 4 published translations (en, fr, es, de) + x-default
+    // 7. 'troubleshooting-expired-blocked-social-media-links' has all 10 published translations + x-default = 11 hreflangs
     const art1Hreflangs = buildBlogHreflangCluster(
       'blog_article',
       'troubleshooting-expired-blocked-social-media-links'
     );
-    assert.equal(art1Hreflangs.length, 5);
+    assert.equal(art1Hreflangs.length, 11);
     assert.equal(
       art1Hreflangs.find((h) => h.hreflang === 'en')?.href,
       'https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links'
@@ -2868,18 +2885,16 @@ describe('VIDNEX URL Detection & Security Suite', () => {
 
     const blogHubOgEs = getOgLocales('es', 'blog');
     assert.equal(blogHubOgEs.ogLocale, 'es_ES');
-    assert.deepEqual(
-      [...blogHubOgEs.ogLocaleAlternates].sort(),
-      ['ar_AR', 'de_DE', 'en_US', 'fr_FR']
-    );
+    assert.equal(blogHubOgEs.ogLocaleAlternates.length, 9);
+    assert.ok(!blogHubOgEs.ogLocaleAlternates.includes('es_ES'));
 
-    // 8. Verify Schema.org JSON-LD graph on blog article (Article + BreadcrumbList + FAQPage) and tool page (WebApplication + HowTo + FAQPage + BreadcrumbList)
+    // 8. Verify Schema.org JSON-LD graph on blog article (BlogPosting + BreadcrumbList + FAQPage) and tool page (WebApplication + HowTo + FAQPage + BreadcrumbList)
     const graphItems = (headArtFr.jsonLdGraph as any)['@graph'] as Array<
       Record<string, any>
     >;
     assert.equal(graphItems.length, 3);
-    assert.equal(graphItems[0]['@type'], 'Article');
-    assert.equal(graphItems[0].author.name, 'VIDNEX');
+    assert.equal(graphItems[0]['@type'], 'BlogPosting');
+    assert.equal(graphItems[0].author.name, 'Équipe VIDNEX');
     assert.equal(graphItems[1]['@type'], 'BreadcrumbList');
     assert.equal(graphItems[2]['@type'], 'FAQPage');
 
@@ -5148,7 +5163,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('Découper une image'));
   });
 
-  it('validates SEO, GEO, and AEO upgrades across all 149 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
+  it('validates SEO, GEO, and AEO upgrades across all 193 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
     const {
       SUPPORTED_LOCALES,
       TOOL_PAGE_KEYS,
@@ -5164,7 +5179,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     } = await import('../i18n/localeLoader.ts');
 
     const allRoutes = getAllIndexableRoutes();
-    assert.equal(allRoutes.length, 149);
+    assert.equal(allRoutes.length, 193);
 
     // Verify Arabic private-account FAQ answer is accurate (does not list platforms)
     const arHomeTool = getToolContentSync('ar', 'home');
@@ -5486,12 +5501,34 @@ describe('VIDNEX URL Detection & Security Suite', () => {
         }
       }
 
-      // Verify all 5 hubs are covered
+      // Verify all 10 hubs are covered and each locale has >= 5 published guides covering the 5 core topics
+      assert.equal(BLOG_HUB_LOCALES.length, 10);
+      const { getPublishedArticlesForLocale } = await import(
+        '../data/blogArticles.ts'
+      );
+      const requiredCoreIds = [
+        'save-public-tiktok-videos-without-watermark-guide',
+        'troubleshooting-expired-blocked-social-media-links',
+        'how-to-download-videos-on-iphone',
+        'instagram-reels-carousels-resolution-compression-guide',
+        'linkedin-public-profile-photo-view-save-guide',
+      ];
       for (const loc of BLOG_HUB_LOCALES) {
         assert.ok(
           blogRoutes.some((r) => r.pageKey === 'blog' && r.locale === loc),
           `Missing blog hub route for ${loc}`
         );
+        const locArticles = getPublishedArticlesForLocale(loc);
+        assert.ok(
+          locArticles.length >= 5,
+          `Expected >= 5 published blog articles for ${loc}, got ${locArticles.length}`
+        );
+        for (const coreId of requiredCoreIds) {
+          assert.ok(
+            locArticles.some((entry) => entry.article.id === coreId),
+            `Locale "${loc}" is missing required core blog article "${coreId}"`
+          );
+        }
       }
 
       // Verify worker.ts serves /es/blog/index.html (never FR /index.html) even if ASSETS returns 307 or 404 on /es/blog

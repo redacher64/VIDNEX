@@ -42,13 +42,37 @@
   "formatsTable": {
     "heading": "Tabella di formati e qualità TikTok disponibili",
     "subheading": "Corrispondenza reale tra i diversi collegamenti TikTok pubblici e i file forniti da VIDNEX.",
-    "headers": ["Tipo di contenuto TikTok", "Formato di uscita", "Qualità e comportamento reale"],
+    "headers": [
+      "Tipo di contenuto TikTok",
+      "Formato di uscita",
+      "Qualità e comportamento reale"
+    ],
     "rows": [
-      ["Video pubblico HD", "MP4 senza filigrana", "Risoluzione 1080p quando lo stream HD sorgente è disponibile; codifica H.264 pronta per mobile e desktop."],
-      ["Video pubblico SD", "MP4 senza filigrana", "Flusso 720p più leggero, pratico su rete cellulare o dispositivi con spazio limitato."],
-      ["Traccia audio TikTok", "MP3 o M4A (AAC)", "Estensione reale determinata con controllo MIME/HEAD sulla sorgente; nessun falso MP3 rinominato."],
-      ["Slideshow Photo Mode", "JPG singolo o ZIP", "Griglia con caselle di selezione; download per singola foto o ZIP locale (fino a 20 file / 100 MB)."],
-      ["Foto profilo pubblica", "JPG alta risoluzione", "Estrazione dell'avatar pubblico tramite URL tiktok.com/@utente oppure inserendo @nomeutente."]
+      [
+        "Video pubblico HD",
+        "MP4 senza filigrana",
+        "Risoluzione 1080p quando lo stream HD sorgente è disponibile; codifica H.264 pronta per mobile e desktop."
+      ],
+      [
+        "Video pubblico SD",
+        "MP4 senza filigrana",
+        "Flusso 720p più leggero, pratico su rete cellulare o dispositivi con spazio limitato."
+      ],
+      [
+        "Traccia audio TikTok",
+        "MP3 o M4A (AAC)",
+        "Estensione reale determinata con controllo MIME/HEAD sulla sorgente; nessun falso MP3 rinominato."
+      ],
+      [
+        "Slideshow Photo Mode",
+        "JPG singolo o ZIP",
+        "Griglia con caselle di selezione; download per singola foto o ZIP locale (fino a 20 file / 100 MB)."
+      ],
+      [
+        "Foto profilo pubblica",
+        "JPG alta risoluzione",
+        "Estrazione dell'avatar pubblico tramite URL tiktok.com/@utente oppure inserendo @nomeutente."
+      ]
     ]
   },
   "troubleshooting": {
@@ -79,7 +103,11 @@
         "problem": "Un TikTok Live o un video eliminato restituisce «media non trovato»",
         "solution": "Le dirette (/live) sono flussi continui non supportati e un video cancellato dall'autore o rimosso dalla moderazione di TikTok non dispone più di alcun flusso pubblico scaricabile."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Perché un video TikTok non si scarica? Link privati, scaduti o bloccati",
+      "href": "/it/blog/perche-video-tiktok-non-si-scarica-soluzioni"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare video e audio TikTok salvati sul dispositivo",
@@ -130,8 +158,17 @@
   "relatedSection": {
     "heading": "Altri strumenti VIDNEX e informativa sulla privacy",
     "subheading": "Salva contenuti pubblici anche da Instagram e X oppure crea griglie fotografiche 3×3 nel browser.",
-    "toolKeys": ["instagram", "x", "split_image"],
+    "toolKeys": [
+      "instagram",
+      "x",
+      "split_image"
+    ],
     "privacyLabel": "Privacy e trasmissione senza archiviazione",
-    "privacyDescription": "Scopri perché VIDNEX non conserva i tuoi video TikTok né registra i link incollati."
+    "privacyDescription": "Scopri perché VIDNEX non conserva i tuoi video TikTok né registra i link incollati.",
+    "guideLink": {
+      "label": "Come salvare un video TikTok senza filigrana in MP4 passo dopo passo",
+      "description": "Scopri come salvare video pubblici di TikTok senza filigrana in MP4 su iPhone, Android e PC dal browser, estrarre audio MP3/M4A e scaricare caroselli foto.",
+      "href": "/it/blog/salvare-video-tiktok-senza-filigrana"
+    }
   }
 }

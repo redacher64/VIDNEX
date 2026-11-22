@@ -41,14 +41,42 @@
   "formatsTable": {
     "heading": "Formatos y calidades de Facebook en VIDNEX",
     "subheading": "Qué enlaces de Facebook descarga VIDNEX realmente y cuáles rechaza con aviso claro.",
-    "headers": ["Tipo de enlace Facebook", "Formato de salida", "Calidad y comportamiento real"],
+    "headers": [
+      "Tipo de enlace Facebook",
+      "Formato de salida",
+      "Calidad y comportamiento real"
+    ],
     "rows": [
-      ["Video público HD", "MP4 HD con sonido", "Pista de alta definición servida directamente cuando Facebook ofrece calidad HD."],
-      ["Video público SD", "MP4 SD con sonido", "Versión estándar más compacta para descargas ágiles en dispositivos móviles."],
-      ["Reel público de Facebook", "MP4 HD / SD", "Extrae Reels públicos (/reel/, /reels/, /share/r/) conservando el audio original."],
-      ["Enlaces fb.watch y /share/", "MP4 HD / SD", "Sigue hasta 4 redirecciones oficiales de Facebook hasta el video o Reel público."],
-      ["Foto de Facebook (/photo/)", "No compatible", "Detectada aparte con un mensaje claro que explica que solo se admiten videos y Reels."],
-      ["Historia o Live de Facebook", "No compatible", "Las historias requieren cuenta iniciada y los directos no se guardan hasta finalizar."]
+      [
+        "Video público HD",
+        "MP4 HD con sonido",
+        "Pista de alta definición servida directamente cuando Facebook ofrece calidad HD."
+      ],
+      [
+        "Video público SD",
+        "MP4 SD con sonido",
+        "Versión estándar más compacta para descargas ágiles en dispositivos móviles."
+      ],
+      [
+        "Reel público de Facebook",
+        "MP4 HD / SD",
+        "Extrae Reels públicos (/reel/, /reels/, /share/r/) conservando el audio original."
+      ],
+      [
+        "Enlaces fb.watch y /share/",
+        "MP4 HD / SD",
+        "Sigue hasta 4 redirecciones oficiales de Facebook hasta el video o Reel público."
+      ],
+      [
+        "Foto de Facebook (/photo/)",
+        "No compatible",
+        "Detectada aparte con un mensaje claro que explica que solo se admiten videos y Reels."
+      ],
+      [
+        "Historia o Live de Facebook",
+        "No compatible",
+        "Las historias requieren cuenta iniciada y los directos no se guardan hasta finalizar."
+      ]
     ]
   },
   "troubleshooting": {
@@ -75,7 +103,11 @@
         "problem": "Solo aparece calidad SD y no HD",
         "solution": "Facebook únicamente crea una pista HD cuando el video original se subió en alta resolución. VIDNEX muestra con fidelidad todas las pistas MP4 realmente disponibles."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leer guía: Dónde van los vídeos descargados en iPhone y iPad (app Archivos)",
+      "href": "/es/blog/como-descargar-videos-en-iphone-archivos"
+    }
   },
   "whereToFind": {
     "heading": "Dónde encontrar tu video o Reel de Facebook guardado",
@@ -122,8 +154,17 @@
   "relatedSection": {
     "heading": "Otras herramientas de VIDNEX",
     "subheading": "Guarda videos y fotos públicas de otras redes sociales o divide imágenes en tu navegador.",
-    "toolKeys": ["instagram", "tiktok", "x"],
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "x"
+    ],
     "privacyLabel": "Política de privacidad de VIDNEX",
-    "privacyDescription": "Sin pedir claves de Facebook, descarga directa en streaming y cero almacenamiento en servidor."
+    "privacyDescription": "Sin pedir claves de Facebook, descarga directa en streaming y cero almacenamiento en servidor.",
+    "guideLink": {
+      "label": "Dónde van los vídeos descargados en iPhone y iPad (app Archivos)",
+      "description": "Descubre exactamente dónde guarda Safari los vídeos MP4 descargados en iPhone y iPad, cómo localizarlos en la app Archivos y cómo moverlos a Fotos sin apps extra.",
+      "href": "/es/blog/como-descargar-videos-en-iphone-archivos"
+    }
   }
 }

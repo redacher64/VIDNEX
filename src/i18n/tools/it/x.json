@@ -41,13 +41,37 @@
   "formatsTable": {
     "heading": "Tabella di formati e risoluzioni X (Twitter)",
     "subheading": "Specifiche reali dei file restituiti da VIDNEX per i post pubblici sui domini ufficiali di X.",
-    "headers": ["Tipo di media X", "Formato di uscita", "Dettagli tecnici reali"],
+    "headers": [
+      "Tipo di media X",
+      "Formato di uscita",
+      "Dettagli tecnici reali"
+    ],
     "rows": [
-      ["Video pubblico HD", "MP4 progressivo", "Varianti 1080p o 720p quando presenti sulla sorgente, ordinate dal bitrate più elevato."],
-      ["Video standard / leggero", "MP4 progressivo", "Opzioni 480p o 360p per download rapidi; i flussi HLS (.m3u8) vengono filtrati."],
-      ["GIF animata X", "MP4 ciclico", "Scaricata nel formato MP4 nativo di X senza ricompressione, compatibile con ogni lettore."],
-      ["Foto nel post (1–4)", "JPG / PNG o ZIP", "Recupero alla massima risoluzione ?name=orig; salvataggio singolo o ZIP locale nel browser."],
-      ["Link breve t.co", "Risoluzione automatica", "Segue fino a 3 reindirizzamenti fino al post ufficiale su x.com o twitter.com."]
+      [
+        "Video pubblico HD",
+        "MP4 progressivo",
+        "Varianti 1080p o 720p quando presenti sulla sorgente, ordinate dal bitrate più elevato."
+      ],
+      [
+        "Video standard / leggero",
+        "MP4 progressivo",
+        "Opzioni 480p o 360p per download rapidi; i flussi HLS (.m3u8) vengono filtrati."
+      ],
+      [
+        "GIF animata X",
+        "MP4 ciclico",
+        "Scaricata nel formato MP4 nativo di X senza ricompressione, compatibile con ogni lettore."
+      ],
+      [
+        "Foto nel post (1–4)",
+        "JPG / PNG o ZIP",
+        "Recupero alla massima risoluzione ?name=orig; salvataggio singolo o ZIP locale nel browser."
+      ],
+      [
+        "Link breve t.co",
+        "Risoluzione automatica",
+        "Segue fino a 3 reindirizzamenti fino al post ufficiale su x.com o twitter.com."
+      ]
     ]
   },
   "troubleshooting": {
@@ -74,7 +98,11 @@
         "problem": "L'opzione 1080p non è disponibile e compare solo 720p o 480p",
         "solution": "VIDNEX non esegue alcun upscaling artificiale. L'elenco delle risoluzioni dipende unicamente dai flussi MP4 progressivi effettivamente generati da X per quel singolo video."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare video, GIF e foto di X scaricati",
@@ -121,8 +149,17 @@
   "relatedSection": {
     "heading": "Altri strumenti VIDNEX e informativa sulla privacy",
     "subheading": "Salva video pubblici da TikTok e Facebook oppure foto profilo pubbliche da LinkedIn.",
-    "toolKeys": ["tiktok", "facebook", "linkedin"],
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "linkedin"
+    ],
     "privacyLabel": "Privacy e trasmissione senza salvataggio",
-    "privacyDescription": "Scopri perché VIDNEX non archivia i tuoi video di X né registra i link analizzati."
+    "privacyDescription": "Scopri perché VIDNEX non archivia i tuoi video di X né registra i link analizzati.",
+    "guideLink": {
+      "label": "Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "description": "Scopri dove Safari salva esattamente i video MP4 scaricati su iPhone e iPad nell’app File, come spostarli nell’app Foto in due tocchi e come cambiare la cartella Download.",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   }
 }

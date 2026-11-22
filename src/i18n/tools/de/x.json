@@ -99,7 +99,11 @@
         "problem": "Gespeichertes GIF trägt die Endung .mp4",
         "solution": "X wandelt animierte GIFs beim Hochladen automatisch in flüssige, deutlich kleinere MP4-Clips um. Die MP4-Datei läuft in modernen Galerien und Messengern nahtlos in Endlosschleife."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ratgeber lesen: Wo sind heruntergeladene Videos auf dem iPhone und iPad?",
+      "href": "/de/blog/wo-sind-heruntergeladene-videos-iphone-dateien"
+    }
   },
   "whereToFind": {
     "heading": "Wo Sie Ihre X-Videos, GIFs und Fotos wiederfinden",
@@ -152,6 +156,11 @@
       "split_image"
     ],
     "privacyLabel": "Datenschutzerklärung von VIDNEX",
-    "privacyDescription": "Keine Medienspeicherung auf Servern, kein X-Login erforderlich und lokales ZIP-Packen."
+    "privacyDescription": "Keine Medienspeicherung auf Servern, kein X-Login erforderlich und lokales ZIP-Packen.",
+    "guideLink": {
+      "label": "Wo sind heruntergeladene Videos auf dem iPhone und iPad?",
+      "description": "Finde heruntergeladene MP4-Videos aus Safari oder Chrome in der iPhone-Dateien-App, verschiebe sie in Apple Fotos und behebe typische iOS-Speicherprobleme.",
+      "href": "/de/blog/wo-sind-heruntergeladene-videos-iphone-dateien"
+    }
   }
 }

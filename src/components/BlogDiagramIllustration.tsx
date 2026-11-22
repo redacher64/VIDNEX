@@ -325,6 +325,125 @@ export const BlogDiagramIllustration: React.FC<BlogDiagramIllustrationProps> = (
           </g>
         );
 
+      case 'linkedin-profile-photo':
+        return (
+          <g>
+            {/* Node 1: Public /in/ Profile URL */}
+            <rect
+              x="28"
+              y="46"
+              width="174"
+              height="88"
+              rx="10"
+              className="fill-orange-950/80 stroke-orange-500/70"
+              strokeWidth="1.5"
+            />
+            <text
+              x="44"
+              y="72"
+              className="fill-amber-400 font-mono text-[11px] font-bold"
+            >
+              01 · PUBLIC /IN/ URL
+            </text>
+            <text
+              x="44"
+              y="94"
+              className="fill-orange-100 font-mono text-[10px]"
+            >
+              linkedin.com/in/slug
+            </text>
+            <text
+              x="44"
+              y="114"
+              className="fill-orange-300/75 font-mono text-[10px]"
+            >
+              Personal Profile Only
+            </text>
+
+            {/* Arrow 1 -> 2 */}
+            <path
+              d="M206 90 L238 90"
+              className="stroke-amber-400"
+              strokeWidth="2"
+              strokeDasharray="4 3"
+            />
+            <polygon points="238,85 248,90 238,95" className="fill-amber-400" />
+
+            {/* Node 2: Public Metadata & Binary Verification */}
+            <rect
+              x="252"
+              y="46"
+              width="186"
+              height="88"
+              rx="10"
+              className="fill-orange-950/85 stroke-amber-400/80"
+              strokeWidth="1.5"
+            />
+            <text
+              x="268"
+              y="72"
+              className="fill-amber-400 font-mono text-[11px] font-bold"
+            >
+              02 · AVATAR METADATA
+            </text>
+            <text
+              x="268"
+              y="94"
+              className="fill-orange-100 font-mono text-[10px]"
+            >
+              media.licdn.com (OG/JSON)
+            </text>
+            <text
+              x="268"
+              y="114"
+              className="fill-emerald-400 font-mono text-[10px]"
+            >
+              ✓ Magic Bytes · ≤ 10 MB
+            </text>
+
+            {/* Arrow 2 -> 3 */}
+            <path
+              d="M442 90 L474 90"
+              className="stroke-amber-400"
+              strokeWidth="2"
+              strokeDasharray="4 3"
+            />
+            <polygon points="474,85 484,90 474,95" className="fill-amber-400" />
+
+            {/* Node 3: Full-Size Download or Local Import */}
+            <rect
+              x="488"
+              y="46"
+              width="156"
+              height="88"
+              rx="10"
+              className="fill-orange-950/90 stroke-orange-400"
+              strokeWidth="1.5"
+            />
+            <text
+              x="504"
+              y="72"
+              className="fill-amber-400 font-mono text-[11px] font-bold"
+            >
+              03 · FULL-SIZE SAVE
+            </text>
+            <text
+              x="504"
+              y="94"
+              className="fill-orange-100 font-mono text-[10px]"
+            >
+              JPG / PNG / WebP Zoom
+            </text>
+            <text
+              x="504"
+              y="114"
+              className="fill-orange-300/80 font-mono text-[10px]"
+            >
+              + Local Authwall Fallback
+            </text>
+          </g>
+        );
+
       default:
         return (
           <g>

@@ -99,7 +99,11 @@
         "problem": "Imagem JPG não aparece em Fotos no iPhone",
         "solution": "O Safari grava imagens em Arquivos > Downloads. Abra linkedin_profile.jpg em Arquivos, toque em Compartilhar e escolha Salvar Imagem para copiá-la para Fotos."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Foto de perfil pública do LinkedIn: como ver em tamanho real e salvar",
+      "href": "/pt/blog/ver-salvar-foto-perfil-linkedin-tamanho-real"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar sua foto de perfil do LinkedIn salva",
@@ -152,6 +156,11 @@
       "x"
     ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Zero extração de dados pessoais, cache técnico de 10 minutos e modo manual 100% navegador."
+    "privacyDescription": "Zero extração de dados pessoais, cache técnico de 10 minutos e modo manual 100% navegador.",
+    "guideLink": {
+      "label": "Foto de perfil pública do LinkedIn: como ver em tamanho real e salvar",
+      "description": "Saiba como visualizar em tamanho grande e salvar uma foto de perfil pública do LinkedIn (/in/...), quais formatos a VIDNEX aceita e como usar o modo local diante de tela de login.",
+      "href": "/pt/blog/ver-salvar-foto-perfil-linkedin-tamanho-real"
+    }
   }
 }

@@ -108,7 +108,11 @@
         "problem": "Фото профиля не загружается при вводе имени пользователя",
         "solution": "Проверьте отсутствие лишних пробелов и опечаток в имени пользователя, а также убедитесь, что аккаунт открытый. При необходимости вставьте полный адрес instagram.com/username прямо из браузера."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Читать руководство: Reels из Instagram скачался без звука: технические причины и решение",
+      "href": "/ru/blog/reels-instagram-skachalsya-bez-zvuka-reshenie"
+    }
   },
   "whereToFind": {
     "heading": "Где найти скачанные Reels и фото из Instagram",
@@ -165,6 +169,11 @@
       "facebook"
     ],
     "privacyLabel": "Конфиденциальность и отсутствие хранения",
-    "privacyDescription": "Узнайте, как VIDNEX передаёт публичные файлы Instagram без сохранения копий на сервере."
+    "privacyDescription": "Узнайте, как VIDNEX передаёт публичные файлы Instagram без сохранения копий на сервере.",
+    "guideLink": {
+      "label": "Reels из Instagram скачался без звука: технические причины и решение",
+      "description": "Разбираем, почему публичные Reels Instagram иногда сохраняются без звука (раздельные дорожки DASH против прогрессивного MP4, отключённая музыка, кодеки) и как получить MP4 со звуком.",
+      "href": "/ru/blog/reels-instagram-skachalsya-bez-zvuka-reshenie"
+    }
   }
 }

@@ -56,6 +56,14 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
     [blogLocale]
   );
 
+  const activeCategoryKeys = useMemo(
+    () =>
+      BLOG_CATEGORY_KEYS.filter((catKey) =>
+        allArticles.some((item) => item.article.category === catKey)
+      ),
+    [allArticles]
+  );
+
   useEffect(() => {
     trackBlogHubView(blogLocale);
   }, [blogLocale]);
@@ -157,9 +165,9 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
           </li>
         </ol>
 
-        {/* Blog Editorial Language Editions Switcher (Strictly the 5 published blog hubs) */}
+        {/* Blog Editorial Language Editions Switcher (Strictly published blog hubs) */}
         <div
-          className="flex items-center gap-1.5"
+          className="flex items-center flex-wrap gap-1.5"
           aria-label={ui.availableLanguagesLabel}
         >
           <span className="text-[11px] uppercase tracking-wider text-[#6c4e40] dark:text-orange-200/70 mr-1">
@@ -265,12 +273,13 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
           >
             {ui.allCategoriesLabel}
           </button>
-          {BLOG_CATEGORY_KEYS.map((catKey) => {
+          {activeCategoryKeys.map((catKey) => {
             const isSelected = selectedCategory === catKey;
             return (
               <button
                 key={catKey}
                 type="button"
+                data-category-key={catKey}
                 onClick={() => handleCategoryChange(catKey)}
                 aria-pressed={isSelected}
                 className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
@@ -296,8 +305,8 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
                 <p className="font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold">
                   {ui.featuredLabel} ·{' '}
                   {ui.categories[featuredEntry.article.category]} ·{' '}
-                  <time dateTime={featuredEntry.article.updatedAt}>
-                    {featuredEntry.article.updatedAt}
+                  <time dateTime={featuredEntry.translation.updatedAt || featuredEntry.article.updatedAt}>
+                    {featuredEntry.translation.updatedAt || featuredEntry.article.updatedAt}
                   </time>{' '}
                   · {featuredEntry.translation.readingTimeMinutes}{' '}
                   {ui.minReadSuffix}
@@ -410,8 +419,8 @@ export const BlogIndexView: React.FC<BlogIndexViewProps> = ({
                     {/* Unboxed typographic metadata */}
                     <p className="font-mono text-[11px] text-orange-700 dark:text-amber-400 font-semibold">
                       {ui.categories[item.article.category]} ·{' '}
-                      <time dateTime={item.article.updatedAt}>
-                        {item.article.updatedAt}
+                      <time dateTime={item.translation.updatedAt || item.article.updatedAt}>
+                        {item.translation.updatedAt || item.article.updatedAt}
                       </time>{' '}
                       · {item.translation.readingTimeMinutes} {ui.minReadSuffix}
                     </p>

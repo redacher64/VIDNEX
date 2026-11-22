@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Tabel spesifikasi masukan, grid, dan keluaran Potong Gambar",
     "subheading": "Seluruh format file, ukuran grid, dan perilaku keluaran nyata yang berjalan di browser Anda.",
-    "headers": ["Pengaturan / Fitur", "Pilihan tersedia", "Perilaku teknis nyata"],
+    "headers": [
+      "Pengaturan / Fitur",
+      "Pilihan tersedia",
+      "Perilaku teknis nyata"
+    ],
     "rows": [
-      ["Format masukan", "JPG, PNG, WebP", "Dibaca langsung oleh HTML5 Canvas di browser; dimensi di atas 8000 px diperkecil proporsional."],
-      ["Preset grid", "2×2, 3×3, 1×3, 3×1", "Pemotongan instan untuk profil Instagram 3×3 dan carousel panorama horizontal atau vertikal."],
-      ["Grid kustom", "1–10 baris × 1–10 kolom", "Menghasilkan hingga 100 ubin simetris dengan pratinjau garis potong secara langsung."],
-      ["Urutan Instagram", "Aktif / Nonaktif", "Saat aktif, potongan kanan bawah menjadi image-1 hingga kiri atas agar siap unggah berurutan."],
-      ["Format keluaran", "PNG atau JPG (10%–100%)", "PNG menjaga transparansi lossless; JPG mengisi latar putih otomatis di balik area transparan."],
-      ["Paket unduhan", "Satuan atau ZIP", "JSZip merakit vidnex-split-{baris}x{kolom}.zip secara lokal tanpa menyentuh server."]
+      [
+        "Format masukan",
+        "JPG, PNG, WebP",
+        "Dibaca langsung oleh HTML5 Canvas di browser; dimensi di atas 8000 px diperkecil proporsional."
+      ],
+      [
+        "Preset grid",
+        "2×2, 3×3, 1×3, 3×1",
+        "Pemotongan instan untuk profil Instagram 3×3 dan carousel panorama horizontal atau vertikal."
+      ],
+      [
+        "Grid kustom",
+        "1–10 baris × 1–10 kolom",
+        "Menghasilkan hingga 100 ubin simetris dengan pratinjau garis potong secara langsung."
+      ],
+      [
+        "Urutan Instagram",
+        "Aktif / Nonaktif",
+        "Saat aktif, potongan kanan bawah menjadi image-1 hingga kiri atas agar siap unggah berurutan."
+      ],
+      [
+        "Format keluaran",
+        "PNG atau JPG (10%–100%)",
+        "PNG menjaga transparansi lossless; JPG mengisi latar putih otomatis di balik area transparan."
+      ],
+      [
+        "Paket unduhan",
+        "Satuan atau ZIP",
+        "JSZip merakit vidnex-split-{baris}x{kolom}.zip secara lokal tanpa menyentuh server."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "Proses pembuatan ZIP untuk grid 10×10 (100 ubin) terasa beberapa detik lebih lama",
         "solution": "Karena seluruh pemotongan dan kompresi ZIP berjalan lokal di prosesor perangkat Anda, membuat 100 file PNG resolusi penuh memang butuh beberapa detik. Memilih JPG kualitas 85%–90% akan mempercepat proses secara signifikan."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   },
   "whereToFind": {
     "heading": "Di mana menemukan hasil potongan gambar dan file ZIP Anda",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Alat VIDNEX lainnya dan jaminan privasi",
     "subheading": "Lengkapi kebutuhan konten Anda dengan pengunduh publik Instagram, TikTok, dan LinkedIn.",
-    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "linkedin"
+    ],
     "privacyLabel": "Kebijakan privasi dan pemrosesan 100% lokal",
-    "privacyDescription": "Baca rincian mengapa alat Potong Gambar tidak pernah mengunggah file Anda ke server."
+    "privacyDescription": "Baca rincian mengapa alat Potong Gambar tidak pernah mengunggah file Anda ke server.",
+    "guideLink": {
+      "label": "Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "description": "Cari tahu letak persis video MP4 hasil unduhan Safari di iPhone dan iPad dalam aplikasi File, cara memindahkannya ke aplikasi Foto, dan solusi masalah umum iOS.",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   }
 }

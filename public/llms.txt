@@ -30,11 +30,16 @@
 
 - [Accueil VIDNEX (FR)](https://vidnex.space/) | [VIDNEX Home (EN)](https://vidnex.space/en)
 - [Découper une image (FR)](https://vidnex.space/tools/split-image) | [Split Image Online (EN)](https://vidnex.space/en/tools/split-image)
-- [VIDNEX Editorial Blog (English)](https://vidnex.space/en/blog)
-- [Blog VIDNEX (Français)](https://vidnex.space/fr/blog)
-- [Blog de VIDNEX (Español)](https://vidnex.space/es/blog)
+- [VIDNEX Blog (English)](https://vidnex.space/en/blog)
+- [VIDNEX Blog (Français)](https://vidnex.space/fr/blog)
+- [VIDNEX Blog (Español)](https://vidnex.space/es/blog)
+- [VIDNEX Blog (Português)](https://vidnex.space/pt/blog)
 - [VIDNEX Blog (Deutsch)](https://vidnex.space/de/blog)
-- [مدونة VIDNEX (العربية)](https://vidnex.space/ar/blog)
+- [VIDNEX Blog (Türkçe)](https://vidnex.space/tr/blog)
+- [VIDNEX Blog (Bahasa Indonesia)](https://vidnex.space/id/blog)
+- [VIDNEX Blog (Italiano)](https://vidnex.space/it/blog)
+- [VIDNEX Blog (Русский)](https://vidnex.space/ru/blog)
+- [VIDNEX Blog (العربية)](https://vidnex.space/ar/blog)
 - **Pages de confiance (disponibles dans les 10 langues)** :
   - **about** : [FR](https://vidnex.space/a-propos) | [EN](https://vidnex.space/en/about) | [AR](https://vidnex.space/ar/about) | [ES](https://vidnex.space/es/about) | [PT](https://vidnex.space/pt/about) | [DE](https://vidnex.space/de/about) | [TR](https://vidnex.space/tr/about) | [ID](https://vidnex.space/id/about) | [IT](https://vidnex.space/it/about) | [RU](https://vidnex.space/ru/about)
   - **privacy** : [FR](https://vidnex.space/confidentialite) | [EN](https://vidnex.space/en/privacy) | [AR](https://vidnex.space/ar/privacy) | [ES](https://vidnex.space/es/privacy) | [PT](https://vidnex.space/pt/privacy) | [DE](https://vidnex.space/de/privacy) | [TR](https://vidnex.space/tr/privacy) | [ID](https://vidnex.space/id/privacy) | [IT](https://vidnex.space/it/privacy) | [RU](https://vidnex.space/ru/privacy)
@@ -46,40 +51,94 @@
 
 - [Why Is My TikTok Video Not Downloading? 7 Causes and Fixes](https://vidnex.space/en/blog/troubleshooting-expired-blocked-social-media-links)
 - [Instagram Reel Downloaded Without Sound? Here's Why](https://vidnex.space/en/blog/instagram-reels-carousels-resolution-compression-guide)
+- [Where Do Downloaded Videos Go on iPhone and iPad? (Files App Guide)](https://vidnex.space/en/blog/how-to-download-videos-on-iphone)
 - [MP4 vs MP3: What's the Difference?](https://vidnex.space/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide)
 - [Why Is My Downloaded Video Low Quality?](https://vidnex.space/en/blog/why-is-downloaded-video-low-quality)
 - [How to Save Public TikTok Videos Without a Watermark on Any Device](https://vidnex.space/en/blog/save-public-tiktok-videos-without-watermark-guide)
 - [How to Save Public Instagram Reels, Carousels, and Posts with Sound](https://vidnex.space/en/blog/download-public-instagram-reels-carousels-guide)
 - [How to Save Public X (Twitter) Videos, GIFs (as MP4), and Post Photos](https://vidnex.space/en/blog/download-public-x-twitter-videos-gifs-mp4-guide)
 - [How to Save Public Facebook Videos and Reels in HD or SD MP4](https://vidnex.space/en/blog/download-public-facebook-videos-reels-hd-sd-guide)
+- [Public LinkedIn Profile Photo: How to View Full-Size and Save It](https://vidnex.space/en/blog/linkedin-public-profile-photo-view-full-size-save)
 
 ## Guides techniques publiés (Français — /fr/blog)
 
 - [Pourquoi ma vidéo TikTok ne se télécharge pas ? 7 causes et solutions](https://vidnex.space/fr/blog/telecharger-video-tiktok-probleme)
 - [Reel Instagram téléchargé sans le son ? Voici pourquoi et comment le corriger](https://vidnex.space/fr/blog/instagram-reels-carrousels-resolution-compression-guide)
+- [Où vont les vidéos téléchargées sur iPhone et iPad (app Fichiers) ?](https://vidnex.space/fr/blog/ou-vont-les-videos-telechargees-iphone)
 - [MP4 vs MP3 : quelle est la différence technique ?](https://vidnex.space/fr/blog/audio-tiktok-mp3-vs-m4a-aac-guide-technique)
 - [Comment enregistrer une vidéo TikTok publique sans filigrane (Mobile et PC)](https://vidnex.space/fr/blog/enregistrer-videos-tiktok-publiques-sans-filigrane-guide)
 - [Comment enregistrer un Reel, un carrousel ou une publication Instagram publique avec le son](https://vidnex.space/fr/blog/telecharger-reels-carrousels-instagram-publics-guide)
 - [Comment enregistrer une vidéo, un GIF (en MP4) ou une photo sur X (Twitter)](https://vidnex.space/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide)
 - [Comment enregistrer une vidéo ou un Reel Facebook public en MP4 HD ou SD](https://vidnex.space/fr/blog/telecharger-videos-reels-facebook-publics-hd-sd-guide)
+- [Photo de profil LinkedIn publique : comment la voir en grand et l’enregistrer](https://vidnex.space/fr/blog/photo-profil-linkedin-publique-voir-en-grand-enregistrer)
 
 ## Guides techniques publiés (Español — /es/blog)
 
 - [¿Por qué no se descarga mi vídeo de TikTok? 7 causas y soluciones](https://vidnex.space/es/blog/por-que-no-se-descarga-video-tiktok)
 - [¿Reel de Instagram descargado sin sonido? Por qué ocurre y solución](https://vidnex.space/es/blog/reel-instagram-descargado-sin-audio)
+- [Dónde van los vídeos descargados en iPhone y iPad (app Archivos)](https://vidnex.space/es/blog/como-descargar-videos-en-iphone-archivos)
+- [Cómo guardar un vídeo de TikTok sin marca de agua paso a paso](https://vidnex.space/es/blog/guardar-video-tiktok-sin-marca-de-agua)
+- [Foto de perfil pública de LinkedIn: cómo verla en grande y guardarla](https://vidnex.space/es/blog/ver-guardar-foto-perfil-linkedin-grande)
+
+## Guides techniques publiés (Português — /pt/blog)
+
+- [Por que um vídeo do TikTok não baixa? Links privados, expirados e bloqueios](https://vidnex.space/pt/blog/por-que-video-tiktok-nao-baixa-solucoes)
+- [Reel do Instagram baixado sem som: por que acontece e como resolver](https://vidnex.space/pt/blog/reel-instagram-baixado-sem-som-como-corrigir)
+- [Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)](https://vidnex.space/pt/blog/onde-ficam-videos-baixados-iphone-arquivos)
+- [Como salvar vídeo do TikTok sem marca d’água em MP4 passo a passo](https://vidnex.space/pt/blog/salvar-video-tiktok-sem-marca-dagua)
+- [Foto de perfil pública do LinkedIn: como ver em tamanho real e salvar](https://vidnex.space/pt/blog/ver-salvar-foto-perfil-linkedin-tamanho-real)
 
 ## Guides techniques publiés (Deutsch — /de/blog)
 
 - [Warum lädt mein TikTok-Video nicht herunter? 7 Ursachen & Lösungen](https://vidnex.space/de/blog/tiktok-video-laedt-nicht-herunter-loesung)
 - [Instagram Reel ohne Ton heruntergeladen? Ursachen & Lösung](https://vidnex.space/de/blog/instagram-reel-ohne-ton-heruntergeladen)
+- [Wo sind heruntergeladene Videos auf dem iPhone und iPad?](https://vidnex.space/de/blog/wo-sind-heruntergeladene-videos-iphone-dateien)
 - [MP4 vs. MP3: Was ist der technische Unterschied?](https://vidnex.space/de/blog/mp4-vs-mp3-unterschied-erklaert)
+- [TikTok-Video ohne Wasserzeichen speichern: Anleitung in MP4](https://vidnex.space/de/blog/tiktok-video-ohne-wasserzeichen-speichern)
+- [Öffentliches LinkedIn-Profilbild groß ansehen und speichern](https://vidnex.space/de/blog/linkedin-profilbild-gross-ansehen-speichern)
+
+## Guides techniques publiés (Türkçe — /tr/blog)
+
+- [TikTok Videosu Neden İnmiyor? Gizli, Süresi Dolmuş ve Engelli Bağlantılar](https://vidnex.space/tr/blog/tiktok-videosu-neden-inmiyor-cozumler)
+- [Instagram Reels Sessiz İniyor: Neden Olur ve Sesli MP4 Nasıl Kaydedilir?](https://vidnex.space/tr/blog/instagram-reels-sessiz-iniyor-cozum-rehberi)
+- [iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)](https://vidnex.space/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar)
+- [Filigransız TikTok Videosu Nasıl Kaydedilir? Adım Adım MP4 Rehberi](https://vidnex.space/tr/blog/filigransiz-tiktok-videosu-kaydetme-rehberi)
+- [Herkese Açık LinkedIn Profil Fotoğrafı: Büyük Görüntüleme ve Kaydetme](https://vidnex.space/tr/blog/linkedin-profil-fotografi-buyuk-goruntuleme-kaydetme)
+
+## Guides techniques publiés (Bahasa Indonesia — /id/blog)
+
+- [Kenapa Video TikTok Tidak Bisa Didownload? Tautan Privat, Kedaluwarsa & Blokir](https://vidnex.space/id/blog/kenapa-video-tiktok-tidak-bisa-didownload-solusi)
+- [Reel Instagram Didownload Tanpa Suara: Penyebab Teknis & Cara Mengatasinya](https://vidnex.space/id/blog/reel-instagram-didownload-tanpa-suara-solusi)
+- [Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)](https://vidnex.space/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file)
+- [Cara Simpan Video TikTok Tanpa Watermark dalam Format MP4 HD](https://vidnex.space/id/blog/cara-simpan-video-tiktok-tanpa-watermark)
+- [Foto Profil Publik LinkedIn: Cara Melihat Ukuran Penuh & Menyimpannya](https://vidnex.space/id/blog/cara-lihat-simpan-foto-profil-linkedin-ukuran-penuh)
+
+## Guides techniques publiés (Italiano — /it/blog)
+
+- [Perché un video TikTok non si scarica? Link privati, scaduti o bloccati](https://vidnex.space/it/blog/perche-video-tiktok-non-si-scarica-soluzioni)
+- [Reel Instagram scaricato senza audio: cause tecniche e come risolvere](https://vidnex.space/it/blog/reel-instagram-scaricato-senza-audio-soluzione)
+- [Dove vanno i video scaricati su iPhone e iPad (app File)](https://vidnex.space/it/blog/dove-vanno-video-scaricati-iphone-app-file)
+- [Come salvare un video TikTok senza filigrana in MP4 passo dopo passo](https://vidnex.space/it/blog/salvare-video-tiktok-senza-filigrana)
+- [Foto profilo LinkedIn pubblica: come vederla in grande e salvarla](https://vidnex.space/it/blog/vedere-salvare-foto-profilo-linkedin-grande)
+
+## Guides techniques publiés (Русский — /ru/blog)
+
+- [Почему видео TikTok не скачивается? Приватные, устаревшие и заблокированные ссылки](https://vidnex.space/ru/blog/pochemu-video-tiktok-ne-skachivaetsya-resheniya)
+- [Reels из Instagram скачался без звука: технические причины и решение](https://vidnex.space/ru/blog/reels-instagram-skachalsya-bez-zvuka-reshenie)
+- [Где находятся скачанные видео на iPhone и iPad (приложение «Файлы»)](https://vidnex.space/ru/blog/gde-hranyatsya-skachannye-video-iphone-faily)
+- [Как сохранить видео из TikTok без водяного знака в MP4: пошаговое руководство](https://vidnex.space/ru/blog/sohranit-video-tiktok-bez-vodyanogo-znaka)
+- [Публичное фото профиля LinkedIn: как открыть в полном размере и сохранить](https://vidnex.space/ru/blog/foto-profilya-linkedin-posmotret-sohranit-hd)
 
 ## Guides techniques publiés (العربية — /ar/blog)
 
+- [لماذا لا يتم تنزيل فيديو تيك توك؟ الأسباب الحقيقية والحلول العملية](https://vidnex.space/ar/blog/limatha-la-yatim-tanzil-video-tiktok-hulul)
+- [ريلز إنستغرام بدون صوت بعد التنزيل: الأسباب التقنية والحلول](https://vidnex.space/ar/blog/reel-instagram-bidun-sawt-hal-almushkila)
+- [أين تذهب الفيديوهات المحملة على الآيفون والآيباد؟ (تطبيق الملفات)](https://vidnex.space/ar/blog/ayna-tuthhab-vidiohat-iphone-tatbiq-almalafat)
 - [كيفية تنزيل فيديو تيك توك عام بدون علامة مائية على الهاتف والكمبيوتر](https://vidnex.space/ar/blog/tanzil-video-tiktok-bidun-alama-maiya-dalil)
 - [كيفية تنزيل ريلز ومنشورات كاروسيل إنستغرام العامة مع الصوت بجودة عالية](https://vidnex.space/ar/blog/tanzil-reels-carousel-instagram-ama-maa-alsawt-dalil)
 - [كيفية تنزيل فيديو أو صورة متحركة GIF (بصيغة MP4) أو صور من منصة إكس (تويتر)](https://vidnex.space/ar/blog/tanzil-video-gif-x-twitter-mp4-dalil)
 - [كيفية تنزيل فيديو أو ريلز فيسبوك عام بصيغة MP4 بجودة HD أو SD](https://vidnex.space/ar/blog/tanzil-video-reels-facebook-ama-hd-sd-dalil)
+- [صورة الملف الشخصي العامة على لينكدإن: كيف تعرضها بالحجم الكامل وتحفظها](https://vidnex.space/ar/blog/surat-almalaf-alshakhsi-linkedin-ard-wahifz)
 
 ## Langues disponibles (10)
 

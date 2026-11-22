@@ -98,7 +98,11 @@
         "problem": "1080p seçeneği görünmüyor, en yüksek 720p veya 480p çıkıyor",
         "solution": "VIDNEX videoları sonradan büyütmez. Listelenen aşamalı MP4 seçenekleri tamamen X sunucusunun o gönderi için yayınladığı gerçek bit hızı varyantlarına bağlıdır; gönderi 720p yüklendiyse en yüksek seçenek 720p olur."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen X videoları ve fotoğrafları cihazınızda nerede?",
@@ -151,6 +155,11 @@
       "linkedin"
     ],
     "privacyLabel": "Gizlilik politikası ve depolamasız çalışma",
-    "privacyDescription": "X bağlantılarınızın neden kaydedilmediğini ve dosyaların nasıl aktarıldığını inceleyin."
+    "privacyDescription": "X bağlantılarınızın neden kaydedilmediğini ve dosyaların nasıl aktarıldığını inceleyin.",
+    "guideLink": {
+      "label": "iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "description": "Safari ile iPhone veya iPad’e indirilen MP4 videoların Dosyalar uygulamasında tam olarak nereye kaydedildiğini ve Fotoğraflar galerisine nasıl aktarıldığını adım adım öğrenin.",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   }
 }

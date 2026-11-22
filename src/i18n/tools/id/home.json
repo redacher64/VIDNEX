@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Tabel ringkasan alat VIDNEX dan format keluaran asli",
     "subheading": "Kemampuan nyata dan format file yang dihasilkan untuk setiap platform yang didukung VIDNEX.",
-    "headers": ["Platform / Alat", "Format file keluar", "Kemampuan dan batasan nyata"],
+    "headers": [
+      "Platform / Alat",
+      "Format file keluar",
+      "Kemampuan dan batasan nyata"
+    ],
     "rows": [
-      ["TikTok", "MP4, MP3/M4A, JPG, ZIP", "Video HD/SD tanpa watermark, audio terverifikasi MIME/HEAD, slide foto (maks 20 file / 100 MB ZIP), dan avatar."],
-      ["Instagram", "MP4, JPG, ZIP", "Reels, video dan foto /p/, carousel campuran (maks 20 item / 100 MB), dan foto profil; Story butuh login."],
-      ["X (Twitter)", "MP4, JPG, PNG, ZIP", "MP4 progresif urut bitrate tertinggi, GIF sebagai MP4, dan 1–4 foto ?name=orig; domain mirror ditolak."],
-      ["Facebook", "MP4 (HD dan SD)", "Video publik, Reels, dan tautan pendek fb.watch bersuara; foto, Story, grup privat, dan Live dikecualikan."],
-      ["LinkedIn", "JPG", "Khusus foto profil pribadi /in/ publik (maks 10 MB, media.licdn.com); tanpa halaman perusahaan atau video."],
-      ["Potong Gambar", "PNG, JPG, ZIP", "100% lokal memakai HTML5 Canvas dan JSZip; preset 2×2, 3×3, 1×3, 3×1, dan kustom hingga 10×10."]
+      [
+        "TikTok",
+        "MP4, MP3/M4A, JPG, ZIP",
+        "Video HD/SD tanpa watermark, audio terverifikasi MIME/HEAD, slide foto (maks 20 file / 100 MB ZIP), dan avatar."
+      ],
+      [
+        "Instagram",
+        "MP4, JPG, ZIP",
+        "Reels, video dan foto /p/, carousel campuran (maks 20 item / 100 MB), dan foto profil; Story butuh login."
+      ],
+      [
+        "X (Twitter)",
+        "MP4, JPG, PNG, ZIP",
+        "MP4 progresif urut bitrate tertinggi, GIF sebagai MP4, dan 1–4 foto ?name=orig; domain mirror ditolak."
+      ],
+      [
+        "Facebook",
+        "MP4 (HD dan SD)",
+        "Video publik, Reels, dan tautan pendek fb.watch bersuara; foto, Story, grup privat, dan Live dikecualikan."
+      ],
+      [
+        "LinkedIn",
+        "JPG",
+        "Khusus foto profil pribadi /in/ publik (maks 10 MB, media.licdn.com); tanpa halaman perusahaan atau video."
+      ],
+      [
+        "Potong Gambar",
+        "PNG, JPG, ZIP",
+        "100% lokal memakai HTML5 Canvas dan JSZip; preset 2×2, 3×3, 1×3, 3×1, dan kustom hingga 10×10."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "Pengunduhan ZIP untuk banyak foto berhenti di tengah jalan",
         "solution": "Arsip ZIP dirakit langsung di memori browser dengan batas keamanan maksimal 20 file atau total 100 MB. Jika album lebih besar, centang sebagian foto terlebih dahulu lalu unduh dalam dua gelombang."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   },
   "whereToFind": {
     "heading": "Di mana menemukan file hasil download di perangkat Anda",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Buka halaman alat khusus untuk tiap platform",
     "subheading": "Pelajari tabel format, solusi kendala, dan batasan teknis secara lengkap pada masing-masing alat.",
-    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "toolKeys": [
+      "tiktok",
+      "instagram",
+      "split_image"
+    ],
     "privacyLabel": "Kebijakan privasi dan pemrosesan tanpa penyimpanan",
-    "privacyDescription": "Pahami cara VIDNEX menangani tautan publik tanpa menyimpan media atau data akun Anda."
+    "privacyDescription": "Pahami cara VIDNEX menangani tautan publik tanpa menyimpan media atau data akun Anda.",
+    "guideLink": {
+      "label": "Cara Simpan Video TikTok Tanpa Watermark dalam Format MP4 HD",
+      "description": "Pelajari cara menyimpan video TikTok publik tanpa watermark ke format MP4 di iPhone, Android, dan laptop, plus cara unduh audio MP3/M4A dan slide foto.",
+      "href": "/id/blog/cara-simpan-video-tiktok-tanpa-watermark"
+    }
   }
 }

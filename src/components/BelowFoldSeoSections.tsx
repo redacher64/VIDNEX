@@ -35,6 +35,7 @@ const PILLAR_BLOG_ARTICLE_IDS: Partial<Record<PlatformPageKey, string>> = {
   instagram: 'download-public-instagram-reels-carousels-guide',
   x: 'download-public-x-twitter-videos-gifs-mp4-guide',
   facebook: 'download-public-facebook-videos-reels-hd-sd-guide',
+  linkedin: 'linkedin-public-profile-photo-view-save-guide',
 };
 
 const PRACTICAL_GUIDE_LABELS: Record<SupportedLocale, string> = {

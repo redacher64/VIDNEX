@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Tabela de grades, formatos e limites de Dividir imagem",
     "subheading": "Especificações reais do motor local HTML5 Canvas e JSZip executado no navegador.",
-    "headers": ["Configuração ou formato", "Opções suportadas", "Comportamento real da ferramenta"],
+    "headers": [
+      "Configuração ou formato",
+      "Opções suportadas",
+      "Comportamento real da ferramenta"
+    ],
     "rows": [
-      ["Imagens de entrada", "JPG, PNG, WebP", "Decodificadas na memória local; redução proporcional automática se algum lado passar de 8000 px."],
-      ["Predefinições rápidas", "2×2, 3×3, 1×3, 3×1", "Recorte imediato para mosaicos quadrados, grades de 9 posts no Instagram e carrosséis."],
-      ["Grade personalizada", "1–10 linhas × 1–10 colunas", "Gera entre 1 e 100 recortes alinhados ao pixel com prévia numerada ao vivo."],
-      ["Ordem Instagram", "Ativada / Desativada", "Numera do canto inferior direito (image-1) ao superior esquerdo para publicação correta."],
-      ["Exportação PNG", "PNG sem perdas", "Ideal para textos, logotipos, gráficos e fundos transparentes com nitidez preservada."],
-      ["Exportação JPG + ZIP", "JPG (10%–100%) / .ZIP", "Deslizador de qualidade ajustável, fundo branco para transparências PNG e vidnex-split-{L}x{C}.zip."]
+      [
+        "Imagens de entrada",
+        "JPG, PNG, WebP",
+        "Decodificadas na memória local; redução proporcional automática se algum lado passar de 8000 px."
+      ],
+      [
+        "Predefinições rápidas",
+        "2×2, 3×3, 1×3, 3×1",
+        "Recorte imediato para mosaicos quadrados, grades de 9 posts no Instagram e carrosséis."
+      ],
+      [
+        "Grade personalizada",
+        "1–10 linhas × 1–10 colunas",
+        "Gera entre 1 e 100 recortes alinhados ao pixel com prévia numerada ao vivo."
+      ],
+      [
+        "Ordem Instagram",
+        "Ativada / Desativada",
+        "Numera do canto inferior direito (image-1) ao superior esquerdo para publicação correta."
+      ],
+      [
+        "Exportação PNG",
+        "PNG sem perdas",
+        "Ideal para textos, logotipos, gráficos e fundos transparentes com nitidez preservada."
+      ],
+      [
+        "Exportação JPG + ZIP",
+        "JPG (10%–100%) / .ZIP",
+        "Deslizador de qualidade ajustável, fundo branco para transparências PNG e vidnex-split-{L}x{C}.zip."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "As partes dentro do ZIP não aparecem na Galeria do celular",
         "solution": "Galerias não exibem fotos compactadas dentro de um ZIP. Toque no arquivo em Arquivos (iOS) ou clique em Extrair no gerenciador do Android primeiro."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)",
+      "href": "/pt/blog/onde-ficam-videos-baixados-iphone-arquivos"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar seus recortes e arquivo ZIP",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Outras ferramentas VIDNEX para criadores",
     "subheading": "Combine o corte local de grades com nossos baixadores públicos de redes sociais.",
-    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "linkedin"
+    ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Processamento 100% local no navegador para Dividir imagem, sem uploads e sem conta."
+    "privacyDescription": "Processamento 100% local no navegador para Dividir imagem, sem uploads e sem conta.",
+    "guideLink": {
+      "label": "Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)",
+      "description": "Descubra onde o Safari salva os vídeos MP4 baixados no iPhone e iPad, como encontrá-los no aplicativo Arquivos e como movê-los para a galeria Fotos em dois toques.",
+      "href": "/pt/blog/onde-ficam-videos-baixados-iphone-arquivos"
+    }
   }
 }

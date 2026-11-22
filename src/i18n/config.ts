@@ -934,7 +934,7 @@ export function getAllBlogPublicRoutes(): PublicRouteEntry[] {
         pageKey: 'blog_article',
         blogSlug: item.translation.localizedSlug,
         blogArticleId: item.article.id,
-        lastmod: item.article.updatedAt,
+        lastmod: item.translation.updatedAt || item.article.updatedAt,
         hasHreflang: true,
         priority: blogLoc === 'en' ? '0.8' : '0.7',
         changefreq: 'monthly',
@@ -1010,11 +1010,7 @@ export function resolveBlogRedirectPath(rawPathname: string): string | null {
   }
 
   if (
-    (normalized.startsWith('/en/blog/') ||
-      normalized.startsWith('/fr/blog/') ||
-      normalized.startsWith('/es/blog/') ||
-      normalized.startsWith('/de/blog/') ||
-      normalized.startsWith('/ar/blog/')) &&
+    BLOG_HUB_LOCALES.some((loc) => normalized.startsWith(`/${loc}/blog/`)) &&
     normalized.endsWith('-2026')
   ) {
     const stripped = normalized.replace(/-2026$/, '');
@@ -1030,11 +1026,22 @@ export function resolveBlogRedirectPath(rawPathname: string): string | null {
  */
 export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
   const base = siteUrl.replace(/\/+$/, '');
-  const enArticles = getPublishedArticlesForLocale('en');
-  const frArticles = getPublishedArticlesForLocale('fr');
-  const esArticles = getPublishedArticlesForLocale('es');
-  const deArticles = getPublishedArticlesForLocale('de');
-  const arArticles = getPublishedArticlesForLocale('ar');
+  const blogHubLines = BLOG_HUB_LOCALES.map((loc) => {
+    const def = LOCALES_CONFIG[loc];
+    return `- [VIDNEX Blog (${def.nativeName})](${base}${getBlogHomePath(loc)})`;
+  });
+  const blogArticleSections = BLOG_HUB_LOCALES.flatMap((loc) => {
+    const def = LOCALES_CONFIG[loc];
+    const articles = getPublishedArticlesForLocale(loc);
+    return [
+      `## Guides techniques publiés (${def.nativeName} — /${loc}/blog)`,
+      '',
+      ...articles.map(
+        (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
+      ),
+      '',
+    ];
+  });
 
   return [
     '# VIDNEX',
@@ -1069,11 +1076,7 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '',
     `- [Accueil VIDNEX (FR)](${base}/) | [VIDNEX Home (EN)](${base}/en)`,
     `- [Découper une image (FR)](${base}/tools/split-image) | [Split Image Online (EN)](${base}/en/tools/split-image)`,
-    `- [VIDNEX Editorial Blog (English)](${base}/en/blog)`,
-    `- [Blog VIDNEX (Français)](${base}/fr/blog)`,
-    `- [Blog de VIDNEX (Español)](${base}/es/blog)`,
-    `- [VIDNEX Blog (Deutsch)](${base}/de/blog)`,
-    `- [مدونة VIDNEX (العربية)](${base}/ar/blog)`,
+    ...blogHubLines,
     `- **Pages de confiance (disponibles dans les 10 langues)** :`,
     ...LEGAL_PAGE_KEYS.map((lKey) => {
       const links = SUPPORTED_LOCALES.map(
@@ -1083,36 +1086,7 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
       return `  - **${lKey}** : ${links}`;
     }),
     '',
-    '## Guides techniques publiés (English — /en/blog)',
-    '',
-    ...enArticles.map(
-      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
-    ),
-    '',
-    '## Guides techniques publiés (Français — /fr/blog)',
-    '',
-    ...frArticles.map(
-      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
-    ),
-    '',
-    '## Guides techniques publiés (Español — /es/blog)',
-    '',
-    ...esArticles.map(
-      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
-    ),
-    '',
-    '## Guides techniques publiés (Deutsch — /de/blog)',
-    '',
-    ...deArticles.map(
-      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
-    ),
-    '',
-    '## Guides techniques publiés (العربية — /ar/blog)',
-    '',
-    ...arArticles.map(
-      (item) => `- [${item.translation.title}](${base}${item.canonicalPath})`
-    ),
-    '',
+    ...blogArticleSections,
     '## Langues disponibles (10)',
     '',
     ...SUPPORTED_LOCALES.map((code) => {

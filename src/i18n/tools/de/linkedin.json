@@ -99,7 +99,11 @@
         "problem": "Gespeichertes JPG taucht nicht in iPhone Fotos auf",
         "solution": "Safari speichert Bilder in Dateien > Downloads. Öffnen Sie linkedin_profile.jpg in Dateien, tippen Sie auf Teilen und wählen Sie Bild sichern."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ratgeber lesen: Öffentliches LinkedIn-Profilbild groß ansehen und speichern",
+      "href": "/de/blog/linkedin-profilbild-gross-ansehen-speichern"
+    }
   },
   "whereToFind": {
     "heading": "Wo Sie das gespeicherte LinkedIn-Profilbild finden",
@@ -152,6 +156,11 @@
       "x"
     ],
     "privacyLabel": "Datenschutzerklärung von VIDNEX",
-    "privacyDescription": "Kein Profil-Scraping, 10-Minuten-Cache und 100 % lokaler Drag-and-Drop-Fallback."
+    "privacyDescription": "Kein Profil-Scraping, 10-Minuten-Cache und 100 % lokaler Drag-and-Drop-Fallback.",
+    "guideLink": {
+      "label": "Öffentliches LinkedIn-Profilbild groß ansehen und speichern",
+      "description": "So siehst du ein öffentliches LinkedIn-Profilbild in Originalgröße an und speicherst es über VIDNEX sauber als JPG — inklusive transparentem Hinweis zur LinkedIn-Anmeldesperre.",
+      "href": "/de/blog/linkedin-profilbild-gross-ansehen-speichern"
+    }
   }
 }

@@ -433,12 +433,13 @@ export function buildHeadMetadataForRoute(
           headline: item.translation.title,
           url: getCanonicalUrl(item.canonicalPath),
           image: getOgImageUrlForPage(item.article.primaryPlatform || 'blog'),
-          datePublished: item.article.publishedAt,
-          dateModified: item.article.updatedAt,
+          datePublished:
+            item.translation.publishedAt || item.article.publishedAt,
+          dateModified: item.translation.updatedAt || item.article.updatedAt,
           inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
           author: {
             '@type': 'Organization',
-            name: item.article.author?.name || SITE_NAME,
+            name: item.article.author?.name || 'Équipe VIDNEX',
             url: SITE_URL,
           },
         })),
@@ -526,9 +527,13 @@ export function buildHeadMetadataForRoute(
       article.featuredImage.alt.en ||
       title;
 
+    const articleImage = getOgImageUrlForPage(article.primaryPlatform || 'blog');
+    const articlePublishedAt = translation.publishedAt || article.publishedAt;
+    const articleUpdatedAt = translation.updatedAt || article.updatedAt;
+
     const graph: Record<string, unknown>[] = [
       {
-        '@type': 'Article',
+        '@type': 'BlogPosting',
         '@id': `${canonicalUrl}#article`,
         mainEntityOfPage: {
           '@type': 'WebPage',
@@ -536,9 +541,9 @@ export function buildHeadMetadataForRoute(
         },
         headline: translation.title,
         description,
-        image: ogImage,
-        datePublished: article.publishedAt,
-        dateModified: article.updatedAt,
+        image: articleImage,
+        datePublished: articlePublishedAt,
+        dateModified: articleUpdatedAt,
         inLanguage: LOCALES_CONFIG[blogLoc].hreflang,
         articleSection: article.category,
         keywords: [
@@ -547,7 +552,7 @@ export function buildHeadMetadataForRoute(
         ].join(', '),
         author: {
           '@type': 'Organization',
-          name: SITE_NAME,
+          name: article.author?.name || 'Équipe VIDNEX',
           url: SITE_URL,
         },
         publisher: {

@@ -99,7 +99,11 @@
         "problem": "O GIF baixado veio com extensão .mp4",
         "solution": "O X transforma GIFs animados em clipes MP4 muito menores e mais fluidos no momento da publicação. O arquivo MP4 reproduz em loop na maioria das galerias e mensageiros."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)",
+      "href": "/pt/blog/onde-ficam-videos-baixados-iphone-arquivos"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar seus vídeos, GIFs e fotos do X",
@@ -152,6 +156,11 @@
       "split_image"
     ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Sem arquivamento de mídias em servidor, sem login do X e geração ZIP local."
+    "privacyDescription": "Sem arquivamento de mídias em servidor, sem login do X e geração ZIP local.",
+    "guideLink": {
+      "label": "Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)",
+      "description": "Descubra onde o Safari salva os vídeos MP4 baixados no iPhone e iPad, como encontrá-los no aplicativo Arquivos e como movê-los para a galeria Fotos em dois toques.",
+      "href": "/pt/blog/onde-ficam-videos-baixados-iphone-arquivos"
+    }
   }
 }

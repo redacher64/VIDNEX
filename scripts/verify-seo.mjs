@@ -30,8 +30,10 @@ import {
 import { getLocaleBundleSync } from '../src/i18n/localeLoader.ts';
 import {
   BLOG_ARTICLES,
+  BLOG_HUB_LOCALES,
   getBlogArticlePath,
   getPublishedArticleById,
+  getPublishedArticlesForLocale,
 } from '../src/data/blogArticles.ts';
 import { validateStaticBlogRepository } from '../src/utils/blogValidation.ts';
 
@@ -271,6 +273,26 @@ function main() {
     );
   }
 
+  if (BLOG_HUB_LOCALES.length !== SUPPORTED_LOCALES.length) {
+    fail(
+      `Expected BLOG_HUB_LOCALES to contain all ${SUPPORTED_LOCALES.length} languages, got ${BLOG_HUB_LOCALES.length}`
+    );
+  }
+  for (const loc of SUPPORTED_LOCALES) {
+    const locPublished = getPublishedArticlesForLocale(loc);
+    if (locPublished.length < 5) {
+      fail(
+        `Blog locale "${loc}" has only ${locPublished.length} published articles (expected >= 5)`
+      );
+    }
+  }
+
+  // Build map of every indexable route path -> owning locale for strict same-language internal link checks
+  const routePathToLocale = new Map();
+  for (const r of routes) {
+    routePathToLocale.set(r.path, r.locale);
+  }
+
   // Build map of every legal path -> owning locale for strict footer locale-isolation verification
   const legalPathToLocale = new Map();
   for (const loc of SUPPORTED_LOCALES) {
@@ -279,8 +301,19 @@ function main() {
     }
   }
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const FORBIDDEN_BLOG_CLAIMS = [
+    /100\s*%\s*(s[uû]r|safe|seguro|sicher|g[uü]venli|aman|sicuro|безопасн)/i,
+    /\b(illimit[eé]e?s?|unlimited|ilimitad[oa]s?|unbegrenzt|s[ıi]n[ıi]rs[ıi]z|tanpa batas|illimitat[oaie]?|безлимитн)/i,
+    /\b(le meilleur|the best|el mejor|o melhor|der beste|en iyi|terbaik|il migliore|лучший)\b/i,
+    /آمن\s*100|غير محدود|الأفضل/,
+  ];
+
   const frHomeTitle = getLocaleBundleSync('fr').home.metaTitle;
   let blogPostingsVerified = 0;
+  let blogHubsVerified = 0;
+  let blogArticlesVerified = 0;
+  let newBlogArticlesVerified = 0;
   let legalPagesVerified = 0;
   let toolPagesVerified = 0;
   let footerPagesVerified = 0;
@@ -492,6 +525,37 @@ function main() {
           `Route ${route.path}: JSON-LD BlogPosting "${bp.headline || bp.url}" is missing valid image`
         );
       }
+      for (const dateField of ['datePublished', 'dateModified']) {
+        const dVal = bp[dateField];
+        if (typeof dVal === 'string') {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dVal)) {
+            fail(
+              `Route ${route.path}: JSON-LD BlogPosting ${dateField} "${dVal}" is not YYYY-MM-DD`
+            );
+          }
+          if (dVal > todayIso) {
+            fail(
+              `Route ${route.path}: JSON-LD BlogPosting ${dateField} "${dVal}" is in the future (> ${todayIso})`
+            );
+          }
+        }
+      }
+    }
+
+    // 2b-bis. Full BlogPosting + BreadcrumbList + FAQPage presence on every blog article
+    if (route.pageKey === 'blog_article') {
+      const bpNode = graphNodes.find((n) => n && n['@type'] === 'BlogPosting');
+      if (!bpNode) {
+        fail(`Blog article ${route.path}: missing JSON-LD BlogPosting node`);
+      }
+      if (!bpNode.publisher || !bpNode.datePublished || !bpNode.dateModified || bpNode.inLanguage !== route.locale) {
+        fail(
+          `Blog article ${route.path}: JSON-LD BlogPosting missing required publisher/datePublished/dateModified/inLanguage="${route.locale}"`
+        );
+      }
+      if (!graphNodes.some((n) => n && n['@type'] === 'BreadcrumbList')) {
+        fail(`Blog article ${route.path}: missing JSON-LD BreadcrumbList node`);
+      }
     }
 
     // 2c. Check JSON-LD schema types on legal pages (AboutPage / ContactPage / WebPage + BreadcrumbList)
@@ -700,6 +764,222 @@ function main() {
       }
 
       toolPagesVerified++;
+    }
+
+    // 5d. Blog hub checks (all 10 locales): zero empty category filters & meta description strictly reflects published platforms
+    if (route.pageKey === 'blog') {
+      const publishedInLocale = getPublishedArticlesForLocale(route.locale);
+      const activeCats = new Set(publishedInLocale.map((item) => item.article.category));
+      const catBtnRe = /data-category-key="([^"]+)"/gi;
+      let catMatch;
+      let catButtonsCount = 0;
+      while ((catMatch = catBtnRe.exec(html)) !== null) {
+        catButtonsCount++;
+        const renderedCat = catMatch[1];
+        if (!activeCats.has(renderedCat)) {
+          fail(
+            `Blog hub ${route.path}: rendered empty category filter "${renderedCat}" with 0 published articles in "${route.locale}"`
+          );
+        }
+      }
+      if (catButtonsCount === 0) {
+        fail(`Blog hub ${route.path}: expected at least 1 active category filter button`);
+      }
+      const descLower = decodeHtmlEntities(desc).toLowerCase();
+      if (!activeCats.has('facebook-guides') && /\bfacebook\b/i.test(descLower)) {
+        fail(
+          `Blog hub ${route.path}: meta description mentions Facebook without a published Facebook guide in "${route.locale}"`
+        );
+      }
+      if (!activeCats.has('x-guides') && /\btwitter\b/i.test(descLower)) {
+        fail(
+          `Blog hub ${route.path}: meta description mentions Twitter without a published X/Twitter guide in "${route.locale}"`
+        );
+      }
+      if (/\byoutube\b|\bsnapchat\b/i.test(descLower)) {
+        fail(
+          `Blog hub ${route.path}: meta description must not promise unsupported platforms (YouTube/Snapchat)`
+        );
+      }
+      blogHubsVerified++;
+    }
+
+    // 5e. Blog article checks (all 63 published articles): same-language internal links, FAQPage 1:1 DOM parity, and strict editorial rules on newly published articles
+    if (route.pageKey === 'blog_article') {
+      const artObj = route.blogArticleId
+        ? getPublishedArticleById(route.blogArticleId)
+        : null;
+      const trObj = artObj ? artObj.translations[route.locale] : null;
+      if (!artObj || !trObj) {
+        fail(`Blog article ${route.path}: unable to resolve article/translation in repository`);
+      }
+      const effectivePublishedAt = trObj.publishedAt || artObj.publishedAt;
+      const isNewlyPublished = effectivePublishedAt >= '2026-11-22';
+
+      // Extract outer <article> ... </article> (note: related cards use nested <article>, so slice from first <article to last </article>)
+      const firstArtIdx = html.indexOf('<article');
+      const lastArtIdx = html.lastIndexOf('</article>');
+      if (firstArtIdx === -1 || lastArtIdx === -1 || lastArtIdx <= firstArtIdx) {
+        fail(`Blog article ${route.path}: missing <article> container in pre-rendered HTML`);
+      }
+      const outerArticleHtml = html.slice(firstArtIdx, lastArtIdx + '</article>'.length);
+
+      // Verify all internal <a href="/..."> inside <article> (except language switcher links with lang="...") point to same-locale routes
+      const artLinkRe = /<a\s+([^>]*)href="(\/[^"#?]*)"([^>]*)>/gi;
+      let artLinkMatch;
+      while ((artLinkMatch = artLinkRe.exec(outerArticleHtml)) !== null) {
+        const attrs = `${artLinkMatch[1]} ${artLinkMatch[3]}`;
+        if (/\blang="/i.test(attrs)) continue; // Language switcher link
+        const cleanTarget = artLinkMatch[2].replace(/\/+$/, '') || '/';
+        const targetOwner = routePathToLocale.get(cleanTarget);
+        if (targetOwner && targetOwner !== route.locale) {
+          fail(
+            `Blog article ${route.path} (locale="${route.locale}"): cross-language internal link "${cleanTarget}" points to locale "${targetOwner}"`
+          );
+        }
+      }
+
+      // Extract visible FAQ items & verify 1:1 parity with JSON-LD FAQPage
+      const domFaqQ = [];
+      const domFaqA = [];
+      const bqRe = /data-faq-question="true"[^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+      const baRe = /data-faq-answer="true"[^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+      let bqM;
+      while ((bqM = bqRe.exec(outerArticleHtml)) !== null) {
+        domFaqQ.push(
+          decodeHtmlEntities(bqM[1].replace(/<[^>]+>/g, ' '))
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+      }
+      let baM;
+      while ((baM = baRe.exec(outerArticleHtml)) !== null) {
+        domFaqA.push(
+          decodeHtmlEntities(baM[1].replace(/<[^>]+>/g, ' '))
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+      }
+      if (domFaqQ.length !== domFaqA.length) {
+        fail(
+          `Blog article ${route.path}: mismatched visible FAQ questions (${domFaqQ.length}) vs answers (${domFaqA.length})`
+        );
+      }
+      if (domFaqQ.length > 0) {
+        const faqNode = graphNodes.find((n) => n && n['@type'] === 'FAQPage');
+        if (!faqNode || !Array.isArray(faqNode.mainEntity)) {
+          fail(`Blog article ${route.path}: missing JSON-LD FAQPage node`);
+        }
+        if (faqNode.mainEntity.length !== domFaqQ.length) {
+          fail(
+            `Blog article ${route.path}: JSON-LD FAQPage count (${faqNode.mainEntity.length}) !== rendered DOM FAQ count (${domFaqQ.length})`
+          );
+        }
+        for (let i = 0; i < domFaqQ.length; i++) {
+          const jQ = String(faqNode.mainEntity[i]?.name || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const jA = String(faqNode.mainEntity[i]?.acceptedAnswer?.text || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (jQ !== domFaqQ[i]) {
+            fail(
+              `Blog article ${route.path} FAQ #${i + 1}: JSON-LD question mismatch vs rendered HTML`
+            );
+          }
+          if (jA !== domFaqA[i]) {
+            fail(
+              `Blog article ${route.path} FAQ #${i + 1}: JSON-LD answer mismatch vs rendered HTML`
+            );
+          }
+        }
+      }
+
+      if (isNewlyPublished) {
+        // Slice main article body column [data-blog-article-body="true"] up to the related-articles section (excluding sources & CTA cards from pure editorial word check? Wait: include editorial prose + quickAnswer + sections + FAQ, exclude related articles)
+        const bodyMarker = outerArticleHtml.indexOf('data-blog-article-body="true"');
+        if (bodyMarker === -1) {
+          fail(`Blog article ${route.path}: missing data-blog-article-body="true" container`);
+        }
+        const relatedMarker = outerArticleHtml.indexOf('id="blog-related-heading"');
+        const bodySlice =
+          relatedMarker > bodyMarker
+            ? outerArticleHtml.slice(bodyMarker, relatedMarker)
+            : outerArticleHtml.slice(bodyMarker);
+
+        // Quick answer 40-60 words
+        const qaInner = extractTagContent(
+          bodySlice,
+          /data-quick-answer="true"[^>]*>([\s\S]*?)<\/div>/i
+        );
+        if (!qaInner) {
+          fail(`Blog article ${route.path}: missing data-quick-answer="true" block`);
+        }
+        const qaPlain = decodeHtmlEntities(qaInner.replace(/<[^>]+>/g, ' '))
+          .replace(/\s+/g, ' ')
+          .trim();
+        const qaWc = qaPlain ? qaPlain.split(/\s+/).length : 0;
+        if (qaWc < 40 || qaWc > 60) {
+          fail(
+            `Blog article ${route.path}: quickAnswer has ${qaWc} words (expected 40..60)`
+          );
+        }
+
+        // Real HTML <table> and <ol> ordered steps
+        if (!/<table\b/i.test(bodySlice) || !/<thead\b/i.test(bodySlice) || !/<tbody\b/i.test(bodySlice)) {
+          fail(`Blog article ${route.path}: missing real HTML <table> with <thead> and <tbody>`);
+        }
+        if (!/<ol\b/i.test(bodySlice)) {
+          fail(`Blog article ${route.path}: missing numbered steps <ol>`);
+        }
+
+        // FAQ count 4..5 and each answer 40..60 words
+        if (domFaqQ.length < 4 || domFaqQ.length > 5) {
+          fail(
+            `Blog article ${route.path}: newly published article must have 4..5 FAQs, found ${domFaqQ.length}`
+          );
+        }
+        for (let i = 0; i < domFaqA.length; i++) {
+          const fw = domFaqA[i] ? domFaqA[i].split(/\s+/).length : 0;
+          if (fw < 40 || fw > 60) {
+            fail(
+              `Blog article ${route.path} FAQ #${i + 1}: answer has ${fw} words (expected 40..60)`
+            );
+          }
+        }
+
+        // Editorial body word count (1,200..1,800 words excluding SVG diagram markup, scripts, styles, and external sources list)
+        const sourcesIdx = bodySlice.indexOf('id="blog-article-sources-heading"');
+        const editorialHtml =
+          sourcesIdx > 0 ? bodySlice.slice(0, sourcesIdx) : bodySlice;
+        const bodyPlain = decodeHtmlEntities(
+          editorialHtml
+            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
+            .replace(/<[^>]+>/g, ' ')
+        )
+          .replace(/\s+/g, ' ')
+          .trim();
+        const bodyWc = bodyPlain ? bodyPlain.split(/\s+/).length : 0;
+        if (bodyWc < 1200 || bodyWc > 1800) {
+          fail(
+            `Blog article ${route.path}: rendered editorial body has ${bodyWc} words (expected 1200..1800)`
+          );
+        }
+
+        for (const rx of FORBIDDEN_BLOG_CLAIMS) {
+          if (rx.test(bodyPlain) || rx.test(title) || rx.test(desc)) {
+            fail(
+              `Blog article ${route.path}: forbidden promotional claim matched (${rx})`
+            );
+          }
+        }
+
+        newBlogArticlesVerified++;
+      }
+
+      blogArticlesVerified++;
     }
 
     // 6. Check exact hreflang + x-default tags across ALL indexable routes (main, legal, blog hubs & articles)
@@ -960,7 +1240,13 @@ function main() {
     `  • ${routes.length} pages verified for route-matching <title>, <html lang/dir> & window.__VIDNEX_LOCALE_BUNDLE__.locale`
   );
   console.log(
-    `  • ${blogPostingsVerified} JSON-LD BlogPosting entries verified with author & image`
+    `  • ${blogPostingsVerified} JSON-LD BlogPosting entries verified with author, image & non-future dates`
+  );
+  console.log(
+    `  • ${blogHubsVerified}/10 blog hubs verified (all 10 locales published, 0 empty categories, accurate meta descriptions)`
+  );
+  console.log(
+    `  • ${blogArticlesVerified} published blog articles verified (same-language links, BlogPosting + BreadcrumbList + 1:1 FAQPage parity; ${newBlogArticlesVerified} new guides validated for 1,200–1,800w, 40–60w quickAnswer & 4–5 FAQs, <table>, <ol>)`
   );
   console.log(
     `  • ${legalPagesVerified}/50 legal pages verified (word minimums, AboutPage/ContactPage/WebPage + BreadcrumbList JSON-LD, 10-language reciprocal hreflang, scoped inline bundle)`

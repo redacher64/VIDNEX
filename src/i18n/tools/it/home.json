@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Tabella riepilogativa di piattaforme e formati VIDNEX",
     "subheading": "Cosa estrae realmente ciascuno strumento VIDNEX e quali limiti tecnici si applicano.",
-    "headers": ["Piattaforma / Strumento", "Formati di uscita", "Funzionalità reali e limiti"],
+    "headers": [
+      "Piattaforma / Strumento",
+      "Formati di uscita",
+      "Funzionalità reali e limiti"
+    ],
     "rows": [
-      ["TikTok", "MP4, MP3/M4A, JPG, ZIP", "Video HD/SD senza filigrana, audio verificato MIME/HEAD, slideshow (max 20 file / 100 MB ZIP) e foto profilo."],
-      ["Instagram", "MP4, JPG, ZIP", "Reels, video e foto /p/, caroselli misti (max 20 elementi / 100 MB) e avatar; le Storie richiedono accesso."],
-      ["X (Twitter)", "MP4, JPG, PNG, ZIP", "MP4 progressivo ordinato per bitrate decrescente, GIF in MP4 e 1–4 foto ?name=orig; domini mirror rifiutati."],
-      ["Facebook", "MP4 (HD e SD)", "Video pubblici, Reels e link fb.watch con audio; foto, Storie, gruppi privati e Live sono esclusi."],
-      ["LinkedIn", "JPG", "Solo foto profilo personali pubbliche /in/ (max 10 MB su media.licdn.com); escluse aziende e video."],
-      ["Dividi Immagine", "PNG, JPG, ZIP", "100% locale via HTML5 Canvas e JSZip; preset 2×2, 3×3, 1×3, 3×1 e griglia personalizzata fino a 10×10."]
+      [
+        "TikTok",
+        "MP4, MP3/M4A, JPG, ZIP",
+        "Video HD/SD senza filigrana, audio verificato MIME/HEAD, slideshow (max 20 file / 100 MB ZIP) e foto profilo."
+      ],
+      [
+        "Instagram",
+        "MP4, JPG, ZIP",
+        "Reels, video e foto /p/, caroselli misti (max 20 elementi / 100 MB) e avatar; le Storie richiedono accesso."
+      ],
+      [
+        "X (Twitter)",
+        "MP4, JPG, PNG, ZIP",
+        "MP4 progressivo ordinato per bitrate decrescente, GIF in MP4 e 1–4 foto ?name=orig; domini mirror rifiutati."
+      ],
+      [
+        "Facebook",
+        "MP4 (HD e SD)",
+        "Video pubblici, Reels e link fb.watch con audio; foto, Storie, gruppi privati e Live sono esclusi."
+      ],
+      [
+        "LinkedIn",
+        "JPG",
+        "Solo foto profilo personali pubbliche /in/ (max 10 MB su media.licdn.com); escluse aziende e video."
+      ],
+      [
+        "Dividi Immagine",
+        "PNG, JPG, ZIP",
+        "100% locale via HTML5 Canvas e JSZip; preset 2×2, 3×3, 1×3, 3×1 e griglia personalizzata fino a 10×10."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "La creazione dello ZIP per un carosello numeroso si interrompe",
         "solution": "Gli archivi ZIP vengono assemblati localmente nella memoria del browser con un limite di sicurezza di 20 elementi o 100 MB complessivi. Se il carosello supera la soglia, seleziona un gruppo di elementi alla volta."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare i file salvati sul tuo dispositivo",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Accedi direttamente ai singoli strumenti VIDNEX",
     "subheading": "Consulta tabelle dei formati, limiti reali e soluzioni dedicate per ciascuna piattaforma.",
-    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "toolKeys": [
+      "tiktok",
+      "instagram",
+      "split_image"
+    ],
     "privacyLabel": "Informativa sulla privacy e assenza di archiviazione",
-    "privacyDescription": "Scopri come VIDNEX gestisce i link pubblici senza salvare i tuoi file né il tuo storico."
+    "privacyDescription": "Scopri come VIDNEX gestisce i link pubblici senza salvare i tuoi file né il tuo storico.",
+    "guideLink": {
+      "label": "Come salvare un video TikTok senza filigrana in MP4 passo dopo passo",
+      "description": "Scopri come salvare video pubblici di TikTok senza filigrana in MP4 su iPhone, Android e PC dal browser, estrarre audio MP3/M4A e scaricare caroselli foto.",
+      "href": "/it/blog/salvare-video-tiktok-senza-filigrana"
+    }
   }
 }

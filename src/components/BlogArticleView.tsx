@@ -84,14 +84,19 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
         if (localTr && localTr.translationStatus === 'published') {
           return getBlogArticlePath(blogLocale, localTr.localizedSlug);
         }
-        const enTr = targetArt.translations.en;
-        if (enTr && enTr.translationStatus === 'published') {
-          return getBlogArticlePath('en', enTr.localizedSlug);
-        }
       }
     }
     return blogHubHref;
   };
+
+  const displayPublishedAt = translation.publishedAt || article.publishedAt;
+  const displayUpdatedAt = translation.updatedAt || article.updatedAt;
+  const introParagraphs =
+    translation.quickAnswer &&
+    translation.introduction.length > 0 &&
+    translation.introduction[0].trim() === translation.quickAnswer.trim()
+      ? translation.introduction.slice(1)
+      : translation.introduction;
 
   const handleInternalClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -152,7 +157,7 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
         {/* Language Switcher for Published Translations of THIS Article */}
         {availableTranslations.length > 1 && (
           <div
-            className="flex items-center gap-1.5"
+            className="flex items-center flex-wrap gap-1.5"
             aria-label={ui.availableLanguagesLabel}
           >
             <span className="text-[11px] uppercase tracking-wider text-[#6c4e40] dark:text-orange-200/70 mr-1">
@@ -194,9 +199,9 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
       <header className="border-b border-orange-200/80 dark:border-orange-900/50 pb-8 space-y-5">
         <p className="font-mono text-xs font-bold text-orange-700 dark:text-amber-400">
           {ui.categories[article.category]} · {ui.publishedOnLabel}{' '}
-          <time dateTime={article.publishedAt}>{article.publishedAt}</time> ·{' '}
+          <time dateTime={displayPublishedAt}>{displayPublishedAt}</time> ·{' '}
           {ui.updatedOnLabel}{' '}
-          <time dateTime={article.updatedAt}>{article.updatedAt}</time> ·{' '}
+          <time dateTime={displayUpdatedAt}>{displayUpdatedAt}</time> ·{' '}
           {translation.readingTimeMinutes} {ui.minReadSuffix}
         </p>
 
@@ -252,13 +257,30 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
         </aside>
 
         {/* Primary Reading Column (70% Width on Desktop, Constrained Measure) */}
-        <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
+        <div
+          data-blog-article-body="true"
+          className="lg:col-span-8 space-y-8 order-2 lg:order-1"
+        >
+          {/* Direct Answer Summary (40-60 words at the top) */}
+          {translation.quickAnswer && (
+            <div
+              data-quick-answer="true"
+              className="rounded-2xl bg-orange-50/75 dark:bg-[#1e150f] border border-orange-200/90 dark:border-orange-900/60 p-5 sm:p-6 max-w-[65ch]"
+            >
+              <p className="text-base sm:text-lg font-medium text-[#1f130b] dark:text-[#fffaf5] leading-relaxed">
+                {translation.quickAnswer}
+              </p>
+            </div>
+          )}
+
           {/* Introduction Lead */}
-          <div className="space-y-4 text-base sm:text-lg text-[#3d291e] dark:text-orange-50/90 leading-relaxed max-w-[65ch]">
-            {translation.introduction.map((para, idx) => (
-              <p key={idx}>{para}</p>
-            ))}
-          </div>
+          {introParagraphs.length > 0 && (
+            <div className="space-y-4 text-base sm:text-lg text-[#3d291e] dark:text-orange-50/90 leading-relaxed max-w-[65ch]">
+              {introParagraphs.map((para, idx) => (
+                <p key={idx}>{para}</p>
+              ))}
+            </div>
+          )}
 
           {/* Featured Technical Diagram with Figcaption */}
           <BlogDiagramIllustration
@@ -285,6 +307,15 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
                     {p}
                   </p>
                 ))}
+                {sec.orderedSteps && sec.orderedSteps.length > 0 && (
+                  <ol className="list-decimal pl-5 space-y-2.5 text-sm sm:text-base text-[#4a3327] dark:text-orange-100/85 leading-relaxed">
+                    {sec.orderedSteps.map((step, sIdx) => (
+                      <li key={sIdx} className="pl-1">
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                )}
                 {sec.bullets && sec.bullets.length > 0 && (
                   <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base text-[#4a3327] dark:text-orange-100/85 leading-relaxed">
                     {sec.bullets.map((b, bIdx) => (
@@ -292,8 +323,43 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
                     ))}
                   </ul>
                 )}
+                {sec.table &&
+                  sec.table.headers.length > 0 &&
+                  sec.table.rows.length > 0 && (
+                    <div className="my-4 overflow-x-auto rounded-xl border border-orange-200/80 dark:border-orange-900/60 bg-white/95 dark:bg-[#1a120d]">
+                      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead className="bg-orange-50/90 dark:bg-[#241811] border-b border-orange-200/80 dark:border-orange-900/60">
+                          <tr>
+                            {sec.table.headers.map((header, hIdx) => (
+                              <th
+                                key={hIdx}
+                                scope="col"
+                                className="px-3.5 py-2.5 font-display font-bold text-[#1f130b] dark:text-[#fffaf5] whitespace-nowrap"
+                              >
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-orange-100 dark:divide-orange-950/70">
+                          {sec.table.rows.map((row, rIdx) => (
+                            <tr key={rIdx}>
+                              {row.map((cell, cIdx) => (
+                                <td
+                                  key={cIdx}
+                                  className="px-3.5 py-2.5 text-[#4a3327] dark:text-orange-100/85 align-top leading-relaxed"
+                                >
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 {sec.technicalCallout && (
-                  <div className="my-4 rounded-xl bg-orange-50/90 dark:bg-[#231710] border-l-4 border-orange-600 dark:border-amber-400 p-4 space-y-1">
+                  <div className="my-4 rounded-xl bg-orange-50/85 dark:bg-[#231710] border border-orange-200/90 dark:border-orange-900/60 p-4 space-y-1">
                     <p className="font-mono text-xs font-bold uppercase tracking-wider text-orange-800 dark:text-amber-400">
                       {sec.technicalCallout.label}
                     </p>
@@ -383,7 +449,7 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
                         }}
                         className="w-full min-h-[48px] px-4 py-3.5 text-left flex items-center justify-between gap-3 font-display text-sm sm:text-base font-bold text-[#1f130b] dark:text-[#fffaf5] hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-colors cursor-pointer"
                       >
-                        <span>{faqItem.question}</span>
+                        <span data-faq-question="true">{faqItem.question}</span>
                         <span
                           aria-hidden="true"
                           className="font-mono text-orange-600 dark:text-amber-400 shrink-0"
@@ -394,6 +460,7 @@ export const BlogArticleView: React.FC<BlogArticleViewProps> = ({
                       <div
                         id={answerId}
                         role="region"
+                        data-faq-answer="true"
                         className={
                           isOpen
                             ? 'px-4 pb-4 text-sm text-[#4a3327] dark:text-orange-100/85 leading-relaxed border-t border-orange-100 dark:border-orange-950/60 pt-3'

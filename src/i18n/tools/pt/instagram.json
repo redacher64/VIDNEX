@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Formatos e qualidades do Instagram no VIDNEX",
     "subheading": "O que o VIDNEX realmente entrega para cada estrutura de link público do Instagram.",
-    "headers": ["Tipo de link Instagram", "Formato de saída", "Qualidade e comportamento real"],
+    "headers": [
+      "Tipo de link Instagram",
+      "Formato de saída",
+      "Qualidade e comportamento real"
+    ],
     "rows": [
-      ["Reel público (/reel/, /reels/)", "MP4 com áudio", "Vídeo vertical HD com trilha sonora original sincronizada quando fornecida pelo Instagram."],
-      ["Vídeo (/p/, /tv/)", "MP4", "Fluxo MP4 progressivo na maior resolução pública disponibilizada pela publicação."],
-      ["Foto única (/p/)", "JPG", "Imagem JPG pública limpa sem recompressão extra aplicada pelo VIDNEX."],
-      ["Carrossel (/p/ multi-mídia)", "JPG / MP4 ou ZIP", "Grade com caixas para download avulso ou arquivo ZIP local (máx. 20 arquivos / 100 MB)."],
-      ["Foto de perfil (@usuario)", "JPG HD", "Avatar público obtido via instagram.com/{usuario} ou apenas @usuario."],
-      ["Stories e Destaques", "Exige login", "Detectados à parte dos Reels; exibem aviso claro de que exigem conta conectada no Instagram."]
+      [
+        "Reel público (/reel/, /reels/)",
+        "MP4 com áudio",
+        "Vídeo vertical HD com trilha sonora original sincronizada quando fornecida pelo Instagram."
+      ],
+      [
+        "Vídeo (/p/, /tv/)",
+        "MP4",
+        "Fluxo MP4 progressivo na maior resolução pública disponibilizada pela publicação."
+      ],
+      [
+        "Foto única (/p/)",
+        "JPG",
+        "Imagem JPG pública limpa sem recompressão extra aplicada pelo VIDNEX."
+      ],
+      [
+        "Carrossel (/p/ multi-mídia)",
+        "JPG / MP4 ou ZIP",
+        "Grade com caixas para download avulso ou arquivo ZIP local (máx. 20 arquivos / 100 MB)."
+      ],
+      [
+        "Foto de perfil (@usuario)",
+        "JPG HD",
+        "Avatar público obtido via instagram.com/{usuario} ou apenas @usuario."
+      ],
+      [
+        "Stories e Destaques",
+        "Exige login",
+        "Detectados à parte dos Reels; exibem aviso claro de que exigem conta conectada no Instagram."
+      ]
     ]
   },
   "troubleshooting": {
@@ -80,7 +108,11 @@
         "problem": "Não encontro o ZIP do carrossel no iPhone",
         "solution": "O Safari salva arquivos ZIP no app Arquivos > Downloads. Toque uma vez no arquivo ZIP dentro de Arquivos para extrair todas as fotos JPG e movê-las para Fotos."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Reel do Instagram baixado sem som: por que acontece e como resolver",
+      "href": "/pt/blog/reel-instagram-baixado-sem-som-como-corrigir"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar seus Reels, fotos e carrosséis do Instagram",
@@ -131,8 +163,17 @@
   "relatedSection": {
     "heading": "Ferramentas relacionadas para Instagram e criadores",
     "subheading": "Monte grades 3×3 no navegador ou baixe vídeos públicos de outras plataformas suportadas.",
-    "toolKeys": ["split_image", "tiktok", "facebook"],
+    "toolKeys": [
+      "split_image",
+      "tiktok",
+      "facebook"
+    ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Zero armazenamento em servidor, nenhum login exigido e arquivos ZIP montados localmente."
+    "privacyDescription": "Zero armazenamento em servidor, nenhum login exigido e arquivos ZIP montados localmente.",
+    "guideLink": {
+      "label": "Reel do Instagram baixado sem som: por que acontece e como resolver",
+      "description": "Entenda por que Reels públicos do Instagram às vezes são salvos sem áudio (fluxos DASH separados vs MP4 progressivo, áudio silenciado e codecs) e como obter MP4 com som.",
+      "href": "/pt/blog/reel-instagram-baixado-sem-som-como-corrigir"
+    }
   }
 }

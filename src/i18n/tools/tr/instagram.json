@@ -108,7 +108,11 @@
         "problem": "Instagram profil resmi yerine hata mesajı çıkıyor",
         "solution": "Kullanıcı adında yazım hatası olmadığından ve profilin herkese açık olduğundan emin olun. @kullaniciadi biçiminde fazladan boşluk bırakmadan veya tam instagram.com/kullaniciadi bağlantısını yapıştırarak yeniden deneyin."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: Instagram Reels Sessiz İniyor: Neden Olur ve Sesli MP4 Nasıl Kaydedilir?",
+      "href": "/tr/blog/instagram-reels-sessiz-iniyor-cozum-rehberi"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen Instagram Reel ve fotoğraflarını nerede bulabilirsiniz?",
@@ -165,6 +169,11 @@
       "facebook"
     ],
     "privacyLabel": "Gizlilik politikası ve yerel işleme",
-    "privacyDescription": "Instagram bağlantılarının sunucuda saklanmadan nasıl aktarıldığını ayrıntılarıyla öğrenin."
+    "privacyDescription": "Instagram bağlantılarının sunucuda saklanmadan nasıl aktarıldığını ayrıntılarıyla öğrenin.",
+    "guideLink": {
+      "label": "Instagram Reels Sessiz İniyor: Neden Olur ve Sesli MP4 Nasıl Kaydedilir?",
+      "description": "Herkese açık Instagram Reels videolarının neden bazen ses olmadan indiğini (ayrı DASH akışları vs birleşik MP4, telifli müzik, kodekler) ve sesli kaydetme adımlarını öğrenin.",
+      "href": "/tr/blog/instagram-reels-sessiz-iniyor-cozum-rehberi"
+    }
   }
 }

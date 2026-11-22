@@ -42,13 +42,37 @@
   "formatsTable": {
     "heading": "Formats et limites de l'outil photo de profil LinkedIn",
     "subheading": "Périmètre exact du module LinkedIn de VIDNEX selon le type d'URL et les règles d'accès de la plateforme.",
-    "headers": ["Élément ou URL LinkedIn", "Format / Résultat", "Comportement réel dans VIDNEX"],
+    "headers": [
+      "Élément ou URL LinkedIn",
+      "Format / Résultat",
+      "Comportement réel dans VIDNEX"
+    ],
     "rows": [
-      ["Profil personnel public (/in/slug)", "JPG / PNG / WebP", "Extraction de la photo de profil signée (media.licdn.com), validée par magic bytes jusqu'à 10 Mo, enregistrée en linkedin_{slug}_profile.jpg."],
-      ["Sous-domaines fr. / m.linkedin.com", "JPG / PNG / WebP", "Normalisation automatique vers le profil /in/{slug} y compris avec suffixe de langue (/fr, /en…)."],
-      ["Mur de connexion LinkedIn", "Import manuel local", "Message explicite sans contournement, accompagné d'un outil local glisser-déposer pour prévisualiser et sauvegarder votre image."],
-      ["Avatar fantôme par défaut", "Non disponible", "Renvoie une erreur claire indiquant que le profil ne dispose pas de photo publique téléchargeable."],
-      ["Pages /company/, /posts/, vidéos", "Non pris en charge", "Refusés dès la détection d'URL : l'outil traite exclusivement les photos de profil personnelles /in/."]
+      [
+        "Profil personnel public (/in/slug)",
+        "JPG / PNG / WebP",
+        "Extraction de la photo de profil signée (media.licdn.com), validée par magic bytes jusqu'à 10 Mo, enregistrée en linkedin_{slug}_profile.jpg."
+      ],
+      [
+        "Sous-domaines fr. / m.linkedin.com",
+        "JPG / PNG / WebP",
+        "Normalisation automatique vers le profil /in/{slug} y compris avec suffixe de langue (/fr, /en…)."
+      ],
+      [
+        "Mur de connexion LinkedIn",
+        "Import manuel local",
+        "Message explicite sans contournement, accompagné d'un outil local glisser-déposer pour prévisualiser et sauvegarder votre image."
+      ],
+      [
+        "Avatar fantôme par défaut",
+        "Non disponible",
+        "Renvoie une erreur claire indiquant que le profil ne dispose pas de photo publique téléchargeable."
+      ],
+      [
+        "Pages /company/, /posts/, vidéos",
+        "Non pris en charge",
+        "Refusés dès la détection d'URL : l'outil traite exclusivement les photos de profil personnelles /in/."
+      ]
     ]
   },
   "troubleshooting": {
@@ -75,7 +99,11 @@
         "problem": "Image enregistrée introuvable sur smartphone",
         "solution": "Sur iPhone, ouvrez l'application Fichiers puis Téléchargements et choisissez Partager > Enregistrer l'image pour la déplacer dans Photos. Sur Android, consultez directement l'album Téléchargements de la Galerie."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Lire le guide : Photo de profil LinkedIn publique : comment la voir en grand et l’enregistrer",
+      "href": "/fr/blog/photo-profil-linkedin-publique-voir-en-grand-enregistrer"
+    }
   },
   "whereToFind": {
     "heading": "Où retrouver votre photo de profil LinkedIn enregistrée",
@@ -122,8 +150,17 @@
   "relatedSection": {
     "heading": "Autres outils VIDNEX pour vos photos et réseaux",
     "subheading": "Découpez vos visuels en grille localement ou téléchargez des médias publics depuis nos autres modules.",
-    "toolKeys": ["split_image", "instagram", "x"],
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
     "privacyLabel": "Politique de confidentialité VIDNEX",
-    "privacyDescription": "Aucun stockage de profil, cache technique limité à 10 minutes et mode manuel 100 % navigateur."
+    "privacyDescription": "Aucun stockage de profil, cache technique limité à 10 minutes et mode manuel 100 % navigateur.",
+    "guideLink": {
+      "label": "Photo de profil LinkedIn publique : comment la voir en grand et l’enregistrer",
+      "description": "Découvrez comment afficher en grand une photo de profil LinkedIn publique (/in/slug) et l’enregistrer en JPG avec VIDNEX, avec gestion transparente du mur de connexion.",
+      "href": "/fr/blog/photo-profil-linkedin-publique-voir-en-grand-enregistrer"
+    }
   }
 }

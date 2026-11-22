@@ -104,7 +104,11 @@
         "problem": "10×10 (100 parça) ZIP oluştururken tarayıcı kısa süre bekliyor",
         "solution": "Tüm kesme ve ZIP sıkıştırma işlemi cihazınızın işlemcisinde yerel olarak yapılır. 100 yüksek çözünürlüklü PNG parça oluşturmak birkaç saniye sürebilir; daha hızlı sonuç ve daha küçük dosya için JPG %85–%90 kalitesini seçebilirsiniz."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   },
   "whereToFind": {
     "heading": "Bölünen görselleri ve ZIP arşivini nerede bulabilirsiniz?",
@@ -157,6 +161,11 @@
       "linkedin"
     ],
     "privacyLabel": "Gizlilik politikası ve %100 yerel işleme",
-    "privacyDescription": "Tarayıcı içi çalışan araçlarımızda dosyalarınızın cihazınızda nasıl kaldığını okuyun."
+    "privacyDescription": "Tarayıcı içi çalışan araçlarımızda dosyalarınızın cihazınızda nasıl kaldığını okuyun.",
+    "guideLink": {
+      "label": "iPhone ve iPad’de İndirilen Videolar Nereye Gider? (Dosyalar Uygulaması)",
+      "description": "Safari ile iPhone veya iPad’e indirilen MP4 videoların Dosyalar uygulamasında tam olarak nereye kaydedildiğini ve Fotoğraflar galerisine nasıl aktarıldığını adım adım öğrenin.",
+      "href": "/tr/blog/iphone-indirilen-videolar-nereye-gider-dosyalar"
+    }
   }
 }

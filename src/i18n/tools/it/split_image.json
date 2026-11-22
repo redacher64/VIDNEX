@@ -104,7 +104,11 @@
         "problem": "Una griglia 10×10 (100 tessere) richiede qualche secondo per lo ZIP",
         "solution": "Poiché taglio e compressione ZIP avvengono sul processore del tuo dispositivo, generare 100 PNG ad alta definizione richiede alcuni secondi. Scegliendo JPG con qualità 85%–90% il pacchetto si crea molto più velocemente."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leggi la guida: Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   },
   "whereToFind": {
     "heading": "Dove trovare i riquadri e l'archivio ZIP salvati",
@@ -157,6 +161,11 @@
       "linkedin"
     ],
     "privacyLabel": "Privacy ed elaborazione 100% locale",
-    "privacyDescription": "Scopri perché le immagini divise con VIDNEX non lasciano mai il tuo browser."
+    "privacyDescription": "Scopri perché le immagini divise con VIDNEX non lasciano mai il tuo browser.",
+    "guideLink": {
+      "label": "Dove vanno i video scaricati su iPhone e iPad (app File)",
+      "description": "Scopri dove Safari salva esattamente i video MP4 scaricati su iPhone e iPad nell’app File, come spostarli nell’app Foto in due tocchi e come cambiare la cartella Download.",
+      "href": "/it/blog/dove-vanno-video-scaricati-iphone-app-file"
+    }
   }
 }

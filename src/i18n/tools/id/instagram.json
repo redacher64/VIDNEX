@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Tabel jenis konten Instagram dan format hasil unduhan",
     "subheading": "Perilaku nyata mesin VIDNEX untuk setiap pola tautan Instagram yang Anda tempel.",
-    "headers": ["Jenis konten Instagram", "Format keluaran", "Perilaku dan batasan nyata"],
+    "headers": [
+      "Jenis konten Instagram",
+      "Format keluaran",
+      "Perilaku dan batasan nyata"
+    ],
     "rows": [
-      ["Reel publik (/reel/, /reels/)", "MP4 HD bersuara", "Mengambil aliran MP4 berkualitas tertinggi yang dibuka publik oleh Instagram lengkap dengan audio."],
-      ["Video postingan (/p/, /tv/)", "MP4 HD bersuara", "Video postingan standar dan klip /tv/ diunduh langsung sebagai MP4 yang kompatibel di semua perangkat."],
-      ["Foto tunggal (/p/)", "JPG", "Postingan satu foto diproses khusus sebagai gambar JPG tanpa dialihkan ke mesin Reel."],
-      ["Carousel campuran (/p/)", "JPG, MP4, atau ZIP", "Pilihan kotak centang tiap slide; simpan satuan atau buat ZIP lokal (maks 20 item / 100 MB)."],
-      ["Profil publik (@username)", "JPG", "Mendukung URL instagram.com/username maupun @username untuk menyimpan foto profil."],
-      ["Story & Highlight (/stories/)", "Tidak didukung (perlu login)", "Dikenali terpisah dari Reels; karena wajib login, dinding autentikasi tidak dilewati."]
+      [
+        "Reel publik (/reel/, /reels/)",
+        "MP4 HD bersuara",
+        "Mengambil aliran MP4 berkualitas tertinggi yang dibuka publik oleh Instagram lengkap dengan audio."
+      ],
+      [
+        "Video postingan (/p/, /tv/)",
+        "MP4 HD bersuara",
+        "Video postingan standar dan klip /tv/ diunduh langsung sebagai MP4 yang kompatibel di semua perangkat."
+      ],
+      [
+        "Foto tunggal (/p/)",
+        "JPG",
+        "Postingan satu foto diproses khusus sebagai gambar JPG tanpa dialihkan ke mesin Reel."
+      ],
+      [
+        "Carousel campuran (/p/)",
+        "JPG, MP4, atau ZIP",
+        "Pilihan kotak centang tiap slide; simpan satuan atau buat ZIP lokal (maks 20 item / 100 MB)."
+      ],
+      [
+        "Profil publik (@username)",
+        "JPG",
+        "Mendukung URL instagram.com/username maupun @username untuk menyimpan foto profil."
+      ],
+      [
+        "Story & Highlight (/stories/)",
+        "Tidak didukung (perlu login)",
+        "Dikenali terpisah dari Reels; karena wajib login, dinding autentikasi tidak dilewati."
+      ]
     ]
   },
   "troubleshooting": {
@@ -80,7 +108,11 @@
         "problem": "Foto profil Instagram gagal diambil saat mengetik nama pengguna",
         "solution": "Periksa ejaan nama pengguna tanpa spasi tambahan dan pastikan akun tersebut bersifat publik. Anda juga dapat menempelkan alamat lengkap instagram.com/username langsung dari bilah alamat browser."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Reel Instagram Didownload Tanpa Suara: Penyebab Teknis & Cara Mengatasinya",
+      "href": "/id/blog/reel-instagram-didownload-tanpa-suara-solusi"
+    }
   },
   "whereToFind": {
     "heading": "Di mana menemukan file Instagram yang sudah disimpan",
@@ -131,8 +163,17 @@
   "relatedSection": {
     "heading": "Alat terkait untuk kreator Instagram dan privasi",
     "subheading": "Buat grid 3×3 di browser atau simpan video publik dari TikTok dan Facebook.",
-    "toolKeys": ["split_image", "tiktok", "facebook"],
+    "toolKeys": [
+      "split_image",
+      "tiktok",
+      "facebook"
+    ],
     "privacyLabel": "Kebijakan privasi dan zero-storage",
-    "privacyDescription": "Baca bagaimana VIDNEX mengalirkan media publik Instagram tanpa menyimpan file di server."
+    "privacyDescription": "Baca bagaimana VIDNEX mengalirkan media publik Instagram tanpa menyimpan file di server.",
+    "guideLink": {
+      "label": "Reel Instagram Didownload Tanpa Suara: Penyebab Teknis & Cara Mengatasinya",
+      "description": "Pahami mengapa Reel Instagram publik terkadang tersimpan tanpa audio (trek DASH terpisah vs MP4 progresif, musik dibisukan, atau codec) dan cara memperoleh MP4 bersuara.",
+      "href": "/id/blog/reel-instagram-didownload-tanpa-suara-solusi"
+    }
   }
 }

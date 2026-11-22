@@ -42,13 +42,37 @@
   "formatsTable": {
     "heading": "Formatos y resoluciones de X (Twitter) en VIDNEX",
     "subheading": "Detalle de los archivos reales generados a partir de publicaciones públicas en x.com y twitter.com.",
-    "headers": ["Tipo de medio en X", "Formato entregado", "Resolución y comportamiento técnico"],
+    "headers": [
+      "Tipo de medio en X",
+      "Formato entregado",
+      "Resolución y comportamiento técnico"
+    ],
     "rows": [
-      ["Video X en alta calidad", "MP4 progresivo", "Variante video/mp4 con mayor tasa de bits ofrecida por X (generalmente 1080p o 720p según fuente)."],
-      ["Video X estándar", "MP4 progresivo", "Versiones 480p o 360p más ligeras para compartir rápido por mensajería."],
-      ["GIF animado de X", "MP4 en bucle", "X convierte sus GIFs en MP4 sin audio muy ligero; VIDNEX entrega ese MP4 directamente."],
-      ["Foto individual", "JPG o PNG", "Imagen solicitada en resolución original (?name=orig) sin compresión adicional."],
-      ["Post multifoto (2 a 4)", "JPG / PNG o ZIP", "Selector con casillas para bajar cada foto o generar un ZIP local en el navegador."]
+      [
+        "Video X en alta calidad",
+        "MP4 progresivo",
+        "Variante video/mp4 con mayor tasa de bits ofrecida por X (generalmente 1080p o 720p según fuente)."
+      ],
+      [
+        "Video X estándar",
+        "MP4 progresivo",
+        "Versiones 480p o 360p más ligeras para compartir rápido por mensajería."
+      ],
+      [
+        "GIF animado de X",
+        "MP4 en bucle",
+        "X convierte sus GIFs en MP4 sin audio muy ligero; VIDNEX entrega ese MP4 directamente."
+      ],
+      [
+        "Foto individual",
+        "JPG o PNG",
+        "Imagen solicitada en resolución original (?name=orig) sin compresión adicional."
+      ],
+      [
+        "Post multifoto (2 a 4)",
+        "JPG / PNG o ZIP",
+        "Selector con casillas para bajar cada foto o generar un ZIP local en el navegador."
+      ]
     ]
   },
   "troubleshooting": {
@@ -75,7 +99,11 @@
         "problem": "El GIF descargado tiene extensión .mp4",
         "solution": "X transforma automáticamente los GIFs en videos MP4 más fluidos y livianos al publicarlos. El archivo MP4 resultante se reproduce en bucle en la mayoría de galerías y aplicaciones de chat."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leer guía: Dónde van los vídeos descargados en iPhone y iPad (app Archivos)",
+      "href": "/es/blog/como-descargar-videos-en-iphone-archivos"
+    }
   },
   "whereToFind": {
     "heading": "Dónde encontrar tus videos, GIFs y fotos de X",
@@ -122,8 +150,17 @@
   "relatedSection": {
     "heading": "Explorar otras herramientas de VIDNEX",
     "subheading": "Guarda medios públicos en otras plataformas o divide tus imágenes localmente en cuadrículas.",
-    "toolKeys": ["tiktok", "facebook", "split_image"],
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "split_image"
+    ],
     "privacyLabel": "Política de privacidad de VIDNEX",
-    "privacyDescription": "Sin almacenamiento de medios en servidor, sin sesión de X y archivos ZIP creados en tu navegador."
+    "privacyDescription": "Sin almacenamiento de medios en servidor, sin sesión de X y archivos ZIP creados en tu navegador.",
+    "guideLink": {
+      "label": "Dónde van los vídeos descargados en iPhone y iPad (app Archivos)",
+      "description": "Descubre exactamente dónde guarda Safari los vídeos MP4 descargados en iPhone y iPad, cómo localizarlos en la app Archivos y cómo moverlos a Fotos sin apps extra.",
+      "href": "/es/blog/como-descargar-videos-en-iphone-archivos"
+    }
   }
 }

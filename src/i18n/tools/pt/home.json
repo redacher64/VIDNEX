@@ -42,14 +42,42 @@
   "formatsTable": {
     "heading": "Formatos e qualidades suportados por ferramenta",
     "subheading": "Visão direta dos arquivos realmente gerados por cada módulo do VIDNEX a partir de fontes públicas.",
-    "headers": ["Plataforma ou ferramenta", "Formatos de saída", "Qualidade e comportamento real"],
+    "headers": [
+      "Plataforma ou ferramenta",
+      "Formatos de saída",
+      "Qualidade e comportamento real"
+    ],
     "rows": [
-      ["TikTok", "MP4, MP3 / M4A, JPG, ZIP", "Vídeo público 1080p HD ou 720p SD sem marca d'água conforme a fonte; áudio validado por MIME; slides até 20 fotos em ZIP local."],
-      ["Instagram", "MP4, JPG, ZIP", "Reels e vídeos públicos com som, fotos /p/ em JPG, carrosséis selecionáveis (máx. 20 itens / 100 MB ZIP) e avatares públicos HD."],
-      ["X (Twitter)", "MP4, JPG / PNG, ZIP", "Fluxos progressivos MP4 ordenados por qualidade (sem HLS), GIFs em MP4 e até 4 fotos no tamanho original (?name=orig)."],
-      ["Facebook", "MP4 (HD / SD)", "Vídeos públicos (/watch/, /videos/, fb.watch) e Reels públicos com áudio; fotos e stories fechados exibem aviso claro."],
-      ["LinkedIn", "JPG, PNG, WebP", "Apenas foto de perfil pessoal pública (/in/...) até 10 MB validada por magic bytes; modo manual local quando há muro de login."],
-      ["Dividir imagem", "PNG, JPG, ZIP", "Corte local via HTML5 Canvas e JSZip (entrada JPG/PNG/WebP, redução automática acima de 8000 px) e grades até 10×10."]
+      [
+        "TikTok",
+        "MP4, MP3 / M4A, JPG, ZIP",
+        "Vídeo público 1080p HD ou 720p SD sem marca d'água conforme a fonte; áudio validado por MIME; slides até 20 fotos em ZIP local."
+      ],
+      [
+        "Instagram",
+        "MP4, JPG, ZIP",
+        "Reels e vídeos públicos com som, fotos /p/ em JPG, carrosséis selecionáveis (máx. 20 itens / 100 MB ZIP) e avatares públicos HD."
+      ],
+      [
+        "X (Twitter)",
+        "MP4, JPG / PNG, ZIP",
+        "Fluxos progressivos MP4 ordenados por qualidade (sem HLS), GIFs em MP4 e até 4 fotos no tamanho original (?name=orig)."
+      ],
+      [
+        "Facebook",
+        "MP4 (HD / SD)",
+        "Vídeos públicos (/watch/, /videos/, fb.watch) e Reels públicos com áudio; fotos e stories fechados exibem aviso claro."
+      ],
+      [
+        "LinkedIn",
+        "JPG, PNG, WebP",
+        "Apenas foto de perfil pessoal pública (/in/...) até 10 MB validada por magic bytes; modo manual local quando há muro de login."
+      ],
+      [
+        "Dividir imagem",
+        "PNG, JPG, ZIP",
+        "Corte local via HTML5 Canvas e JSZip (entrada JPG/PNG/WebP, redução automática acima de 8000 px) e grades até 10×10."
+      ]
     ]
   },
   "troubleshooting": {
@@ -76,7 +104,11 @@
         "problem": "Limite temporário de solicitações atingido",
         "solution": "Para proteger a estabilidade do serviço contra abusos automatizados, existe um controle por intervalo curto. Aguarde alguns instantes antes de enviar outro link público."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ler guia: Onde ficam os vídeos baixados no iPhone e iPad (app Arquivos)",
+      "href": "/pt/blog/onde-ficam-videos-baixados-iphone-arquivos"
+    }
   },
   "whereToFind": {
     "heading": "Onde encontrar seus arquivos baixados",
@@ -123,8 +155,17 @@
   "relatedSection": {
     "heading": "Ferramentas dedicadas e privacidade",
     "subheading": "Abra diretamente cada módulo especializado ou consulte como o VIDNEX protege seus dados.",
-    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "toolKeys": [
+      "tiktok",
+      "instagram",
+      "split_image"
+    ],
     "privacyLabel": "Política de Privacidade do VIDNEX",
-    "privacyDescription": "Detalhes completos sobre streaming sem armazenamento, hash de IP e processamento local."
+    "privacyDescription": "Detalhes completos sobre streaming sem armazenamento, hash de IP e processamento local.",
+    "guideLink": {
+      "label": "Como salvar vídeo do TikTok sem marca d’água em MP4 passo a passo",
+      "description": "Veja como salvar vídeos públicos do TikTok sem marca d’água em MP4 no iPhone, Android ou computador, extrair áudio MP3/M4A e baixar carrosséis de fotos.",
+      "href": "/pt/blog/salvar-video-tiktok-sem-marca-dagua"
+    }
   }
 }

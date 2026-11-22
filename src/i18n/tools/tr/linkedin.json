@@ -98,7 +98,11 @@
         "problem": "Dosya iPhone'da Fotoğraflar uygulamasına doğrudan düşmedi",
         "solution": "Safari indirilen linkedin_{slug}_profile.jpg görselini Dosyalar > İndirilenler klasörüne kaydeder. Görseli açıp Paylaş simgesine dokunun ve Görüntüyü Kaydet diyerek Fotoğraflar galerinize aktarın."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: Herkese Açık LinkedIn Profil Fotoğrafı: Büyük Görüntüleme ve Kaydetme",
+      "href": "/tr/blog/linkedin-profil-fotografi-buyuk-goruntuleme-kaydetme"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen LinkedIn profil fotoğrafını nerede bulabilirsiniz?",
@@ -151,6 +155,11 @@
       "x"
     ],
     "privacyLabel": "Gizlilik politikası ve veri minimizasyonu",
-    "privacyDescription": "LinkedIn profil verilerinin neden kazınmadığını ve 10 dakikalık geçici önbellek kuralını okuyun."
+    "privacyDescription": "LinkedIn profil verilerinin neden kazınmadığını ve 10 dakikalık geçici önbellek kuralını okuyun.",
+    "guideLink": {
+      "label": "Herkese Açık LinkedIn Profil Fotoğrafı: Büyük Görüntüleme ve Kaydetme",
+      "description": "Herkese açık bir LinkedIn profil fotoğrafını (/in/...) gerçek boyutunda nasıl görüntüleyip kaydedeceğinizi, VIDNEX’in hangi formatları desteklediğini ve giriş duvarında yerel modu öğrenin.",
+      "href": "/tr/blog/linkedin-profil-fotografi-buyuk-goruntuleme-kaydetme"
+    }
   }
 }

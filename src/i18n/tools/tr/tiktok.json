@@ -103,7 +103,11 @@
         "problem": "TikTok Live bağlantısı veya silinen video hata veriyor",
         "solution": "Canlı TikTok Live (/live) yayınları sürekli akış olduğu için desteklenmez. Benzer şekilde sahibi tarafından silinen veya moderasyonla kaldırılan videolarda artık erişilebilir bir genel medya akışı bulunmaz."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Rehberi oku: TikTok Videosu Neden İnmiyor? Gizli, Süresi Dolmuş ve Engelli Bağlantılar",
+      "href": "/tr/blog/tiktok-videosu-neden-inmiyor-cozumler"
+    }
   },
   "whereToFind": {
     "heading": "İndirilen TikTok videosu veya sesi nerede bulunur?",
@@ -160,6 +164,11 @@
       "split_image"
     ],
     "privacyLabel": "Gizlilik ve depolamasız aktarım",
-    "privacyDescription": "TikTok bağlantılarınızın nasıl işlendiğini ve dosyaların neden sunucuda tutulmadığını inceleyin."
+    "privacyDescription": "TikTok bağlantılarınızın nasıl işlendiğini ve dosyaların neden sunucuda tutulmadığını inceleyin.",
+    "guideLink": {
+      "label": "Filigransız TikTok Videosu Nasıl Kaydedilir? Adım Adım MP4 Rehberi",
+      "description": "Herkese açık TikTok videolarını iPhone, Android ve bilgisayarda filigransız MP4 olarak nasıl kaydedeceğinizi, ses (MP3/M4A) ve fotoğraf slaytlarını nasıl indireceğinizi öğrenin.",
+      "href": "/tr/blog/filigransiz-tiktok-videosu-kaydetme-rehberi"
+    }
   }
 }

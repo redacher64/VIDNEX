@@ -103,7 +103,11 @@
         "problem": "Es wird nur SD statt HD angezeigt",
         "solution": "Facebook stellt nur dann eine HD-Spur bereit, wenn das Ausgangsvideo hochauflösend hochgeladen wurde. VIDNEX zeigt genau die tatsächlich vorhandenen MP4-Spuren an."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Ratgeber lesen: Wo sind heruntergeladene Videos auf dem iPhone und iPad?",
+      "href": "/de/blog/wo-sind-heruntergeladene-videos-iphone-dateien"
+    }
   },
   "whereToFind": {
     "heading": "Wo Sie Ihr gespeichertes Facebook-Video finden",
@@ -156,6 +160,11 @@
       "x"
     ],
     "privacyLabel": "Datenschutzerklärung von VIDNEX",
-    "privacyDescription": "Keine Facebook-Zugangsdaten nötig, direktes Streaming und keine Dateispeicherung."
+    "privacyDescription": "Keine Facebook-Zugangsdaten nötig, direktes Streaming und keine Dateispeicherung.",
+    "guideLink": {
+      "label": "Wo sind heruntergeladene Videos auf dem iPhone und iPad?",
+      "description": "Finde heruntergeladene MP4-Videos aus Safari oder Chrome in der iPhone-Dateien-App, verschiebe sie in Apple Fotos und behebe typische iOS-Speicherprobleme.",
+      "href": "/de/blog/wo-sind-heruntergeladene-videos-iphone-dateien"
+    }
   }
 }

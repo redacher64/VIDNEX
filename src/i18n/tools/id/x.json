@@ -41,13 +41,37 @@
   "formatsTable": {
     "heading": "Tabel format dan kualitas X (Twitter) yang tersedia",
     "subheading": "Rincian file nyata yang disediakan VIDNEX untuk video, GIF, dan foto dari domain resmi X.",
-    "headers": ["Jenis media X", "Format keluaran", "Detail kualitas dan pemrosesan"],
+    "headers": [
+      "Jenis media X",
+      "Format keluaran",
+      "Detail kualitas dan pemrosesan"
+    ],
     "rows": [
-      ["Video HD publik", "MP4 progresif", "Varian 1080p atau 720p bila tersedia dari sumber; diurutkan dari bitrate tertinggi."],
-      ["Video standar / hemat", "MP4 progresif", "Pilihan 480p atau 360p untuk ukuran ringan; aliran terpecah HLS (.m3u8) otomatis disaring."],
-      ["GIF di X (Twitter)", "MP4 berulang", "Diambil langsung dari aliran video MP4 asli milik X agar ringan dan kompatibel di semua perangkat."],
-      ["Foto postingan (1–4)", "JPG / PNG atau ZIP", "Resolusi penuh menggunakan ?name=orig; simpan per gambar atau kemas ZIP lokal di browser."],
-      ["Tautan pendek t.co", "Pengalihan otomatis", "Menelusuri hingga 3 pengalihan menuju tautan resmi x.com atau twitter.com."]
+      [
+        "Video HD publik",
+        "MP4 progresif",
+        "Varian 1080p atau 720p bila tersedia dari sumber; diurutkan dari bitrate tertinggi."
+      ],
+      [
+        "Video standar / hemat",
+        "MP4 progresif",
+        "Pilihan 480p atau 360p untuk ukuran ringan; aliran terpecah HLS (.m3u8) otomatis disaring."
+      ],
+      [
+        "GIF di X (Twitter)",
+        "MP4 berulang",
+        "Diambil langsung dari aliran video MP4 asli milik X agar ringan dan kompatibel di semua perangkat."
+      ],
+      [
+        "Foto postingan (1–4)",
+        "JPG / PNG atau ZIP",
+        "Resolusi penuh menggunakan ?name=orig; simpan per gambar atau kemas ZIP lokal di browser."
+      ],
+      [
+        "Tautan pendek t.co",
+        "Pengalihan otomatis",
+        "Menelusuri hingga 3 pengalihan menuju tautan resmi x.com atau twitter.com."
+      ]
     ]
   },
   "troubleshooting": {
@@ -74,7 +98,11 @@
         "problem": "Pilihan 1080p tidak muncul dan hanya ada 720p atau 480p",
         "solution": "VIDNEX tidak memperbesar resolusi secara buatan. Daftar variasi MP4 progresif murni bergantung pada kualitas unggahan asli dan bitrate yang disediakan server X untuk postingan tersebut."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   },
   "whereToFind": {
     "heading": "Di mana menemukan video dan foto X yang sudah diunduh",
@@ -121,8 +149,17 @@
   "relatedSection": {
     "heading": "Alat download VIDNEX lainnya dan privasi",
     "subheading": "Simpan juga video publik dari TikTok, Facebook, atau foto profil LinkedIn.",
-    "toolKeys": ["tiktok", "facebook", "linkedin"],
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "linkedin"
+    ],
     "privacyLabel": "Kebijakan privasi dan bebas penyimpanan",
-    "privacyDescription": "Pelajari mengapa tautan X Anda tidak dicatat sebagai riwayat dan media tidak disimpan di server."
+    "privacyDescription": "Pelajari mengapa tautan X Anda tidak dicatat sebagai riwayat dan media tidak disimpan di server.",
+    "guideLink": {
+      "label": "Di Mana Video Hasil Download di iPhone & iPad Disimpan (Aplikasi File)",
+      "description": "Cari tahu letak persis video MP4 hasil unduhan Safari di iPhone dan iPad dalam aplikasi File, cara memindahkannya ke aplikasi Foto, dan solusi masalah umum iOS.",
+      "href": "/id/blog/lokasi-video-hasil-download-iphone-aplikasi-file"
+    }
   }
 }

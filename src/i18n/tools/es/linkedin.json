@@ -99,7 +99,11 @@
         "problem": "No veo el JPG descargado en Fotos de iPhone",
         "solution": "Safari guarda las imágenes en Archivos > Descargas. Abre linkedin_profile.jpg desde Archivos, toca Compartir y pulsa Guardar imagen para copiarlo a Fotos."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Leer guía: Foto de perfil pública de LinkedIn: cómo verla en grande y guardarla",
+      "href": "/es/blog/ver-guardar-foto-perfil-linkedin-grande"
+    }
   },
   "whereToFind": {
     "heading": "Dónde encontrar tu foto de perfil de LinkedIn guardada",
@@ -152,6 +156,11 @@
       "x"
     ],
     "privacyLabel": "Política de privacidad de VIDNEX",
-    "privacyDescription": "Cero rastreo de perfiles personales, caché breve de 10 minutos y modo manual 100 % navegador."
+    "privacyDescription": "Cero rastreo de perfiles personales, caché breve de 10 minutos y modo manual 100 % navegador.",
+    "guideLink": {
+      "label": "Foto de perfil pública de LinkedIn: cómo verla en grande y guardarla",
+      "description": "Aprende a ver en tamaño completo y guardar una foto de perfil pública de LinkedIn (/in/...), qué formatos reales admite VIDNEX y cómo usar el modo local si hay muro de acceso.",
+      "href": "/es/blog/ver-guardar-foto-perfil-linkedin-grande"
+    }
   }
 }

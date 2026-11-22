@@ -79,8 +79,8 @@
     "heading": "LinkedIn troubleshooting and solutions",
     "subheading": "Why a LinkedIn avatar lookup may be blocked and what options you have.",
     "guideLink": {
-      "label": "Read our guide on blocked and auth-walled social links",
-      "href": "/en/blog/troubleshooting-expired-blocked-social-media-links"
+      "label": "Read guide: Public LinkedIn Profile Photo: How to View Full-Size and Save It",
+      "href": "/en/blog/linkedin-public-profile-photo-view-full-size-save"
     },
     "items": [
       {
@@ -156,9 +156,9 @@
       "x"
     ],
     "guideLink": {
-      "label": "Troubleshooting expired and blocked social media links",
-      "description": "Understand why authwalls happen and how VIDNEX handles public-only metadata.",
-      "href": "/en/blog/troubleshooting-expired-blocked-social-media-links"
+      "label": "Public LinkedIn Profile Photo: How to View Full-Size and Save It",
+      "description": "Learn how to view a public LinkedIn profile photo (/in/slug) in full size and save it as a JPG with VIDNEX, including authwall limits and the local browser fallback.",
+      "href": "/en/blog/linkedin-public-profile-photo-view-full-size-save"
     },
     "privacyLabel": "VIDNEX Privacy Policy",
     "privacyDescription": "Zero personal profile scraping, 10-minute short cache, and 100% browser-local fallback mode."

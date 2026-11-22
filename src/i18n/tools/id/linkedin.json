@@ -98,7 +98,11 @@
         "problem": "File linkedin_{slug}_profile.jpg tidak tampil langsung di Galeri iPhone",
         "solution": "Safari di iPhone menyimpan gambar ke aplikasi File > Unduhan. Buka aplikasi File, ketuk file JPG tersebut, pilih ikon Bagikan di kiri bawah, lalu ketuk Simpan Gambar untuk memindahkannya ke aplikasi Foto."
       }
-    ]
+    ],
+    "guideLink": {
+      "label": "Baca panduan: Foto Profil Publik LinkedIn: Cara Melihat Ukuran Penuh & Menyimpannya",
+      "href": "/id/blog/cara-lihat-simpan-foto-profil-linkedin-ukuran-penuh"
+    }
   },
   "whereToFind": {
     "heading": "Di mana letak foto profil LinkedIn yang tersimpan",
@@ -151,6 +155,11 @@
       "x"
     ],
     "privacyLabel": "Kebijakan privasi dan minimisasi data",
-    "privacyDescription": "Baca komitmen kami untuk tidak pernah mengikis data profil maupun menyimpan gambar Anda."
+    "privacyDescription": "Baca komitmen kami untuk tidak pernah mengikis data profil maupun menyimpan gambar Anda.",
+    "guideLink": {
+      "label": "Foto Profil Publik LinkedIn: Cara Melihat Ukuran Penuh & Menyimpannya",
+      "description": "Pelajari cara melihat ukuran besar dan menyimpan foto profil LinkedIn publik (/in/...), format yang didukung VIDNEX, serta cara memakai mode lokal saat muncul dinding login.",
+      "href": "/id/blog/cara-lihat-simpan-foto-profil-linkedin-ukuran-penuh"
+    }
   }
 }

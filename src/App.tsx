@@ -34,6 +34,7 @@ import {
   getLocalizedPagePath,
   isLegalPageKey,
   isPlatformPageKey,
+  isToolPageKey,
   LOCALES_CONFIG,
   type PageKey,
   type PlatformPageKey,
@@ -50,6 +51,7 @@ import {
   hasLocaleBundleForPageSync,
   loadLegalBundle,
   loadLocaleBundle,
+  loadToolContent,
 } from './i18n/localeLoader.ts';
 import {
   handleLegacyQueryRedirect,
@@ -142,7 +144,7 @@ export function App({ initialPath }: AppProps = {}) {
     ? (pageKey as PlatformPageKey)
     : 'tiktok';
 
-  // Ensure the active language chunk (and legal chunk only on legal routes) is loaded dynamically when missing
+  // Ensure the active language chunk (and legal/tool chunk strictly for the current page) is loaded dynamically when missing
   useEffect(() => {
     if (hasLocaleBundleForPageSync(language, pageKey)) {
       return;
@@ -151,6 +153,9 @@ export function App({ initialPath }: AppProps = {}) {
     const tasks: Promise<unknown>[] = [loadLocaleBundle(language)];
     if (isLegalPageKey(pageKey)) {
       tasks.push(loadLegalBundle(language));
+    }
+    if (isToolPageKey(pageKey)) {
+      tasks.push(loadToolContent(language, pageKey));
     }
     Promise.all(tasks)
       .then(() => {
@@ -482,6 +487,7 @@ export function App({ initialPath }: AppProps = {}) {
           <SplitImageToolView
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
+            onNavigatePath={handleNavigatePath}
           />
         ) : pageKey === 'blog' ? (
           <BlogIndexView

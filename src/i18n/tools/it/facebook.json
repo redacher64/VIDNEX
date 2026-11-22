@@ -1,0 +1,132 @@
+{
+  "editorial": {
+    "heading": "Scaricare video Facebook e Reels pubblici in MP4 HD e SD con audio",
+    "subheading": "Supporto per /watch/, /videos/, /reel/ e link brevi fb.watch fino a 4 reindirizzamenti",
+    "paragraphs": [
+      "Lo strumento Facebook di VIDNEX permette di salvare video Facebook e Reels pubblici in formato MP4 completo di audio senza login né software aggiuntivi. Riconosce gli indirizzi standard /watch/?v=, /video.php?v=, /{pagina}/videos/{id}, /reel/ e /reels/ e risolve automaticamente i link brevi fb.watch, /share/v/ e /share/r/ seguendo fino a quattro reindirizzamenti.",
+      "Una volta verificata la disponibilità pubblica del filmato, VIDNEX mostra i pulsanti MP4 HD e SD effettivamente esposti da Facebook con traccia audio inclusa. Scegli la variante HD per la massima nitidezza oppure SD per un file più leggero su rete mobile; entrambi i formati sono compatibili con iPhone, Android, Windows e macOS.",
+      "Il rilevamento distingue con chiarezza ogni risorsa Facebook per evitare errori fuorvianti. I collegamenti a foto Facebook (/photo/, /photo.php, /share/p/) vengono segnalati esplicitamente come foto non supportate dallo strumento video, mentre le Storie Facebook (/stories/, /story.php, /share/s/) vengono identificate come contenuti con accesso obbligatorio e non passano mai dal motore Reels.",
+      "Restano esclusi i gruppi privati, i post riservati agli amici e le dirette Facebook Live (/live/, /watch/live). Nessun filmato viene conservato sui nostri server: il flusso viene trasferito direttamente sul tuo dispositivo."
+    ],
+    "formatsTitle": "Collegamenti e formati Facebook supportati",
+    "formatsList": [
+      "Video Facebook pubblici (/watch/?v=, /video.php?v=, /{pagina}/videos/{id}) in MP4 HD e SD con audio",
+      "Facebook Reels pubblici (/reel/, /reels/) in MP4 HD e SD con traccia sonora",
+      "Link brevi e di condivisione: fb.watch, /share/v/ e /share/r/ (fino a 4 reindirizzamenti automatici)",
+      "File MP4 standard H.264/AAC compatibili con smartphone, tablet e computer senza codec esterni"
+    ],
+    "limitsTitle": "Contenuti Facebook esclusi dallo strumento",
+    "limitsText": "Foto Facebook (/photo/, /photo.php, /share/p/), Storie Facebook (/stories/, /story.php, /share/s/) che richiedono accesso, dirette Live (/live/, /watch/live), gruppi privati e post visibili solo agli amici non sono supportati."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copia il link del video o Reel Facebook pubblico",
+      "description": "Nell'app o sul sito Facebook tocca Condividi sotto un video o Reel con visibilità pubblica (icona del globo) e seleziona Copia link.",
+      "codeHint": "FB.WATCH · /REEL/ · /WATCH/"
+    },
+    {
+      "number": "02",
+      "title": "Incolla il collegamento in VIDNEX",
+      "description": "Incolla l'URL nel campo in alto e premi Scarica. VIDNEX segue i link brevi e rileva automaticamente i flussi MP4 HD e SD disponibili.",
+      "codeHint": "HD MP4 · SD MP4 · CON AUDIO"
+    },
+    {
+      "number": "03",
+      "title": "Salva il file MP4 HD o SD",
+      "description": "Clicca su MP4 HD per la migliore qualità disponibile o su SD per risparmiare dati mobili e salva subito il video Facebook sul dispositivo.",
+      "codeHint": "STREAM DIRETTO · SENZA LOGIN"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabella di formati e collegamenti Facebook",
+    "subheading": "Comportamento reale del motore VIDNEX per i link Facebook supportati e per quelli esclusi.",
+    "headers": ["Tipo di link Facebook", "Formato di uscita", "Comportamento reale e limiti"],
+    "rows": [
+      ["Video pubblico (/watch/, /videos/)", "MP4 HD e SD", "Offre MP4 HD con audio quando la sorgente HD è presente, insieme alla variante SD più leggera."],
+      ["Reel pubblico (/reel/, /reels/)", "MP4 HD e SD", "Clip verticali Facebook Reels scaricate in MP4 con audio sincronizzato."],
+      ["Link brevi (fb.watch, /share/v/, /share/r/)", "Risoluzione → MP4", "Segue fino a 4 reindirizzamenti prima di estrarre il flusso video pubblico."],
+      ["Foto Facebook (/photo/, /share/p/)", "Non supportato", "Identificate come foto con avviso chiaro di non compatibilità, mai inviate al motore video."],
+      ["Storie Facebook (/stories/, /story.php)", "Non supportato (login richiesto)", "Distinte dai Reels; richiedono autenticazione e nessun muro di accesso viene aggirato."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemi frequenti su Facebook e soluzioni",
+    "subheading": "Sei situazioni concrete legate a gruppi privati, Storie, foto, dirette Live e qualità HD.",
+    "items": [
+      {
+        "problem": "Un link a una Storia Facebook mostra «accesso richiesto»",
+        "solution": "Facebook limita l'accesso a /stories/, /story.php e /share/s/ agli utenti connessi. VIDNEX rileva correttamente la Storia, non la tratta come Reel e conferma che non può essere scaricata senza login."
+      },
+      {
+        "problem": "Un video di un gruppo privato o condiviso con gli amici non si scarica",
+        "solution": "Possono essere estratti solo video e Reels impostati su Pubblico (icona del globo). I gruppi chiusi e i post riservati agli amici non espongono flussi pubblici accessibili senza credenziali."
+      },
+      {
+        "problem": "Ho incollato un link a una foto Facebook e compare un avviso",
+        "solution": "Lo strumento Facebook di VIDNEX gestisce esclusivamente video e Reels. I percorsi /photo/, /photo.php e /share/p/ vengono riconosciuti come immagini e viene indicato chiaramente che le foto Facebook non sono supportate."
+      },
+      {
+        "problem": "Il collegamento breve fb.watch o /share/v/ non viene risolto",
+        "solution": "Alcuni link di condivisione possono scadere o superare il limite di reindirizzamenti. Apri il video nel browser e copia dalla barra degli indirizzi il link diretto facebook.com/watch/?v=... oppure facebook.com/reel/...."
+      },
+      {
+        "problem": "Una diretta Facebook Live in corso non viene scaricata",
+        "solution": "Le trasmissioni dal vivo (/live/ o /watch/live) non sono ancora file MP4 completi e non sono supportate. Attendi la fine della diretta: se la pagina pubblica la registrazione come video pubblico, usa il nuovo URL."
+      },
+      {
+        "problem": "Compare solo il pulsante SD MP4 e manca l'opzione HD",
+        "solution": "VIDNEX non forza alcun upscaling artificiale. Se il video è stato caricato a definizione standard o Facebook espone pubblicamente solo il flusso SD, viene proposta unicamente la variante SD autentica."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dove trovare i video Facebook scaricati",
+    "subheading": "Apri subito il file MP4 HD o SD salvato sul tuo smartphone, tablet o computer.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "In Safari tocca la freccia blu di download nella barra degli indirizzi e scegli Download, oppure apri File > Download. Per portare il video Facebook nell'app Foto, apri il file MP4, tocca Condividi e seleziona Salva video."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome e gli altri browser Android salvano i video Facebook nella cartella interna Download. Apri l'album Download nella Galleria o l'app File per riprodurre immediatamente il filmato MP4 con audio."
+    },
+    "desktop": {
+      "title": "Computer (Windows / macOS)",
+      "steps": "I video MP4 HD o SD vengono salvati nella cartella Download del computer. Premi Ctrl+J su Windows o Cmd+Shift+J su macOS nel browser per aprire i download recenti e raggiungere direttamente il file."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Quali link Facebook possono essere scaricati in MP4 con VIDNEX?",
+      "answer": "VIDNEX supporta tutti i video e i Reels Facebook con visibilità pubblica (icona del globo). Puoi incollare indirizzi /watch/?v=, /video.php?v=, /{pagina}/videos/{id}, /reel/, /reels/, oltre ai link brevi fb.watch, /share/v/ e /share/r/ fino a quattro reindirizzamenti, per salvare file MP4 completi di audio."
+    },
+    {
+      "question": "Posso scaricare Storie Facebook o foto Facebook con questo strumento?",
+      "answer": "No, le Storie Facebook (/stories/, /story.php, /share/s/) richiedono l'accesso a un account Facebook, non possono essere scaricate senza login e non vengono mai classificate come Reels. Anche le foto Facebook (/photo/, /photo.php, /share/p/) sono escluse e producono un messaggio chiaro di mancato supporto."
+    },
+    {
+      "question": "Perché i video di gruppi privati o riservati agli amici non si scaricano?",
+      "answer": "I contenuti condivisi in gruppi chiusi o visibili solo alla lista amici sono protetti dai server di Facebook dietro autenticazione. VIDNEX non richiede credenziali Facebook e non tenta mai di aggirare barriere di accesso, elaborando esclusivamente video e Reels impostati pubblicamente dal rispettivo autore."
+    },
+    {
+      "question": "La qualità HD è sempre disponibile per tutti i video Facebook?",
+      "answer": "La disponibilità del pulsante HD dipende unicamente dalla risoluzione del file originale caricato su Facebook e dai flussi esposti pubblicamente dalla piattaforma. Quando lo stream HD è disponibile, VIDNEX propone sia HD sia SD; se esiste solo la versione standard, mostra onestamente il file SD."
+    },
+    {
+      "question": "È possibile salvare una diretta Facebook Live mentre è in corso?",
+      "answer": "No, le dirette attive (/live/ o /watch/live) sono flussi continui non ancora consolidati in un file MP4 e non sono supportate da VIDNEX. Una volta conclusa la trasmissione, se la pagina lascia il replay disponibile come video pubblico standard, potrai scaricarlo usando il nuovo collegamento."
+    },
+    {
+      "question": "Dove vengono salvati i video Facebook scaricati da iPhone?",
+      "answer": "Su iPhone e iPad, Safari salva i file MP4 nella cartella Download dell'app File anziché inserirli direttamente nell'app Foto. Per trasferire il video nel rullino fotografico, apri l'app File, tocca il filmato Facebook scaricato, premi Condividi in basso a sinistra e seleziona Salva video."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Altri strumenti VIDNEX e tutela della privacy",
+    "subheading": "Salva video pubblici anche da Instagram, TikTok e X direttamente dal browser.",
+    "toolKeys": ["instagram", "tiktok", "x"],
+    "privacyLabel": "Privacy e streaming senza archiviazione",
+    "privacyDescription": "Scopri come VIDNEX gestisce i link Facebook pubblici senza salvare copie dei video."
+  }
+}

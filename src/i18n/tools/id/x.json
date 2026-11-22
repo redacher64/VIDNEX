@@ -1,0 +1,128 @@
+{
+  "editorial": {
+    "heading": "Download video X (Twitter), GIF MP4, dan foto asli ?name=orig",
+    "subheading": "Aliran MP4 progresif urut bitrate tertinggi (1080p–360p), GIF berulang, dan hingga 4 foto",
+    "paragraphs": [
+      "Alat download X (Twitter) VIDNEX mendukung alamat resmi x.com, twitter.com, mobile.twitter.com, dan m.twitter.com, termasuk tautan /i/status/ serta pengalihan tautan pendek t.co hingga tiga lompatan. Setelah Anda menempelkan URL postingan publik, seluruh media yang terlampir diurai menjadi tautan simpan langsung.",
+      "Untuk postingan video, mesin kami secara khusus memilih aliran progresif video/mp4 dan menyaring aliran HLS (.m3u8) agar file yang diunduh langsung bisa diputar tanpa konversi tambahan. Semua variasi MP4 diurutkan dari bitrate tertinggi ke terendah, misalnya 1080p, 720p, 480p, atau 360p sesuai ketersediaan sumber. Animasi GIF di X secara bawaan disimpan platform sebagai video MP4 berulang, sehingga VIDNEX mengekstraknya langsung dalam format MP4 yang mulus.",
+      "Pada postingan X yang berisi 1 hingga 4 gambar, setiap foto diambil memakai parameter ?name=orig dalam format JPG atau PNG beresolusi asli. Anda dapat mencentang gambar tertentu untuk diunduh terpisah atau mengemas seluruh foto dalam satu paket ZIP langsung di browser.",
+      "Demi keandalan dan keamanan sumber, domain mirror pihak ketiga seperti fxtwitter, vxtwitter, fixupx, dan nitter ditolak secara eksplisit. Akun X terkunci (protected), postingan berbatas usia atau wajib login, tweet teks tanpa media, dan siaran audio X Spaces tidak didukung."
+    ],
+    "formatsTitle": "Format media dan tautan X (Twitter) yang didukung",
+    "formatsList": [
+      "Video MP4 progresif berurutan dari bitrate tertinggi: 1080p, 720p, 480p, atau 360p (aliran HLS .m3u8 disaring)",
+      "GIF X (Twitter) dalam format bawaan MP4 berulang tanpa kehilangan ketajaman",
+      "1 hingga 4 foto resolusi penuh ?name=orig (JPG/PNG) dengan kotak centang dan paket ZIP lokal",
+      "Domain resmi: x.com, twitter.com, mobile.twitter.com, m.twitter.com, /i/status/, dan t.co (maks 3 pengalihan)"
+    ],
+    "limitsTitle": "Konten X (Twitter) yang dikecualikan",
+    "limitsText": "Domain mirror pihak ketiga (fxtwitter, vxtwitter, fixupx, nitter), akun terlindungi (gembok), postingan sensitif/berbatas usia yang meminta login, kiriman teks murni tanpa media, dan ruang audio X Spaces tidak didukung."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Salin tautan resmi postingan X",
+      "description": "Di aplikasi atau situs X (Twitter), ketuk ikon Bagikan pada postingan publik berisi video, GIF, atau foto, lalu pilih Salin tautan.",
+      "codeHint": "X.COM · TWITTER.COM · T.CO"
+    },
+    {
+      "number": "02",
+      "title": "Tempel URL untuk mengurai bitrate MP4",
+      "description": "Tempel alamat ke kolom di atas dan klik Download. VIDNEX mengikuti t.co hingga 3 pengalihan lalu menyusun daftar MP4 progresif atau foto asli.",
+      "codeHint": "MP4 1080P–360P · GIF · ORIG"
+    },
+    {
+      "number": "03",
+      "title": "Simpan video, GIF, atau foto ZIP",
+      "description": "Pilih resolusi MP4 yang diinginkan, simpan GIF MP4 berulang, atau unduh foto ?name=orig satu per satu maupun sebagai satu arsip ZIP lokal.",
+      "codeHint": "MP4 LANGSUNG · ZIP LOKAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel format dan kualitas X (Twitter) yang tersedia",
+    "subheading": "Rincian file nyata yang disediakan VIDNEX untuk video, GIF, dan foto dari domain resmi X.",
+    "headers": ["Jenis media X", "Format keluaran", "Detail kualitas dan pemrosesan"],
+    "rows": [
+      ["Video HD publik", "MP4 progresif", "Varian 1080p atau 720p bila tersedia dari sumber; diurutkan dari bitrate tertinggi."],
+      ["Video standar / hemat", "MP4 progresif", "Pilihan 480p atau 360p untuk ukuran ringan; aliran terpecah HLS (.m3u8) otomatis disaring."],
+      ["GIF di X (Twitter)", "MP4 berulang", "Diambil langsung dari aliran video MP4 asli milik X agar ringan dan kompatibel di semua perangkat."],
+      ["Foto postingan (1–4)", "JPG / PNG atau ZIP", "Resolusi penuh menggunakan ?name=orig; simpan per gambar atau kemas ZIP lokal di browser."],
+      ["Tautan pendek t.co", "Pengalihan otomatis", "Menelusuri hingga 3 pengalihan menuju tautan resmi x.com atau twitter.com."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Masalah umum download X (Twitter) dan solusinya",
+    "subheading": "Lima kendala yang sering terjadi pada domain mirror, akun terkunci, kutipan tweet, dan format GIF.",
+    "items": [
+      {
+        "problem": "Tautan fxtwitter, vxtwitter, fixupx, atau nitter ditolak",
+        "solution": "VIDNEX hanya memproses domain resmi x.com, twitter.com, dan t.co demi keamanan serta konsistensi ekstraksi. Ubah bagian domain kembali ke x.com atau salin tautan langsung dari aplikasi resmi X."
+      },
+      {
+        "problem": "Muncul pesan akun terlindungi atau perlu login",
+        "solution": "Akun X dengan ikon gembok serta postingan berlabel konten dewasa atau batas usia mengharuskan login di X. VIDNEX tidak melewati pembatasan tersebut dan hanya mengekstrak postingan yang terbuka bagi publik."
+      },
+      {
+        "problem": "Pesan tidak ada media pada postingan kutipan (quote post)",
+        "solution": "Saat seseorang mengutip postingan video milik akun lain, media sering kali berada pada kiriman yang dikutip, bukan kiriman terluar. Ketuk kiriman bagian dalam untuk membukanya, lalu salin tautan kiriman aslinya."
+      },
+      {
+        "problem": "Mengapa GIF dari X tersimpan berformat .mp4 bukan .gif?",
+        "solution": "X secara internal mengonversi seluruh GIF menjadi video MP4 senyap yang diputar berulang. Menyimpannya sebagai MP4 mempertahankan ketajaman gambar dengan ukuran file jauh lebih kecil dan kompatibel di iOS maupun Android."
+      },
+      {
+        "problem": "Pilihan 1080p tidak muncul dan hanya ada 720p atau 480p",
+        "solution": "VIDNEX tidak memperbesar resolusi secara buatan. Daftar variasi MP4 progresif murni bergantung pada kualitas unggahan asli dan bitrate yang disediakan server X untuk postingan tersebut."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana menemukan video dan foto X yang sudah diunduh",
+    "subheading": "Akses cepat file MP4, GIF, dan foto ?name=orig pada iPhone, Android, atau komputer Anda.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Ketuk panah unduhan Safari atau buka aplikasi File > Unduhan. Untuk memindahkan video MP4 atau GIF ke Galeri Foto, buka file tersebut, ketuk ikon Bagikan, lalu pilih Simpan Video. File ZIP berisi 2–4 foto cukup diketuk sekali untuk diekstrak."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Browser Chrome di Android menyimpan video MP4 dan foto ?name=orig ke folder Download (Unduhan). Buka album Download pada aplikasi Galeri atau buka File Saya untuk langsung memutar video maupun mengekstrak arsip ZIP."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "Seluruh file MP4, JPG, PNG, dan ZIP tersimpan di folder Downloads komputer Anda. Gunakan pintasan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada browser untuk langsung melihat lokasi file di folder."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Kualitas video apa saja yang tersedia saat download dari X (Twitter)?",
+      "answer": "VIDNEX mendeteksi seluruh aliran video/mp4 progresif yang disediakan oleh X untuk postingan publik tersebut lalu mengurutkannya dari bitrate tertinggi ke terendah. Anda dapat memilih 1080p, 720p, 480p, atau 360p jika tersedia dari sumbernya, sementara aliran HLS (.m3u8) otomatis disaring agar pemutaran selalu lancar."
+    },
+    {
+      "question": "Mengapa animasi GIF dari X diunduh dalam format MP4?",
+      "answer": "Pada infrastruktur X (Twitter), setiap animasi GIF yang diunggah pengguna sebenarnya disimpan dan disajikan sebagai video MP4 tanpa suara yang berputar berulang. VIDNEX mengunduh aliran MP4 bawaan tersebut secara langsung tanpa konversi ulang yang menurunkan kualitas, sehingga file lebih ringan dan kompatibel di semua perangkat."
+    },
+    {
+      "question": "Bisakah saya menyimpan semua 4 foto dalam satu postingan X dengan kualitas asli?",
+      "answer": "Ya, ketika sebuah postingan X publik memuat antara satu hingga empat gambar, VIDNEX mengambil tiap file melalui parameter ?name=orig dalam format JPG atau PNG beresolusi penuh. Anda bisa mencentang gambar yang diinginkan untuk diunduh terpisah atau mengemas semuanya ke satu ZIP lokal di browser."
+    },
+    {
+      "question": "Apakah tautan t.co dan mobile.twitter.com dapat digunakan di VIDNEX?",
+      "answer": "Ya, alat ini mendukung seluruh alamat resmi termasuk x.com, twitter.com, mobile.twitter.com, m.twitter.com, format /i/status/, serta tautan pendek t.co hingga maksimal tiga kali pengalihan. Namun, tautan dari layanan mirror pihak ketiga seperti fxtwitter, vxtwitter, fixupx, dan nitter sengaja ditolak demi keandalan."
+    },
+    {
+      "question": "Apakah akun X yang digembok atau konten berbatas usia bisa diunduh?",
+      "answer": "Tidak bisa. Postingan dari akun terlindungi (protected), kiriman berbatas usia atau sensitif yang mewajibkan pengguna masuk akun, serta ruang audio X Spaces dikecualikan dari layanan ini. VIDNEX hanya memproses kiriman publik yang terbuka tanpa autentikasi dan menampilkan pemberitahuan jujur bila akses dibatasi."
+    },
+    {
+      "question": "Bagaimana cara mengunduh video yang berada di dalam quote tweet?",
+      "answer": "Jika postingan yang Anda salin hanya mengutip video milik akun lain, tautan postingan terluar sering tidak membawa aliran video secara langsung. Ketuk kotak kiriman yang dikutip agar halamannya terbuka penuh, lalu salin URL resmi dari kiriman asli tersebut sebelum menempelkannya ke kolom VIDNEX."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat download VIDNEX lainnya dan privasi",
+    "subheading": "Simpan juga video publik dari TikTok, Facebook, atau foto profil LinkedIn.",
+    "toolKeys": ["tiktok", "facebook", "linkedin"],
+    "privacyLabel": "Kebijakan privasi dan bebas penyimpanan",
+    "privacyDescription": "Pelajari mengapa tautan X Anda tidak dicatat sebagai riwayat dan media tidak disimpan di server."
+  }
+}

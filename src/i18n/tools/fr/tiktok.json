@@ -1,0 +1,146 @@
+{
+  "editorial": {
+    "heading": "Télécharger une vidéo TikTok publique sans filigrane, en audio ou en diaporama photo",
+    "subheading": "Résolution des liens longs et courts TikTok en MP4 HD, MP3/M4A original et archive ZIP locale",
+    "paragraphs": [
+      "Le téléchargeur TikTok de VIDNEX traite les publications publiques partagées depuis l'application mobile ou le site web TikTok, y compris les liens courts vm.tiktok.com, vt.tiktok.com et tiktok.com/t/. En collant simplement l'URL dans le champ ci-dessus, le moteur inspecte la ressource publique et distingue automatiquement une vidéo classique, un diaporama Photo Mode ou une photo de profil.",
+      "Pour une vidéo TikTok publique, VIDNEX propose le flux MP4 sans filigrane incrusté lorsque la source le rend disponible, généralement en HD 1080p ou en SD 720p selon l'encodage publié par le créateur. Vous pouvez également extraire la piste audio d'origine : VIDNEX vérifie l'en-tête MIME réel du fichier afin de fournir un véritable MP3 ou M4A/AAC, sans renommer artificiellement une extension incompatible.",
+      "Sur les carrousels photo TikTok (URL de type /photo/), l'interface affiche chaque diapositive avec des cases à cocher pour télécharger une seule image JPG ou assembler jusqu'à vingt photos en archive ZIP directement dans votre navigateur. Si vous saisissez un profil public (@utilisateur ou tiktok.com/@utilisateur), l'outil récupère l'avatar en haute résolution.",
+      "Aucune vidéo n'est archivée sur nos serveurs : le flux est relayé vers votre appareil puis oublié dès la fin du transfert, dans le respect strict des droits d'auteur et des créateurs."
+    ],
+    "formatsTitle": "Formats TikTok pris en charge",
+    "formatsList": [
+      "Vidéo TikTok publique en MP4 sans filigrane (HD 1080p ou SD 720p selon le fichier source)",
+      "Piste audio d'origine vérifiée en MP3 ou M4A/AAC sans réencodage trompeur",
+      "Diaporamas Photo Mode (/@utilisateur/photo/...) : sélection par cases, JPG unitaire ou archive ZIP locale (max 20 images / 100 Mo)",
+      "Photo de profil TikTok publique (/@utilisateur ou @pseudo) en JPG",
+      "Résolution automatique des liens courts mobiles vm.tiktok.com, vt.tiktok.com et /t/{code}"
+    ],
+    "limitsTitle": "Contenus exclus sur TikTok",
+    "limitsText": "Les comptes privés, les vidéos supprimées, les brouillons non publiés, les contenus bloqués par restriction régionale ou d'âge et les diffusions TikTok Live en cours ne sont pas pris en charge. Seules les publications publiques accessibles sans connexion sont extraites."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copiez le lien TikTok public",
+      "description": "Dans l'application TikTok ou sur navigateur, touchez la flèche Partager sur la vidéo, le diaporama ou le profil public, puis choisissez Copier le lien.",
+      "codeHint": "VM.TIKTOK.COM · /VIDEO/ · /PHOTO/"
+    },
+    {
+      "number": "02",
+      "title": "Collez l'adresse dans VIDNEX",
+      "description": "Collez le lien dans le champ ci-dessus et lancez l'analyse. VIDNEX suit les redirections courtes et identifie automatiquement le type de contenu TikTok.",
+      "codeHint": "MP4 HD · AUDIO · DIAPORAMA"
+    },
+    {
+      "number": "03",
+      "title": "Enregistrez en MP4, audio ou ZIP",
+      "description": "Cliquez sur le format souhaité (MP4 sans filigrane, piste audio originale, photo JPG ou archive ZIP pour un diaporama) afin de sauvegarder le fichier sur votre appareil.",
+      "codeHint": "STREAM DIRECT · ZIP LOCAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tableau des formats et qualités TikTok disponibles",
+    "subheading": "Correspondance exacte entre chaque type de lien TikTok public et les fichiers réellement délivrés par VIDNEX.",
+    "headers": ["Type de contenu TikTok", "Format de sortie", "Qualité et comportement réel"],
+    "rows": [
+      ["Vidéo publique HD", "MP4 sans filigrane", "Résolution 1080p lorsque le flux source HD existe ; encodage H.264 compatible iOS, Android, Windows et macOS."],
+      ["Vidéo publique SD", "MP4 sans filigrane", "Flux 720p plus léger, idéal pour un enregistrement rapide sur connexion mobile ou stockage réduit."],
+      ["Piste audio TikTok", "MP3 ou M4A (AAC)", "Extension réelle déterminée via vérification MIME/HEAD sur le flux audio source ; aucun faux MP3 renommé."],
+      ["Diaporama Photo Mode", "JPG individuel ou ZIP", "Grille interactive avec cases à cocher ; téléchargement image par image ou archive ZIP assemblée localement (jusqu'à 20 fichiers / 100 Mo)."],
+      ["Photo de profil publique", "JPG haute définition", "Extraction de l'avatar public à partir d'une URL tiktok.com/@pseudo ou directement d'un identifiant @pseudo."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problèmes fréquents sur TikTok et solutions",
+    "subheading": "Six situations concrètes rencontrées lors du téléchargement d'un lien TikTok et la marche à suivre pour les débloquer.",
+    "guideLink": {
+      "label": "Consulter le guide complet de dépannage TikTok",
+      "href": "/fr/blog/telecharger-video-tiktok-probleme"
+    },
+    "items": [
+      {
+        "problem": "Le lien court vm.tiktok.com ou vt.tiktok.com échoue",
+        "solution": "Les liens courts générés sur mobile peuvent expirer ou être copiés avec la légende complète de la vidéo. Retournez sur TikTok, ouvrez Partager puis Copier le lien, et ne collez que l'adresse commençant par https:// sans texte autour."
+      },
+      {
+        "problem": "Compte privé ou vidéo réservée aux amis",
+        "solution": "Si le créateur a passé son compte en privé ou restreint l'audience aux amis mutuels, TikTok bloque l'accès public. VIDNEX affiche une erreur de contenu privé et ne contourne jamais cette restriction."
+      },
+      {
+        "problem": "La vidéo téléchargée n'a pas de son ou le son est coupé",
+        "solution": "TikTok coupe parfois la bande-son d'une publication pour des raisons de droits musicaux, y compris directement sur sa plateforme. Vérifiez d'abord si le son est bien audible dans TikTok ; sinon, testez la lecture du MP4 dans VLC ou l'application Photos."
+      },
+      {
+        "problem": "Le fichier audio arrive en M4A au lieu de MP3",
+        "solution": "Ce comportement est normal : TikTok sert fréquemment ses pistes sonores en AAC (conteneur M4A). VIDNEX conserve l'extension réelle vérifiée pour éviter les fichiers corrompus ; le M4A est lu nativement sur iPhone, Mac, Android et Windows."
+      },
+      {
+        "problem": "Impossible de retrouver la vidéo enregistrée sur iPhone",
+        "solution": "Sur iOS, Safari sauvegarde le fichier MP4 dans l'application Fichiers > Téléchargements, pas directement dans Photos. Ouvrez le fichier depuis Fichiers, touchez l'icône Partager en bas à gauche puis sélectionnez Enregistrer la vidéo."
+      },
+      {
+        "problem": "Un TikTok Live ou une vidéo supprimée renvoie « média introuvable »",
+        "solution": "Les flux en direct (/live) sont des flux continus non pris en charge, et une vidéo retirée par son auteur ou modérée par TikTok ne renvoie plus aucun flux vidéo public exploitable."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Où retrouver votre vidéo ou audio TikTok enregistré",
+    "subheading": "Suivez le chemin correspondant à votre appareil pour ouvrir, lire ou partager le fichier téléchargé.",
+    "ios": {
+      "title": "iPhone et iPad",
+      "steps": "Dans Safari, touchez l'icône de flèche bleue dans la barre d'adresse puis Téléchargements, ou lancez l'application Fichiers > Téléchargements. Pour transférer un MP4 ou une photo dans votre galerie, ouvrez le fichier, appuyez sur Partager puis Enregistrer la vidéo ou Enregistrer l'image. Les archives ZIP de diaporamas se décompressent d'un simple toucher."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome et les navigateurs Android placent les vidéos MP4, pistes MP3/M4A et photos dans le dossier interne Téléchargements (Download). Ouvrez l'application Fichiers ou la Galerie (album Téléchargements) pour lire immédiatement le média. Pour un diaporama ZIP, touchez l'archive afin d'extraire chaque diapositive JPG dans un sous-dossier."
+    },
+    "desktop": {
+      "title": "Ordinateur (Windows / macOS)",
+      "steps": "Chaque téléchargement arrive dans le dossier Téléchargements de votre session utilisateur. Appuyez sur Ctrl+J sous Windows ou Cmd+Shift+J sur macOS pour afficher la liste récente du navigateur et ouvrir l'emplacement du fichier. Les pistes MP3/M4A s'ouvrent dans votre lecteur habituel et les archives ZIP s'extraient en un clic."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Comment télécharger une vidéo TikTok sans filigrane avec VIDNEX ?",
+      "answer": "Copiez le lien public de la vidéo depuis le bouton Partager de TikTok, collez-le dans le champ ci-dessus puis cliquez sur Télécharger. VIDNEX résout le flux vidéo source sans logo incrusté lorsque la plateforme l'expose et vous propose directement les boutons MP4 HD et SD prêts à enregistrer."
+    },
+    {
+      "question": "Les liens courts vm.tiktok.com et vt.tiktok.com fonctionnent-ils ?",
+      "answer": "Oui, le détecteur de VIDNEX accepte aussi bien les adresses complètes tiktok.com/@utilisateur/video/ que les liens courts mobiles vm.tiktok.com, vt.tiktok.com et tiktok.com/t/. Le moteur suit automatiquement la redirection vers l'identifiant canonique de la publication publique avant d'extraire les formats vidéo, audio ou photo disponibles."
+    },
+    {
+      "question": "Pourquoi l'extraction audio TikTok propose-t-elle parfois du M4A plutôt que du MP3 ?",
+      "answer": "Avant de nommer le fichier, VIDNEX vérifie le véritable type MIME renvoyé par le serveur média de TikTok. Lorsque la piste source est encodée en AAC, l'outil conserve l'extension réelle M4A au lieu de la maquiller en MP3, ce qui garantit une lecture propre sur mobile et ordinateur."
+    },
+    {
+      "question": "Puis-je enregistrer toutes les photos d'un diaporama TikTok en une seule fois ?",
+      "answer": "Oui, dès qu'un lien correspond au format Photo Mode de TikTok, VIDNEX charge l'ensemble des diapositives avec des cases à cocher interactives. Vous pouvez enregistrer chaque image JPG séparément ou regrouper jusqu'à vingt photos dans une archive ZIP assemblée directement côté navigateur, dans la limite de cent mégaoctets."
+    },
+    {
+      "question": "Est-il possible de récupérer la photo de profil d'un compte TikTok ?",
+      "answer": "Oui, il suffit de coller l'URL complète d'un profil public tiktok.com/@utilisateur ou simplement son identifiant précédé d'un arobase. VIDNEX détecte automatiquement le mode profil et affiche l'avatar public en format JPG prêt à être visualisé puis téléchargé sans connexion ni application tierce."
+    },
+    {
+      "question": "Pourquoi certaines vidéos TikTok ne sont disponibles qu'en 720p au lieu de 1080p ?",
+      "answer": "VIDNEX ne réencode pas artificiellement les vidéos pour gonfler leur résolution. La qualité finale dépend strictement du fichier publié par le créateur et des flux rendus publics par TikTok : une vidéo filmée ou compressée en 720p reste proposée en 720p, tandis qu'une source 1080p est servie en HD."
+    },
+    {
+      "question": "Puis-je télécharger un TikTok Live ou la vidéo d'un compte privé ?",
+      "answer": "Non, les comptes TikTok privés, les publications réservées aux abonnés approuvés et les flux Live diffusés en temps réel sont exclus. VIDNEX interroge uniquement les métadonnées publiques accessibles sans authentification et renvoie un message explicite lorsqu'un lien exige une connexion ou n'est plus disponible en ligne."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Autres outils VIDNEX et ressources TikTok",
+    "subheading": "Enregistrez des médias sur d'autres réseaux publics ou approfondissez la gestion des formats vidéo et audio.",
+    "toolKeys": ["instagram", "x", "split_image"],
+    "guideLink": {
+      "label": "Guide : enregistrer une vidéo TikTok publique sans filigrane",
+      "description": "Explications détaillées sur les qualités HD/SD, l'audio MP3/M4A et les diaporamas Photo Mode.",
+      "href": "/fr/blog/enregistrer-videos-tiktok-publiques-sans-filigrane-guide"
+    },
+    "privacyLabel": "Confidentialité et traitement sans stockage",
+    "privacyDescription": "Découvrez comment VIDNEX relaie vos liens publics sans conserver vos vidéos ni votre historique."
+  }
+}

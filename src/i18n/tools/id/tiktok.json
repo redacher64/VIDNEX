@@ -1,0 +1,165 @@
+{
+  "editorial": {
+    "heading": "Download video TikTok tanpa watermark: MP4 HD, audio asli, dan slide Photo Mode",
+    "subheading": "Resolusi tautan panjang dan pendek TikTok menjadi MP4 HD/SD, audio MP3/M4A terverifikasi, dan ZIP lokal",
+    "paragraphs": [
+      "Alat download TikTok VIDNEX memproses postingan publik yang dibagikan dari aplikasi seluler maupun situs web TikTok. Selain tautan panjang tiktok.com/@pengguna/video/, sistem kami secara otomatis mengikuti tautan pendek vm.tiktok.com, vt.tiktok.com, dan tiktok.com/t/ untuk mengidentifikasi apakah kontennya berupa video biasa, tayangan slide foto, atau profil publik.",
+      "Untuk video TikTok publik, VIDNEX mengambil aliran MP4 tanpa watermark apabila versi bersih tersedia dari sumbernya, baik dalam resolusi HD 1080p maupun SD 720p sesuai unggahan asli kreator. Jika Anda hanya membutuhkan suaranya, mesin kami memeriksa header MIME dan HEAD yang sebenarnya agar menghasilkan file MP3 atau M4A/AAC asli tanpa sekadar mengganti ekstensi file.",
+      "Pada unggahan TikTok Photo Mode (tautan /@pengguna/photo/...), setiap slide foto ditampilkan dalam galeri bercentang. Anda dapat menyimpan satu foto JPG tertentu atau mengemas hingga 20 gambar (maksimal total 100 MB) ke dalam satu arsip ZIP yang dibuat langsung di browser Anda. Anda juga bisa menempel tautan profil publik atau @username untuk mengambil foto profil beresolusi tinggi.",
+      "VIDNEX tidak pernah menyimpan file video atau audio TikTok di server. Semua unduhan ditujukan untuk konten publik yang terbuka tanpa login serta menghormati hak kekayaan intelektual para pembuat konten."
+    ],
+    "formatsTitle": "Format TikTok yang didukung oleh VIDNEX",
+    "formatsList": [
+      "Video TikTok publik MP4 tanpa watermark (HD 1080p atau SD 720p mengikuti kualitas sumber)",
+      "Ekstraksi audio asli terverifikasi MIME/HEAD dalam format MP3 atau M4A/AAC tanpa ekstensi palsu",
+      "Slide foto TikTok Photo Mode (/@pengguna/photo/...): kotak centang, JPG satuan, atau ZIP lokal (maks 20 foto / 100 MB)",
+      "Foto profil TikTok publik (tiktok.com/@pengguna atau @username) dalam format JPG",
+      "Penyelesaian otomatis tautan pendek vm.tiktok.com, vt.tiktok.com, dan tiktok.com/t/"
+    ],
+    "limitsTitle": "Konten TikTok yang tidak dapat diunduh",
+    "limitsText": "Akun TikTok privat, video khusus teman, klip yang sudah dihapus atau dibatasi wilayah, draf yang belum dipublikasikan, serta siaran langsung TikTok Live tidak didukung. Hanya konten publik yang dapat diakses tanpa login yang diproses."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Salin tautan video atau slide TikTok",
+      "description": "Di aplikasi atau browser TikTok, ketuk tombol Bagikan pada video, slide Photo Mode, atau profil publik, lalu pilih Salin tautan.",
+      "codeHint": "VM.TIKTOK.COM · /VIDEO/ · /PHOTO/"
+    },
+    {
+      "number": "02",
+      "title": "Tempel tautan di kolom VIDNEX",
+      "description": "Tempel tautan ke kolom di atas dan klik Download. VIDNEX mengikuti pengalihan tautan pendek dan langsung mengenali jenis media TikTok Anda.",
+      "codeHint": "MP4 TANPA WATERMARK · AUDIO"
+    },
+    {
+      "number": "03",
+      "title": "Simpan MP4, audio, atau arsip ZIP",
+      "description": "Klik tombol MP4 HD/SD tanpa watermark, audio MP3/M4A asli, foto JPG satuan, atau paket ZIP slide untuk menyimpannya langsung ke perangkat Anda.",
+      "codeHint": "STREAM LANGSUNG · ZIP LOKAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel format dan kualitas download TikTok",
+    "subheading": "Jenis file dan perilaku nyata yang diberikan VIDNEX untuk setiap kategori tautan TikTok publik.",
+    "headers": [
+      "Jenis konten TikTok",
+      "Format keluaran",
+      "Kualitas dan perilaku nyata"
+    ],
+    "rows": [
+      [
+        "Video publik HD",
+        "MP4 tanpa watermark",
+        "Resolusi 1080p bila aliran HD sumber tersedia; H.264 yang lancar diputar di iOS, Android, Windows, dan macOS."
+      ],
+      [
+        "Video publik SD",
+        "MP4 tanpa watermark",
+        "Resolusi 720p berukuran lebih hemat untuk koneksi seluler atau ruang penyimpanan terbatas."
+      ],
+      [
+        "Trek audio TikTok",
+        "MP3 atau M4A (AAC)",
+        "Ekstensi file ditetapkan melalui pemeriksaan MIME/HEAD asli dari server sumber tanpa penyamaran format."
+      ],
+      [
+        "Slide Photo Mode",
+        "JPG satuan atau ZIP",
+        "Tampilan grid dengan kotak centang; simpan satu per satu atau kemas ZIP lokal (maks 20 file / 100 MB)."
+      ],
+      [
+        "Foto profil publik",
+        "JPG resolusi tinggi",
+        "Ambil avatar publik memakai tautan tiktok.com/@pengguna atau cukup ketik @username."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Masalah umum download TikTok dan solusinya",
+    "subheading": "Enam kendala nyata saat mengunduh tautan TikTok dan cara praktis mengatasinya.",
+    "items": [
+      {
+        "problem": "Tautan pendek vm.tiktok.com atau vt.tiktok.com gagal diproses",
+        "solution": "Tautan dari aplikasi ponsel sering tersalin bersama teks caption video atau sudah kedaluwarsa. Kembali ke TikTok, pilih Bagikan lalu Salin tautan, dan pastikan Anda hanya menempel URL yang diawali https://."
+      },
+      {
+        "problem": "Muncul kesalahan akun privat atau video khusus teman",
+        "solution": "Apabila kreator mengunci akunnya atau membatasi penonton hanya untuk teman saling ikut, TikTok menutup akses publik. VIDNEX tidak melewati batasan privasi tersebut dan menampilkan pesan error yang jelas."
+      },
+      {
+        "problem": "Video TikTok yang disimpan tidak mengeluarkan suara",
+        "solution": "TikTok terkadang membisukan musik latar sebuah video karena aturan hak cipta audio di platformnya. Periksa dulu apakah suaranya terdengar di aplikasi TikTok; jika ada, coba putar file MP4 lewat VLC atau Galeri."
+      },
+      {
+        "problem": "File audio terunduh sebagai M4A, bukan MP3",
+        "solution": "Hal ini wajar karena TikTok sering menyajikan audio dalam codec AAC (wadah M4A). VIDNEX mempertahankan ekstensi asli M4A agar file tidak rusak; format ini langsung dapat diputar di iPhone, Mac, Android, dan Windows."
+      },
+      {
+        "problem": "Video TikTok tidak terlihat di aplikasi Foto iPhone",
+        "solution": "Di iOS, Safari menyimpan file MP4 ke aplikasi File > Unduhan, bukan langsung ke Galeri Foto. Buka video di aplikasi File, ketuk ikon Bagikan di kiri bawah, lalu pilih Simpan Video."
+      },
+      {
+        "problem": "Tautan TikTok Live atau video terhapus memunculkan media tidak ditemukan",
+        "solution": "Siaran langsung (/live) adalah aliran berkelanjutan yang tidak didukung untuk diunduh. Begitu pula video yang sudah dihapus pemiliknya atau diturunkan TikTok tidak lagi memiliki aliran media publik."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana letak file video atau audio TikTok setelah diunduh",
+    "subheading": "Temukan hasil unduhan MP4, MP3/M4A, foto JPG, atau ZIP slide sesuai jenis perangkat Anda.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Ketuk panah biru di bilah alamat Safari lalu pilih Unduhan, atau buka aplikasi File > Unduhan. Untuk memindahkan video MP4 atau foto ke aplikasi Foto, buka file tersebut, ketuk Bagikan, lalu pilih Simpan Video atau Simpan Gambar. Arsip ZIP slide dapat diekstrak hanya dengan satu ketukan."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome dan browser Android menempatkan file MP4, audio MP3/M4A, dan foto ke folder Download (Unduhan) di memori internal. Anda bisa langsung memutarnya lewat aplikasi File Saya atau album Download di Galeri. Ketuk arsip ZIP untuk mengeluarkan seluruh slide JPG ke dalam folder."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "Seluruh hasil unduhan masuk ke folder Downloads bawaan sistem Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada browser untuk membuka daftar unduhan dan menampilkan lokasi file. Audio MP3/M4A dan arsip ZIP dapat langsung dibuka tanpa aplikasi tambahan."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Bagaimana cara download video TikTok tanpa watermark lewat VIDNEX?",
+      "answer": "Salin tautan video TikTok publik dari tombol Bagikan di aplikasi atau situs web, tempel ke kolom di atas, lalu klik Download. Apabila server TikTok menyediakan aliran bersih tanpa logo, VIDNEX langsung menyiapkan tombol MP4 HD 1080p dan SD 720p yang siap disimpan ke perangkat Anda."
+    },
+    {
+      "question": "Apakah tautan pendek vm.tiktok.com dan vt.tiktok.com didukung?",
+      "answer": "Ya, detektor VIDNEX menerima alamat penuh tiktok.com/@pengguna/video/ maupun tautan pendek seluler seperti vm.tiktok.com, vt.tiktok.com, dan tiktok.com/t/ tanpa perlu diubah manual. Mesin kami otomatis menelusuri pengalihan hingga mendapatkan ID postingan publik yang sebenarnya sebelum menampilkan pilihan video, audio, atau slide foto yang tersedia."
+    },
+    {
+      "question": "Mengapa hasil ekstraksi audio TikTok kadang berupa file M4A alih-alih MP3?",
+      "answer": "Sebelum memberi nama file, VIDNEX selalu mengecek tipe MIME dan header HEAD asli dari server media TikTok. Ketika audio sumber dikodekan dalam format AAC, kami mempertahankan ekstensi M4A yang valid agar file tidak korup saat diputar di iPhone, Android, Mac, maupun komputer Windows."
+    },
+    {
+      "question": "Bisakah saya mengunduh semua foto dari slide TikTok Photo Mode sekaligus?",
+      "answer": "Ya, saat Anda menempel tautan Photo Mode (/@pengguna/photo/...), VIDNEX memuat seluruh gambar lengkap dengan kotak centang pemilih. Anda dapat menyimpan tiap gambar JPG secara terpisah atau menggabungkan hingga maksimal 20 foto dan batas total 100 MB menjadi satu file ZIP langsung di browser."
+    },
+    {
+      "question": "Bagaimana cara menyimpan foto profil akun TikTok publik?",
+      "answer": "Anda cukup menempelkan URL profil publik tiktok.com/@username atau langsung mengetikkan nama pengguna dengan awalan @ di kolom input. VIDNEX mengenali mode profil secara otomatis dan menampilkan foto profil beresolusi tinggi dalam format JPG yang bisa Anda lihat pratinjaunya lalu unduh tanpa masuk akun."
+    },
+    {
+      "question": "Mengapa beberapa video TikTok hanya muncul dalam resolusi 720p bukan 1080p?",
+      "answer": "VIDNEX tidak melakukan pengkodean ulang buatan untuk memperbesar resolusi video secara semu. Kualitas unduhan sepenuhnya mengikuti file asli yang diunggah kreator dan aliran publik yang disediakan TikTok. Jika video sumber beresolusi 720p, maka pilihan maksimalnya 720p; bila tersedia sumber 1080p, tombol HD akan tampil."
+    },
+    {
+      "question": "Apakah video dari akun TikTok privat atau siaran TikTok Live bisa diunduh?",
+      "answer": "Tidak bisa. Akun TikTok privat, postingan khusus teman, dan siaran langsung TikTok Live yang sedang berlangsung tidak termasuk dalam layanan ini. VIDNEX hanya membaca metadata publik yang dapat diakses tanpa login dan menampilkan pemberitahuan yang jelas ketika sebuah tautan terkunci atau sudah dihapus."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat VIDNEX lainnya dan informasi privasi",
+    "subheading": "Simpan konten publik dari Instagram dan X atau potong foto Anda menjadi grid 3×3 di browser.",
+    "toolKeys": [
+      "instagram",
+      "x",
+      "split_image"
+    ],
+    "privacyLabel": "Kebijakan privasi dan aliran tanpa penyimpanan",
+    "privacyDescription": "Ketahui bagaimana VIDNEX memproses tautan TikTok Anda tanpa menyimpan video atau riwayat unduhan."
+  }
+}

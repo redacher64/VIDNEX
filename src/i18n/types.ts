@@ -2,6 +2,7 @@ import type {
   LegalPageKey,
   PlatformPageKey,
   SupportedLocale,
+  ToolPageKey,
 } from './config.ts';
 
 export interface HowToStepItem {
@@ -26,6 +27,64 @@ export interface EditorialBlock {
   limitsText: string;
 }
 
+export interface FormatsTableBlock {
+  heading: string;
+  subheading: string;
+  headers: [string, string, string];
+  rows: Array<[string, string, string]>;
+}
+
+export interface TroubleshootingItem {
+  problem: string;
+  solution: string;
+}
+
+export interface TroubleshootingBlock {
+  heading: string;
+  subheading: string;
+  items: TroubleshootingItem[];
+  guideLink?: {
+    label: string;
+    href: string;
+  };
+}
+
+export interface WhereToFindDeviceBlock {
+  title: string;
+  steps: string;
+}
+
+export interface WhereToFindBlock {
+  heading: string;
+  subheading: string;
+  ios: WhereToFindDeviceBlock;
+  android: WhereToFindDeviceBlock;
+  desktop: WhereToFindDeviceBlock;
+}
+
+export interface RelatedToolsBlock {
+  heading: string;
+  subheading: string;
+  toolKeys: Array<PlatformPageKey | 'split_image'>;
+  privacyLabel: string;
+  privacyDescription: string;
+  guideLink?: {
+    label: string;
+    description: string;
+    href: string;
+  };
+}
+
+export interface ToolPageContent {
+  editorial: EditorialBlock;
+  howToSteps: [HowToStepItem, HowToStepItem, HowToStepItem];
+  formatsTable: FormatsTableBlock;
+  troubleshooting: TroubleshootingBlock;
+  whereToFind: WhereToFindBlock;
+  faqs: FaqItem[];
+  relatedSection: RelatedToolsBlock;
+}
+
 export interface PlatformPageContent {
   slug: string;
   metaTitle: string;
@@ -39,9 +98,9 @@ export interface PlatformPageContent {
   breadcrumbLabel: string;
   placeholder: string;
   specs: [string, string, string, string];
-  editorial: EditorialBlock;
-  howToSteps: [HowToStepItem, HowToStepItem, HowToStepItem];
-  faqs: FaqItem[];
+  editorial?: EditorialBlock;
+  howToSteps?: [HowToStepItem, HowToStepItem, HowToStepItem];
+  faqs?: FaqItem[];
 }
 
 export interface HomePageContent {
@@ -54,9 +113,9 @@ export interface HomePageContent {
   subtitle: string;
   placeholder: string;
   specs: [string, string, string, string];
-  editorial: EditorialBlock;
-  howToSteps: [HowToStepItem, HowToStepItem, HowToStepItem];
-  faqs: FaqItem[];
+  editorial?: EditorialBlock;
+  howToSteps?: [HowToStepItem, HowToStepItem, HowToStepItem];
+  faqs?: FaqItem[];
 }
 
 export interface LegalPageSection {
@@ -210,4 +269,5 @@ export interface LocaleBundle {
   home: HomePageContent;
   platforms: Record<PlatformPageKey, PlatformPageContent>;
   legal?: Record<LegalPageKey, LegalPageContent>;
+  toolContent?: Partial<Record<ToolPageKey, ToolPageContent>>;
 }

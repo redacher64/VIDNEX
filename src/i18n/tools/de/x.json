@@ -1,0 +1,157 @@
+{
+  "editorial": {
+    "heading": "Öffentliche X-(Twitter-)Videos als MP4, animierte GIFs und Originalfotos herunterladen",
+    "subheading": "Bitraten-sortierte progressive MP4-Streams, MP4-GIF-Schleifen und ?name=orig-Fotos offizieller Links",
+    "paragraphs": [
+      "Der X-(Twitter-)Downloader von VIDNEX holt Medien aus öffentlichen Beiträgen auf offiziellen Domains wie x.com, twitter.com, mobile.twitter.com, m.twitter.com, /i/status/-Links sowie offiziellen t.co-Kurzlinks (bis zu drei Weiterleitungen werden automatisch verfolgt). Fügen Sie die /status/-Adresse ein, um sofort alle verfügbaren Varianten zu sehen.",
+      "Bei öffentlichen X-Videos filtert VIDNEX fragmentierte HLS-Playlists (.m3u8), die nicht als Einzeldatei taugen, automatisch aus und listet ausschließlich echte progressive video/mp4-Dateien nach absteigender Bitrate — beispielsweise 1080p, 720p, 480p oder 360p je nach Original-Upload. Animierte GIFs auf X werden von der Plattform nativ als kompakte MP4-Schleifen ausgeliefert, die VIDNEX direkt speichert.",
+      "Enthält ein öffentlicher Post ein bis vier Bilder, ruft VIDNEX automatisch die Originalauflösung (?name=orig) im JPG- oder PNG-Format ab. Bei mehreren Fotos lassen sich einzelne Bilder per Checkbox auswählen oder lokal im Browser als ZIP-Archiv bündeln.",
+      "Aus Sicherheits- und Zuverlässigkeitsgründen werden Spiegel-Domains von Drittanbietern wie fxtwitter, vxtwitter, fixupx oder nitter abgewiesen — nutzen Sie stets die offizielle x.com- oder twitter.com-URL."
+    ],
+    "formatsTitle": "Unterstützte X-(Twitter-)Medienformate",
+    "formatsList": [
+      "Öffentliche X-Videos als progressive video/mp4-Varianten nach Bitrate sortiert (1080p, 720p, 480p, 360p je nach Beitrag)",
+      "Animierte X-GIFs direkt als flüssige, platzsparende MP4-Schleife gespeichert",
+      "Beiträge mit 1 bis 4 Fotos in voller Originalauflösung (?name=orig, JPG oder PNG)",
+      "Interaktive Checkbox-Auswahl und lokales ZIP-Archiv für Mehrfach-Fotobeiträge",
+      "Automatische Auflösung offizieller t.co-Kurzlinks (bis 3 Weiterleitungen) sowie /i/status/-Links"
+    ],
+    "limitsTitle": "Nicht unterstützte X-(Twitter-)Links",
+    "limitsText": "Geschützte Konten mit Schloss-Symbol, altersbeschränkte oder anmeldepflichtige Beiträge, reine Textposts ohne Medien, Spaces-Audio-Räume sowie Spiegel-URLs (fxtwitter, vxtwitter, fixupx, nitter) werden nicht unterstützt."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Offizielle X-Beitrags-URL kopieren",
+      "description": "Tippen Sie unter dem öffentlichen Beitrag auf x.com oder in der X-App auf Teilen und wählen Sie Link kopieren, um die /status/- oder t.co-Adresse zu erhalten.",
+      "codeHint": "X.COM/.../STATUS/ · T.CO"
+    },
+    {
+      "number": "02",
+      "title": "MP4-Qualitäten oder Originalfotos prüfen",
+      "description": "Fügen Sie den Link oben ein: VIDNEX filtert HLS-Streams heraus, sortiert progressive MP4-Varianten nach Bitrate oder lädt Fotos über ?name=orig.",
+      "codeHint": "PROGRESSIVES MP4 · ?NAME=ORIG"
+    },
+    {
+      "number": "03",
+      "title": "Gewünschte Auflösung oder ZIP speichern",
+      "description": "Klicken Sie auf die bevorzugte MP4-Auflösung, sichern Sie das GIF als MP4 oder speichern Sie ausgewählte Fotos einzeln beziehungsweise als ZIP.",
+      "codeHint": "1080P / 720P / 480P · ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "X-(Twitter-)Formate und Auflösungen auf VIDNEX",
+    "subheading": "Reale Ausgabedateien aus öffentlichen Beiträgen von x.com und twitter.com.",
+    "headers": [
+      "X-Medientyp",
+      "Ausgabeformat",
+      "Auflösung und technisches Verhalten"
+    ],
+    "rows": [
+      [
+        "HD-X-Video",
+        "Progressives MP4",
+        "Höchste von X angebotene video/mp4-Bitrate (oft 1080p oder 720p je nach Upload)."
+      ],
+      [
+        "Standard-X-Video",
+        "Progressives MP4",
+        "Kompakte 480p- oder 360p-Varianten für schnelles Teilen per Messenger."
+      ],
+      [
+        "Animiertes X-GIF",
+        "MP4-Schleife",
+        "X speichert GIFs nativ als stummes, schlankes MP4; VIDNEX lädt diesen Stream direkt."
+      ],
+      [
+        "Einzelnes Foto",
+        "JPG oder PNG",
+        "Abruf in Originalgröße (?name=orig) ohne zusätzlichen Zuschnitt oder Kompression."
+      ],
+      [
+        "Mehrfach-Fotos (2–4)",
+        "JPG / PNG oder ZIP",
+        "Checkbox-Raster für einzelne Downloads oder lokal gebautes ZIP-Archiv."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Häufige Probleme bei X (Twitter) und Lösungen",
+    "subheading": "Fünf typische Gründe, weshalb ein X-Link keine Medien liefert, und wie Sie sie beheben.",
+    "items": [
+      {
+        "problem": "Link wegen Spiegel-Domain (vxtwitter, fxtwitter, nitter) abgelehnt",
+        "solution": "VIDNEX akzeptiert ausschließlich offizielle Adressen von x.com, twitter.com und t.co. Ersetzen Sie den Spiegel-Hostnamen durch x.com und behalten Sie den Pfad /name/status/{id} bei."
+      },
+      {
+        "problem": "Geschütztes Konto oder sensibler Beitrag erfordert Login",
+        "solution": "Bei Konten mit Schloss oder altersbeschränkten Beiträgen blendet X die Medien für anonyme Anfragen aus. VIDNEX meldet dies transparent, ohne Zugriffsregeln zu umgehen."
+      },
+      {
+        "problem": "Kurzlink t.co führt zu keinem Video",
+        "solution": "Ein t.co-Link kann auf eine externe Webseite, einen gelöschten Post oder mehr als drei Weiterleitungen verweisen. Öffnen Sie ihn zuerst im Browser und kopieren Sie die finale x.com/.../status/-URL."
+      },
+      {
+        "problem": "Nur 720p statt 1080p verfügbar",
+        "solution": "VIDNEX zeigt jede echte progressive MP4-Variante an, die X erzeugt hat. Wurde der Clip in 720p hochgeladen, existiert auf den X-Servern kein 1080p-Stream."
+      },
+      {
+        "problem": "Gespeichertes GIF trägt die Endung .mp4",
+        "solution": "X wandelt animierte GIFs beim Hochladen automatisch in flüssige, deutlich kleinere MP4-Clips um. Die MP4-Datei läuft in modernen Galerien und Messengern nahtlos in Endlosschleife."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Wo Sie Ihre X-Videos, GIFs und Fotos wiederfinden",
+    "subheading": "Standard-Speicherorte unter iPhone, Android, Windows und macOS.",
+    "ios": {
+      "title": "iPhone und iPad",
+      "steps": "Öffnen Sie die Download-Liste in Safari oder die Apple-App Dateien > Downloads. Tippen Sie auf das MP4-Video oder JPG-/PNG-Foto, wählen Sie Teilen und anschließend Video sichern oder Bild sichern."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "MP4-Videos, GIF-MP4-Clips und Fotos landen im Ordner Download und erscheinen in Ihrer Galerie. Bei Mehrfach-Foto-ZIPs öffnen Sie Dateien oder Eigene Dateien und tippen auf Entpacken."
+    },
+    "desktop": {
+      "title": "Computer (Windows und macOS)",
+      "steps": "Alle Dateien werden automatisch im Ordner Downloads Ihres Rechners abgelegt. Drücken Sie Strg+J (Windows) oder Cmd+Shift+J (macOS), um das MP4 abzuspielen oder das Foto-ZIP zu öffnen."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Wie lade ich ein öffentliches X-(Twitter-)Video in HD-MP4 herunter?",
+      "answer": "Kopieren Sie den offiziellen Beitragslink von x.com oder twitter.com, fügen Sie ihn oben ein und klicken Sie auf Herunterladen. VIDNEX filtert unbrauchbare HLS-Listen heraus und sortiert alle progressiven MP4-Streams von höchster zu niedrigster Bitrate, sodass Sie direkt die schärfste Version sichern."
+    },
+    {
+      "question": "Warum wird ein animiertes X-GIF als MP4-Datei heruntergeladen?",
+      "answer": "X wandelt jedes hochgeladene GIF automatisch serverseitig in ein optimiertes, platzsparendes MP4-Video in Endlosschleife um, das deutlich flüssiger abspielt. VIDNEX liefert genau diese saubere native MP4-Datei ohne Qualitätsverlust aus, die sich problemlos auf iPhone, Android, WhatsApp, Telegram sowie in Schnittprogrammen verwenden lässt."
+    },
+    {
+      "question": "Kann ich alle vier Fotos eines X-Beitrags in voller Originalgröße sichern?",
+      "answer": "Ja, sobald ein öffentlicher X-Post bis zu vier Bilder enthält, fordert VIDNEX jedes Foto gezielt über den Originalauflösungs-Parameter von X ohne zusätzliche Verkleinerung an. Per Checkbox speichern Sie einzelne Bilder als JPG beziehungsweise PNG oder fassen sie lokal als ZIP-Archiv zusammen."
+    },
+    {
+      "question": "Werden ältere twitter.com-Adressen und t.co-Kurzlinks unterstützt?",
+      "answer": "Ja, VIDNEX erkennt offizielle Adressen von x.com, twitter.com, mobile.twitter.com, m.twitter.com, /i/status/-Links sowie t.co-Kurzlinks und verfolgt automatisch bis zu drei Weiterleitungen bis zum Originalbeitrag. Spiegel-Domains von Drittanbietern wie vxtwitter, fxtwitter, fixupx und nitter werden aus Gründen der Zuverlässigkeit bewusst direkt abgelehnt."
+    },
+    {
+      "question": "Warum erscheint bei geschützten Konten oder sensiblen Posts eine Login-Meldung?",
+      "answer": "VIDNEX verarbeitet ausschließlich öffentliche X-Beiträge, die ohne Anmeldung im Web abrufbar sind. Konten mit Schloss-Symbol und altersbeschränkte oder sensible Posts blenden ihre Medienströme gegenüber anonymen Anfragen vollständig aus; unser Tool meldet diese Beschränkung klar und versucht niemals, Login- oder Privatsphäre-Schranken zu umgehen."
+    },
+    {
+      "question": "Wie speichere ich ein Video aus einer Antwort innerhalb eines X-Threads?",
+      "answer": "Achten Sie darauf, den direkten Link genau jener Antwort zu kopieren, in der das Video eingebettet ist, statt den Startbeitrag des Threads. Öffnen Sie die Antwort für ihre eigene /status/-URL, fügen Sie diese bei VIDNEX ein und wählen Sie die gewünschte MP4-Auflösung."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Weitere VIDNEX-Werkzeuge entdecken",
+    "subheading": "Laden Sie öffentliche Medien von anderen Plattformen oder teilen Sie Bilder lokal in Raster.",
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "split_image"
+    ],
+    "privacyLabel": "Datenschutzerklärung von VIDNEX",
+    "privacyDescription": "Keine Medienspeicherung auf Servern, kein X-Login erforderlich und lokales ZIP-Packen."
+  }
+}

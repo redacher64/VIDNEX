@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Un solo espacio web para descargar medios públicos y dividir imágenes localmente",
+    "subheading": "Detección automática de enlaces, descarga directa sin almacenamiento en servidor y corte en navegador",
+    "paragraphs": [
+      "VIDNEX reúne en una misma aplicación web la descarga de videos, pistas de audio y fotografías públicas de cinco redes sociales — TikTok, Instagram, X (Twitter), Facebook y fotos de perfil públicas de LinkedIn — junto con una herramienta local para dividir imágenes en cuadrícula. Al pegar cualquier enlace público compatible, el sistema analiza el dominio y la ruta exacta para activar el motor adecuado sin necesidad de cambiar de pestaña.",
+      "Cada solicitud consulta bajo demanda los metadatos públicos visibles sin iniciar sesión y transmite el archivo MP4, el audio MP3 o M4A o la imagen JPG directamente a tu dispositivo. No pedimos registro, cuentas ni extensiones del navegador, y tampoco guardamos copias de tus archivos en nuestros servidores. En carruseles y presentaciones con varias imágenes, el archivo ZIP se construye en tu propio navegador.",
+      "La herramienta complementaria Dividir imagen trabaja totalmente en local mediante HTML5 Canvas y JSZip: tus archivos nunca abandonan tu teléfono u ordenador al preparar mosaicos 3×3 o carruseles panorámicos."
+    ],
+    "formatsTitle": "Plataformas y formatos compatibles en VIDNEX",
+    "formatsList": [
+      "TikTok: videos públicos MP4 sin marca de agua (HD 1080p / SD 720p), audio verificado MP3 o M4A, presentaciones Photo Mode en JPG o ZIP y foto de perfil",
+      "Instagram: Reels y videos /p/ o /tv/ en MP4 con sonido, fotos individuales JPG, carruseles con casillas de selección y ZIP local, avatares públicos",
+      "X (Twitter): variantes progresivas MP4 ordenadas por tasa de bits, GIFs animados guardados como MP4 en bucle y hasta 4 fotos en resolución original",
+      "Facebook: videos públicos (/watch/, /videos/, fb.watch) y Reels públicos (/reel/) en MP4 HD o SD con audio sincronizado",
+      "LinkedIn: foto de perfil personal pública (/in/...) validada por firma binaria, más modo manual local ante muros de inicio de sesión",
+      "Dividir imagen: corte 100 % local de JPG, PNG y WebP en cuadrículas 2×2, 3×3, 1×3, 3×1 o personalizadas hasta 10×10 con Orden Instagram y ZIP"
+    ],
+    "limitsTitle": "Alcance público y exclusiones claras",
+    "limitsText": "VIDNEX procesa únicamente enlaces públicos accesibles sin cuenta. YouTube, Snapchat, perfiles privados, grupos cerrados, transmisiones en directo, fotos de Facebook e historias protegidas por inicio de sesión quedan fuera de alcance y nunca se eluden barreras de acceso."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copia el enlace público original",
+      "description": "En TikTok, Instagram, X, Facebook o un perfil público de LinkedIn, abre el menú Compartir y copia la URL completa o el enlace corto oficial.",
+      "codeHint": "URL PÚBLICA · ENLACE CORTO"
+    },
+    {
+      "number": "02",
+      "title": "Pégalo en el buscador universal",
+      "description": "Pega la dirección arriba: VIDNEX detecta automáticamente la plataforma y el tipo de publicación (video, Reel, carrusel, foto o perfil) sin ajustes extra.",
+      "codeHint": "DETECCIÓN AUTO · SIN CUENTA"
+    },
+    {
+      "number": "03",
+      "title": "Elige formato y guarda el archivo",
+      "description": "Selecciona la calidad MP4, la pista de audio original o las imágenes deseadas y descárgalas una a una o en un paquete ZIP creado en tu navegador.",
+      "codeHint": "MP4 / MP3 / JPG / ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formatos y calidades disponibles por herramienta",
+    "subheading": "Resumen exacto de los archivos que genera cada módulo de VIDNEX a partir de fuentes públicas.",
+    "headers": ["Plataforma o herramienta", "Formatos de salida", "Calidad y comportamiento real"],
+    "rows": [
+      ["TikTok", "MP4, MP3 / M4A, JPG, ZIP", "Video público 1080p HD o 720p SD sin marca de agua según fuente; audio verificado por MIME; presentaciones hasta 20 fotos en ZIP local."],
+      ["Instagram", "MP4, JPG, ZIP", "Reels y videos públicos con audio, fotos /p/ en JPG, carruseles seleccionables con casillas (máx. 20 archivos / 100 MB) y fotos de perfil HD."],
+      ["X (Twitter)", "MP4, JPG / PNG, ZIP", "Flujos progresivos MP4 ordenados por calidad (sin listas HLS), GIFs en MP4 y hasta 4 fotos en tamaño original (?name=orig)."],
+      ["Facebook", "MP4 (HD / SD)", "Videos públicos (/watch/, /videos/, fb.watch) y Reels públicos con sonido; fotos e historias conectadas muestran aviso claro."],
+      ["LinkedIn", "JPG, PNG, WebP", "Solo foto de perfil personal pública (/in/...) hasta 10 MB con validación binaria; modo manual local si aparece inicio de sesión."],
+      ["Dividir imagen", "PNG, JPG, ZIP", "Corte en navegador con HTML5 Canvas y JSZip (entrada JPG/PNG/WebP, reducción automática sobre 8000 px) y cuadrículas hasta 10×10."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frecuentes y soluciones rápidas",
+    "subheading": "Causas habituales cuando un enlace público falla o un archivo descargado no aparece en tu galería.",
+    "guideLink": {
+      "label": "Leer guía: por qué no se descarga un video de TikTok",
+      "href": "/es/blog/por-que-no-se-descarga-video-tiktok"
+    },
+    "items": [
+      {
+        "problem": "Aviso de contenido privado o inicio de sesión obligatorio",
+        "solution": "Comprueba el enlace en una ventana de incógnito sin sesión abierta. Si la red social muestra candado o exige iniciar sesión, la publicación no es pública y VIDNEX no sortea esa barrera."
+      },
+      {
+        "problem": "Enlace corto vencido o copiado con texto adicional",
+        "solution": "Algunas aplicaciones móviles añaden la descripción del video antes de enlaces vm.tiktok.com, fb.watch o /share/. Pega únicamente la dirección limpia que empieza por https://."
+      },
+      {
+        "problem": "El video descargado se reproduce sin sonido",
+        "solution": "Revisa primero si la publicación original mantiene el audio activo en la plataforma. En teléfonos móviles, comprueba que el modo silencio esté desactivado y abre el MP4 en tu reproductor nativo."
+      },
+      {
+        "problem": "El archivo guardado no aparece en Fotos de iPhone",
+        "solution": "Safari guarda los videos MP4 y archivos ZIP en la app Archivos de Apple dentro de Descargas. Abre Archivos > Descargas, toca el video y pulsa Compartir > Guardar video."
+      },
+      {
+        "problem": "Se alcanzó el límite temporal de consultas",
+        "solution": "Para proteger la estabilidad del servicio frente a peticiones automatizadas existe un límite por ventana de tiempo. Espera unos segundos antes de analizar otro enlace público."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dónde encontrar tus archivos descargados",
+    "subheading": "Carpetas predeterminadas en iPhone, Android y ordenador para videos individuales y paquetes ZIP.",
+    "ios": {
+      "title": "iPhone y iPad (Safari / Chrome)",
+      "steps": "Toca el botón de descargas en la barra de Safari o abre la aplicación Archivos y entra en Descargas (En mi iPhone o iCloud Drive). Para pasar un MP4 o JPG a Fotos, ábrelo, pulsa Compartir y elige Guardar video o Guardar imagen. Un toque sobre un ZIP lo descomprime al instante."
+    },
+    "android": {
+      "title": "Android (Chrome, Firefox, Samsung Internet)",
+      "steps": "Los videos MP4, audios MP3/M4A y fotos se guardan en la carpeta Descargas (Download) de la memoria interna y suelen mostrarse automáticamente en la Galería. Si descargaste un carrusel en formato ZIP, ábrelo en Archivos o Mis archivos y pulsa Extraer."
+    },
+    "desktop": {
+      "title": "Ordenador (Windows y macOS)",
+      "steps": "El navegador guarda todos los archivos en la carpeta Descargas del sistema. Pulsa Ctrl+J en Windows o Cmd+Shift+J en macOS para abrir el historial reciente y mostrar el archivo en su carpeta. Haz doble clic o clic derecho Extraer todo para abrir archivos ZIP."
+    }
+  },
+  "faqs": [
+    {
+      "question": "¿Cómo elige VIDNEX la herramienta correcta al pegar un enlace?",
+      "answer": "En cuanto pegas una dirección en el campo principal, el detector inspecciona el dominio y la estructura exacta de la ruta para reconocer la plataforma y el tipo de medio automáticamente. No necesitas pulsar ninguna etiqueta previa, porque el motor siempre sigue exclusivamente la URL pública pegada."
+    },
+    {
+      "question": "¿VIDNEX almacena mis videos, fotos o historial de enlaces descargados?",
+      "answer": "No, VIDNEX nunca archiva tus videos, pistas de audio ni fotografías en sus servidores. Los flujos públicos pasan en streaming directo hacia tu navegador bajo demanda, mientras que los archivos ZIP de carruseles y las cuadrículas de Dividir imagen se generan localmente en la memoria de tu dispositivo."
+    },
+    {
+      "question": "¿Puedo descargar publicaciones de cuentas privadas o historias protegidas?",
+      "answer": "No, VIDNEX funciona exclusivamente con publicaciones abiertas que cualquier visitante puede ver sin iniciar sesión. Las cuentas privadas, grupos cerrados de Facebook, publicaciones restringidas por edad e historias que exigen sesión devuelven un mensaje claro, ya que nuestro servicio nunca intenta eludir muros de inicio de sesión."
+    },
+    {
+      "question": "¿Por qué YouTube y Snapchat no están incluidos en VIDNEX?",
+      "answer": "VIDNEX se centra deliberadamente en cinco plataformas públicas concretas — TikTok, Instagram, X, Facebook y fotos de perfil públicas de LinkedIn — además de la herramienta local Dividir imagen. YouTube y Snapchat quedan excluidos para mantener una arquitectura sencilla, transparente y ajustada a límites claros de uso."
+    },
+    {
+      "question": "¿Necesito crear una cuenta o instalar alguna extensión para descargar?",
+      "answer": "No hace falta registrarse, facilitar correo electrónico ni instalar aplicaciones o extensiones en el navegador. Todas las utilidades de VIDNEX funcionan directamente desde Safari, Chrome, Firefox o Edge en móvil, tableta y ordenador, guardando únicamente tus preferencias locales de idioma y tema visual en tu propio navegador."
+    },
+    {
+      "question": "¿Cómo se descargan los carruseles o presentaciones con varias fotos?",
+      "answer": "Cuando un enlace público de TikTok Photo Mode, Instagram o X contiene varias imágenes o videos, VIDNEX muestra una cuadrícula interactiva con casillas de verificación. Puedes guardar elementos sueltos con un toque o agrupar hasta veinte archivos en un único archivo ZIP armado localmente en tu navegador."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Herramientas especializadas y recursos útiles",
+    "subheading": "Accede a cada descargador dedicado, abre Dividir imagen o consulta nuestra política de privacidad.",
+    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "guideLink": {
+      "label": "Guía práctica: por qué no se descarga un video de TikTok",
+      "description": "Causas reales de enlaces bloqueados, cuentas privadas y cómo verificar una URL pública.",
+      "href": "/es/blog/por-que-no-se-descarga-video-tiktok"
+    },
+    "privacyLabel": "Política de privacidad de VIDNEX",
+    "privacyDescription": "Información detallada sobre transmisión sin almacenamiento, cifrado de IP y procesamiento local."
+  }
+}

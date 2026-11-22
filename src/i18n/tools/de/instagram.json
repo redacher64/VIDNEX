@@ -1,0 +1,179 @@
+{
+  "editorial": {
+    "heading": "Öffentliche Instagram-Reels, /p/-Fotos, Karussells und Profilbilder herunterladen",
+    "subheading": "Genaue Erkennung von /reel/, /p/, /tv/, /share/ und öffentlichen Profilen mit lokalem ZIP-Export",
+    "paragraphs": [
+      "Der Instagram-Downloader von VIDNEX trennt vor jeder Verarbeitung sauber nach URL-Struktur: öffentliche Reels (/reel/ und /reels/), Videos (/tv/), einzelne Fotos oder gemischte Beiträge (/p/), mobile Kurzlinks (/share/... und instagr.am) sowie öffentliche Profile (instagram.com/name oder @name). Ein /p/-Beitrag landet dadurch niemals fälschlich in einer reinen Reel-Verarbeitung.",
+      "Bei öffentlichen Reels und Videobeiträgen liefert VIDNEX die hochauflösende MP4-Datei inklusive synchronisierter Original-Tonspur, sofern diese von Instagram bereitgestellt wird. Einzelne Fotobeiträge werden direkt als unveränderte öffentliche JPG-Datei ausgegeben.",
+      "Enthält ein öffentlicher /p/-Beitrag ein Karussell aus mehreren Fotos und Videos, zeigt VIDNEX eine Auswahlansicht mit Kontrollkästchen. Sie laden entweder ein einzelnes Medium herunter oder bündeln bis zu zwanzig Dateien (maximal 100 MB) lokal im Browser zu einem ZIP-Archiv — ganz ohne Server-Upload.",
+      "Instagram-Stories (/stories/...) und Highlights (/stories/highlights/...) werden klar getrennt von Reels erkannt. Da Instagram für Stories eine Anmeldung vorschreibt, umgeht VIDNEX keine Login-Sperren und weist eindeutig darauf hin, wenn keine autorisierte Sitzung vorliegt."
+    ],
+    "formatsTitle": "Unterstützte Instagram-Medien",
+    "formatsList": [
+      "Öffentliche Instagram-Reels (/reel/, /reels/) und Videos (/tv/, /p/-Video) als HD-MP4 mit Ton",
+      "Einzelne öffentliche Fotobeiträge (/p/-Foto) als sauberes JPG in öffentlicher Originalauflösung",
+      "Mehrteilige Karussells (/p/ gemischt): Checkbox-Auswahl, Einzeldownload oder lokales ZIP (max. 20 Dateien / 100 MB)",
+      "Öffentliche Instagram-Profilbilder (instagram.com/name oder @Handle) als HD-JPG",
+      "Automatische Auflösung von Kurzlinks über instagram.com/share/... und instagr.am"
+    ],
+    "limitsTitle": "Stories, Highlights und private Konten",
+    "limitsText": "Private Instagram-Profile sind nicht zugänglich. Stories und Highlights werden getrennt von Reels erkannt und setzen auf Instagram eine Anmeldung voraus; VIDNEX umgeht niemals Login-Wände und meldet ehrlich, wenn ein Abruf nicht möglich ist."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Öffentlichen Instagram-Link kopieren",
+      "description": "Öffnen Sie das gewünschte öffentliche Reel, den /p/-Beitrag, das Karussell oder Profil auf Instagram, tippen Sie auf Teilen und wählen Sie Link kopieren.",
+      "codeHint": "/REEL/ · /P/ · /SHARE/ · @NAME"
+    },
+    {
+      "number": "02",
+      "title": "Einfügen und Medientyp prüfen",
+      "description": "Fügen Sie den Link oben ein: Die Anzeige unter dem Feld bestätigt sofort den erkannten Typ (Reel, Beitrag, Karussell oder Profil), bevor die Dateien erscheinen.",
+      "codeHint": "EXAKTER TYP · VORSCHAU"
+    },
+    {
+      "number": "03",
+      "title": "Einzeln oder als lokales ZIP speichern",
+      "description": "Speichern Sie Ihr Reel als MP4, Ihr Foto als JPG oder markieren Sie die gewünschten Karussell-Folien für ein lokales ZIP-Archiv.",
+      "codeHint": "MP4 HD · JPG · LOKALES ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Instagram-Formate und Qualitäten auf VIDNEX",
+    "subheading": "Was VIDNEX für jede öffentliche Instagram-Linkstruktur tatsächlich liefert.",
+    "headers": [
+      "Instagram-Linktyp",
+      "Ausgabeformat",
+      "Tatsächliche Qualität und Verhalten"
+    ],
+    "rows": [
+      [
+        "Öffentliches Reel (/reel/, /reels/)",
+        "MP4 mit Ton",
+        "Vertikales HD-MP4 mit synchronisierter Original-Tonspur, sofern in der Quelle vorhanden."
+      ],
+      [
+        "Videobeitrag (/p/, /tv/)",
+        "MP4",
+        "Progressiver MP4-Stream in höchster öffentlich bereitgestellter Auflösung."
+      ],
+      [
+        "Einzelnes Foto (/p/)",
+        "JPG",
+        "Öffentliches JPG-Bild ohne zusätzliche Nachkompression durch VIDNEX."
+      ],
+      [
+        "Karussell (/p/ mehrteilig)",
+        "JPG / MP4 oder ZIP",
+        "Checkbox-Raster für Einzeldownloads oder lokal gebautes ZIP (max. 20 Dateien / 100 MB)."
+      ],
+      [
+        "Profilbild (@Handle)",
+        "HD-JPG",
+        "Öffentlicher Avatar über instagram.com/{name} oder direkte @Handle-Eingabe."
+      ],
+      [
+        "Stories und Highlights",
+        "Anmeldung nötig",
+        "Getrennt von Reels erkannt; liefert klaren Login-Hinweis ohne Sperren zu umgehen."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Häufige Instagram-Probleme und Lösungen",
+    "subheading": "Sechs häufige Fehlerquellen bei Instagram-Reels, Beiträgen oder Karussells und wie Sie sie lösen.",
+    "guideLink": {
+      "label": "Ratgeber lesen: Instagram-Reel ohne Ton heruntergeladen",
+      "href": "/de/blog/instagram-reel-ohne-ton-heruntergeladen"
+    },
+    "items": [
+      {
+        "problem": "Story oder Highlight meldet Anmeldung erforderlich",
+        "solution": "Instagram beschränkt Stories und Highlights auf angemeldete Nutzer. VIDNEX unterscheidet sie sauber von Reels und umgeht keine Login-Sperren; ohne Konto lassen sich nur öffentliche Beiträge speichern."
+      },
+      {
+        "problem": "Mobiler /share/...-Link lässt sich nicht auflösen",
+        "solution": "Kurzlinks mit /share/ können ablaufen oder auf einen inzwischen privaten Beitrag verweisen. Öffnen Sie den Link kurz im Browser, kopieren Sie die direkte /reel/- oder /p/-Adresse und fügen Sie diese ein."
+      },
+      {
+        "problem": "Heruntergeladenes Reel spielt ohne Ton ab",
+        "solution": "Prüfen Sie zuerst auf Instagram selbst, ob die Musik noch aktiv ist (lizenzierte Titel werden gelegentlich stummgeschaltet). Testen Sie das MP4 zudem im nativen Videoplayer Ihres Geräts."
+      },
+      {
+        "problem": "Karussell überschreitet das ZIP-Limit",
+        "solution": "Das browserseitige ZIP-Packen ist auf zwanzig Dateien oder 100 MB begrenzt, um mobile Tabs stabil zu halten. Wählen Sie bei großen Videokarussells kleinere Gruppen aus oder laden Sie Clips einzeln."
+      },
+      {
+        "problem": "Beitrag stammt von einem privaten oder altersbeschränkten Konto",
+        "solution": "Bei geschlossenen Profilen oder Beiträgen mit Altersabfrage gibt Instagram keine öffentlichen Metadaten frei, sodass kein Abruf erfolgen kann."
+      },
+      {
+        "problem": "Karussell-ZIP ist auf dem iPhone nicht in Fotos sichtbar",
+        "solution": "Safari speichert ZIP-Dateien in der App Dateien unter Downloads. Tippen Sie die ZIP-Datei in Dateien an, um alle JPG-Bilder zu entpacken, und sichern Sie sie danach in Fotos."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Wo Sie Ihre Instagram-Reels, Fotos und Karussells finden",
+    "subheading": "Speicherorte für MP4-, JPG- und ZIP-Dateien unter iOS, Android und Desktop.",
+    "ios": {
+      "title": "iPhone und iPad (Safari)",
+      "steps": "Öffnen Sie die Apple-App Dateien und navigieren Sie zu Downloads (Auf meinem iPhone oder iCloud Drive). Tippen Sie auf das MP4-Reel oder JPG-Foto, wählen Sie Teilen und danach Video sichern oder Bild sichern. Ein Tipp auf ein ZIP entpackt alle Folien direkt."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Einzelne Reels und Fotos landen im Ordner Download und tauchen automatisch in Ihrer Galerie auf. Bei einem Karussell im ZIP-Format öffnen Sie Eigene Dateien oder Files by Google unter Downloads und wählen Entpacken."
+    },
+    "desktop": {
+      "title": "Computer (Windows und macOS)",
+      "steps": "Ihr Browser legt MP4-, JPG- und ZIP-Dateien im Standardordner Downloads ab. Mit Strg+J (Windows) oder Cmd+Shift+J (macOS) springen Sie direkt zur Datei und entpacken Karussells per Doppelklick."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Wie lade ich ein öffentliches Instagram-Reel mit Ton über VIDNEX herunter?",
+      "answer": "Kopieren Sie die öffentliche Reel-URL über das Teilen-Menü der Instagram-App oder im Browser und fügen Sie sie oben in das Eingabefeld ein. VIDNEX erkennt das Reel-Format automatisch, ruft den hochauflösenden MP4-Stream samt synchronisierter Original-Tonspur ab und zeigt sofort den direkten Download-Button an."
+    },
+    {
+      "question": "Unterscheidet VIDNEX zuverlässig zwischen /p/-Beiträgen und Instagram-Reels?",
+      "answer": "Ja, vor jedem Abruf wertet VIDNEX den genauen Instagram-Pfad aus: Adressen mit /p/ werden als Beiträge behandelt, die einzelne JPG-Fotos, MP4-Videos oder gemischte Karussells enthalten können, während /reel/ und /reels/ gezielt Reels ansprechen. Fotobeiträge landen daher niemals in einem reinen Video-Pfad."
+    },
+    {
+      "question": "Wie speichere ich mehrere Fotos und Videos aus einem Instagram-Karussell?",
+      "answer": "Fügen Sie den öffentlichen /p/-Karussell-Link ein, um eine Vorschau mit Kontrollkästchen für jede einzelne Folie zu öffnen. Sie können alle Elemente markieren oder gezielt einzelne Bilder auswählen und diese anschließend separat herunterladen oder bis zu zwanzig Dateien lokal im Browser als ZIP packen."
+    },
+    {
+      "question": "Kann ich Instagram-Stories oder Highlights ohne Anmeldung herunterladen?",
+      "answer": "VIDNEX erkennt Stories und Highlights sauber und verwechselt sie nicht mit Reels, jedoch verlangt Instagram für deren Abruf eine Anmeldung. Ohne gültige Sitzung zeigt VIDNEX einen klaren Hinweis auf die Anmeldepflicht an und versucht niemals, Login-Sperren oder private Konten zu umgehen."
+    },
+    {
+      "question": "Wie lade ich ein öffentliches Instagram-Profilbild in hoher Qualität herunter?",
+      "answer": "Fügen Sie die vollständige öffentliche Profiladresse instagram.com/benutzername ein oder geben Sie einfach den @Benutzernamen in das Hauptfeld ein. VIDNEX erkennt den Profiltyp automatisch, blendet eine Vorschau des öffentlichen Avatars ein und bietet einen direkten JPG-Download ohne App oder Konto an."
+    },
+    {
+      "question": "Warum wirkt ein Instagram-Foto oder Reel manchmal leicht komprimiert?",
+      "answer": "Instagram komprimiert Bilder und Videos bereits direkt beim Hochladen, sobald bestimmte Abmessungen oder Bitraten überschritten werden. VIDNEX liefert unverändert genau die höchstauflösende Datei aus, die von den Instagram-Servern öffentlich bereitgestellt wird, ohne eine eigene zusätzliche Kompression, Neuberechnung oder Qualitätsreduzierung im Hintergrund hinzuzufügen."
+    },
+    {
+      "question": "Kann ich ein Instagram-Foto auf VIDNEX in ein 3×3-Profilraster teilen?",
+      "answer": "Ja, VIDNEX enthält das kostenlose Werkzeug Bild teilen, das vollständig lokal im Browser ohne Server-Upload arbeitet. Ziehen Sie ein JPG, PNG oder WebP hinein, wählen Sie das 3×3-Preset mit aktivierter Instagram-Reihenfolge und laden Sie alle nummerierten Kacheln bequem als ZIP-Archiv herunter."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Passende Werkzeuge und Instagram-Ratgeber",
+    "subheading": "Schneiden Sie 3×3-Raster direkt im Browser oder nutzen Sie unsere weiteren öffentlichen Downloader.",
+    "toolKeys": [
+      "split_image",
+      "tiktok",
+      "facebook"
+    ],
+    "guideLink": {
+      "label": "Ratgeber: Instagram-Reel ohne Ton heruntergeladen",
+      "description": "Wie Sie fehlenden Ton bei Reels prüfen und kompatible MP4-Wiedergabe sicherstellen.",
+      "href": "/de/blog/instagram-reel-ohne-ton-heruntergeladen"
+    },
+    "privacyLabel": "Datenschutzerklärung von VIDNEX",
+    "privacyDescription": "Keine Dateispeicherung auf Servern, kein Login erforderlich und lokale ZIP-Erstellung."
+  }
+}

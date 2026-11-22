@@ -46,7 +46,10 @@ const ChevronDown: React.FC<SvgIconProps> = ({ className }) => (
 const ImageIcon: React.FC<SvgIconProps> = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
 );
-import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import {
+  getLocaleBundleSync,
+  getToolContentSync,
+} from '../i18n/localeLoader.ts';
 import {
   buildZipArchiveWithJSZip,
   clampGridAxis,
@@ -60,10 +63,12 @@ import {
   type SplitOutputFormat,
 } from '../utils/splitImageLogic.ts';
 import { AdSlot } from './AdSlot.tsx';
+import { ToolRichSections } from './ToolRichSections.tsx';
 
 interface SplitImageToolViewProps {
   locale: SupportedLocale;
   onNavigatePage: (page: PageKey) => void;
+  onNavigatePath?: (path: string) => void;
 }
 
 interface SourceCanvasState {
@@ -164,9 +169,14 @@ function canvasToBlobAndUrl(
 export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
   locale,
   onNavigatePage,
+  onNavigatePath,
 }) => {
   const copy = getSplitImageContent(locale);
   const bundle = getLocaleBundleSync(locale);
+  const splitToolContent = getToolContentSync(locale, 'split_image');
+  const activeEditorial = splitToolContent?.editorial || copy.editorial;
+  const activeHowToSteps = splitToolContent?.howToSteps || copy.howToSteps;
+  const activeFaqs = splitToolContent?.faqs || copy.faqs;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [sourceImage, setSourceImage] = useState<SourceCanvasState | null>(null);
@@ -980,9 +990,10 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {copy.howToSteps.map((step) => (
+                {activeHowToSteps.map((step, idx) => (
                   <div
                     key={step.number}
+                    id={`step-${idx + 1}`}
                     className="rounded-2xl border border-orange-200/80 dark:border-orange-950/70 bg-white/90 dark:bg-[#1d140e]/90 p-5 shadow-sm flex flex-col justify-between"
                   >
                     <div>
@@ -1012,14 +1023,14 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
             {/* Editorial Guide Block */}
             <article className="mt-12 rounded-2xl border border-orange-200/80 dark:border-orange-950/70 bg-white/90 dark:bg-[#1d140e]/90 p-6 sm:p-8 shadow-sm">
               <h2 className="font-display text-xl sm:text-2xl font-extrabold text-[#1f130b] dark:text-[#fffaf5] mb-2">
-                {copy.editorial.heading}
+                {activeEditorial.heading}
               </h2>
               <p className="text-xs sm:text-sm font-mono font-semibold text-[#c2410c] dark:text-[#fb923c] mb-4">
-                {copy.editorial.subheading}
+                {activeEditorial.subheading}
               </p>
 
-              <div className="space-y-3 text-sm text-[#432818] dark:text-[#e7d5c9] leading-relaxed mb-6">
-                {copy.editorial.paragraphs.map((p, i) => (
+              <div className="space-y-3 text-sm sm:text-base text-[#432818] dark:text-[#e7d5c9] leading-relaxed mb-6">
+                {activeEditorial.paragraphs.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
@@ -1027,24 +1038,35 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-orange-200/60 dark:border-orange-950/60">
                 <div>
                   <h3 className="font-display text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] mb-2">
-                    {copy.editorial.formatsTitle}
+                    {activeEditorial.formatsTitle}
                   </h3>
                   <ul className="space-y-1.5 text-xs sm:text-sm text-[#6e472b] dark:text-[#d6b8a3] list-disc list-inside">
-                    {copy.editorial.formatsList.map((item, i) => (
+                    {activeEditorial.formatsList.map((item, i) => (
                       <li key={i}>{item}</li>
                     ))}
                   </ul>
                 </div>
                 <div>
                   <h3 className="font-display text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] mb-2">
-                    {copy.editorial.limitsTitle}
+                    {activeEditorial.limitsTitle}
                   </h3>
                   <p className="text-xs sm:text-sm text-[#6e472b] dark:text-[#d6b8a3] leading-relaxed">
-                    {copy.editorial.limitsText}
+                    {activeEditorial.limitsText}
                   </p>
                 </div>
               </div>
             </article>
+
+            {/* Formats Table, Troubleshooting, Where To Find File, Internal Links */}
+            {splitToolContent && (
+              <ToolRichSections
+                locale={locale}
+                toolContent={splitToolContent}
+                onNavigatePage={onNavigatePage}
+                onNavigatePath={onNavigatePath}
+                compactContainer
+              />
+            )}
 
             {/* FAQ Section */}
             <div className="mt-12">
@@ -1057,11 +1079,12 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
               </h2>
 
               <div className="space-y-3">
-                {copy.faqs.map((faq, idx) => {
+                {activeFaqs.map((faq, idx) => {
                   const isOpen = openFaqIndex === idx;
                   return (
                     <div
                       key={idx}
+                      data-faq-item="true"
                       className="rounded-2xl border border-orange-200/80 dark:border-orange-950/70 bg-white/90 dark:bg-[#1d140e]/90 overflow-hidden"
                     >
                       <button
@@ -1072,7 +1095,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                         }
                         className="w-full px-5 py-4 text-start flex items-center justify-between gap-4 font-display text-sm sm:text-base font-bold text-[#1f130b] dark:text-[#fffaf5] cursor-pointer"
                       >
-                        <span>{faq.question}</span>
+                        <span data-faq-question="true">{faq.question}</span>
                         <ChevronDown
                           className={`w-4 h-4 shrink-0 text-[#c2410c] dark:text-[#fb923c] transition-transform ${
                             isOpen ? 'rotate-180' : ''
@@ -1080,6 +1103,7 @@ export const SplitImageToolView: React.FC<SplitImageToolViewProps> = ({
                         />
                       </button>
                       <div
+                        data-faq-answer="true"
                         className={
                           isOpen
                             ? 'px-5 pb-4 text-xs sm:text-sm text-[#6e472b] dark:text-[#d6b8a3] leading-relaxed'

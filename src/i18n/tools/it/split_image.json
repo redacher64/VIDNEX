@@ -1,0 +1,162 @@
+{
+  "editorial": {
+    "heading": "Dividere un'immagine in griglia 3×3 Instagram e tagli personalizzati — 100% locale",
+    "subheading": "Taglio nel browser con HTML5 Canvas e JSZip in PNG, JPG o ZIP senza caricamento su server",
+    "paragraphs": [
+      "Lo strumento Dividi Immagine di VIDNEX permette di suddividere una fotografia in riquadri perfettamente allineati per griglie profilo Instagram, caroselli panoramici o impaginazioni grafiche. L'intero processo si svolge al 100% nel tuo browser grazie a HTML5 Canvas e JSZip: i file JPG, PNG o WebP non vengono mai caricati su alcun server esterno.",
+      "Hai a disposizione quattro preset immediati: 2×2 per un mosaico compatto, 3×3 per il classico feed Instagram, 1×3 per caroselli orizzontali continui e 3×1 per sequenze verticali. Con la modalità Personalizzata puoi impostare liberamente da 1 a 10 righe e da 1 a 10 colonne, generando fino a 100 riquadri con anteprima in tempo reale.",
+      "Attivando l'opzione Ordine Instagram, VIDNEX inverte la numerazione dei file partendo dall'angolo in basso a destra (image-1) fino a quello in alto a sinistra: pubblicando i file in ordine crescente, la grande immagine si ricompone correttamente sulla griglia del profilo. Le foto molto grandi oltre 8000 pixel vengono ridimensionate in proporzione per proteggere la memoria del browser.",
+      "Puoi esportare in PNG senza perdita di qualità oppure in JPG con selettore dal 10% al 100% (con riempimento bianco automatico dietro eventuali trasparenze PNG). Ogni tessera si scarica singolarmente oppure in un unico pacchetto vidnex-split-{righe}x{colonne}.zip."
+    ],
+    "formatsTitle": "Funzionalità reali dello strumento Dividi Immagine",
+    "formatsList": [
+      "Formati in ingresso: JPG, PNG e WebP (ridimensionamento proporzionale automatico oltre 8000 px)",
+      "Preset rapidi (2×2, 3×3, 1×3, 3×1) e griglia personalizzata 1–10 righe × 1–10 colonne (fino a 100 tessere)",
+      "Modalità Ordine Instagram: numerazione invertita da basso a destra (image-1) verso alto a sinistra",
+      "Formati in uscita: PNG lossless oppure JPG (qualità 10%–100%, sfondo bianco automatico per PNG trasparenti)",
+      "Salvataggio per singola tessera o archivio locale vidnex-split-{righe}x{colonne}.zip generato nel browser"
+    ],
+    "limitsTitle": "Limiti tecnici e garanzia di elaborazione locale",
+    "limitsText": "Nessun file lascia mai il tuo dispositivo. Per evitare blocchi di memoria sui browser mobili, i lati superiori a 8000 pixel vengono scalati in proporzione automaticamente e la griglia personalizzata raggiunge al massimo 10×10 (100 tessere)."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Carica la foto in locale dal dispositivo",
+      "description": "Trascina un file JPG, PNG o WebP nell'area di lavoro o selezionalo dalla galleria. L'immagine viene letta esclusivamente nella memoria del browser.",
+      "codeHint": "JPG · PNG · WEBP · 100% LOCALE"
+    },
+    {
+      "number": "02",
+      "title": "Configura griglia, ordine e formato",
+      "description": "Scegli un preset (2×2, 3×3, 1×3, 3×1) o imposta righe e colonne da 1 a 10; attiva Ordine Instagram se serve e scegli PNG o JPG.",
+      "codeHint": "3×3 · CUSTOM 1–10 · ORDINE IG"
+    },
+    {
+      "number": "03",
+      "title": "Salva i singoli riquadri o lo ZIP",
+      "description": "Controlla le linee di taglio nell'anteprima live, poi salva una singola tessera o scarica tutte le parti in vidnex-split-{righe}x{colonne}.zip.",
+      "codeHint": "HTML5 CANVAS · JSZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabella di ingressi, griglie ed esportazioni",
+    "subheading": "Tutte le opzioni reali di taglio, qualità e archiviazione locale offerte da Dividi Immagine.",
+    "headers": [
+      "Parametro / Funzione",
+      "Opzioni supportate",
+      "Comportamento tecnico reale"
+    ],
+    "rows": [
+      [
+        "Formati in ingresso",
+        "JPG, PNG, WebP",
+        "Elaborazione locale tramite HTML5 Canvas; oltre 8000 px riduzione proporzionale automatica."
+      ],
+      [
+        "Preset griglia",
+        "2×2, 3×3, 1×3, 3×1",
+        "Taglio immediato per griglie profilo Instagram 3×3 e caroselli panoramici orizzontali o verticali."
+      ],
+      [
+        "Griglia personalizzata",
+        "1–10 righe × 1–10 colonne",
+        "Genera fino a 100 riquadri simmetrici con linee guida aggiornate in tempo reale."
+      ],
+      [
+        "Ordine Instagram",
+        "Attivo / Disattivo",
+        "Quando attivo, la tessera in basso a destra diventa image-1 per caricare in sequenza corretta."
+      ],
+      [
+        "Formato in uscita",
+        "PNG o JPG (10%–100%)",
+        "PNG lossless con trasparenza intatta; JPG con sfondo bianco automatico sui PNG trasparenti."
+      ],
+      [
+        "Esportazione completa",
+        "Singola tessera o ZIP",
+        "JSZip assembla vidnex-split-{righe}x{colonne}.zip in locale senza inviare dati in rete."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemi frequenti nel taglio griglie e soluzioni",
+    "subheading": "Cinque dubbi pratici su ordine Instagram, sfondi trasparenti PNG, limite 8000 px ed estrazione ZIP.",
+    "items": [
+      {
+        "problem": "Dopo il caricamento su Instagram la griglia appare capovolta",
+        "solution": "Instagram posiziona ogni nuovo post in alto a sinistra facendo scorrere i precedenti. Attiva l'opzione Ordine Instagram prima di scaricare così la tessera in basso a destra sarà image-1, quindi pubblica partendo da image-1."
+      },
+      {
+        "problem": "Un PNG trasparente esportato in JPG presenta uno sfondo bianco",
+        "solution": "Il formato JPG non supporta la trasparenza alpha. Per impedire che le aree trasparenti diventino nere, VIDNEX applica automaticamente uno sfondo bianco in uscita JPG; scegli PNG se desideri preservare la trasparenza."
+      },
+      {
+        "problem": "Perché la mia foto oltre 8000 pixel è stata ridimensionata?",
+        "solution": "Le immagini oltre 8000 pixel possono superare il limite di memoria di HTML5 Canvas sui dispositivi mobili e chiudere la scheda del browser. La riduzione proporzionale automatica mantiene intatto il rapporto d'aspetto evitando arresti anomali."
+      },
+      {
+        "problem": "Come aprire il pacchetto vidnex-split ZIP su iPhone?",
+        "solution": "Safari salva l'archivio in File > Download. Apri l'app File e tocca una volta lo ZIP: iOS estrarrà subito tutte le immagini in una cartella, da cui potrai selezionarle e salvarle nell'app Foto."
+      },
+      {
+        "problem": "Una griglia 10×10 (100 tessere) richiede qualche secondo per lo ZIP",
+        "solution": "Poiché taglio e compressione ZIP avvengono sul processore del tuo dispositivo, generare 100 PNG ad alta definizione richiede alcuni secondi. Scegliendo JPG con qualità 85%–90% il pacchetto si crea molto più velocemente."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dove trovare i riquadri e l'archivio ZIP salvati",
+    "subheading": "Apri subito le singole immagini o il pacchetto vidnex-split-{righe}x{colonne}.zip sul tuo dispositivo.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "Tocca la freccia di download in Safari oppure apri File > Download. Tocca una volta vidnex-split-{righe}x{colonne}.zip per estrarre tutte le tessere in una cartella, poi seleziona le immagini e tocca Condividi > Salva immagini per spostarle nell'app Foto."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome salva le tessere singole o lo ZIP nella cartella interna Download. Apri l'app File, tocca l'archivio ZIP e scegli Estrai affinché tutti i file PNG o JPG compaiano subito nella Galleria."
+    },
+    "desktop": {
+      "title": "Computer (Windows / macOS)",
+      "steps": "Le singole immagini e il file vidnex-split-{righe}x{colonne}.zip si trovano nella cartella Download del sistema. Premi Ctrl+J su Windows o Cmd+Shift+J su macOS nel browser per aprire direttamente la cartella ed estrarre lo ZIP."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Le immagini che taglio con questo strumento vengono caricate sui server VIDNEX?",
+      "answer": "Mai. Ogni file JPG, PNG o WebP che selezioni viene elaborato interamente nella memoria locale del tuo browser tramite HTML5 Canvas e JSZip. Nessuna fotografia lascia il tuo dispositivo né viene inviata in rete, tutelando completamente la riservatezza delle immagini personali o professionali."
+    },
+    {
+      "question": "A cosa serve l'opzione Ordine Instagram quando divido una foto?",
+      "answer": "Sul profilo Instagram ogni nuovo post si inserisce in alto a sinistra spingendo i precedenti verso destra e verso il basso. Attivando Ordine Instagram, VIDNEX numera la tessera in basso a destra come image-1 fino a quella in alto a sinistra, così caricando in ordine numerico la griglia si ricompone esattamente."
+    },
+    {
+      "question": "Quante tessere posso generare al massimo con la griglia personalizzata?",
+      "answer": "Oltre ai quattro preset rapidi 2×2, 3×3, 1×3 e 3×1, la modalità personalizzata consente di scegliere separatamente da 1 a 10 righe e da 1 a 10 colonne. Puoi quindi ottenere qualsiasi disposizione regolare fino a un massimo di 100 riquadri (10×10) con anteprima immediata delle linee di taglio."
+    },
+    {
+      "question": "Qual è la differenza tra esportare le tessere in PNG oppure in JPG?",
+      "answer": "Il formato PNG applica una compressione senza perdita di qualità e preserva integralmente la trasparenza originale, generando però file più grandi. Il formato JPG consente invece di regolare la qualità tra il 10% e il 100% per file leggeri e applica automaticamente uno sfondo bianco dietro eventuali aree trasparenti."
+    },
+    {
+      "question": "Cosa succede se seleziono una fotografia più grande di 8000 pixel?",
+      "answer": "Le immagini con un lato superiore a 8000 pixel rischiano di superare i limiti di memoria di HTML5 Canvas, soprattutto su smartphone e tablet. Per garantire stabilità senza deformare la foto, VIDNEX ridimensiona automaticamente l'immagine in proporzione entro la soglia di 8000 pixel prima di eseguire il taglio."
+    },
+    {
+      "question": "Posso scaricare tutte le parti della griglia in un solo file invece che una alla volta?",
+      "answer": "Sì, oltre al salvataggio individuale di ciascun riquadro puoi cliccare sul pulsante ZIP per ottenere un unico archivio chiamato vidnex-split-{righe}x{colonne}.zip. Il pacchetto viene assemblato localmente nel browser da JSZip nel formato scelto, mantenendo la numerazione esatta prevista dalla tua impostazione Ordine Instagram."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Altri strumenti VIDNEX e garanzia di privacy",
+    "subheading": "Completa il tuo flusso social con gli strumenti pubblici per Instagram, TikTok e LinkedIn.",
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "linkedin"
+    ],
+    "privacyLabel": "Privacy ed elaborazione 100% locale",
+    "privacyDescription": "Scopri perché le immagini divise con VIDNEX non lasciano mai il tuo browser."
+  }
+}

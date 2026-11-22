@@ -15,10 +15,12 @@ import {
   getAllIndexableRoutes,
   getLocalizedPagePath,
   isLegalPageKey,
+  isToolPageKey,
   LEGAL_PAGE_KEYS,
   LEGAL_SUPPORTED_LOCALES,
   LOCALES_CONFIG,
   SUPPORTED_LOCALES,
+  TOOL_PAGE_KEYS,
 } from '../src/i18n/config.ts';
 import {
   buildHeadMetadataForRoute,
@@ -36,6 +38,7 @@ import { validateStaticBlogRepository } from '../src/utils/blogValidation.ts';
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const LOCALES_DIR = path.join(process.cwd(), 'src', 'i18n', 'locales');
 const LEGAL_DIR = path.join(process.cwd(), 'src', 'i18n', 'legal');
+const TOOLS_DIR = path.join(process.cwd(), 'src', 'i18n', 'tools');
 
 const LEGAL_WORD_MINIMUMS = {
   about: 600,
@@ -43,6 +46,16 @@ const LEGAL_WORD_MINIMUMS = {
   terms: 700,
   contact: 250,
   dmca: 600,
+};
+
+const TOOL_WORD_MINIMUMS = {
+  home: 700,
+  tiktok: 850,
+  instagram: 850,
+  x: 850,
+  facebook: 850,
+  linkedin: 850,
+  split_image: 700,
 };
 
 function fail(message) {
@@ -61,7 +74,11 @@ function decodeHtmlEntities(str) {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#([0-9]+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)));
 }
 
 function validateBlogAndLocaleInternalLinks(validInternalPaths) {
@@ -172,6 +189,56 @@ function validateBlogAndLocaleInternalLinks(validInternalPaths) {
     }
   }
 
+  // 3. Scan all 70 per-tool JSON files for broken internal links and same-language blog guide compliance
+  if (fs.existsSync(TOOLS_DIR)) {
+    for (const loc of SUPPORTED_LOCALES) {
+      for (const toolKey of TOOL_PAGE_KEYS) {
+        const toolPath = path.join(TOOLS_DIR, loc, `${toolKey}.json`);
+        if (!fs.existsSync(toolPath)) {
+          fail(`Missing tool content JSON: src/i18n/tools/${loc}/${toolKey}.json`);
+        }
+        const raw = fs.readFileSync(toolPath, 'utf8');
+        const doc = JSON.parse(raw);
+
+        for (const [glName, gl] of [
+          ['troubleshooting.guideLink', doc.troubleshooting?.guideLink],
+          ['relatedSection.guideLink', doc.relatedSection?.guideLink],
+        ]) {
+          if (gl && typeof gl.href === 'string') {
+            dataLinksChecked++;
+            const clean = gl.href.replace(/\/+$/, '') || '/';
+            if (!validInternalPaths.has(clean)) {
+              fail(
+                `Broken ${glName} "${gl.href}" in src/i18n/tools/${loc}/${toolKey}.json`
+              );
+            }
+            const validSameLocalePrefix =
+              loc === 'en'
+                ? clean.startsWith('/blog/') || clean.startsWith('/en/blog/')
+                : clean.startsWith(`/${loc}/blog/`);
+            if (!validSameLocalePrefix) {
+              fail(
+                `Cross-language ${glName} "${gl.href}" in src/i18n/tools/${loc}/${toolKey}.json (must be same locale "${loc}")`
+              );
+            }
+          }
+        }
+
+        const urlRe = /(?:https:\/\/vidnex\.space|\]\()(\/[a-z0-9/_-]+)/gi;
+        let m;
+        while ((m = urlRe.exec(raw)) !== null) {
+          const candidate = m[1].replace(/\/+$/, '') || '/';
+          dataLinksChecked++;
+          if (!validInternalPaths.has(candidate)) {
+            fail(
+              `Broken internal link "${candidate}" found in tool file ${loc}/${toolKey}.json`
+            );
+          }
+        }
+      }
+    }
+  }
+
   return dataLinksChecked;
 }
 
@@ -215,6 +282,7 @@ function main() {
   const frHomeTitle = getLocaleBundleSync('fr').home.metaTitle;
   let blogPostingsVerified = 0;
   let legalPagesVerified = 0;
+  let toolPagesVerified = 0;
   let footerPagesVerified = 0;
 
   for (const route of routes) {
@@ -306,6 +374,44 @@ function main() {
     } else if (parsedBundle.legal !== undefined) {
       fail(
         `Non-legal route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__ must NOT contain "legal" data`
+      );
+    }
+
+    // 1d. Performance isolation for tool/home pages: ONLY the active toolKey is embedded in toolContent; zero non-active tool chunks
+    if (isToolPageKey(route.pageKey)) {
+      if (parsedBundle.__scope !== route.pageKey) {
+        fail(
+          `Tool route ${route.path}: expected __scope="${route.pageKey}", got "${parsedBundle.__scope}"`
+        );
+      }
+      const toolKeys =
+        parsedBundle.toolContent && typeof parsedBundle.toolContent === 'object'
+          ? Object.keys(parsedBundle.toolContent)
+          : [];
+      if (toolKeys.length !== 1 || toolKeys[0] !== route.pageKey) {
+        fail(
+          `Tool route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__.toolContent must contain ONLY ["${route.pageKey}"], got [${toolKeys.join(', ')}]`
+        );
+      }
+      if (
+        parsedBundle.home?.faqs ||
+        parsedBundle.home?.editorial ||
+        parsedBundle.home?.howToSteps
+      ) {
+        fail(
+          `Tool route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__.home must not embed legacy editorial/howToSteps/faqs`
+        );
+      }
+      for (const [pk, pv] of Object.entries(parsedBundle.platforms || {})) {
+        if (pv && (pv.faqs || pv.editorial || pv.howToSteps)) {
+          fail(
+            `Tool route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__.platforms.${pk} must not embed legacy editorial/howToSteps/faqs`
+          );
+        }
+      }
+    } else if (parsedBundle.toolContent !== undefined) {
+      fail(
+        `Non-tool route ${route.path}: window.__VIDNEX_LOCALE_BUNDLE__ must NOT contain "toolContent" data`
       );
     }
 
@@ -475,6 +581,125 @@ function main() {
         );
       }
       legalPagesVerified++;
+    }
+
+    // 5c. Tool & home pages (70 routes): rendered <main> word minimum, real HTML <table>, 6-8 FAQs (40-60w each) matching JSON-LD FAQPage 1:1
+    if (isToolPageKey(route.pageKey)) {
+      const mainHtml = extractTagContent(
+        html,
+        /<main\b[^>]*>([\s\S]*?)<\/main>/i
+      );
+      if (!mainHtml) {
+        fail(
+          `Tool route ${route.path}: missing <main> container in pre-rendered HTML`
+        );
+      }
+      const mainPlainText = decodeHtmlEntities(
+        mainHtml
+          .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+          .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+          .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
+          .replace(/<[^>]+>/g, ' ')
+      )
+        .replace(/\s+/g, ' ')
+        .trim();
+      const mainWordCount = mainPlainText ? mainPlainText.split(/\s+/).length : 0;
+      const minToolWords = TOOL_WORD_MINIMUMS[route.pageKey];
+      if (mainWordCount < minToolWords) {
+        fail(
+          `Tool route ${route.path} (${route.locale}/${route.pageKey}): rendered <main> word count is ${mainWordCount}, below required minimum ${minToolWords}`
+        );
+      }
+
+      // Real HTML <table> with <thead> and <tbody> (>= 4 rows)
+      const tableHtml = extractTagContent(
+        mainHtml,
+        /<table\b[^>]*>([\s\S]*?)<\/table>/i
+      );
+      if (!tableHtml || !/<thead\b/i.test(tableHtml) || !/<tbody\b/i.test(tableHtml)) {
+        fail(
+          `Tool route ${route.path}: missing real HTML <table> with <thead> and <tbody> inside <main>`
+        );
+      }
+      const tbodyHtml = extractTagContent(
+        tableHtml,
+        /<tbody\b[^>]*>([\s\S]*?)<\/tbody>/i
+      );
+      const tbodyRows = (tbodyHtml || '').match(/<tr\b/gi) || [];
+      if (tbodyRows.length < 4) {
+        fail(
+          `Tool route ${route.path}: formats <table> has only ${tbodyRows.length} rows in <tbody> (expected >= 4)`
+        );
+      }
+
+      // Extract visible FAQ questions & answers from DOM and verify 6-8 items, 40-60 words each, and 100% match with JSON-LD FAQPage
+      const domQuestions = [];
+      const domAnswers = [];
+      const qRe = /data-faq-question="true"[^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+      const aRe = /data-faq-answer="true"[^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+      let qMatch;
+      while ((qMatch = qRe.exec(mainHtml)) !== null) {
+        domQuestions.push(
+          decodeHtmlEntities(qMatch[1].replace(/<[^>]+>/g, ' '))
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+      }
+      let aMatch;
+      while ((aMatch = aRe.exec(mainHtml)) !== null) {
+        domAnswers.push(
+          decodeHtmlEntities(aMatch[1].replace(/<[^>]+>/g, ' '))
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+      }
+
+      if (
+        domQuestions.length !== domAnswers.length ||
+        domQuestions.length < 6 ||
+        domQuestions.length > 8
+      ) {
+        fail(
+          `Tool route ${route.path}: expected 6..8 rendered FAQ items, found ${domQuestions.length} questions / ${domAnswers.length} answers`
+        );
+      }
+
+      const faqNode = graphNodes.find((n) => n && n['@type'] === 'FAQPage');
+      if (!faqNode || !Array.isArray(faqNode.mainEntity)) {
+        fail(`Tool route ${route.path}: missing JSON-LD FAQPage node`);
+      }
+      if (faqNode.mainEntity.length !== domQuestions.length) {
+        fail(
+          `Tool route ${route.path}: JSON-LD FAQPage count (${faqNode.mainEntity.length}) does not match rendered DOM FAQ count (${domQuestions.length})`
+        );
+      }
+
+      for (let i = 0; i < domQuestions.length; i++) {
+        const wc = domAnswers[i] ? domAnswers[i].split(/\s+/).length : 0;
+        if (wc < 40 || wc > 60) {
+          fail(
+            `Tool route ${route.path} FAQ #${i + 1}: answer word count is ${wc} (must be 40..60 words)`
+          );
+        }
+        const jsonLdQ = String(faqNode.mainEntity[i]?.name || '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const jsonLdA = String(faqNode.mainEntity[i]?.acceptedAnswer?.text || '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (jsonLdQ !== domQuestions[i]) {
+          fail(
+            `Tool route ${route.path} FAQ #${i + 1}: JSON-LD question mismatch vs rendered HTML ("${jsonLdQ}" !== "${domQuestions[i]}")`
+          );
+        }
+        if (jsonLdA !== domAnswers[i]) {
+          fail(
+            `Tool route ${route.path} FAQ #${i + 1}: JSON-LD answer mismatch vs rendered HTML`
+          );
+        }
+      }
+
+      toolPagesVerified++;
     }
 
     // 6. Check exact hreflang + x-default tags across ALL indexable routes (main, legal, blog hubs & articles)
@@ -739,6 +964,9 @@ function main() {
   );
   console.log(
     `  • ${legalPagesVerified}/50 legal pages verified (word minimums, AboutPage/ContactPage/WebPage + BreadcrumbList JSON-LD, 10-language reciprocal hreflang, scoped inline bundle)`
+  );
+  console.log(
+    `  • ${toolPagesVerified}/70 tool & home pages verified (rendered <main> word minimums, HTML <table>, 6-8 FAQs at 40-60w matching JSON-LD FAQPage 1:1, single-tool bundle isolation)`
   );
   console.log(
     `  • ${footerPagesVerified}/${routes.length} page footers verified for strict same-locale legal links (0 cross-language redirects)`

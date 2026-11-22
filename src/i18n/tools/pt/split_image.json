@@ -1,0 +1,130 @@
+{
+  "editorial": {
+    "heading": "Dividir imagem em grade 2×2, 3×3 para Instagram ou carrossel panorâmico localmente",
+    "subheading": "Corte instantâneo no navegador via HTML5 Canvas e JSZip sem enviar suas fotos para nenhum servidor",
+    "paragraphs": [
+      "A ferramenta Dividir imagem do VIDNEX recorta qualquer arquivo JPG, PNG ou WebP em blocos alinhados ao pixel para montar uma grade 3×3 no perfil do Instagram, um carrossel panorâmico 1×3 contínuo, uma faixa vertical 3×1, um mosaico 2×2 ou uma grade personalizada de até 10 linhas por 10 colunas (máximo de 100 partes).",
+      "Todo o processamento — leitura da imagem, cálculo das divisões no HTML5 Canvas e geração do arquivo ZIP com JSZip — ocorre 100% localmente no seu navegador. Suas imagens jamais saem do seu celular ou computador, protegendo arquivos privados e garantindo resposta imediata.",
+      "Ao ativar «Ordem Instagram», a numeração das partes é invertida do canto inferior direito (image-1) até o superior esquerdo, facilitando a postagem sequencial sem embaralhar o mosaico. Exporte cada bloco individualmente ou baixe o pacote vidnex-split-{linhas}x{colunas}.zip em PNG sem perdas ou JPG com controle de qualidade (10% a 100%, com fundo branco automático atrás de áreas transparentes em PNG)."
+    ],
+    "formatsTitle": "Grades e opções de exportação disponíveis",
+    "formatsList": [
+      "Predefinições rápidas: 2×2 (4 partes), 3×3 (grade Instagram 9 partes), 1×3 (carrossel horizontal) e 3×1 (faixa vertical)",
+      "Grade personalizada livre de 1 a 10 linhas e 1 a 10 colunas (até 100 recortes)",
+      "Opção «Ordem Instagram» invertendo a numeração de baixo à direita (image-1) para cima à esquerda",
+      "Exportação em PNG sem perdas ou JPG com ajuste de qualidade (10%–100% e preenchimento branco em transparências)",
+      "Download peça por peça (image-1.jpg…) ou arquivo único vidnex-split-{linhas}x{colunas}.zip via JSZip",
+      "Execução 100% local em HTML5 Canvas com redução proporcional automática acima de 8000 px"
+    ],
+    "limitsTitle": "Formatos aceitos e limite de 8000 pixels",
+    "limitsText": "Dividir imagem aceita diretamente arquivos JPG, PNG e WebP. Para evitar falta de memória em navegadores móveis, qualquer foto com largura ou altura superior a 8000 pixels é redimensionada proporcionalmente para 8000 px antes do corte."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Carregue sua imagem local",
+      "description": "Arraste um arquivo JPG, PNG ou WebP para a área indicada ou escolha uma foto no seu aparelho. Nenhum dado é enviado para servidores.",
+      "codeHint": "JPG / PNG / WEBP · LOCAL"
+    },
+    {
+      "number": "02",
+      "title": "Defina a grade e o formato",
+      "description": "Escolha 2×2, 3×3, 1×3, 3×1 ou grade personalizada (1–10), ative Ordem Instagram se necessário e selecione PNG ou qualidade JPG.",
+      "codeHint": "3×3 · ORDEM IG · PNG / JPG"
+    },
+    {
+      "number": "03",
+      "title": "Baixe cada parte ou o ZIP completo",
+      "description": "Confira as linhas numeradas na prévia e salve cada bloco avulso ou baixe todas as partes juntas em um único arquivo ZIP.",
+      "codeHint": "VIDNEX-SPLIT.ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabela de grades, formatos e limites de Dividir imagem",
+    "subheading": "Especificações reais do motor local HTML5 Canvas e JSZip executado no navegador.",
+    "headers": ["Configuração ou formato", "Opções suportadas", "Comportamento real da ferramenta"],
+    "rows": [
+      ["Imagens de entrada", "JPG, PNG, WebP", "Decodificadas na memória local; redução proporcional automática se algum lado passar de 8000 px."],
+      ["Predefinições rápidas", "2×2, 3×3, 1×3, 3×1", "Recorte imediato para mosaicos quadrados, grades de 9 posts no Instagram e carrosséis."],
+      ["Grade personalizada", "1–10 linhas × 1–10 colunas", "Gera entre 1 e 100 recortes alinhados ao pixel com prévia numerada ao vivo."],
+      ["Ordem Instagram", "Ativada / Desativada", "Numera do canto inferior direito (image-1) ao superior esquerdo para publicação correta."],
+      ["Exportação PNG", "PNG sem perdas", "Ideal para textos, logotipos, gráficos e fundos transparentes com nitidez preservada."],
+      ["Exportação JPG + ZIP", "JPG (10%–100%) / .ZIP", "Deslizador de qualidade ajustável, fundo branco para transparências PNG e vidnex-split-{L}x{C}.zip."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frequentes ao dividir imagens e soluções",
+    "subheading": "Dicas práticas para redimensionamento automático, transparência em JPG e extração de ZIP.",
+    "items": [
+      {
+        "problem": "Aviso de que a imagem foi reduzida para 8000 pixels",
+        "solution": "Navegadores impõem teto de memória ao HTML5 Canvas, sobretudo em celulares. Acima de 8000 px de largura ou altura, o VIDNEX reduz a imagem proporcionalmente para 8000 px para concluir o corte sem travar."
+      },
+      {
+        "problem": "Fundo transparente de PNG ficou branco ao exportar em JPG",
+        "solution": "O formato JPG não suporta transparência alfa; por isso o VIDNEX preenche áreas transparentes com branco limpo em vez de preto sólido. Escolha PNG para manter o fundo transparente."
+      },
+      {
+        "problem": "As partes ficaram fora de ordem no feed do Instagram",
+        "solution": "O Instagram posiciona sempre o post mais recente no topo à esquerda. Ative «Ordem Instagram» antes de baixar para postar image-1 primeiro e seguir em ordem crescente."
+      },
+      {
+        "problem": "Foto HEIC do iPhone não é aceita ao carregar",
+        "solution": "A ferramenta trabalha nativamente com JPG, PNG e WebP. No iPhone, exporte ou compartilhe a foto como JPG no app Fotos ou ajuste Câmera > Formatos para Mais Compatível."
+      },
+      {
+        "problem": "As partes dentro do ZIP não aparecem na Galeria do celular",
+        "solution": "Galerias não exibem fotos compactadas dentro de um ZIP. Toque no arquivo em Arquivos (iOS) ou clique em Extrair no gerenciador do Android primeiro."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Onde encontrar seus recortes e arquivo ZIP",
+    "subheading": "Como descompactar image-1, image-2… e mover tudo para sua galeria em cada sistema.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "Abra o app Arquivos e acesse Downloads. Toque em vidnex-split-{linhas}x{colunas}.zip para descompactar a pasta com todos os recortes numerados, selecione todas as imagens e toque em Compartilhar > Salvar Imagens para levar a Fotos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Recortes individuais chegam em Download e aparecem na Galeria na hora. Se baixou o arquivo ZIP completo, abra Meus Arquivos ou Files do Google > Downloads, toque no ZIP e escolha Extrair."
+    },
+    "desktop": {
+      "title": "Computador (Windows e macOS)",
+      "steps": "Seu navegador grava vidnex-split-{linhas}x{colunas}.zip ou cada parte na pasta Downloads. Use Ctrl+J no Windows ou Cmd+Shift+J no macOS e dê clique duplo ou Extrair Tudo no ZIP."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Minhas fotos são enviadas para um servidor ao usar Dividir imagem?",
+      "answer": "Não, nenhum byte da sua foto sai do seu aparelho. A leitura do arquivo, a visualização das linhas de corte, o recorte via HTML5 Canvas e a compactação ZIP com JSZip acontecem totalmente em modo local dentro da própria aba do seu navegador."
+    },
+    {
+      "question": "Para que serve exatamente a opção «Ordem Instagram»?",
+      "answer": "No perfil do Instagram, a última foto publicada ocupa sempre o quadrado superior esquerdo. Ao ativar Ordem Instagram, o VIDNEX numera o recorte inferior direito como image-1 e segue até o topo esquerdo para você postar os arquivos em ordem crescente sem errar o mosaico."
+    },
+    {
+      "question": "Devo exportar os recortes em PNG ou em JPG?",
+      "answer": "Prefira PNG sem perdas quando sua arte tiver textos nítidos, logotipos, gráficos ou fundo transparente. Escolha JPG para fotografias quando quiser arquivos menores, ajustando o controle de qualidade entre dez e cem por cento com fundo branco automático para transparências de PNG."
+    },
+    {
+      "question": "Quantas partes consigo criar com a grade personalizada?",
+      "answer": "Além das predefinições 2×2, 3×3, 1×3 e 3×1, o modo personalizado aceita de uma a dez linhas e de uma a dez colunas. Isso permite dividir uma única imagem em até cem blocos perfeitamente alinhados, baixando cada parte ou um pacote ZIP único."
+    },
+    {
+      "question": "Por que uma imagem muito grande é reduzida automaticamente para 8000 pixels?",
+      "answer": "Navegadores aplicam limites rígidos de memória para telas HTML5 Canvas, especialmente em celulares e tablets. Quando uma imagem excede oito mil pixels em largura ou altura, o VIDNEX reduz automaticamente suas dimensões de forma proporcional para oito mil pixels para evitar travamentos na aba."
+    },
+    {
+      "question": "Quais formatos de imagem posso abrir no Dividir imagem?",
+      "answer": "A ferramenta aceita diretamente fotos JPG, PNG e WebP arrastadas do computador ou escolhidas na galeria do celular, além de uma imagem de exemplo embutida para testar a grade. Se o seu smartphone fotografa em HEIC, converta ou exporte a imagem para JPG antes."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Outras ferramentas VIDNEX para criadores",
+    "subheading": "Combine o corte local de grades com nossos baixadores públicos de redes sociais.",
+    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "privacyLabel": "Política de Privacidade do VIDNEX",
+    "privacyDescription": "Processamento 100% local no navegador para Dividir imagem, sem uploads e sem conta."
+  }
+}

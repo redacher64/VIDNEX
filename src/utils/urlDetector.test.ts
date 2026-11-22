@@ -5151,21 +5151,25 @@ describe('VIDNEX URL Detection & Security Suite', () => {
   it('validates SEO, GEO, and AEO upgrades across all 149 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
     const {
       SUPPORTED_LOCALES,
+      TOOL_PAGE_KEYS,
       getAllIndexableRoutes,
       buildLlmsTxt,
     } = await import('../i18n/config.ts');
     const { buildHeadMetadataForRoute } = await import('../i18n/hreflang.ts');
-    const { getLegalDocSync, getLocaleBundleSync } = await import(
-      '../i18n/localeLoader.ts'
-    );
-    const { getSplitImageContent } = await import('./splitImageLogic.ts');
+    const {
+      buildScopedLocaleBundle,
+      getLegalDocSync,
+      getLocaleBundleSync,
+      getToolContentSync,
+    } = await import('../i18n/localeLoader.ts');
 
     const allRoutes = getAllIndexableRoutes();
     assert.equal(allRoutes.length, 149);
 
     // Verify Arabic private-account FAQ answer is accurate (does not list platforms)
-    const arBundle = getLocaleBundleSync('ar');
-    const arPrivateFaq = arBundle.home.faqs[1];
+    const arHomeTool = getToolContentSync('ar', 'home');
+    assert.ok(arHomeTool, 'Missing ar/home tool content');
+    const arPrivateFaq = arHomeTool.faqs[1];
     assert.ok(arPrivateFaq.question.includes('حساب خاص'));
     assert.ok(
       arPrivateFaq.answer.includes('لا') &&
@@ -5204,44 +5208,69 @@ describe('VIDNEX URL Detection & Security Suite', () => {
         .split(/\s+/)
         .filter(Boolean).length;
 
-    const toolKeys = [
-      'tiktok',
-      'instagram',
-      'x',
-      'facebook',
-      'linkedin',
-      'split_image',
-    ] as const;
-
     for (const loc of SUPPORTED_LOCALES) {
       const bundle = getLocaleBundleSync(loc);
-      for (const toolKey of toolKeys) {
+      for (const toolKey of TOOL_PAGE_KEYS) {
+        const toolDoc = getToolContentSync(loc, toolKey);
+        assert.ok(toolDoc, `Missing tool content JSON for ${loc}/${toolKey}`);
+        assert.ok(
+          toolDoc.formatsTable.headers.length === 3 &&
+            toolDoc.formatsTable.rows.length >= 4,
+          `Invalid formatsTable for ${loc}/${toolKey}`
+        );
+        assert.ok(
+          toolDoc.troubleshooting.items.length >= 4 &&
+            toolDoc.troubleshooting.items.length <= 6,
+          `Invalid troubleshooting count for ${loc}/${toolKey}`
+        );
+        assert.ok(
+          toolDoc.whereToFind.ios.steps.length > 20 &&
+            toolDoc.whereToFind.android.steps.length > 20 &&
+            toolDoc.whereToFind.desktop.steps.length > 20,
+          `Invalid whereToFind for ${loc}/${toolKey}`
+        );
+        assert.ok(
+          toolDoc.relatedSection.toolKeys.length >= 2 &&
+            toolDoc.relatedSection.toolKeys.length <= 3,
+          `Invalid relatedSection.toolKeys for ${loc}/${toolKey}`
+        );
+
+        // Verify single-tool bundle isolation
+        const scoped = buildScopedLocaleBundle(bundle, toolKey);
+        assert.equal(scoped.__scope, toolKey);
+        assert.deepEqual(
+          Object.keys((scoped.toolContent || {}) as Record<string, unknown>),
+          [toolKey],
+          `Scoped bundle for ${loc}/${toolKey} must embed ONLY ${toolKey}`
+        );
+
         const meta = buildHeadMetadataForRoute(loc, toolKey);
         const graph = (meta.jsonLdGraph['@graph'] || []) as Array<
           Record<string, any>
         >;
-        const webApp = graph.find((node) => node['@type'] === 'WebApplication');
-        assert.ok(webApp, `Missing WebApplication JSON-LD for ${loc}/${toolKey}`);
-        assert.ok(
-          Array.isArray(webApp.featureList) && webApp.featureList.length >= 3,
-          `Missing or empty WebApplication.featureList for ${loc}/${toolKey}`
-        );
+        if (toolKey !== 'home') {
+          const webApp = graph.find((node) => node['@type'] === 'WebApplication');
+          assert.ok(webApp, `Missing WebApplication JSON-LD for ${loc}/${toolKey}`);
+          assert.ok(
+            Array.isArray(webApp.featureList) && webApp.featureList.length >= 3,
+            `Missing or empty WebApplication.featureList for ${loc}/${toolKey}`
+          );
+        }
 
         const faqNode = graph.find((node) => node['@type'] === 'FAQPage');
         assert.ok(faqNode, `Missing FAQPage JSON-LD for ${loc}/${toolKey}`);
 
-        const visibleFaqs =
-          toolKey === 'split_image'
-            ? getSplitImageContent(loc).faqs
-            : bundle.platforms[toolKey].faqs;
-
+        const visibleFaqs = toolDoc.faqs;
+        assert.ok(
+          visibleFaqs.length >= 6 && visibleFaqs.length <= 8,
+          `Tool ${loc}/${toolKey} must have 6-8 FAQs, got ${visibleFaqs.length}`
+        );
         assert.equal(
           faqNode.mainEntity.length,
           visibleFaqs.length,
           `FAQ count mismatch between DOM and JSON-LD for ${loc}/${toolKey}`
         );
 
-        let has40To60WordAnswer = false;
         for (let i = 0; i < visibleFaqs.length; i++) {
           assert.equal(
             faqNode.mainEntity[i].name,
@@ -5254,15 +5283,11 @@ describe('VIDNEX URL Detection & Security Suite', () => {
             `FAQ answer mismatch for ${loc}/${toolKey} #${i}`
           );
           const wc = countWords(visibleFaqs[i].answer);
-          if (wc >= 40 && wc <= 60) {
-            has40To60WordAnswer = true;
-          }
+          assert.ok(
+            wc >= 40 && wc <= 60,
+            `Tool ${loc}/${toolKey} FAQ #${i} answer has ${wc} words (must be 40-60)`
+          );
         }
-
-        assert.ok(
-          has40To60WordAnswer,
-          `Tool ${loc}/${toolKey} must have at least one 40-60 word FAQ answer`
-        );
       }
     }
 

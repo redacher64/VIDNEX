@@ -16,6 +16,7 @@ const DIST_DIR = path.join(ROOT_DIR, 'dist');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const LOCALES_DIR = path.join(ROOT_DIR, 'src', 'i18n', 'locales');
 const LEGAL_DIR = path.join(ROOT_DIR, 'src', 'i18n', 'legal');
+const TOOLS_DIR = path.join(ROOT_DIR, 'src', 'i18n', 'tools');
 
 function escapeHtml(str) {
   return String(str)
@@ -126,8 +127,10 @@ function loadAndValidateAllLocales(
   SUPPORTED_LOCALES,
   PLATFORM_PAGE_KEYS,
   LEGAL_PAGE_KEYS,
+  TOOL_PAGE_KEYS,
   registerPreloadedLocale,
-  registerPreloadedLegalBundle
+  registerPreloadedLegalBundle,
+  registerPreloadedToolContent
 ) {
   const map = new Map();
   const refPath = path.join(LOCALES_DIR, 'fr.json');
@@ -135,7 +138,7 @@ function loadAndValidateAllLocales(
 
   function assertKeysMatch(obj, ref, locale, keyPath = '') {
     for (const key of Object.keys(ref)) {
-      if (key === 'legal') continue; // Legal content lives in src/i18n/legal/{locale}.json
+      if (key === 'legal' || key === 'toolContent') continue; // Lazy chunks live in src/i18n/legal/ and src/i18n/tools/
       const currentPath = keyPath ? `${keyPath}.${key}` : key;
       if (!(key in obj) || obj[key] === undefined || obj[key] === null) {
         throw new Error(
@@ -175,6 +178,16 @@ function loadAndValidateAllLocales(
         `[i18n Performance Error] src/i18n/locales/${locale}.json must NOT embed "legal" (legal text belongs exclusively in src/i18n/legal/${locale}.json)`
       );
     }
+    if (bundle.toolContent) {
+      throw new Error(
+        `[i18n Performance Error] src/i18n/locales/${locale}.json must NOT embed "toolContent" (tool copy belongs in src/i18n/tools/${locale}/*.json)`
+      );
+    }
+    if (bundle.home?.editorial || bundle.home?.howToSteps || bundle.home?.faqs) {
+      throw new Error(
+        `[i18n Performance Error] src/i18n/locales/${locale}.json must NOT embed home editorial/howToSteps/faqs (belongs in src/i18n/tools/${locale}/home.json)`
+      );
+    }
     assertKeysMatch(bundle, refBundle, locale);
     assertSocialLengths(locale, 'home', bundle.home);
 
@@ -182,6 +195,15 @@ function loadAndValidateAllLocales(
       if (!bundle.platforms[pKey]) {
         throw new Error(
           `[i18n Validation Error] Missing platform "${pKey}" in ${locale}.json`
+        );
+      }
+      if (
+        bundle.platforms[pKey].editorial ||
+        bundle.platforms[pKey].howToSteps ||
+        bundle.platforms[pKey].faqs
+      ) {
+        throw new Error(
+          `[i18n Performance Error] src/i18n/locales/${locale}.json must NOT embed platforms.${pKey} editorial/howToSteps/faqs (belongs in src/i18n/tools/${locale}/${pKey}.json)`
         );
       }
       assertSocialLengths(locale, `platforms.${pKey}`, bundle.platforms[pKey]);
@@ -224,13 +246,57 @@ function loadAndValidateAllLocales(
       assertSocialLengths(locale, `legal.${lKey}`, doc);
     }
 
+    for (const toolKey of TOOL_PAGE_KEYS) {
+      const toolFilePath = path.join(TOOLS_DIR, locale, `${toolKey}.json`);
+      if (!fs.existsSync(toolFilePath)) {
+        throw new Error(
+          `[i18n Validation Error] Missing tool content file: src/i18n/tools/${locale}/${toolKey}.json`
+        );
+      }
+      const toolDoc = JSON.parse(fs.readFileSync(toolFilePath, 'utf8'));
+      if (
+        !toolDoc.editorial ||
+        !Array.isArray(toolDoc.editorial.paragraphs) ||
+        toolDoc.editorial.paragraphs.length < 3 ||
+        !Array.isArray(toolDoc.howToSteps) ||
+        toolDoc.howToSteps.length !== 3 ||
+        !toolDoc.formatsTable ||
+        !Array.isArray(toolDoc.formatsTable.headers) ||
+        toolDoc.formatsTable.headers.length !== 3 ||
+        !Array.isArray(toolDoc.formatsTable.rows) ||
+        toolDoc.formatsTable.rows.length < 4 ||
+        !toolDoc.troubleshooting ||
+        !Array.isArray(toolDoc.troubleshooting.items) ||
+        toolDoc.troubleshooting.items.length < 4 ||
+        toolDoc.troubleshooting.items.length > 6 ||
+        !toolDoc.whereToFind ||
+        !toolDoc.whereToFind.ios ||
+        !toolDoc.whereToFind.android ||
+        !toolDoc.whereToFind.desktop ||
+        !Array.isArray(toolDoc.faqs) ||
+        toolDoc.faqs.length < 6 ||
+        toolDoc.faqs.length > 8 ||
+        !toolDoc.relatedSection ||
+        !Array.isArray(toolDoc.relatedSection.toolKeys) ||
+        toolDoc.relatedSection.toolKeys.length < 2 ||
+        toolDoc.relatedSection.toolKeys.length > 3
+      ) {
+        throw new Error(
+          `[i18n Validation Error] Malformed tool content structure in src/i18n/tools/${locale}/${toolKey}.json`
+        );
+      }
+      registerPreloadedToolContent(locale, toolKey, toolDoc);
+    }
+
     registerPreloadedLocale(bundle);
     registerPreloadedLegalBundle(locale, legalData);
     map.set(locale, bundle);
   }
 
   console.log(
-    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files + ${SUPPORTED_LOCALES.length} legal files (0 missing keys, 100% OG length compliance).`
+    `✓ Validated all ${SUPPORTED_LOCALES.length} locale files + ${SUPPORTED_LOCALES.length} legal files + ${
+      SUPPORTED_LOCALES.length * TOOL_PAGE_KEYS.length
+    } tool content files (0 missing keys, 100% OG length compliance).`
   );
   return map;
 }
@@ -479,6 +545,7 @@ async function main() {
       LEGAL_PAGE_KEYS,
       PLATFORM_PAGE_KEYS,
       SUPPORTED_LOCALES,
+      TOOL_PAGE_KEYS,
     } = await vite.ssrLoadModule('/src/i18n/config.ts');
     const { buildHreflangCluster } = await vite.ssrLoadModule(
       '/src/i18n/hreflang.ts'
@@ -487,6 +554,7 @@ async function main() {
       buildScopedLocaleBundle,
       registerPreloadedLegalBundle,
       registerPreloadedLocale,
+      registerPreloadedToolContent,
     } = await vite.ssrLoadModule('/src/i18n/localeLoader.ts');
 
     // 1. Ensure committed OG images in public/og/ are present in dist/og/
@@ -502,13 +570,15 @@ async function main() {
       }
     }
 
-    // 2. Load & validate all 10 locale JSON files + 10 legal JSON files
+    // 2. Load & validate all 10 locale JSON files + 10 legal JSON files + 70 tool content JSON files
     const localesMap = loadAndValidateAllLocales(
       SUPPORTED_LOCALES,
       PLATFORM_PAGE_KEYS,
       LEGAL_PAGE_KEYS,
+      TOOL_PAGE_KEYS,
       registerPreloadedLocale,
-      registerPreloadedLegalBundle
+      registerPreloadedLegalBundle,
+      registerPreloadedToolContent
     );
 
     // 3. Read base built index.html template

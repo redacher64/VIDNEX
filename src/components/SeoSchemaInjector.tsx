@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   isLegalPageKey,
+  isToolPageKey,
   type PageKey,
   type SupportedLocale,
 } from '../i18n/config.ts';
@@ -31,7 +32,9 @@ export const SeoSchemaInjector: React.FC<SeoSchemaInjectorProps> = ({
   const isBlogRoute = pageKey === 'blog' || pageKey === 'blog_article';
   const hasPageBundle =
     pageKey === 'admin' ||
-    (language === 'fr' && !isLegalPageKey(pageKey)) ||
+    (language === 'fr' &&
+      !isLegalPageKey(pageKey) &&
+      !isToolPageKey(pageKey)) ||
     hasLocaleBundleForPageSync(language, pageKey);
   const canApplyHeadMetadata = hasPageBundle || isBlogRoute;
   const meta = buildHeadMetadataForRoute(language, pageKey, blogSlug);

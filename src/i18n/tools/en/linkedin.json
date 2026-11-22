@@ -1,0 +1,166 @@
+{
+  "editorial": {
+    "heading": "Download a public LinkedIn profile picture in full original resolution",
+    "subheading": "Built strictly for public personal /in/ profiles with magic-byte verification and a browser-local fallback",
+    "paragraphs": [
+      "The VIDNEX LinkedIn profile picture tool is engineered exclusively to inspect and download the public avatar of a personal LinkedIn profile (linkedin.com/in/{slug}, including regional subdomains such as uk.linkedin.com, fr.linkedin.com, m.linkedin.com, and language suffixes like /in/{slug}/en).",
+      "When a profile is publicly visible, VIDNEX reads only public image metadata exposed by the page (OpenGraph tags, Twitter Card metadata, JSON-LD Person image, or signed media.licdn.com references). The retrieved image — up to 10 MB in JPG, PNG, or WebP — is verified via binary magic bytes to guarantee a valid image file, cached briefly for ten minutes, and saved cleanly as linkedin_{slug}_profile.jpg.",
+      "For strict privacy protection, VIDNEX never scrapes or displays a person's full name, job title, company, or work history: only the public portrait image is processed. If LinkedIn serves a login wall (authwall) blocking public lookup, VIDNEX does not bypass it and instead displays a 100% browser-local drag-and-drop fallback so you can preview, zoom, and save a local image file without sending anything to a server.",
+      "Company pages (/company/), feed posts (/posts/), LinkedIn videos, login-walled profiles, and default ghost avatars are not supported."
+    ],
+    "formatsTitle": "What the LinkedIn tool actually does",
+    "formatsList": [
+      "Extracts public personal profile photos (/in/{slug}) in original public resolution from media.licdn.com",
+      "Supports regional subdomains (fr.linkedin.com, m.linkedin.com) and optional language suffixes (/in/{slug}/en)",
+      "Validates JPG, PNG, and WebP files up to 10 MB via binary magic bytes and saves as linkedin_{slug}_profile.jpg",
+      "Includes a 100% client-side drag-and-drop fallback viewer/saver when LinkedIn triggers a login wall",
+      "Zero personal profile scraping: never reads full name, headline, employer, or resume history"
+    ],
+    "limitsTitle": "Explicit LinkedIn exclusions",
+    "limitsText": "Company pages (/company/), LinkedIn posts (/posts/), LinkedIn videos, profiles hidden behind a login wall, and accounts using the default ghost placeholder avatar are not supported. VIDNEX never circumvents LinkedIn authentication."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copy the public LinkedIn /in/ URL",
+      "description": "Open the personal LinkedIn profile in your browser and copy its official address containing /in/{slug}.",
+      "codeHint": "LINKEDIN.COM/IN/..."
+    },
+    {
+      "number": "02",
+      "title": "Verify and resolve the public photo",
+      "description": "Paste the link into VIDNEX. The tool checks public page metadata for a signed media.licdn.com portrait and validates its JPG, PNG, or WebP signature.",
+      "codeHint": "MAGIC-BYTE CHECK · MAX 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Save HD JPG or use local fallback",
+      "description": "Inspect the full-resolution preview and click Download, or drop an image into the browser-local fallback if LinkedIn displays an authwall.",
+      "codeHint": "LINKEDIN_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "LinkedIn profile picture formats and boundaries",
+    "subheading": "Exact technical behavior of the VIDNEX LinkedIn module for every URL type.",
+    "headers": [
+      "LinkedIn URL or scenario",
+      "Output / Result",
+      "Actual behavior in VIDNEX"
+    ],
+    "rows": [
+      [
+        "Public personal profile (/in/slug)",
+        "JPG / PNG / WebP",
+        "Fetches signed media.licdn.com portrait (max 10 MB), validates magic bytes, caches 10 min, saves as linkedin_{slug}_profile.jpg."
+      ],
+      [
+        "Country or mobile subdomains",
+        "JPG / PNG / WebP",
+        "Automatically normalizes regional subdomains (e.g. de., fr., m.linkedin.com) and trailing locale segments."
+      ],
+      [
+        "LinkedIn authwall / login wall",
+        "Browser-local fallback",
+        "Displays an honest login-wall notice without bypassing it, plus a local drag-and-drop preview and save tool."
+      ],
+      [
+        "Default ghost avatar",
+        "Photo unavailable",
+        "Detects LinkedIn's placeholder silhouette and reports that no public portrait is available."
+      ],
+      [
+        "/company/, /posts/, or videos",
+        "Not supported",
+        "Rejected at URL detection: this tool strictly handles personal /in/ profile photos only."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "LinkedIn troubleshooting and solutions",
+    "subheading": "Why a LinkedIn avatar lookup may be blocked and what options you have.",
+    "guideLink": {
+      "label": "Read our guide on blocked and auth-walled social links",
+      "href": "/en/blog/troubleshooting-expired-blocked-social-media-links"
+    },
+    "items": [
+      {
+        "problem": "LinkedIn returns a login wall (authwall) error",
+        "solution": "LinkedIn frequently limits anonymous profile views depending on user privacy settings or traffic rules. VIDNEX never bypasses login walls and provides an instant 100% browser-local drag-and-drop fallback directly inside the drawer."
+      },
+      {
+        "problem": "Profile shows a photo unavailable error",
+        "solution": "The member either set their profile picture visibility to Connections Only or uses LinkedIn's default grey silhouette. Only avatars configured as Public can be retrieved."
+      },
+      {
+        "problem": "Company page (/company/) or post (/posts/) link rejected",
+        "solution": "VIDNEX's LinkedIn tool accepts personal /in/{slug} URLs exclusively. Company logos, feed posts, and LinkedIn videos are intentionally out of scope."
+      },
+      {
+        "problem": "Updated profile picture still shows the previous photo",
+        "solution": "Resolved portraits are cached briefly for ten minutes to reduce repeated requests. Wait a few minutes after updating a LinkedIn avatar, then run the lookup again."
+      },
+      {
+        "problem": "Downloaded JPG not visible in iPhone Photos",
+        "solution": "Safari saves images into Apple's Files app under Downloads. Open the linkedin_profile.jpg file inside Files, tap Share, and select Save Image to copy it to Photos."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Where to find your saved LinkedIn profile photo",
+    "subheading": "Quick access to linkedin_{slug}_profile.jpg across mobile and desktop devices.",
+    "ios": {
+      "title": "iPhone & iPad",
+      "steps": "Open Safari's Downloads menu or launch Apple's Files app > Downloads. Tap linkedin_{slug}_profile.jpg, press Share, and choose Save Image to move it into your Photos app."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "The downloaded portrait saves inside your phone's Download directory and appears automatically in Gallery or Google Photos under the Downloads album."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "Your browser saves linkedin_{slug}_profile.jpg directly into the system Downloads folder. Press Ctrl+J on Windows or Cmd+Shift+J on macOS to open or reveal the file immediately."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Which LinkedIn URLs work with the VIDNEX downloader?",
+      "answer": "VIDNEX exclusively supports public personal profile links structured as linkedin.com/in/{slug}, including mobile or regional subdomains like m.linkedin.com and fr.linkedin.com plus trailing language segments. Company pages (/company/), feed posts (/posts/), articles, and LinkedIn videos are intentionally excluded and rejected immediately during URL detection."
+    },
+    {
+      "question": "Does VIDNEX collect the person's name, job title, or work history?",
+      "answer": "No, never. The LinkedIn module inspects public metadata strictly to locate the signed profile image URL. No full name, headline, employer, contact information, or career history is ever extracted, displayed on screen, or saved to any database during a lookup."
+    },
+    {
+      "question": "Why does LinkedIn sometimes show a login wall error?",
+      "answer": "LinkedIn lets members restrict profile visibility to signed-in users and periodically enforces an authwall on anonymous lookups. VIDNEX respects those controls without attempting any bypass and instead activates a browser-local drag-and-drop tool so you can inspect and save an image locally."
+    },
+    {
+      "question": "How does the browser-local manual upload fallback work?",
+      "answer": "When LinkedIn blocks public metadata access, the result panel lets you drag and drop or pick an image file already on your device. Binary format validation, HD zoom preview, and saving happen entirely inside your own browser without uploading a single byte."
+    },
+    {
+      "question": "What image formats and maximum size are supported for LinkedIn avatars?",
+      "answer": "VIDNEX validates image file signatures via binary magic bytes and accepts genuine JPG, PNG, and WebP photos up to ten megabytes in size from signed media.licdn.com URLs. Resolved public portraits are cached temporarily for ten minutes and downloaded cleanly as linkedin_{slug}_profile.jpg without artificial recompression."
+    },
+    {
+      "question": "Why does a public LinkedIn profile say photo not available?",
+      "answer": "That message appears when the account uses LinkedIn's default placeholder silhouette or restricts avatar visibility to first-degree connections only. To make a profile picture accessible publicly, the LinkedIn member must set their photo visibility to Public inside LinkedIn account privacy settings."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Other VIDNEX tools for photos and profiles",
+    "subheading": "Slice portraits into grids locally or save public media from our other supported platforms.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "guideLink": {
+      "label": "Troubleshooting expired and blocked social media links",
+      "description": "Understand why authwalls happen and how VIDNEX handles public-only metadata.",
+      "href": "/en/blog/troubleshooting-expired-blocked-social-media-links"
+    },
+    "privacyLabel": "VIDNEX Privacy Policy",
+    "privacyDescription": "Zero personal profile scraping, 10-minute short cache, and 100% browser-local fallback mode."
+  }
+}

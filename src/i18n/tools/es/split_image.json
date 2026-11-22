@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Dividir una imagen en cuadrícula 2×2, 3×3 para Instagram o carrusel panorámico en local",
+    "subheading": "Corte instantáneo con HTML5 Canvas y JSZip dentro de tu navegador sin subir fotos al servidor",
+    "paragraphs": [
+      "La herramienta Dividir imagen de VIDNEX corta cualquier archivo JPG, PNG o WebP en piezas exactas para crear una cuadrícula 3×3 en tu perfil de Instagram, un carrusel panorámico 1×3 sin saltos, una tira vertical 3×1, un mosaico 2×2 o una matriz personalizada de hasta 10 filas por 10 columnas (máximo 100 piezas).",
+      "Todo el proceso — la lectura de la imagen, el cálculo de las líneas de corte en HTML5 Canvas y la creación del paquete ZIP con JSZip — se ejecuta íntegramente en tu navegador. Tus fotografías jamás salen de tu dispositivo, protegiendo tu privacidad y ofreciendo una respuesta inmediata.",
+      "Al activar «Orden Instagram», la numeración se invierte desde la esquina inferior derecha (image-1) hasta la superior izquierda para subir cada bloque en secuencia sin desordenar el mosaico. Exporta pieza por pieza o en un único archivo vidnex-split-{filas}x{columnas}.zip en PNG sin pérdida o JPG con deslizador de calidad (10 % a 100 %, rellenando con fondo blanco las transparencias PNG al exportar a JPG)."
+    ],
+    "formatsTitle": "Cuadrículas y opciones de exportación",
+    "formatsList": [
+      "Ajustes rápidos: 2×2 (4 piezas), 3×3 (cuadrícula Instagram de 9 piezas), 1×3 (carrusel horizontal) y 3×1 (tira vertical)",
+      "Cuadrícula personalizada de 1 a 10 filas y 1 a 10 columnas (hasta 100 fragmentos)",
+      "Opción «Orden Instagram» con numeración inversa desde abajo a la derecha (image-1) hacia arriba a la izquierda",
+      "Salida en PNG sin pérdida o JPG con control de calidad (10 %–100 % y fondo blanco automático sobre transparencia)",
+      "Descarga individual (image-1.jpg…) o archivo completo vidnex-split-{filas}x{columnas}.zip generado con JSZip",
+      "Procesamiento 100 % local en HTML5 Canvas con reducción proporcional automática por encima de 8000 px"
+    ],
+    "limitsTitle": "Formatos admitidos y límite de 8000 píxeles",
+    "limitsText": "Dividir imagen admite directamente JPG, PNG y WebP. Para evitar bloqueos de memoria en navegadores móviles, cualquier foto que supere los 8000 píxeles de ancho o alto se reduce proporcionalmente a 8000 px antes de cortarse."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Carga tu imagen local",
+      "description": "Arrastra una foto JPG, PNG o WebP al recuadro o selecciónala desde tu dispositivo. No se sube ningún archivo a servidores externos.",
+      "codeHint": "JPG / PNG / WEBP · LOCAL"
+    },
+    {
+      "number": "02",
+      "title": "Configura cuadrícula y formato",
+      "description": "Elige 2×2, 3×3, 1×3, 3×1 o medidas personalizadas (1–10), activa Orden Instagram si lo necesitas y selecciona PNG o calidad JPG.",
+      "codeHint": "3×3 · ORDEN IG · PNG / JPG"
+    },
+    {
+      "number": "03",
+      "title": "Descarga piezas sueltas o ZIP",
+      "description": "Revisa la vista previa con líneas de corte numeradas y guarda cada imagen por separado o todo junto en un solo archivo ZIP.",
+      "codeHint": "VIDNEX-SPLIT.ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabla de cuadrículas, formatos y límites de Dividir imagen",
+    "subheading": "Especificaciones reales del motor local HTML5 Canvas y JSZip que se ejecuta en tu navegador.",
+    "headers": ["Parámetro o formato", "Valores compatibles", "Comportamiento real de la herramienta"],
+    "rows": [
+      ["Imágenes de entrada", "JPG, PNG, WebP", "Lectura en memoria local; reducción proporcional automática si algún lado supera 8000 px."],
+      ["Preajustes rápidos", "2×2, 3×3, 1×3, 3×1", "Cortes instantáneos para mosaicos cuadrados, cuadrículas de 9 publicaciones y carruseles."],
+      ["Cuadrícula personalizada", "1–10 filas × 1–10 columnas", "Genera de 1 a 100 fragmentos exactos al píxel con vista previa numerada en directo."],
+      ["Orden Instagram", "Activado / Desactivado", "Numera desde la esquina inferior derecha (image-1) hacia la superior izquierda."],
+      ["Exportación PNG", "PNG sin pérdida", "Mantiene nitidez en textos, logotipos y fondos transparentes sin artefactos."],
+      ["Exportación JPG + ZIP", "JPG (10 %–100 %) / .ZIP", "Control de calidad ajustable, fondo blanco en transparencias PNG y archivo vidnex-split-{F}x{C}.zip."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frecuentes al dividir imágenes y soluciones",
+    "subheading": "Respuestas prácticas ante reducción de tamaño, transparencias en JPG o extracción de ZIP.",
+    "guideLink": {
+      "label": "Leer guía relacionada sobre Reels y publicaciones de Instagram",
+      "href": "/es/blog/reel-instagram-descargado-sin-audio"
+    },
+    "items": [
+      {
+        "problem": "Aviso de reducción automática a 8000 píxeles",
+        "solution": "Los navegadores limitan la memoria asignada a HTML5 Canvas, sobre todo en teléfonos. Cuando la imagen excede 8000 px en algún eje, VIDNEX la escala proporcionalmente a 8000 px para evitar cierres inesperados."
+      },
+      {
+        "problem": "El fondo transparente de un PNG se vuelve blanco al elegir JPG",
+        "solution": "El formato JPG no admite canal alfa de transparencia, así que VIDNEX rellena con blanco limpio en lugar de negro sólido. Elige exportación PNG si necesitas conservar la transparencia."
+      },
+      {
+        "problem": "Las piezas aparecen desordenadas en mi perfil de Instagram",
+        "solution": "Instagram coloca siempre la publicación más reciente arriba a la izquierda. Activa «Orden Instagram» antes de exportar para subir image-1 primero y seguir en orden ascendente."
+      },
+      {
+        "problem": "Foto HEIC de iPhone no admitida al subir",
+        "solution": "La herramienta trabaja con JPG, PNG y WebP nativos. En iPhone, exporta o comparte la foto como JPG desde Fotos, o cambia Cámara > Formatos a El más compatible."
+      },
+      {
+        "problem": "Las imágenes del ZIP no aparecen en la Galería móvil",
+        "solution": "Las galerías no leen imágenes dentro de un ZIP comprimido. Descomprime primero el archivo en Archivos (iOS) o pulsa Extraer en Android para visualizar cada pieza."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dónde encontrar tus fragmentos y archivo ZIP",
+    "subheading": "Cómo descomprimir image-1, image-2… y guardarlos en tu galería en cada dispositivo.",
+    "ios": {
+      "title": "iPhone y iPad",
+      "steps": "Abre la aplicación Archivos y ve a Descargas. Toca una vez vidnex-split-{filas}x{columnas}.zip para crear una carpeta con todas las piezas numeradas, selecciónalas y pulsa Compartir > Guardar imágenes para moverlas a Fotos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Las piezas sueltas llegan a Download y se ven enseguida en la Galería. Si descargaste el paquete ZIP completo, abre Mis archivos o Files de Google > Descargas, toca el ZIP y elige Extraer."
+    },
+    "desktop": {
+      "title": "Ordenador (Windows y macOS)",
+      "steps": "Tu navegador guarda vidnex-split-{filas}x{columnas}.zip o cada imagen en la carpeta Descargas. Pulsa Ctrl+J en Windows o Cmd+Shift+J en macOS y haz doble clic o Extraer todo sobre el ZIP."
+    }
+  },
+  "faqs": [
+    {
+      "question": "¿Se suben mis fotos a un servidor al usar Dividir imagen?",
+      "answer": "No, absolutamente ningún archivo abandona tu dispositivo. La lectura de la imagen, la vista previa de líneas de corte, la división con HTML5 Canvas y el empaquetado ZIP mediante JSZip ocurren completamente en local dentro de tu propio navegador web sin conexión a servidores externos."
+    },
+    {
+      "question": "¿Para qué sirve exactamente la opción «Orden Instagram»?",
+      "answer": "En un perfil de Instagram, la foto más reciente ocupa siempre la casilla superior izquierda. Al activar Orden Instagram, VIDNEX numera la pieza inferior derecha como image-1 y avanza hacia arriba a la izquierda para que subas los archivos en orden numérico sin equivocarte."
+    },
+    {
+      "question": "¿Cuándo conviene elegir exportación PNG y cuándo JPG?",
+      "answer": "Elige PNG sin pérdida cuando tu diseño incluya tipografía nítida, logotipos, gráficos planos o fondo transparente. Usa JPG para fotografías cuando prefieras archivos más livianos, ajustando el control de calidad entre el diez y el cien por ciento con relleno blanco automático en zonas transparentes."
+    },
+    {
+      "question": "¿Cuántos fragmentos puedo crear con la cuadrícula personalizada?",
+      "answer": "Además de los accesos rápidos 2×2, 3×3, 1×3 y 3×1, el modo personalizado acepta entre una y diez filas y entre una y diez columnas. Así puedes dividir una misma imagen hasta en cien bloques alineados al píxel y descargarlos sueltos o en un único archivo ZIP."
+    },
+    {
+      "question": "¿Por qué una imagen enorme se reduce automáticamente a 8000 píxeles?",
+      "answer": "Los navegadores establecen límites estrictos de memoria para los lienzos HTML5 Canvas, especialmente en smartphones y tabletas. Si el ancho o el alto de tu fotografía supera ocho mil píxeles, VIDNEX la escala automáticamente de forma proporcional a ocho mil píxeles para evitar cierres del navegador."
+    },
+    {
+      "question": "¿Qué formatos de archivo puedo cargar en Dividir imagen?",
+      "answer": "La herramienta admite directamente fotografías JPG, PNG y WebP arrastradas desde tu equipo o seleccionadas desde tu galería, además de una imagen de muestra integrada para hacer pruebas rápidas. Si tu teléfono captura en HEIC, exporta o convierte primero la foto a JPG."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Otras herramientas VIDNEX para creadores",
+    "subheading": "Combina la división local de imágenes con nuestros descargadores públicos de redes sociales.",
+    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "guideLink": {
+      "label": "Guía de Instagram: solucionar Reels descargados sin audio",
+      "description": "Consejos técnicos prácticos para publicar y conservar tus contenidos de Instagram sin contratiempos.",
+      "href": "/es/blog/reel-instagram-descargado-sin-audio"
+    },
+    "privacyLabel": "Política de privacidad de VIDNEX",
+    "privacyDescription": "Procesamiento 100 % en navegador para Dividir imagen, cero cargas al servidor y sin registro."
+  }
+}

@@ -6,7 +6,10 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from './config.ts';
-import { getLocaleBundleSync } from './localeLoader.ts';
+import {
+  getLocaleBundleSync,
+  getToolContentSync,
+} from './localeLoader.ts';
 
 export type LanguageCode = SupportedLocale;
 
@@ -517,6 +520,7 @@ export function getLocalizedToolConfig(
   if (!pContent) {
     return baseConfig;
   }
+  const toolContent = getToolContentSync(lang, pKey);
   return {
     ...baseConfig,
     shortLabel: pContent.shortLabel,
@@ -526,8 +530,10 @@ export function getLocalizedToolConfig(
     specs: pContent.specs,
     metaTitle: pContent.metaTitle,
     metaDescription: pContent.metaDescription,
-    howToSteps: pContent.howToSteps as unknown as SeoToolConfig['howToSteps'],
-    faqs: pContent.faqs,
+    howToSteps: (toolContent?.howToSteps ||
+      pContent.howToSteps ||
+      baseConfig.howToSteps) as unknown as SeoToolConfig['howToSteps'],
+    faqs: toolContent?.faqs || pContent.faqs || baseConfig.faqs,
   };
 }
 

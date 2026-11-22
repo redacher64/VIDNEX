@@ -1,0 +1,138 @@
+{
+  "editorial": {
+    "heading": "Download Instagram Reels, video, foto /p/, dan carousel publik dengan suara",
+    "subheading": "Simpan MP4 HD bersuara, foto JPG tunggal, arsip ZIP carousel lokal, dan foto profil Instagram",
+    "paragraphs": [
+      "Pengunduh Instagram VIDNEX dirancang untuk membedakan secara tepat setiap jenis tautan publik Instagram. Ketika Anda menempel URL /reel/, /reels/, /tv/, atau postingan video /p/, mesin kami langsung mengekstrak video MP4 HD beserta audionya. Untuk postingan foto tunggal /p/, alat ini langsung menyajikan gambar JPG tanpa mengubahnya secara keliru menjadi alur Reel.",
+      "Jika sebuah tautan /p/ merupakan carousel yang berisi gabungan beberapa foto dan video, seluruh item akan tampil dalam grid interaktif dengan kotak centang. Anda bisa mengunduh slide tertentu satu per satu atau mengemas hingga 20 item (total maksimal 100 MB) ke dalam satu arsip ZIP lokal yang dibangun langsung di browser Anda. Tautan pendek dari aplikasi seperti /share/... dan instagr.am juga otomatis diarahkan lalu diklasifikasi ulang.",
+      "Untuk foto profil, cukup masukkan alamat profil publik instagram.com/username atau cukup @username agar avatar JPG tampil siap unduh. Sementara itu, tautan /stories/ dan /stories/highlights/ dikenali secara terpisah dari Reels: karena Instagram mewajibkan login untuk melihat Story, VIDNEX tidak pernah mencoba melewati dinding login dan langsung menampilkan pemberitahuan yang jujur.",
+      "Tidak ada file Instagram yang disimpan di server VIDNEX. Semua media publik dikirim langsung menuju perangkat Anda demi menghormati privasi pengguna dan hak cipta pembuat konten."
+    ],
+    "formatsTitle": "Format Instagram yang didukung oleh VIDNEX",
+    "formatsList": [
+      "Instagram Reels publik (/reel/, /reels/) dan video (/tv/, /p/ video) — MP4 HD dengan suara",
+      "Postingan foto tunggal /p/ publik — file gambar JPG resolusi tinggi",
+      "Carousel campuran foto dan video (/p/...) — kotak centang pilihan, unduhan satuan, atau ZIP lokal (maks 20 item / 100 MB)",
+      "Foto profil Instagram publik (instagram.com/username atau @username) dalam format JPG",
+      "Penelusuran otomatis tautan pendek seluler /share/... dan instagr.am"
+    ],
+    "limitsTitle": "Batasan pada Story Instagram dan akun privat",
+    "limitsText": "Akun privat, postingan Teman Dekat, Story Instagram (/stories/), dan Sorotan (/stories/highlights/) memerlukan login akun Instagram sehingga tidak dapat diunduh tanpa autentikasi. VIDNEX tidak pernah melewati dinding login maupun memperlakukan Story sebagai Reel."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Salin tautan postingan Instagram publik",
+      "description": "Di aplikasi atau situs Instagram, buka menu Bagikan atau tiga titik pada Reel, foto, carousel, atau profil publik, lalu pilih Salin tautan.",
+      "codeHint": "/REEL/ · /P/ · /SHARE/ · @PROFIL"
+    },
+    {
+      "number": "02",
+      "title": "Tempel tautan dan biarkan sistem mendeteksi",
+      "description": "Tempel URL ke kolom di atas lalu tekan Download. VIDNEX membedakan otomatis apakah tautan itu Reel, foto tunggal, carousel, atau profil publik.",
+      "codeHint": "MP4 HD · JPG · CAROUSEL ZIP"
+    },
+    {
+      "number": "03",
+      "title": "Simpan video, gambar, atau paket ZIP",
+      "description": "Unduh file MP4 bersuara atau centang slide yang diinginkan pada carousel untuk disimpan satu per satu maupun sebagai satu paket ZIP lokal.",
+      "codeHint": "MP4 BERSUARA · ZIP LOKAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel jenis konten Instagram dan format hasil unduhan",
+    "subheading": "Perilaku nyata mesin VIDNEX untuk setiap pola tautan Instagram yang Anda tempel.",
+    "headers": ["Jenis konten Instagram", "Format keluaran", "Perilaku dan batasan nyata"],
+    "rows": [
+      ["Reel publik (/reel/, /reels/)", "MP4 HD bersuara", "Mengambil aliran MP4 berkualitas tertinggi yang dibuka publik oleh Instagram lengkap dengan audio."],
+      ["Video postingan (/p/, /tv/)", "MP4 HD bersuara", "Video postingan standar dan klip /tv/ diunduh langsung sebagai MP4 yang kompatibel di semua perangkat."],
+      ["Foto tunggal (/p/)", "JPG", "Postingan satu foto diproses khusus sebagai gambar JPG tanpa dialihkan ke mesin Reel."],
+      ["Carousel campuran (/p/)", "JPG, MP4, atau ZIP", "Pilihan kotak centang tiap slide; simpan satuan atau buat ZIP lokal (maks 20 item / 100 MB)."],
+      ["Profil publik (@username)", "JPG", "Mendukung URL instagram.com/username maupun @username untuk menyimpan foto profil."],
+      ["Story & Highlight (/stories/)", "Tidak didukung (perlu login)", "Dikenali terpisah dari Reels; karena wajib login, dinding autentikasi tidak dilewati."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Kendala umum saat download Instagram dan solusinya",
+    "subheading": "Enam kasus nyata pada Reels, carousel /p/, tautan /share/, dan Story beserta cara penanganannya.",
+    "items": [
+      {
+        "problem": "Tautan Story atau Highlight Instagram memunculkan pesan perlu login",
+        "solution": "Instagram mewajibkan sesi login untuk mengakses /stories/ dan /stories/highlights/. VIDNEX mengenali tautan ini secara akurat sebagai Story, tidak mengirimkannya ke mesin Reels, dan menjelaskan bahwa Story tidak bisa diunduh tanpa akun."
+      },
+      {
+        "problem": "Postingan /p/ atau Reel menampilkan pesan privat atau dibatasi",
+        "solution": "Jika akun diatur privat atau unggahan memiliki batasan usia maupun wilayah, Instagram memblokir akses publik. Coba buka tautan di jendela penyamaran (incognito) tanpa login; jika tidak tampil di sana, tautan tersebut tidak dapat diekstrak."
+      },
+      {
+        "problem": "Tautan pendek /share/ dari aplikasi ponsel gagal dimuat",
+        "solution": "Sebagian tautan /share/ memakai token pengalihan sementara yang cepat berakhir. Buka postingan di browser ponsel, lalu salin alamat langsung berbentuk instagram.com/reel/... atau instagram.com/p/... dari bilah alamat."
+      },
+      {
+        "problem": "Tidak semua slide carousel masuk ke arsip ZIP",
+        "solution": "Pembuatan ZIP dilakukan langsung di browser dengan batas aman 20 item dan ukuran total 100 MB. Untuk carousel yang sangat besar atau berisi beberapa video berat, centang sebagian item lalu unduh dalam dua kali proses."
+      },
+      {
+        "problem": "Video Reel yang diunduh belum terlihat di Galeri Foto iPhone",
+        "solution": "Browser Safari di iPhone menempatkan file MP4 di aplikasi File > Unduhan. Buka aplikasi File, ketuk video yang baru diunduh, tekan ikon Bagikan di kiri bawah, lalu pilih Simpan Video."
+      },
+      {
+        "problem": "Foto profil Instagram gagal diambil saat mengetik nama pengguna",
+        "solution": "Periksa ejaan nama pengguna tanpa spasi tambahan dan pastikan akun tersebut bersifat publik. Anda juga dapat menempelkan alamat lengkap instagram.com/username langsung dari bilah alamat browser."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana menemukan file Instagram yang sudah disimpan",
+    "subheading": "Langkah cepat mengakses video Reel MP4, foto JPG, atau ZIP carousel di perangkat Anda.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Ketuk ikon panah unduhan di bilah alamat Safari atau buka aplikasi File > Unduhan. Untuk memindahkan video Reel atau foto JPG ke Galeri Foto, buka file tersebut, ketuk Bagikan, lalu pilih Simpan Video atau Simpan Gambar. File ZIP carousel dapat diekstrak cukup dengan sekali ketuk."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome dan browser Android menyimpan file Instagram ke folder Download (Unduhan) di penyimpanan internal. Buka album Download di Galeri atau aplikasi File Saya untuk langsung melihat hasilnya. Paket ZIP dapat diketuk agar seluruh foto dan video keluar ke folder baru."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "Semua unduhan MP4, JPG, dan ZIP masuk ke folder Downloads sistem Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada jendela browser untuk membuka riwayat unduhan dan langsung menampilkan file di folder."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Bagaimana VIDNEX membedakan Instagram Reels, foto /p/, dan carousel?",
+      "answer": "VIDNEX memeriksa struktur tautan dan metadata publik Instagram sehingga setiap jenis konten masuk ke jalur pemrosesan yang tepat. Tautan /reel/, /reels/, dan video /p/ menghasilkan MP4 HD bersuara, sedangkan foto tunggal atau carousel /p/ menampilkan grid pilihan gambar tanpa pernah keliru dianggap Reel."
+    },
+    {
+      "question": "Bisakah saya download Story Instagram atau Sorotan (Highlights) di VIDNEX?",
+      "answer": "Tidak bisa. Instagram mewajibkan login akun untuk melihat /stories/ dan /stories/highlights/. VIDNEX memisahkan deteksi Story dari Reels sejak awal agar tidak terjadi kesalahan deteksi, tidak pernah mencoba melewati dinding login Instagram, dan langsung menampilkan penjelasan resmi bahwa Story membutuhkan sesi akun."
+    },
+    {
+      "question": "Bagaimana cara menyimpan semua slide carousel Instagram sekaligus?",
+      "answer": "Saat Anda menempel tautan carousel /p/ publik, VIDNEX menampilkan seluruh foto dan video di dalamnya lengkap dengan kotak centang. Anda dapat mengunduh satu per satu atau langsung mengemas hingga maksimal 20 file dengan batas total 100 MB menjadi satu arsip ZIP di dalam browser."
+    },
+    {
+      "question": "Apakah video Instagram Reels yang diunduh tetap memiliki suara asli?",
+      "answer": "Ya, setiap kali Instagram menyediakan aliran publik dengan trek audio, VIDNEX mengunduh file MP4 yang sudah menyertakan gambar dan suara secara utuh. Jika audio pada video aslinya memang dibisukan oleh kreator atau oleh Instagram akibat hak cipta musik, hasil unduhannya akan mengikuti kondisi sumbernya."
+    },
+    {
+      "question": "Apakah tautan pendek /share/ dan instagr.am dari aplikasi seluler berfungsi?",
+      "answer": "Ya, tautan pendek seluler seperti instagram.com/share/... dan instagr.am otomatis diikuti oleh mesin VIDNEX. Setelah pengalihan terselesaikan ke alamat kanonisnya, sistem mengklasifikasikan ulang apakah tujuan akhirnya berupa Reel, postingan foto, profil, atau Story sehingga hanya konten publik yang didukung yang diproses."
+    },
+    {
+      "question": "Bagaimana cara mengunduh foto profil Instagram beresolusi tinggi?",
+      "answer": "Tempel alamat lengkap profil Instagram publik seperti instagram.com/username atau cukup tuliskan @username di kolom atas. VIDNEX otomatis mengenali bahwa tautan tersebut adalah halaman profil dan menyediakan foto profil JPG siap pratinjau dan simpan tanpa mengharuskan Anda masuk ke akun Instagram."
+    },
+    {
+      "question": "Bagaimana cara memotong satu foto menjadi grid 3×3 untuk feed Instagram?",
+      "answer": "Gunakan alat Potong Gambar VIDNEX yang berjalan 100% lokal di browser tanpa unggah server. Pilih preset 3×3 atau ukuran kustom, aktifkan opsi Urutan Instagram agar file diberi nomor terbalik dari kanan bawah (image-1) ke kiri atas, lalu unduh seluruh potongan dalam satu paket ZIP."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat terkait untuk kreator Instagram dan privasi",
+    "subheading": "Buat grid 3×3 di browser atau simpan video publik dari TikTok dan Facebook.",
+    "toolKeys": ["split_image", "tiktok", "facebook"],
+    "privacyLabel": "Kebijakan privasi dan zero-storage",
+    "privacyDescription": "Baca bagaimana VIDNEX mengalirkan media publik Instagram tanpa menyimpan file di server."
+  }
+}

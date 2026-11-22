@@ -1,0 +1,171 @@
+{
+  "editorial": {
+    "heading": "Bild lokal im Browser in 2×2-, 3×3-Instagram-Raster oder Karussell teilen",
+    "subheading": "100 % lokaler Zuschnitt per HTML5 Canvas und JSZip ohne Hochladen auf fremde Server",
+    "paragraphs": [
+      "Mit dem Werkzeug Bild teilen von VIDNEX zerlegen Sie jedes JPG-, PNG- oder WebP-Foto pixelgenau in gleichmäßige Kacheln — für ein 3×3-Instagram-Profilraster, ein nahtloses 1×3-Panorama-Karussell, einen vertikalen 3×1-Streifen, ein 2×2-Quadrat oder benutzerdefinierte Raster bis zu 10 Zeilen mal 10 Spalten (maximal 100 Kacheln).",
+      "Jeder Arbeitsschritt — vom Laden der Vorlage über die Berechnung auf dem HTML5 Canvas bis zum Packen des ZIP-Archivs via JSZip — findet ausschließlich lokal in Ihrem Browser statt. Ihre Fotos verlassen Ihr Gerät nicht, was vertrauliche Grafiken schützt und selbst bei langsamer Verbindung sofortige Ergebnisse liefert.",
+      "Die Option «Instagram-Reihenfolge» kehrt die Dateinummerierung automatisch von unten rechts (image-1) nach oben links um, damit Sie alle Kacheln der Reihe nach richtig auf Ihrem Profil hochladen. Exportieren Sie einzelne Teile oder das Komplettpaket vidnex-split-{zeilen}x{spalten}.zip als verlustfreies PNG oder anpassbares JPG (10 %–100 % Qualität, inklusive weißem Hintergrund bei transparenten PNGs)."
+    ],
+    "formatsTitle": "Raster-Presets und Exportfunktionen",
+    "formatsList": [
+      "Schnellvorlagen: 2×2 (4 Teile), 3×3 (9-teiliges Instagram-Raster), 1×3 (horizontales Karussell) und 3×1 (vertikaler Streifen)",
+      "Benutzerdefiniertes Raster von 1 bis 10 Zeilen und 1 bis 10 Spalten (bis zu 100 Kacheln)",
+      "Option «Instagram-Reihenfolge» mit umgekehrter Nummerierung von unten rechts (image-1) nach oben links",
+      "Export als verlustfreies PNG oder JPG mit Qualitätsregler (10 %–100 % und weißem Hintergrund für Transparenz)",
+      "Einzeldownload (image-1.jpg…) oder Gesamtarchiv vidnex-split-{zeilen}x{spalten}.zip per JSZip",
+      "100 % lokale HTML5-Canvas-Verarbeitung mit automatischer Skalierung über 8000 px"
+    ],
+    "limitsTitle": "Unterstützte Eingabeformate und 8000-px-Schutz",
+    "limitsText": "Bild teilen akzeptiert direkt JPG-, PNG- und WebP-Dateien im Browser. Um Speicherabstürze auf Smartphones zu verhindern, wird jedes Bild über 8000 Pixel Breite oder Höhe vor dem Schneiden automatisch proportional auf 8000 px verkleinert."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Lokales Bild auswählen",
+      "description": "Ziehen Sie eine JPG-, PNG- oder WebP-Datei in den Bereich oder wählen Sie ein Foto vom Gerät. Es werden keine Daten an einen Server gesendet.",
+      "codeHint": "JPG / PNG / WEBP · LOKAL"
+    },
+    {
+      "number": "02",
+      "title": "Raster und Ausgabeformat festlegen",
+      "description": "Wählen Sie 2×2, 3×3, 1×3, 3×1 oder eigene Zeilen und Spalten (1–10), aktivieren Sie bei Bedarf die Instagram-Reihenfolge und wählen Sie PNG oder JPG.",
+      "codeHint": "3×3 · IG-REIHENFOLGE · PNG / JPG"
+    },
+    {
+      "number": "03",
+      "title": "Kacheln einzeln oder als ZIP laden",
+      "description": "Prüfen Sie die nummerierten Schnittlinien in der Vorschau und speichern Sie einzelne Bilder oder alle Kacheln gemeinsam in einem ZIP-Archiv.",
+      "codeHint": "VIDNEX-SPLIT.ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Raster, Formate und technische Eckdaten von Bild teilen",
+    "subheading": "Reale Eigenschaften des clientseitigen HTML5-Canvas- und JSZip-Zuschnitts.",
+    "headers": [
+      "Einstellung oder Format",
+      "Unterstützte Werte",
+      "Tatsächliches Browser-Verhalten"
+    ],
+    "rows": [
+      [
+        "Eingabeformate",
+        "JPG, PNG, WebP",
+        "Lokale Verarbeitung im Arbeitsspeicher; automatische proportionale Skalierung ab 8000 px."
+      ],
+      [
+        "Schnellvorlagen",
+        "2×2, 3×3, 1×3, 3×1",
+        "Sofortige Schnittkoordinaten für quadratische Mosaike, 9er-Instagram-Grids und Karussells."
+      ],
+      [
+        "Eigenes Raster",
+        "1–10 Zeilen × 1–10 Spalten",
+        "Erzeugt 1 bis 100 pixelgenaue Kacheln mit live nummerierter Schnittvorschau."
+      ],
+      [
+        "Instagram-Reihenfolge",
+        "Ein / Aus",
+        "Nummeriert von unten rechts (image-1) bis oben links für korrektes Hochladen."
+      ],
+      [
+        "PNG-Export",
+        "Verlustfreies PNG",
+        "Erhält scharfe Schriften, Logos und transparente Hintergründe ohne Artefakte."
+      ],
+      [
+        "JPG- + ZIP-Export",
+        "JPG (10 %–100 %) / .ZIP",
+        "Qualitätsregler, automatischer weißer Hintergrund bei PNG-Transparenz und vidnex-split-{Z}x{S}.zip."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Häufige Fragen und Lösungen beim Bildteilen",
+    "subheading": "Schnelle Hilfe bei 8000-px-Skalierung, Transparenz im JPG oder dem Entpacken von ZIP-Dateien.",
+    "guideLink": {
+      "label": "Passenden Instagram-Ratgeber im Blog lesen",
+      "href": "/de/blog/instagram-reel-ohne-ton-heruntergeladen"
+    },
+    "items": [
+      {
+        "problem": "Hinweis, dass das Bild auf 8000 Pixel verkleinert wurde",
+        "solution": "Browser begrenzen den Speicher für HTML5 Canvas, besonders auf Mobilgeräten. Überschreitet eine Seite 8000 px, skaliert VIDNEX das Bild proportional auf 8000 px herunter, damit der Zuschnitt stabil durchläuft."
+      },
+      {
+        "problem": "Transparenter PNG-Hintergrund wird im JPG weiß",
+        "solution": "Das JPG-Format unterstützt keinen Alphakanal. VIDNEX füllt transparente Bereiche daher sauber weiß statt schwarz auf. Wählen Sie den PNG-Export, um Transparenz zu behalten."
+      },
+      {
+        "problem": "Die Kacheln erscheinen auf Instagram in falscher Reihenfolge",
+        "solution": "Instagram setzt das zuletzt hochgeladene Foto immer nach oben links. Aktivieren Sie vor dem Download die Option «Instagram-Reihenfolge» und laden Sie beginnend mit image-1 aufsteigend hoch."
+      },
+      {
+        "problem": "iPhone-HEIC-Foto wird nicht angenommen",
+        "solution": "Bild teilen verarbeitet nativ JPG, PNG und WebP. Exportieren Sie HEIC-Fotos auf dem iPhone als JPG oder stellen Sie unter Kamera > Formate auf Maximale Kompatibilität um."
+      },
+      {
+        "problem": "Kacheln aus dem ZIP erscheinen nicht in der Handy-Galerie",
+        "solution": "Galerie-Apps zeigen keine Bilder innerhalb ungeöffneter ZIP-Archive an. Tippen Sie das ZIP zuerst in Dateien (iOS) an oder wählen Sie Entpacken unter Android."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Wo Sie Ihre geteilten Kacheln und das ZIP-Archiv finden",
+    "subheading": "So entpacken Sie image-1, image-2… und speichern sie auf jedem Gerät in Ihrer Galerie.",
+    "ios": {
+      "title": "iPhone und iPad",
+      "steps": "Öffnen Sie die Apple-App Dateien > Downloads und tippen Sie einmal auf vidnex-split-{zeilen}x{spalten}.zip. Öffnen Sie den neuen Ordner mit allen Kacheln, wählen Sie alle Bilder aus und tippen Sie auf Teilen > Bilder sichern."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Einzelne Kacheln landen direkt in Download und erscheinen sofort in der Galerie. Beim kompletten ZIP öffnen Sie Eigene Dateien oder Files by Google > Downloads und tippen auf Entpacken."
+    },
+    "desktop": {
+      "title": "Computer (Windows und macOS)",
+      "steps": "Ihr Browser speichert vidnex-split-{zeilen}x{spalten}.zip oder Einzeldateien im Ordner Downloads. Mit Strg+J (Windows) oder Cmd+Shift+J (macOS) öffnen Sie die Datei und entpacken sie per Doppelklick oder Alle extrahieren."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Werden meine Fotos beim Bildteilen auf einen Server hochgeladen?",
+      "answer": "Nein, kein einziges Byte Ihres Bildes verlässt Ihr Gerät. Das Einlesen der Grafik, die Schnittvorschau, der Zuschnitt über HTML5 Canvas sowie die Erstellung des ZIP-Archivs durch JSZip erfolgen vollständig lokal direkt in Ihrem Browser-Tab — sogar ohne aktive Internetverbindung nach dem Laden."
+    },
+    {
+      "question": "Wozu dient die Option «Instagram-Reihenfolge» genau?",
+      "answer": "In einem Instagram-Profil erscheint das neueste Foto stets in der oberen linken Kachel. Mit aktivierter Instagram-Reihenfolge versieht VIDNEX die Kachel unten rechts mit dem Namen image-1 und zählt bis oben links weiter, sodass Sie alle Bilder einfach aufsteigend fehlerfrei posten können."
+    },
+    {
+      "question": "Sollte ich meine geteilten Kacheln besser als PNG oder JPG exportieren?",
+      "answer": "Wählen Sie verlustfreies PNG, wenn Ihre Grafik feinen Text, Logos, Illustrationen oder transparente Hintergründe enthält. Für klassische Fotos eignet sich JPG mit dem einstellbaren Qualitätsregler von zehn bis einhundert Prozent, wobei transparente PNG-Bereiche automatisch sauber mit weißem Hintergrund gefüllt werden."
+    },
+    {
+      "question": "Wie viele Kacheln kann ich mit einem benutzerdefinierten Raster erstellen?",
+      "answer": "Neben den Vorlagen 2×2, 3×3, 1×3 und 3×1 erlaubt der benutzerdefinierte Modus frei zwischen einer und zehn Zeilen sowie einer und zehn Spalten. Dadurch können Sie ein einzelnes Bild in bis zu einhundert passgenaue Kacheln zerlegen und gemeinsam im ZIP sichern."
+    },
+    {
+      "question": "Warum wird ein sehr großes Bild automatisch auf 8000 Pixel verkleinert?",
+      "answer": "Webbrowser setzen strenge Arbeitsspeicher-Grenzen für HTML5-Canvas-Flächen, insbesondere auf Smartphones und Tablets. Überschreitet eine Grafik achttausend Pixel in Breite oder Höhe, reduziert VIDNEX sie automatisch proportional auf maximal achttausend Pixel ohne Seitenverhältnis-Verlust, damit das Teilen schnell, stabil und ohne Browser-Absturz gelingt."
+    },
+    {
+      "question": "Welche Bilddateiformate lassen sich in Bild teilen laden?",
+      "answer": "Das Werkzeug verarbeitet direkt JPG-, PNG- und WebP-Dateien aus Ihrem Dateisystem oder per Drag-and-Drop sowie eine integrierte Beispielgrafik zum schnellen Testen. Falls Ihr Smartphone im HEIC-Format fotografiert, wandeln oder exportieren Sie das Foto bitte vor dem Laden kurz in JPG um."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Weitere VIDNEX-Tools für Kreative",
+    "subheading": "Kombinieren Sie lokalen Raster-Zuschnitt mit unseren öffentlichen Medien-Downloadern.",
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "linkedin"
+    ],
+    "guideLink": {
+      "label": "Instagram-Ratgeber: Reel ohne Ton beheben",
+      "description": "Praxistipps rund um Instagram-Formate, Audio-Spuren und saubere Wiedergabe.",
+      "href": "/de/blog/instagram-reel-ohne-ton-heruntergeladen"
+    },
+    "privacyLabel": "Datenschutzerklärung von VIDNEX",
+    "privacyDescription": "100 % lokale Verarbeitung im Browser für Bild teilen, ohne Server-Upload und ohne Konto."
+  }
+}

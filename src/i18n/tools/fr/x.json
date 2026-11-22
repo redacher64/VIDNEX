@@ -1,0 +1,138 @@
+{
+  "editorial": {
+    "heading": "Télécharger une vidéo, un GIF ou les photos d'un post X (Twitter) public",
+    "subheading": "Flux MP4 progressifs triés par débit, GIFs en boucle MP4 et photos d'origine sans domaine miroir",
+    "paragraphs": [
+      "Le téléchargeur X (Twitter) de VIDNEX extrait les médias attachés aux publications publiques sur x.com, twitter.com, mobile.twitter.com, m.twitter.com et les liens courts officiels t.co (jusqu'à trois redirections suivies automatiquement). Il suffit de coller l'URL du post contenant /status/ pour afficher les résolutions disponibles.",
+      "Pour chaque vidéo publique, VIDNEX filtre automatiquement les playlists fragmentées HLS (.m3u8) inutilisables en téléchargement direct et ne conserve que les véritables flux progressifs video/mp4, classés par débit décroissant (par exemple 1080p, 720p, 480p ou 360p selon l'encodage du post). Les GIFs animés publiés sur X sont nativement servis par la plateforme en boucle MP4 légère, prête à être enregistrée et relue sur tout appareil.",
+      "Lorsqu'un post X contient une ou plusieurs images (jusqu'à quatre photos par publication), VIDNEX demande la variante en qualité d'origine (?name=orig) en JPG ou PNG. Sur un post multi-photos, un sélecteur par cases à cocher vous permet de télécharger une photo précise ou de regrouper la sélection dans une archive ZIP assemblée dans votre navigateur.",
+      "Pour garantir l'intégrité des liens, les domaines miroirs tiers comme fxtwitter, vxtwitter, fixupx ou nitter sont explicitement refusés : collez toujours l'adresse officielle x.com ou twitter.com."
+    ],
+    "formatsTitle": "Médias X (Twitter) pris en charge",
+    "formatsList": [
+      "Vidéos X publiques en MP4 progressif, triées par débit décroissant (1080p, 720p, 480p, 360p selon le post)",
+      "GIFs animés X enregistrés nativement en fichier MP4 fluide et léger",
+      "Posts photo simples et multi-photos (jusqu'à 4 images) en résolution d'origine (?name=orig, JPG ou PNG)",
+      "Téléchargement individuel ou archive ZIP locale pour les publications à plusieurs photos",
+      "Suivi automatique des liens courts officiels t.co (jusqu'à 3 redirections) et des liens /i/status/"
+    ],
+    "limitsTitle": "Publications non prises en charge sur X",
+    "limitsText": "Les comptes protégés (cadenas), les posts soumis à restriction d'âge ou exigeant une connexion sur X, les publications contenant uniquement du texte, les diffusions Spaces audio et les URL issues de domaines miroirs tiers (fxtwitter, vxtwitter, fixupx, nitter) ne sont pas pris en charge."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copiez l'URL officielle du post X",
+      "description": "Sous la publication publique sur x.com ou dans l'application X, touchez l'icône Partager puis Copier le lien afin d'obtenir une adresse /status/ ou t.co.",
+      "codeHint": "X.COM/.../STATUS/ · T.CO"
+    },
+    {
+      "number": "02",
+      "title": "Analysez les variantes MP4 ou photo",
+      "description": "Collez le lien dans VIDNEX. Le moteur écarte les flux HLS non téléchargeables et classe les flux MP4 par qualité, ou charge les photos en qualité d'origine.",
+      "codeHint": "MP4 PROGRESSIF · ?NAME=ORIG"
+    },
+    {
+      "number": "03",
+      "title": "Enregistrez la résolution souhaitée",
+      "description": "Choisissez la définition MP4 adaptée à votre usage, enregistrez votre GIF en MP4 ou sélectionnez vos photos en téléchargement direct ou archive ZIP locale.",
+      "codeHint": "1080P / 720P / 480P · ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formats et résolutions X (Twitter) pris en charge",
+    "subheading": "Comparatif des médias publics extraits depuis x.com et twitter.com par le moteur VIDNEX.",
+    "headers": ["Type de média X", "Format délivré", "Résolution et comportement technique"],
+    "rows": [
+      ["Vidéo X haute qualité", "MP4 progressif", "Meilleur débit video/mp4 exposé par X (souvent 1080p ou 720p selon le fichier envoyé par l'auteur)."],
+      ["Vidéo X standard", "MP4 progressif", "Variantes 480p ou 360p plus légères, pratiques pour un partage rapide par messagerie."],
+      ["GIF animé X", "MP4 en boucle", "X stocke ses GIFs en MP4 léger sans son ; VIDNEX enregistre directement ce flux propre."],
+      ["Photo unique", "JPG ou PNG", "Image récupérée en variante originale (?name=orig) sans recadrage supplémentaire."],
+      ["Tweet multi-photos (2 à 4)", "JPG / PNG ou ZIP", "Sélection par cases à cocher, téléchargement image par image ou archive ZIP assemblée dans le navigateur."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problèmes fréquents sur X (Twitter) et solutions",
+    "subheading": "Les causes techniques habituelles lorsqu'un post X ne renvoie aucun média et comment y remédier.",
+    "guideLink": {
+      "label": "Lire le guide complet : vidéos et GIFs X (Twitter) en MP4",
+      "href": "/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide"
+    },
+    "items": [
+      {
+        "problem": "Lien refusé car il provient d'un domaine miroir (vxtwitter, fxtwitter, nitter)",
+        "solution": "VIDNEX n'accepte que les domaines officiels x.com, twitter.com et t.co pour des raisons de sécurité et de fiabilité. Remplacez le domaine miroir par x.com en conservant le chemin /utilisateur/status/{id}."
+      },
+      {
+        "problem": "Post protégé ou contenu sensible nécessitant une connexion",
+        "solution": "Si le compte comporte un cadenas ou si la publication est marquée comme sensible/réservée aux adultes connectés, X ne renvoie pas le média aux requêtes publiques. VIDNEX signale alors que le post requiert une connexion."
+      },
+      {
+        "problem": "Un lien court t.co ne mène vers aucune vidéo",
+        "solution": "Les liens t.co peuvent rediriger vers un article externe, un post supprimé ou une chaîne de redirections dépassant trois sauts. Ouvrez d'abord le lien dans votre navigateur puis copiez directement l'URL x.com/.../status/."
+      },
+      {
+        "problem": "La vidéo X est bien téléchargée mais en 720p maximum",
+        "solution": "Seules les variantes MP4 progressives réellement encodées par X sont listées. Si l'auteur a publié une vidéo en 720p ou compressée depuis un téléphone, aucune variante 1080p n'existe côté source."
+      },
+      {
+        "problem": "Le GIF téléchargé porte l'extension .mp4",
+        "solution": "Sur X (Twitter), tous les GIFs animés sont convertis dès la mise en ligne en fichiers MP4 bien plus légers et nets que le format .gif classique. Ce fichier MP4 se lit en boucle dans la plupart des galeries et messageries."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Où retrouver vos vidéos, GIFs et photos X enregistrés",
+    "subheading": "Emplacement par défaut de vos fichiers MP4, JPG, PNG ou ZIP selon votre système.",
+    "ios": {
+      "title": "iPhone et iPad",
+      "steps": "Dans Safari sur iOS, ouvrez le menu Téléchargements depuis la barre d'adresse ou lancez l'application Fichiers > Téléchargements. Pour ajouter une vidéo MP4 ou une photo X à votre pellicule, ouvrez le fichier, appuyez sur Partager puis choisissez Enregistrer la vidéo ou Enregistrer l'image."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Les fichiers MP4, JPG et PNG téléchargés depuis Chrome ou Firefox sont enregistrés dans le dossier Téléchargements (Download) et visibles dans votre Galerie. Si vous avez téléchargé plusieurs photos en archive ZIP, ouvrez l'archive depuis votre gestionnaire de fichiers pour les décompresser."
+    },
+    "desktop": {
+      "title": "Ordinateur (Windows / macOS)",
+      "steps": "Chaque média s'enregistre dans le dossier Téléchargements par défaut de votre ordinateur. Appuyez sur Ctrl+J (Windows) ou Cmd+Shift+J (macOS) pour afficher les téléchargements récents, lire immédiatement la vidéo MP4 ou ouvrir le dossier contenant les photos extraites."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Comment télécharger une vidéo X (Twitter) en HD avec VIDNEX ?",
+      "answer": "Copiez l'adresse officielle du post public depuis x.com ou twitter.com, collez-la dans le champ ci-dessus puis lancez l'analyse. VIDNEX filtre les flux fragmentés et liste automatiquement toutes les variantes MP4 progressives disponibles par débit décroissant afin que vous puissiez enregistrer la plus haute résolution."
+    },
+    {
+      "question": "Pourquoi un GIF téléchargé depuis X est-il au format MP4 ?",
+      "answer": "X convertit automatiquement chaque GIF animé en vidéo MP4 optimisée dès sa publication sur la plateforme. VIDNEX vous restitue directement ce fichier MP4 natif, nettement plus léger et fluide qu'un GIF classique, tout en restant directement partageable sur WhatsApp, Telegram, iPhone, Android et ordinateur."
+    },
+    {
+      "question": "Puis-je enregistrer les quatre photos d'un post X en qualité originale ?",
+      "answer": "Oui, lorsque la publication publique inclut plusieurs images, VIDNEX récupère chaque photo dans sa résolution d'origine grâce au paramètre natif de X. Vous pouvez cocher les clichés de votre choix puis les enregistrer un par un ou les regrouper dans une archive ZIP créée localement."
+    },
+    {
+      "question": "Les anciennes URL twitter.com et les liens courts t.co sont-ils acceptés ?",
+      "answer": "Oui, VIDNEX reconnaît indistinctement x.com, twitter.com, mobile.twitter.com, m.twitter.com et les liens courts officiels t.co en suivant jusqu'à trois redirections. En revanche, les liens modifiés passant par des domaines miroirs tiers comme vxtwitter, fxtwitter, fixupx ou nitter sont volontairement refusés pour garantir la fiabilité."
+    },
+    {
+      "question": "Pourquoi certains posts X renvoient-ils une erreur de compte protégé ou de connexion ?",
+      "answer": "VIDNEX ne consulte que les publications X accessibles au public sans authentification. Les comptes verrouillés par un cadenas, les posts masqués par restriction d'âge ou les contenus réservés aux abonnés connectés bloquent l'accès anonyme ; notre outil respecte strictement ces restrictions sans jamais tenter de les contourner."
+    },
+    {
+      "question": "Puis-je télécharger une vidéo qui se trouve dans une réponse ou un fil X ?",
+      "answer": "Oui, à condition de copier le lien direct du post précis qui héberge la vidéo, et non uniquement le lien du premier message du fil. Ouvrez la réponse concernée pour récupérer son propre identifiant /status/, collez cette URL dans VIDNEX et choisissez votre résolution MP4."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Continuer avec d'autres outils VIDNEX",
+    "subheading": "Passez en un clic vers nos autres téléchargeurs publics ou préparez vos images en local.",
+    "toolKeys": ["tiktok", "facebook", "split_image"],
+    "guideLink": {
+      "label": "Guide complet : enregistrer vidéos et GIFs X (Twitter) en MP4",
+      "description": "Explications sur les flux MP4 progressifs, les résolutions et les limites des posts protégés.",
+      "href": "/fr/blog/telecharger-videos-gifs-x-twitter-mp4-guide"
+    },
+    "privacyLabel": "Confidentialité et absence de stockage",
+    "privacyDescription": "Consultez comment VIDNEX traite les requêtes publiques sans conserver vos médias ni votre historique."
+  }
+}

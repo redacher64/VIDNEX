@@ -1,0 +1,160 @@
+{
+  "editorial": {
+    "heading": "Facebook video ve Reels indir — herkese açık HD ve SD MP4 sesli kayıt",
+    "subheading": "Watch, /videos/, /reel/ ve fb.watch kısa bağlantıları için doğrudan MP4 çözümü",
+    "paragraphs": [
+      "VIDNEX Facebook indirici, yalnızca giriş gerektirmeyen herkese açık Facebook videolarını ve Reels kliplerini sesli MP4 formatında kaydetmeniz için geliştirilmiştir. Standart /watch/?v=, /video.php?v=, /{sayfa}/videos/{id}, /reel/ ve /reels/ adreslerinin yanı sıra mobil uygulamadan paylaşılan fb.watch, /share/v/ ve /share/r/ kısa bağlantılarını en fazla dört yönlendirme boyunca izleyerek çözümler.",
+      "Herkese açık bir video veya Reel bulunduğunda araç, Facebook sunucusunun sağladığı HD ve SD MP4 seçeneklerini ses kanalıyla birlikte listeler. Yüksek netlik gereken ekranlar için HD akışını, daha hızlı indirme veya mobil veri tasarrufu içinse SD akışını seçebilirsiniz. Dosyalar herhangi bir ek yazılım gerektirmeden iPhone, Android, Windows ve macOS cihazlarda doğrudan oynatılır.",
+      "VIDNEX içerik türlerini birbirine karıştırmaz. Facebook fotoğrafları (/photo/, /photo.php, /share/p/) bu araç tarafından desteklenmez ve açık bir uyarı ile bildirilir. Benzer şekilde Facebook hikâyeleri (/stories/, /story.php, /share/s/) Reels motoruna yönlendirilmez; oturum açma gerektirdiği için giriş duvarı aşılmaz.",
+      "Gizli gruplar, yalnızca arkadaşlara açık paylaşımlar ve canlı Facebook Live (/live/, /watch/live) yayınları indirme kapsamı dışındadır. Hiçbir video sunucularımızda saklanmaz; akış doğrudan cihazınıza iletilir."
+    ],
+    "formatsTitle": "Desteklenen Facebook video bağlantıları ve formatları",
+    "formatsList": [
+      "Herkese açık Facebook videoları (/watch/?v=, /video.php?v=, /{sayfa}/videos/{id}) — sesli HD ve SD MP4",
+      "Herkese açık Facebook Reels (/reel/, /reels/) — sesli HD ve SD MP4",
+      "Kısa ve paylaşım bağlantıları: fb.watch, /share/v/ ve /share/r/ (en fazla 4 yönlendirme)",
+      "Standart H.264/AAC MP4 uyumluluğu — ek kod çözücü gerektirmeden mobil ve masaüstü oynatma"
+    ],
+    "limitsTitle": "Facebook aracında hariç tutulan içerikler",
+    "limitsText": "Facebook fotoğrafları (/photo/, /photo.php, /share/p/), oturum isteyen hikâyeler (/stories/, /story.php, /share/s/), canlı yayınlar (/live/, /watch/live), özel gruplar ve yalnızca arkadaşlara açık gönderiler desteklenmez."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Herkese açık Facebook bağlantısını kopyalayın",
+      "description": "Facebook uygulamasında veya web sürümünde herkese açık video ya da Reel altında Paylaş düğmesine basın ve Bağlantıyı kopyala seçeneğini seçin.",
+      "codeHint": "FB.WATCH · /REEL/ · /WATCH/"
+    },
+    {
+      "number": "02",
+      "title": "Adresi yapıştırıp analizi başlatın",
+      "description": "Bağlantıyı yukarıdaki kutuya yapıştırıp İndir düğmesine tıklayın. VIDNEX kısa bağlantıları izler ve mevcut HD ile SD MP4 akışlarını hazırlar.",
+      "codeHint": "HD MP4 · SD MP4 · SESLİ"
+    },
+    {
+      "number": "03",
+      "title": "HD veya SD MP4 videoyu kaydedin",
+      "description": "Cihazınıza ve internet hızınıza uygun HD ya da SD MP4 düğmesine basarak sesli Facebook videosunu doğrudan indirin.",
+      "codeHint": "DOĞRUDAN AKIŞ · KURULUMSUZ"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Facebook video ve Reels format tablosu",
+    "subheading": "Desteklenen ve hariç tutulan Facebook bağlantı türlerinin gerçek davranış özeti.",
+    "headers": [
+      "Facebook bağlantı türü",
+      "Çıkış formatı",
+      "Gerçek davranış ve kapsam"
+    ],
+    "rows": [
+      [
+        "Herkese açık video (/watch/, /videos/)",
+        "HD ve SD MP4",
+        "Kaynakta HD akış mevcutsa sesli HD MP4, ek olarak daha hafif SD MP4 seçeneği sunulur."
+      ],
+      [
+        "Herkese açık Reel (/reel/, /reels/)",
+        "HD ve SD MP4",
+        "Dikey Facebook Reels klipleri ses kanalı korunarak MP4 biçiminde aktarılır."
+      ],
+      [
+        "Kısa bağlantılar (fb.watch, /share/v/, /share/r/)",
+        "Otomatik çözümleme → MP4",
+        "En fazla 4 yönlendirme takip edilerek asıl video veya Reel bağlantısına ulaşılır."
+      ],
+      [
+        "Facebook fotoğrafı (/photo/, /share/p/)",
+        "Desteklenmez",
+        "Fotoğraf gönderileri video motoruna sokulmaz; fotoğrafın desteklenmediği açıkça belirtilir."
+      ],
+      [
+        "Facebook hikâyesi (/stories/, /story.php)",
+        "Desteklenmez (giriş gerekli)",
+        "Hikâyeler Reels'ten ayrı algılanır ve oturum açma zorunluluğu nedeniyle indirilmez."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Facebook video indirirken sık yaşanan sorunlar ve çözümleri",
+    "subheading": "Özel gruplar, hikâyeler, fotoğraf bağlantıları ve HD kaliteyle ilgili altı gerçek durum.",
+    "items": [
+      {
+        "problem": "Facebook hikâyesi bağlantısı giriş gerekli uyarısı veriyor",
+        "solution": "Facebook /stories/, /story.php ve /share/s/ bağlantıları yalnızca oturum açmış kullanıcılar için erişilebilirdir. VIDNEX hikâyeleri doğru biçimde tanır, giriş duvarını aşmaz ve hesap olmadan indirilemeyeceğini bildirir."
+      },
+      {
+        "problem": "Özel grup veya arkadaşlara açık video indirilemiyor",
+        "solution": "Yalnızca gizlilik ayarı Herkese Açık (küre simgesi) olan Facebook videoları ve Reels klipleri çözümlenebilir. Kapalı gruplar veya arkadaş listesine sınırlı gönderiler için Facebook genel erişim izni vermez."
+      },
+      {
+        "problem": "Bir Facebook fotoğraf bağlantısı yapıştırdım ama hata verdi",
+        "solution": "VIDNEX'in Facebook aracı yalnızca video ve Reels akışlarını destekler. /photo/, /photo.php veya /share/p/ biçimindeki görsel bağlantıları fotoğraf olarak algılanır ve desteklenmediği net biçimde gösterilir."
+      },
+      {
+        "problem": "fb.watch veya /share/v/ bağlantısı çözümlenemedi",
+        "solution": "Kısa paylaşım bağlantıları bazen silinmiş gönderilere veya birden fazla yönlendirme zincirine işaret edebilir. Videoyu tarayıcıda açıp adres çubuğundaki doğrudan facebook.com/watch/?v=... veya /reel/... bağlantısını kopyalayın."
+      },
+      {
+        "problem": "Canlı Facebook Live yayını indirilemiyor",
+        "solution": "Devam eden /live/ veya /watch/live yayınları sabit bir MP4 dosyası oluşturmaz. Yayın sona erdikten sonra sayfa sahibi kaydı herkese açık video olarak paylaşırsa yeni video bağlantısıyla tekrar deneyebilirsiniz."
+      },
+      {
+        "problem": "HD düğmesi yerine yalnızca SD MP4 seçeneği görünüyor",
+        "solution": "VIDNEX videoları yapay olarak büyütmez. İçerik üreticisi videoyu standart çözünürlükte yüklediyse veya Facebook herkese açık akışta yalnızca SD sürüm sunuyorsa araç mevcut gerçek SD MP4 dosyasını gösterir."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen Facebook videosunu cihazınızda nerede bulabilirsiniz?",
+    "subheading": "Kaydettiğiniz HD veya SD MP4 dosyasını iPhone, Android veya bilgisayarınızda hemen açın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari adres çubuğundaki mavi indirme okuna dokunun veya Dosyalar uygulamasında İndirilenler klasörünü açın. İndirilen Facebook MP4 videosunu Fotoğraflar uygulamasına taşımak için dosyayı açın, Paylaş simgesine basın ve Videoyu Kaydet seçeneğine dokunun."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome ve diğer Android tarayıcıları indirilen Facebook videolarını dahili depolamadaki İndirilenler (Download) klasörüne kaydeder. Galeri uygulamasındaki İndirilenler albümünden veya Dosyalarım uygulamasından MP4 videoyu hemen izleyebilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "İndirilen HD veya SD MP4 dosyaları bilgisayarınızın varsayılan İndirilenler klasörüne yerleştirilir. Tarayıcınızda Windows için Ctrl+J, macOS için Cmd+Shift+J kısayolunu kullanarak dosyayı doğrudan klasörde gösterebilir ve medya oynatıcınızda açabilirsiniz."
+    }
+  },
+  "faqs": [
+    {
+      "question": "VIDNEX ile hangi Facebook bağlantıları MP4 olarak indirilebilir?",
+      "answer": "VIDNEX yalnızca gizlilik ayarı herkese açık olan Facebook videolarını ve Reels kliplerini destekler. /watch/?v=, /video.php?v=, /{sayfa}/videos/{id}, /reel/, /reels/ adreslerinin yanı sıra fb.watch, /share/v/ ve /share/r/ kısa bağlantıları en fazla dört yönlendirme boyunca izlenerek sesli HD veya SD MP4 olarak sunulur."
+    },
+    {
+      "question": "Facebook hikâyeleri veya fotoğrafları bu araçla indirilebilir mi?",
+      "answer": "Hayır, Facebook hikâyeleri (/stories/, /story.php, /share/s/) oturum açma gerektirdiği için giriş yapılmadan indirilemez ve hiçbir zaman Reels olarak işlenmez. Aynı şekilde /photo/, /photo.php ve /share/p/ bağlantılarındaki Facebook fotoğrafları da desteklenmez; bu tür bağlantılarda kullanıcıya açık ve net bir bilgilendirme mesajı gösterilir."
+    },
+    {
+      "question": "Kapalı Facebook gruplarındaki veya arkadaşlara özel videolar neden inmiyor?",
+      "answer": "Kapalı gruplar ve yalnızca arkadaşlara açık paylaşımlar Facebook tarafından oturum açmış yetkili hesaplarla sınırlandırılır. VIDNEX hiçbir giriş duvarını aşmaya çalışmaz ve kullanıcı hesabı bilgisi istemez; bu nedenle yalnızca herkese açık (küre simgeli) sayfa ve profil videoları ile Reels gönderileri çözümlenebilir."
+    },
+    {
+      "question": "İndirilen Facebook videolarında hem HD hem SD seçeneği her zaman olur mu?",
+      "answer": "HD seçeneğinin görünmesi tamamen Facebook'un herkese açık olarak sunduğu video akışlarına ve yüklenen kaynak dosyanın çözünürlüğüne bağlıdır. Kaynak yüksek çözünürlüklü olduğunda hem HD hem SD MP4 düğmeleri sunulur; yalnızca standart akış mevcutsa VIDNEX yapay büyütme yapmadan gerçek SD MP4 dosyasını sunar."
+    },
+    {
+      "question": "Canlı yayınlanan bir Facebook Live videosunu kaydedebilir miyim?",
+      "answer": "Hayır, canlı olarak devam eden /live/ veya /watch/live akışları henüz tamamlanmış bir MP4 dosyası değildir ve VIDNEX tarafından desteklenmez. Canlı yayın bittikten sonra yayıncı kaydı herkese açık standart bir video olarak profilinde veya sayfasında bırakırsa, oluşan yeni video bağlantısıyla indirme yapabilirsiniz."
+    },
+    {
+      "question": "Facebook videosunu indirirken iPhone'da nereye kaydedilir?",
+      "answer": "iOS cihazlarda Safari üzerinden indirilen tüm Facebook MP4 videoları doğrudan Fotoğraflar galerisine değil, Dosyalar uygulamasındaki İndirilenler klasörüne kaydedilir. Videoyu film rulonuza kolayca aktarmak için Dosyalar içinden MP4 dosyasına dokunun, sol alttaki Paylaş simgesini açın ve listeden Videoyu Kaydet seçeneğini seçin."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Diğer VIDNEX araçları ve gizlilik",
+    "subheading": "Instagram Reels, TikTok veya X üzerinden herkese açık videoları da aynı sadelikle kaydedin.",
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "x"
+    ],
+    "privacyLabel": "Gizlilik politikası ve veri güvenliği",
+    "privacyDescription": "Facebook bağlantılarının sunucuda tutulmadan nasıl işlendiğini ayrıntılarıyla okuyun."
+  }
+}

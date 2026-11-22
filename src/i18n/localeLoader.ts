@@ -1,11 +1,17 @@
 import {
   isLegalPageKey,
+  isToolPageKey,
   type LegalPageKey,
   type PageKey,
   type PlatformPageKey,
   type SupportedLocale,
+  type ToolPageKey,
 } from './config.ts';
-import type { LegalPageContent, LocaleBundle } from './types.ts';
+import type {
+  LegalPageContent,
+  LocaleBundle,
+  ToolPageContent,
+} from './types.ts';
 import frBundleJson from './locales/fr.json' with { type: 'json' };
 
 const frBundle = frBundleJson as unknown as LocaleBundle;
@@ -53,6 +59,16 @@ const legalCache = new Map<
   Partial<Record<LegalPageKey, LegalPageContent>>
 >();
 const fullLegalLocales = new Set<SupportedLocale>();
+
+/**
+ * Separate on-demand cache for per-tool long-form SEO content (`src/i18n/tools/{locale}/{toolKey}.json`).
+ * Each of the 70 pages (home + 5 platforms + split_image across 10 locales) is code-split into its own
+ * lazy chunk so `window.__VIDNEX_LOCALE_BUNDLE__` and the initial JS load NEVER ship other tools' text.
+ */
+const toolContentCache = new Map<
+  SupportedLocale,
+  Partial<Record<ToolPageKey, ToolPageContent>>
+>();
 
 declare global {
   interface Window {
@@ -114,6 +130,7 @@ function hydrateScopedBundle(
     },
     platforms: mergedPlatforms,
     ...(raw.legal ? { legal: raw.legal } : {}),
+    ...(raw.toolContent ? { toolContent: raw.toolContent } : {}),
   };
 }
 
@@ -132,6 +149,15 @@ function registerWindowPreloadedBundle(): void {
     legalCache.set(preloaded.locale, {
       ...existingLegal,
       ...preloaded.legal,
+    });
+  }
+
+  // Always hydrate any pre-rendered single-tool doc (including for 'fr')
+  if (preloaded.toolContent && typeof preloaded.toolContent === 'object') {
+    const existingTools = toolContentCache.get(preloaded.locale) || {};
+    toolContentCache.set(preloaded.locale, {
+      ...existingTools,
+      ...preloaded.toolContent,
     });
   }
 
@@ -201,6 +227,50 @@ function tryLoadNodeLegalJson(
 }
 
 /**
+ * In Node.js environments (SSR / unit tests), read a single per-tool JSON file from disk
+ * (`src/i18n/tools/{locale}/{toolKey}.json`) without bundling it into the main client entry.
+ */
+function tryLoadNodeToolJson(
+  locale: SupportedLocale,
+  toolKey: ToolPageKey
+): ToolPageContent | null {
+  try {
+    const proc = (
+      globalThis as unknown as {
+        process?: {
+          versions?: { node?: string };
+          cwd?: () => string;
+          getBuiltinModule?: (id: string) => any;
+        };
+      }
+    ).process;
+    if (proc?.versions?.node && typeof proc.getBuiltinModule === 'function') {
+      const fs = proc.getBuiltinModule('node:fs');
+      const path = proc.getBuiltinModule('node:path');
+      const filePath = path.join(
+        proc.cwd ? proc.cwd() : '.',
+        'src',
+        'i18n',
+        'tools',
+        locale,
+        `${toolKey}.json`
+      );
+      if (fs.existsSync(filePath)) {
+        const parsed = JSON.parse(
+          fs.readFileSync(filePath, 'utf8')
+        ) as ToolPageContent;
+        const existing = toolContentCache.get(locale) || {};
+        toolContentCache.set(locale, { ...existing, [toolKey]: parsed });
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore in browser/edge environments
+  }
+  return null;
+}
+
+/**
  * In Node.js environments (SSR / unit tests), we can read locale JSON files from disk
  * via Node's built-in process.getBuiltinModule without triggering browser JSON module
  * MIME-type conflicts in Vite dev server.
@@ -256,6 +326,12 @@ export function registerPreloadedLocale(bundle: LocaleBundle): void {
         ...bundle.legal,
       });
     }
+    if (bundle.toolContent) {
+      toolContentCache.set(bundle.locale, {
+        ...(toolContentCache.get(bundle.locale) || {}),
+        ...bundle.toolContent,
+      });
+    }
   }
 }
 
@@ -272,6 +348,20 @@ export function registerPreloadedLegalBundle(
   }
 }
 
+/**
+ * Used by the static pre-render script (SSR) or unit tests to register a single tool page's content synchronously.
+ */
+export function registerPreloadedToolContent(
+  locale: SupportedLocale,
+  toolKey: ToolPageKey,
+  content: ToolPageContent
+): void {
+  if (locale && toolKey && content) {
+    const existing = toolContentCache.get(locale) || {};
+    toolContentCache.set(locale, { ...existing, [toolKey]: content });
+  }
+}
+
 export function hasLegalDocSync(
   locale: SupportedLocale,
   legalKey: LegalPageKey
@@ -283,6 +373,19 @@ export function hasLegalDocSync(
   }
   const bundle = bundleCache.get(locale);
   return Boolean(bundle?.legal?.[legalKey]);
+}
+
+export function hasToolContentSync(
+  locale: SupportedLocale,
+  toolKey: ToolPageKey
+): boolean {
+  registerWindowPreloadedBundle();
+  const cached = toolContentCache.get(locale);
+  if (cached && cached[toolKey]) {
+    return true;
+  }
+  const bundle = bundleCache.get(locale);
+  return Boolean(bundle?.toolContent?.[toolKey]);
 }
 
 /**
@@ -306,6 +409,31 @@ export function getLegalDocSync(
   const nodeLegal = tryLoadNodeLegalJson(locale);
   if (nodeLegal && nodeLegal[legalKey]) {
     return nodeLegal[legalKey];
+  }
+  return null;
+}
+
+/**
+ * Returns the requested per-tool content document synchronously if already preloaded or cached
+ * (auto-loading from disk in Node.js SSR / unit tests). Returns null in the browser while
+ * the lazy tool chunk is still loading.
+ */
+export function getToolContentSync(
+  locale: SupportedLocale,
+  toolKey: ToolPageKey
+): ToolPageContent | null {
+  registerWindowPreloadedBundle();
+  const cached = toolContentCache.get(locale)?.[toolKey];
+  if (cached) {
+    return cached;
+  }
+  const fromBundle = bundleCache.get(locale)?.toolContent?.[toolKey];
+  if (fromBundle) {
+    return fromBundle;
+  }
+  const nodeTool = tryLoadNodeToolJson(locale, toolKey);
+  if (nodeTool) {
+    return nodeTool;
   }
   return null;
 }
@@ -370,10 +498,144 @@ export async function loadLegalBundle(
 }
 
 /**
+ * Static map of dynamic importers for all 70 per-tool JSON chunks (10 locales × 7 tool/home pages).
+ * Guarantees Vite emits 70 tiny independent chunks and loads ONLY the active page's chunk on demand.
+ */
+const TOOL_CONTENT_IMPORTERS: Record<
+  `${SupportedLocale}:${ToolPageKey}`,
+  () => Promise<{ default: unknown }>
+> = {
+  'fr:home': () => import('./tools/fr/home.json'),
+  'fr:tiktok': () => import('./tools/fr/tiktok.json'),
+  'fr:instagram': () => import('./tools/fr/instagram.json'),
+  'fr:x': () => import('./tools/fr/x.json'),
+  'fr:facebook': () => import('./tools/fr/facebook.json'),
+  'fr:linkedin': () => import('./tools/fr/linkedin.json'),
+  'fr:split_image': () => import('./tools/fr/split_image.json'),
+
+  'en:home': () => import('./tools/en/home.json'),
+  'en:tiktok': () => import('./tools/en/tiktok.json'),
+  'en:instagram': () => import('./tools/en/instagram.json'),
+  'en:x': () => import('./tools/en/x.json'),
+  'en:facebook': () => import('./tools/en/facebook.json'),
+  'en:linkedin': () => import('./tools/en/linkedin.json'),
+  'en:split_image': () => import('./tools/en/split_image.json'),
+
+  'es:home': () => import('./tools/es/home.json'),
+  'es:tiktok': () => import('./tools/es/tiktok.json'),
+  'es:instagram': () => import('./tools/es/instagram.json'),
+  'es:x': () => import('./tools/es/x.json'),
+  'es:facebook': () => import('./tools/es/facebook.json'),
+  'es:linkedin': () => import('./tools/es/linkedin.json'),
+  'es:split_image': () => import('./tools/es/split_image.json'),
+
+  'pt:home': () => import('./tools/pt/home.json'),
+  'pt:tiktok': () => import('./tools/pt/tiktok.json'),
+  'pt:instagram': () => import('./tools/pt/instagram.json'),
+  'pt:x': () => import('./tools/pt/x.json'),
+  'pt:facebook': () => import('./tools/pt/facebook.json'),
+  'pt:linkedin': () => import('./tools/pt/linkedin.json'),
+  'pt:split_image': () => import('./tools/pt/split_image.json'),
+
+  'de:home': () => import('./tools/de/home.json'),
+  'de:tiktok': () => import('./tools/de/tiktok.json'),
+  'de:instagram': () => import('./tools/de/instagram.json'),
+  'de:x': () => import('./tools/de/x.json'),
+  'de:facebook': () => import('./tools/de/facebook.json'),
+  'de:linkedin': () => import('./tools/de/linkedin.json'),
+  'de:split_image': () => import('./tools/de/split_image.json'),
+
+  'tr:home': () => import('./tools/tr/home.json'),
+  'tr:tiktok': () => import('./tools/tr/tiktok.json'),
+  'tr:instagram': () => import('./tools/tr/instagram.json'),
+  'tr:x': () => import('./tools/tr/x.json'),
+  'tr:facebook': () => import('./tools/tr/facebook.json'),
+  'tr:linkedin': () => import('./tools/tr/linkedin.json'),
+  'tr:split_image': () => import('./tools/tr/split_image.json'),
+
+  'id:home': () => import('./tools/id/home.json'),
+  'id:tiktok': () => import('./tools/id/tiktok.json'),
+  'id:instagram': () => import('./tools/id/instagram.json'),
+  'id:x': () => import('./tools/id/x.json'),
+  'id:facebook': () => import('./tools/id/facebook.json'),
+  'id:linkedin': () => import('./tools/id/linkedin.json'),
+  'id:split_image': () => import('./tools/id/split_image.json'),
+
+  'it:home': () => import('./tools/it/home.json'),
+  'it:tiktok': () => import('./tools/it/tiktok.json'),
+  'it:instagram': () => import('./tools/it/instagram.json'),
+  'it:x': () => import('./tools/it/x.json'),
+  'it:facebook': () => import('./tools/it/facebook.json'),
+  'it:linkedin': () => import('./tools/it/linkedin.json'),
+  'it:split_image': () => import('./tools/it/split_image.json'),
+
+  'ru:home': () => import('./tools/ru/home.json'),
+  'ru:tiktok': () => import('./tools/ru/tiktok.json'),
+  'ru:instagram': () => import('./tools/ru/instagram.json'),
+  'ru:x': () => import('./tools/ru/x.json'),
+  'ru:facebook': () => import('./tools/ru/facebook.json'),
+  'ru:linkedin': () => import('./tools/ru/linkedin.json'),
+  'ru:split_image': () => import('./tools/ru/split_image.json'),
+
+  'ar:home': () => import('./tools/ar/home.json'),
+  'ar:tiktok': () => import('./tools/ar/tiktok.json'),
+  'ar:instagram': () => import('./tools/ar/instagram.json'),
+  'ar:x': () => import('./tools/ar/x.json'),
+  'ar:facebook': () => import('./tools/ar/facebook.json'),
+  'ar:linkedin': () => import('./tools/ar/linkedin.json'),
+  'ar:split_image': () => import('./tools/ar/split_image.json'),
+};
+
+/**
+ * Dynamically imports ONLY the requested `(locale, toolKey)` JSON chunk on demand.
+ */
+export async function loadToolContent(
+  locale: SupportedLocale,
+  toolKey: ToolPageKey
+): Promise<ToolPageContent> {
+  const existing = toolContentCache.get(locale)?.[toolKey];
+  if (existing) {
+    return existing;
+  }
+
+  const nodeLoaded = tryLoadNodeToolJson(locale, toolKey);
+  if (nodeLoaded) {
+    return nodeLoaded;
+  }
+
+  const loader =
+    TOOL_CONTENT_IMPORTERS[`${locale}:${toolKey}`] ||
+    TOOL_CONTENT_IMPORTERS[`en:${toolKey}`];
+  const mod = await loader();
+  const content = mod.default as ToolPageContent;
+  registerPreloadedToolContent(locale, toolKey, content);
+  return content;
+}
+
+/**
+ * Strips heavy editorial/howToSteps/faqs fields from a platform or home metadata object
+ * so `window.__VIDNEX_LOCALE_BUNDLE__` never leaks long-form content outside `toolContent[activePageKey]`.
+ */
+function stripLongFormFields<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  const {
+    editorial: _editorial,
+    howToSteps: _howToSteps,
+    faqs: _faqs,
+    ...rest
+  } = obj;
+  void _editorial;
+  void _howToSteps;
+  void _faqs;
+  return rest as Partial<T>;
+}
+
+/**
  * Builds a minimal, page-scoped LocaleBundle payload for inline HTML injection
  * (`window.__VIDNEX_LOCALE_BUNDLE__`) so each pre-rendered page only ships the
- * strings it actually renders (cutting ~95% of inline JSON on blog/legal/tool pages,
- * and NEVER shipping legal text on non-legal pages).
+ * strings it actually renders:
+ * - Tool/home routes embed ONLY `toolContent: { [pageKey]: doc }` and ZERO other tools' long-form text.
+ * - Legal routes embed ONLY `legal: { [pageKey]: doc }` and ZERO toolContent.
+ * - Blog routes embed ZERO legal and ZERO toolContent.
  */
 export function buildScopedLocaleBundle(
   bundle: LocaleBundle,
@@ -435,6 +697,7 @@ export function buildScopedLocaleBundle(
   }
 
   if (pageKey === 'split_image') {
+    const splitToolDoc = getToolContentSync(bundle.locale, 'split_image');
     return {
       locale: bundle.locale,
       __scope: 'split_image',
@@ -448,6 +711,7 @@ export function buildScopedLocaleBundle(
           knowledgeBase: bundle.ui.sections.knowledgeBase,
           faqHeading: bundle.ui.sections.faqHeading,
           platformsHeading: bundle.ui.sections.platformsHeading,
+          openToolCta: bundle.ui.sections.openToolCta,
         },
         footer: bundle.ui.footer,
         errors: {
@@ -459,6 +723,13 @@ export function buildScopedLocaleBundle(
         ogImageAlt: bundle.home.ogImageAlt,
       } as unknown as LocaleBundle['home'],
       platforms: minimalPlatforms as unknown as LocaleBundle['platforms'],
+      ...(splitToolDoc
+        ? {
+            toolContent: {
+              split_image: splitToolDoc,
+            },
+          }
+        : {}),
     };
   }
 
@@ -501,10 +772,13 @@ export function buildScopedLocaleBundle(
     pageKey === 'facebook' ||
     pageKey === 'linkedin'
   ) {
+    const activeToolDoc = getToolContentSync(bundle.locale, pageKey);
     const platformsSummary = {} as Record<string, unknown>;
     for (const pKey of PLATFORM_KEYS) {
       if (pageKey === pKey) {
-        platformsSummary[pKey] = bundle.platforms[pKey];
+        platformsSummary[pKey] = stripLongFormFields(
+          bundle.platforms[pKey] as unknown as Record<string, unknown>
+        );
       } else {
         platformsSummary[pKey] = {
           slug: bundle.platforms[pKey].slug,
@@ -522,19 +796,33 @@ export function buildScopedLocaleBundle(
       ui: bundle.ui,
       home:
         pageKey === 'home'
-          ? bundle.home
+          ? (stripLongFormFields(
+              bundle.home as unknown as Record<string, unknown>
+            ) as unknown as LocaleBundle['home'])
           : ({
               specs: bundle.home.specs,
               ogImageAlt: bundle.home.ogImageAlt,
             } as unknown as LocaleBundle['home']),
       platforms: platformsSummary as unknown as LocaleBundle['platforms'],
+      ...(activeToolDoc
+        ? {
+            toolContent: {
+              [pageKey]: activeToolDoc,
+            },
+          }
+        : {}),
     };
   }
 
-  const { legal: _omittedLegal, ...withoutLegal } = bundle;
+  const {
+    legal: _omittedLegal,
+    toolContent: _omittedTool,
+    ...withoutHeavy
+  } = bundle;
   void _omittedLegal;
+  void _omittedTool;
   return {
-    ...withoutLegal,
+    ...withoutHeavy,
     __scope: 'full',
   };
 }
@@ -545,7 +833,7 @@ export function hasLocaleBundleSync(locale: SupportedLocale): boolean {
 }
 
 /**
- * Checks whether the locale strings (and legal page document, if applicable) required
+ * Checks whether the locale strings (and legal/tool page document, if applicable) required
  * for a specific page are already synchronously loaded.
  */
 export function hasLocaleBundleForPageSync(
@@ -579,6 +867,10 @@ export function hasLocaleBundleForPageSync(
 
   if (isLegalPageKey(pageKey)) {
     return hasLegalDocSync(locale, pageKey);
+  }
+
+  if (isToolPageKey(pageKey)) {
+    return hasToolContentSync(locale, pageKey);
   }
 
   return true;

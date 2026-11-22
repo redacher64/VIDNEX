@@ -1,0 +1,130 @@
+{
+  "editorial": {
+    "heading": "Beş sosyal ağdan herkese açık video, fotoğraf ve ses indir, görselleri tarayıcıda böl",
+    "subheading": "Tek yapıştırma alanıyla TikTok, Instagram, X, Facebook, LinkedIn ve yerel görsel bölme aracı",
+    "paragraphs": [
+      "VIDNEX, herkese açık sosyal medya bağlantılarını kurulum, hesap veya tarayıcı eklentisi gerektirmeden analiz edip kaydetmeniz için tasarlanmış çok platformlu bir web aracıdır. Ana sayfadaki akıllı bağlantı kutusu yapıştırdığınız adresi anında tarar; hangi platforma ait olduğunu ve bağlantının bir video, Reel, fotoğraf albümü, ses parçası ya da profil resmi içerdiğini otomatik olarak belirler.",
+      "Tek bir arayüz üzerinden TikTok videolarını filigransız MP4 ve orijinal ses olarak, Instagram Reels ile karusel gönderilerini, X (Twitter) videolarını, GIF dosyalarını ve yüksek çözünürlüklü fotoğraflarını, Facebook videoları ile Reels içeriklerini ve herkese açık LinkedIn profil fotoğraflarını indirebilirsiniz. Ayrıca yerleşik görsel bölme aracı, Instagram ızgara paylaşımları için görsellerinizi sunucuya yüklemeden doğrudan tarayıcı içinde parçalara ayırır.",
+      "VIDNEX içerikleri kendi sunucularında arşivlemez veya kalıcı medya kopyası tutmaz. Herkese açık kaynak adresi doğrulandığında akış doğrudan tarayıcınıza aktarılır ve aktarım bittiğinde sistem tarafından saklanmaz. Tüm indirme işlemleri yalnızca giriş gerektirmeyen, halka açık paylaşımlarla sınırlıdır.",
+      "İster iPhone ve Android telefonunuzdan mobil kısa bağlantıları kaydedin, ister masaüstü bilgisayarınızda sosyal medya arşivi düzenleyin; VIDNEX telif haklarına ve platform erişim sınırlarına saygılı, sade ve hızlı bir çözüm sunar."
+    ],
+    "formatsTitle": "Ana merkezde desteklenen içerik türleri",
+    "formatsList": [
+      "TikTok herkese açık videolar (filigransız MP4 HD/SD), doğrulanmış MP3/M4A ses, Photo Mode slaytları ve profil fotoğrafları",
+      "Instagram herkese açık Reels, /p/ video ve fotoğraf gönderileri, karışık karuseller (yerel ZIP) ve profil resimleri",
+      "X (Twitter) aşamalı MP4 videolar (1080p–360p), döngülü GIF MP4 dosyaları ve orijinal çözünürlüklü 1–4 fotoğraf",
+      "Facebook herkese açık videolar, Reels ve fb.watch kısa bağlantıları (sesli HD ve SD MP4)",
+      "LinkedIn herkese açık kişisel profil fotoğrafları (/in/) ve %100 tarayıcı içi Görsel Bölme (PNG/JPG/ZIP)"
+    ],
+    "limitsTitle": "Desteklenmeyen platformlar ve erişim kuralları",
+    "limitsText": "VIDNEX; YouTube, Snapchat, özel hesaplar, yalnızca arkadaşlara açık gönderiler, oturum açma zorunluluğu bulunan Instagram veya Facebook hikâyeleri, canlı yayınlar ve korumalı X hesapları için indirme yapmaz. Hiçbir giriş duvarı aşılmaz."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Herkese açık bağlantıyı kopyalayın",
+      "description": "TikTok, Instagram, X, Facebook veya LinkedIn uygulamasında ya da tarayıcısında herkese açık gönderinin veya profilin bağlantısını Paylaş menüsünden kopyalayın.",
+      "codeHint": "TIKTOK · IG · X · FB · LINKEDIN"
+    },
+    {
+      "number": "02",
+      "title": "Tek alana yapıştırın",
+      "description": "Bağlantıyı yukarıdaki kutuya yapıştırıp İndir düğmesine basın. VIDNEX platformu, kısa yönlendirmeleri ve içerik türünü manuel seçim gerektirmeden otomatik tanır.",
+      "codeHint": "OTOMATİK PLATFORM ALGILAMA"
+    },
+    {
+      "number": "03",
+      "title": "İstediğiniz formatı kaydedin",
+      "description": "Sunulan HD veya SD MP4 video, orijinal ses, yüksek çözünürlüklü JPG fotoğraf veya tarayıcıda oluşturulan ZIP arşivi seçeneklerinden birine tıklayarak cihazınıza kaydedin.",
+      "codeHint": "DOĞRUDAN AKIŞ · YEREL ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "VIDNEX platformları ve gerçek çıkış formatları özeti",
+    "subheading": "Desteklenen beş sosyal ağ ile yerel görsel bölme aracının sunduğu dosya türleri ve temel sınırlar.",
+    "headers": ["Platform / Araç", "Çıkış formatları", "Gerçek çalışma kapsamı"],
+    "rows": [
+      ["TikTok", "MP4, MP3/M4A, JPG, ZIP", "Filigransız HD/SD video, MIME doğrulamalı ses, en fazla 20 görsellik (100 MB) slayt ZIP arşivi ve herkese açık avatar."],
+      ["Instagram", "MP4, JPG, ZIP", "Herkese açık Reels, /p/ video ve fotoğraflar, çoklu karuseller ve profil resimleri; hikâyeler giriş gerektirir."],
+      ["X (Twitter)", "MP4, JPG, PNG, ZIP", "Bit hızına göre sıralı aşamalı MP4 video, MP4 olarak GIF ve ?name=orig kalitesinde 1–4 fotoğraf."],
+      ["Facebook", "MP4 (HD ve SD)", "Sesli herkese açık videolar, Reels ve fb.watch bağlantıları; fotoğraflar, hikâyeler ve canlı yayınlar hariçtir."],
+      ["LinkedIn", "JPG", "Yalnızca herkese açık /in/ kişisel profil fotoğrafları (en fazla 10 MB); şirket sayfaları ve videolar hariçtir."],
+      ["Görsel Bölme", "PNG, JPG, ZIP", "Tamamen tarayıcı içinde HTML5 Canvas ve JSZip ile 1×1–10×10 ızgara bölme; sunucuya dosya yüklenmez."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Sık karşılaşılan genel sorunlar ve çözümler",
+    "subheading": "Ana sayfadaki çoklu bağlantı algılayıcıyı kullanırken karşılaşabileceğiniz temel durumlar ve pratik çözümleri.",
+    "items": [
+      {
+        "problem": "Yapıştırılan bağlantı desteklenmiyor uyarısı veriyor",
+        "solution": "Bağlantının etrafında gönderi açıklaması veya ekstra metin kalmış olabilir. Yalnızca https:// ile başlayan adresi yapıştırın. YouTube, Snapchat ve üçüncü taraf ayna siteleri (fxtwitter, nitter gibi) desteklenmez."
+      },
+      {
+        "problem": "Bağlantı özel hesap veya giriş gerekli hatası döndürüyor",
+        "solution": "VIDNEX yalnızca oturum açmadan erişilebilen herkese açık içerikleri işler. Özel hesaplar, arkadaş listesine kapalı paylaşımlar, yaş kısıtlamalı gönderiler ve oturum isteyen Instagram ya da Facebook hikâyeleri indirilemez."
+      },
+      {
+        "problem": "Kısa paylaşım bağlantısı çözümlenemiyor",
+        "solution": "Mobilden kopyalanan vm.tiktok.com, fb.watch, t.co veya /share/ bağlantıları zamanla geçerliliğini yitirebilir. Gönderiyi tarayıcıda açıp adres çubuğundaki tam bağlantıyı yeniden kopyalayıp yapıştırın."
+      },
+      {
+        "problem": "İndirilen dosya iPhone galerisinde hemen görünmüyor",
+        "solution": "iOS üzerindeki Safari indirilen videoları ve fotoğrafları doğrudan Fotoğraflar yerine Dosyalar > İndirilenler klasörüne kaydeder. Dosyayı açıp Paylaş simgesine dokunun ve Videoyu Kaydet veya Görüntüyü Kaydet seçeneğini kullanın."
+      },
+      {
+        "problem": "Çoklu fotoğraf albümünde ZIP indirme başlamıyor",
+        "solution": "Karusel ve slayt ZIP arşivleri doğrudan tarayıcınızda oluşturulur ve güvenlik için 20 dosya veya 100 MB sınırına tabidir. Büyük albümlerde yalnızca istediğiniz kareleri işaretleyerek daha küçük gruplar hâlinde indirebilirsiniz."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen dosyalarınızı cihazınızda nerede bulabilirsiniz?",
+    "subheading": "VIDNEX üzerinden kaydettiğiniz video, ses, fotoğraf veya ZIP arşivlerine işletim sisteminize göre hızlıca ulaşın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari adres çubuğundaki mavi indirme okuna dokunun veya Dosyalar uygulamasında İndirilenler klasörünü açın. MP4 videoları ve JPG görselleri Fotoğraflar galerisine aktarmak için dosyayı açıp alt kısımdaki Paylaş simgesine basın ve Videoyu Kaydet ya da Görüntüyü Kaydet deyin. ZIP paketleri tek dokunuşla açılır."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome ve diğer Android tarayıcıları tüm MP4 videoları, MP3/M4A ses dosyalarını ve görselleri dahili depolamadaki İndirilenler (Download) klasörüne kaydeder. Dosyalarım uygulamasından veya Galeri içindeki İndirilenler albümünden içeriğe ulaşabilirsiniz. ZIP arşivlerine dokunarak içindeki tüm fotoğrafları ayrı klasöre çıkarabilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "Tarayıcınız indirilen her dosyayı kullanıcı hesabınızın varsayılan İndirilenler klasörüne yerleştirir. Son indirmeleri görmek ve dosyanın klasörünü hemen açmak için Windows cihazlarda Ctrl+J, macOS cihazlarda Cmd+Shift+J kısayolunu kullanabilirsiniz. ZIP arşivleri yerleşik sistem aracıyla tek tıkla çıkarılır."
+    }
+  },
+  "faqs": [
+    {
+      "question": "VIDNEX hangi sosyal medya platformlarını gerçekten destekliyor?",
+      "answer": "VIDNEX şu anda beş sosyal medya platformunun herkese açık içeriklerini ve bir yerel düzenleme aracını destekler. TikTok videoları ile seslerini, Instagram Reels ve karusellerini, X videoları ile GIF dosyalarını, Facebook videoları ile Reels gönderilerini, LinkedIn kişisel profil fotoğraflarını indirebilir ve görselleri tarayıcıda bölebilirsiniz."
+    },
+    {
+      "question": "İndirme yapmak için önce doğru platform sekmesini seçmem gerekiyor mu?",
+      "answer": "Hayır, ana sayfadaki bağlantı kutusu yapıştırdığınız adresi kendiliğinden analiz eder ve ilgili platformun çıkarıcı motorunu otomatik olarak devreye alır. İster TikTok kısa bağlantısı ister Instagram Reels veya Facebook bağlantısı yapıştırın, araç içeriğin türünü tanıyarak uygun indirme seçeneklerini ve formatları doğrudan karşınıza getirir."
+    },
+    {
+      "question": "VIDNEX indirdiğim videoları veya fotoğrafları sunucusunda saklıyor mu?",
+      "answer": "Hayır, VIDNEX indirilen video, fotoğraf veya ses dosyalarının kalıcı kopyalarını sunucularında barındırmaz ve kişisel indirme geçmişi profili oluşturmaz. Herkese açık medya akışı çözümlendikten sonra doğrudan cihazınıza aktarılır; görsel bölme aracında ise seçtiğiniz fotoğraflar cihazınızdan hiç çıkmadan yalnızca yerel tarayıcı belleğinde işlenir."
+    },
+    {
+      "question": "Özel hesaplardan, hikâyelerden veya YouTube üzerinden video indirebilir miyim?",
+      "answer": "Hayır, VIDNEX yalnızca oturum açmadan görüntülenebilen herkese açık içeriklerle çalışır. Özel hesaplar, arkadaşlara kısıtlı gönderiler, giriş gerektiren Instagram veya Facebook hikâyeleri, canlı yayınlar, Snapchat ve YouTube bağlantıları desteklenmez. Araç hiçbir zaman giriş duvarlarını aşmaya çalışmaz ve desteklenmeyen bağlantılarda açık bir uyarı gösterir."
+    },
+    {
+      "question": "VIDNEX kullanmak için hesap açmam veya eklenti kurmam gerekir mi?",
+      "answer": "Hayır, VIDNEX üzerinden herkese açık medya indirmek veya görsel bölmek için kayıt olmanız, şifre paylaşmanız ya da tarayıcı eklentisi yüklemeniz gerekmez. Araç iOS, Android, Windows ve macOS cihazlardaki güncel web tarayıcılarında doğrudan çalışır; yalnızca bağlantıyı yapıştırıp cihazınıza kaydetmek istediğiniz formatı seçmeniz yeterlidir."
+    },
+    {
+      "question": "İndirdiğim dosyaların telif hakkı sorumluluğu kime aittir?",
+      "answer": "İndirilen tüm video, fotoğraf ve ses dosyalarının fikri mülkiyet hakları ilgili içerik üreticilerine ve hak sahiplerine aittir. VIDNEX yalnızca kişisel arşivleme, inceleme veya izinli kullanım amacıyla teknik aktarım sağlar. İçerikleri yeniden yayınlamadan veya ticari projelerde kullanmadan önce hak sahibinden açık izin almanız gerekir."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Özel platform araçlarına doğrudan geçin",
+    "subheading": "Her ağın format tablosunu, sorun giderme rehberini ve teknik sınırlarını ayrıntılı olarak inceleyin.",
+    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "privacyLabel": "Gizlilik politikası ve depolamasız çalışma",
+    "privacyDescription": "Bağlantıların nasıl işlendiğini, dosyaların neden saklanmadığını ve veri haklarınızı okuyun."
+  }
+}

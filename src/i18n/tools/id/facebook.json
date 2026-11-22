@@ -1,0 +1,160 @@
+{
+  "editorial": {
+    "heading": "Download video Facebook dan Reels publik dalam MP4 HD dan SD bersuara",
+    "subheading": "Dukungan lengkap untuk tautan /watch/, /videos/, /reel/, dan fb.watch hingga 4 pengalihan",
+    "paragraphs": [
+      "Pengunduh Facebook VIDNEX memungkinkan Anda menyimpan video Facebook dan Reels yang bersifat publik ke dalam format MP4 lengkap dengan suara tanpa perlu login. Alat ini menangani tautan panjang /watch/?v=, /video.php?v=, /{halaman}/videos/{id}, /reel/, dan /reels/, serta menelusuri tautan pendek fb.watch, /share/v/, dan /share/r/ hingga empat kali pengalihan.",
+      "Begitu video publik terverifikasi, VIDNEX menampilkan pilihan MP4 HD dan SD sesuai aliran yang dibuka oleh Facebook. Pilih kualitas HD untuk tampilan tajam di layar besar atau SD untuk ukuran file yang lebih ringkas saat memakai paket data seluler. Seluruh file MP4 menggunakan pengkodean standar yang langsung dapat diputar di iPhone, Android, Windows, dan macOS.",
+      "Mesin deteksi kami memisahkan jenis konten Facebook dengan tegas agar tidak menimbulkan pesan error yang membingungkan. Tautan foto Facebook (/photo/, /photo.php, /share/p/) langsung dikenali sebagai foto yang tidak didukung oleh pengunduh video, dan tautan Story Facebook (/stories/, /story.php, /share/s/) dikenali sebagai konten wajib login—tidak pernah salah diklasifikasikan sebagai Reel.",
+      "Grup privat, postingan khusus teman, dan siaran langsung Facebook Live (/live/, /watch/live) tidak didukung. VIDNEX menyalurkan aliran video secara langsung ke perangkat Anda tanpa menyimpan salinan di server."
+    ],
+    "formatsTitle": "Tautan dan format Facebook yang didukung",
+    "formatsList": [
+      "Video Facebook publik (/watch/?v=, /video.php?v=, /{halaman}/videos/{id}) dalam MP4 HD dan SD bersuara",
+      "Facebook Reels publik (/reel/, /reels/) dalam format MP4 HD dan SD bersuara",
+      "Tautan pendek dan berbagi: fb.watch, /share/v/, dan /share/r/ (otomatis hingga 4 pengalihan)",
+      "File MP4 standar yang siap diputar di Galeri ponsel, VLC, QuickTime, dan pemutar Windows"
+    ],
+    "limitsTitle": "Konten Facebook yang dikecualikan",
+    "limitsText": "Foto Facebook (/photo/, /photo.php, /share/p/), Story Facebook (/stories/, /story.php, /share/s/) yang memerlukan login, siaran langsung (/live/, /watch/live), grup privat, serta postingan khusus teman tidak didukung."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Salin tautan video atau Reel Facebook publik",
+      "description": "Pada aplikasi atau situs Facebook, ketuk tombol Bagikan di bawah video atau Reel yang berikon publik (bola dunia), lalu pilih Salin tautan.",
+      "codeHint": "FB.WATCH · /REEL/ · /WATCH/"
+    },
+    {
+      "number": "02",
+      "title": "Tempel alamat ke kolom VIDNEX",
+      "description": "Tempel tautan di atas dan tekan Download. VIDNEX mengikuti pengalihan tautan pendek lalu mendeteksi aliran MP4 HD dan SD yang tersedia.",
+      "codeHint": "HD MP4 · SD MP4 · BERSUARA"
+    },
+    {
+      "number": "03",
+      "title": "Pilih kualitas HD atau SD untuk disimpan",
+      "description": "Ketuk tombol MP4 HD untuk ketajaman maksimal atau SD untuk unduhan lebih ringan guna menyimpan video Facebook bersuara ke perangkat Anda.",
+      "codeHint": "STREAM LANGSUNG · TANPA LOGIN"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel format dan cakupan tautan Facebook",
+    "subheading": "Perilaku nyata mesin VIDNEX untuk tautan Facebook yang didukung maupun yang dikecualikan.",
+    "headers": [
+      "Jenis tautan Facebook",
+      "Format keluaran",
+      "Perilaku dan batasan nyata"
+    ],
+    "rows": [
+      [
+        "Video publik (/watch/, /videos/)",
+        "MP4 HD dan SD",
+        "Menyediakan HD MP4 bersuara jika aliran HD tersedia di sumber, plus opsi SD MP4 lebih ringan."
+      ],
+      [
+        "Reel publik (/reel/, /reels/)",
+        "MP4 HD dan SD",
+        "Klip vertikal Facebook Reels diunduh langsung dengan trek suara utuh."
+      ],
+      [
+        "Tautan pendek (fb.watch, /share/v/, /share/r/)",
+        "Pengalihan → MP4",
+        "Mengikuti hingga 4 pengalihan otomatis sebelum mengekstrak aliran video publik."
+      ],
+      [
+        "Foto Facebook (/photo/, /share/p/)",
+        "Tidak didukung",
+        "Dikenali sebagai foto sehingga menampilkan pemberitahuan jelas bahwa foto tidak didukung."
+      ],
+      [
+        "Story Facebook (/stories/, /story.php)",
+        "Tidak didukung (perlu login)",
+        "Dikenali terpisah dari Reels; tidak pernah melewati dinding login Facebook."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Masalah umum download video Facebook dan solusinya",
+    "subheading": "Enam kasus nyata seputar grup privat, Story, foto Facebook, siaran Live, dan opsi kualitas HD.",
+    "items": [
+      {
+        "problem": "Tautan Story Facebook menampilkan pesan perlu login",
+        "solution": "Facebook membatasi akses /stories/, /story.php, dan /share/s/ hanya untuk pengguna yang sudah masuk akun. VIDNEX mengenali Story secara akurat, tidak memprosesnya sebagai Reel, dan tidak pernah melewati dinding login."
+      },
+      {
+        "problem": "Video dari grup privat atau kiriman teman tidak bisa diunduh",
+        "solution": "Hanya video dan Reels dengan pengaturan privasi Publik (ikon bola dunia) yang bisa diekstrak. Grup tertutup dan postingan khusus daftar teman memerlukan izin sesi Facebook yang tidak diakses VIDNEX."
+      },
+      {
+        "problem": "Tautan foto Facebook memunculkan pesan tidak didukung",
+        "solution": "Pengunduh Facebook VIDNEX khusus menangani aliran video dan Reels. Alamat /photo/, /photo.php, atau /share/p/ otomatis terdeteksi sebagai gambar sehingga menampilkan keterangan bahwa foto Facebook tidak didukung."
+      },
+      {
+        "problem": "Tautan pendek fb.watch atau /share/v/ gagal diarahkan",
+        "solution": "Tautan berbagi kadang kedaluwarsa atau melalui terlalu banyak lompatan pengalihan. Buka video di browser Anda, lalu salin URL langsung berbentuk facebook.com/watch/?v=... atau facebook.com/reel/... dari bilah alamat."
+      },
+      {
+        "problem": "Siaran langsung Facebook Live tidak dapat disimpan",
+        "solution": "Siaran yang sedang berlangsung (/live/ atau /watch/live) bukan file MP4 final sehingga tidak didukung. Setelah siaran selesai dan diunggah sebagai video publik biasa, gunakan tautan video barunya untuk mengunduh."
+      },
+      {
+        "problem": "Hanya tombol SD MP4 yang tampil tanpa pilihan HD",
+        "solution": "VIDNEX tidak melakukan peningkatan resolusi buatan. Jika pembuat video mengunggah rekaman beresolusi standar atau Facebook hanya membuka versi SD untuk publik, maka hanya opsi SD MP4 asli yang ditampilkan."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana menemukan video Facebook hasil download",
+    "subheading": "Cara cepat membuka file MP4 HD atau SD yang baru disimpan pada ponsel maupun komputer.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Di Safari, ketuk ikon panah biru di bilah alamat lalu pilih Unduhan, atau buka aplikasi File > Unduhan. Untuk memindahkan video Facebook MP4 ke aplikasi Foto, buka file tersebut, tekan ikon Bagikan, lalu pilih Simpan Video."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome dan browser Android menyimpan video Facebook ke folder internal Download (Unduhan). Buka aplikasi Galeri (album Download) atau aplikasi File Saya untuk langsung memutar file MP4 bersuara tersebut."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "Video MP4 HD atau SD tersimpan di folder Downloads bawaan sistem Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada browser untuk membuka riwayat unduhan dan langsung menampilkan file di foldernya."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Jenis tautan Facebook apa saja yang bisa diunduh lewat VIDNEX?",
+      "answer": "VIDNEX mendukung seluruh video dan Reels Facebook yang diatur sebagai publik (ikon bola dunia) tanpa perlu masuk akun. Anda dapat menempelkan alamat /watch/?v=, /video.php?v=, /{halaman}/videos/{id}, /reel/, /reels/, serta tautan pendek fb.watch, /share/v/, dan /share/r/ hingga empat pengalihan untuk disimpan menjadi MP4 bersuara."
+    },
+    {
+      "question": "Bisakah saya download Story Facebook atau foto Facebook di halaman ini?",
+      "answer": "Tidak bisa. Story Facebook (/stories/, /story.php, /share/s/) mewajibkan login akun sehingga tidak dapat diunduh tanpa autentikasi dan tidak pernah salah diklasifikasikan sebagai Reel. Begitu pula seluruh tautan foto Facebook (/photo/, /photo.php, /share/p/) dikecualikan secara tegas dengan pesan pemberitahuan yang jelas."
+    },
+    {
+      "question": "Mengapa video dari grup Facebook privat atau khusus teman gagal diunduh?",
+      "answer": "Video di dalam grup tertutup atau kiriman yang dibatasi untuk daftar teman hanya diberikan Facebook kepada akun berizin yang sedang login. VIDNEX tidak meminta data masuk akun Facebook dan tidak pernah melewati dinding login, sehingga hanya konten berstatus publik yang dapat diunduh."
+    },
+    {
+      "question": "Apakah setiap video Facebook selalu tersedia dalam resolusi HD?",
+      "answer": "Ketersediaan tombol HD MP4 bergantung sepenuhnya pada kualitas asli rekaman yang diunggah pemilik video serta aliran yang dibagikan publik oleh server Facebook. Apabila aliran HD tersedia, VIDNEX menampilkan pilihan HD dan SD sekaligus; jika hanya aliran standar yang ada, opsi SD ditampilkan apa adanya."
+    },
+    {
+      "question": "Bisakah saya mengunduh siaran Facebook Live yang sedang berlangsung?",
+      "answer": "Tidak, siaran langsung (/live/ atau /watch/live) yang masih berjalan belum membentuk file MP4 lengkap sehingga tidak didukung oleh VIDNEX. Anda baru bisa mengunduhnya setelah siaran berakhir apabila pemilik halaman menyimpan tayangan ulang tersebut sebagai postingan video publik dengan URL baru."
+    },
+    {
+      "question": "Ke mana file video Facebook tersimpan saat saya mengunduh lewat iPhone?",
+      "answer": "Saat Anda mengunduh video MP4 memakai Safari di iPhone atau iPad, iOS menyimpannya ke aplikasi File > Unduhan dan tidak langsung memasukkannya ke aplikasi Foto. Buka aplikasi File, ketuk video Facebook yang selesai diunduh, tekan ikon Bagikan di kiri bawah, lalu pilih Simpan Video."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat VIDNEX lainnya dan kebijakan privasi",
+    "subheading": "Simpan juga konten publik dari Instagram, TikTok, dan X tanpa aplikasi tambahan.",
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "x"
+    ],
+    "privacyLabel": "Kebijakan privasi dan streaming tanpa arsip",
+    "privacyDescription": "Ketahui cara VIDNEX memproses tautan Facebook publik tanpa menyimpan video Anda."
+  }
+}

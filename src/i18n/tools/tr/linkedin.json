@@ -1,0 +1,156 @@
+{
+  "editorial": {
+    "heading": "Herkese açık LinkedIn profil fotoğrafı indir — yalnızca /in/ kişisel profiller",
+    "subheading": "İmzalı media.licdn.com doğrulaması, 10 MB sınırı ve tarayıcı içi sürükle-bırak yedeği",
+    "paragraphs": [
+      "VIDNEX LinkedIn profil fotoğrafı indirici, tek bir amaca odaklanır: herkese açık kişisel LinkedIn profillerinin (linkedin.com/in/{slug}) avatar görselini hızlı ve temiz biçimde kaydetmek. Ülke alt alan adları (örneğin tr.linkedin.com/in/...), mobil bağlantılar ve dil ekleri otomatik olarak tanınır ve standart profil yapısına normalize edilir.",
+      "Arka planda motor yalnızca imzalı media.licdn.com görsel kaynağını doğrular, dosyanın gerçekten JPG, PNG veya WebP olduğunu sihirli bayt (magic-byte) kontrolüyle teyit eder ve 10 MB üst sınırını uygular. Performansı korumak için çözümlenen herkese açık görseller 10 dakika boyunca geçici önbellekte tutulur ve cihazınıza linkedin_{slug}_profile.jpg adıyla indirilir.",
+      "LinkedIn zaman zaman bölgesel veya yoğunluk kaynaklı giriş duvarı (authwall) gösterebilir. Böyle bir durumda VIDNEX giriş duvarını aşmaya çalışmaz; bunun yerine profil fotoğrafını tarayıcınızdan doğrudan sürükleyip bırakarak kaydedebileceğiniz %100 yerel bir sürükle-bırak yedek alanı sunar.",
+      "Araç gizlilik ve kapsam sınırlarına sıkı biçimde uyar: ad, unvan, iş geçmişi veya özgeçmiş verisi hiçbir zaman kazınmaz (scrape edilmez). Şirket sayfaları (/company/), gönderiler (/posts/), videolar, giriş gerektiren gizli profiller ve varsayılan boş (hayalet) avatarlar desteklenmez."
+    ],
+    "formatsTitle": "LinkedIn profil fotoğrafı aracının gerçek özellikleri",
+    "formatsList": [
+      "Yalnızca herkese açık kişisel profil bağlantıları: linkedin.com/in/{slug} (ülke/mobil alt alan adları ve dil ekleri dahil)",
+      "İmzalı media.licdn.com üzerinden en fazla 10 MB boyutunda JPG/PNG/WebP sihirli bayt doğrulaması",
+      "Temiz dosya adlandırması: linkedin_{slug}_profile.jpg (10 dakikalık geçici önbellek)",
+      "LinkedIn giriş duvarı (authwall) çıktığında %100 tarayıcı içi sürükle-bırak yedek kaydetme"
+    ],
+    "limitsTitle": "LinkedIn aracında kesin olarak hariç tutulan içerikler",
+    "limitsText": "Şirket logoları (/company/), LinkedIn gönderileri (/posts/), videolar, yalnızca oturum açmış üyelere açık gizli profiller ve fotoğraf yüklenmemiş varsayılan hayalet avatarlar desteklenmez. Kişisel özgeçmiş verileri asla toplanmaz."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Kişisel LinkedIn profil bağlantısını kopyalayın",
+      "description": "Tarayıcıda veya LinkedIn uygulamasında herkese açık bir kişinin /in/ ile biten profil sayfasını açın ve adres çubuğundan bağlantıyı kopyalayın.",
+      "codeHint": "LINKEDIN.COM/IN/{SLUG}"
+    },
+    {
+      "number": "02",
+      "title": "Bağlantıyı yapıştırıp doğrulayın",
+      "description": "Adresi yukarıdaki alana yapıştırıp İndir düğmesine basın. VIDNEX yalnızca imzalı media.licdn.com görselini sihirli bayt kontrolüyle doğrular.",
+      "codeHint": "MEDIA.LICDN.COM · MAX 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Profil fotoğrafını JPG olarak kaydedin",
+      "description": "Önizleme göründüğünde indirme düğmesine tıklayarak dosyayı linkedin_{slug}_profile.jpg adıyla kaydedin; giriş duvarı çıkarsa yerel sürükle-bırak alanını kullanın.",
+      "codeHint": "LINKEDIN_SLUG_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "LinkedIn profil fotoğrafı teknik kapsam tablosu",
+    "subheading": "VIDNEX LinkedIn aracının desteklediği adres biçimleri, doğrulama kuralları ve hariç tuttuğu içerikler.",
+    "headers": [
+      "LinkedIn öğe türü",
+      "Çıkış / İşlem",
+      "Gerçek davranış ve sınırlar"
+    ],
+    "rows": [
+      [
+        "Herkese açık /in/ profili",
+        "JPG (linkedin_{slug}_profile.jpg)",
+        "İmzalı media.licdn.com kaynağı JPG/PNG/WebP sihirli bayt doğrulamasından geçer (en fazla 10 MB, 10 dk önbellek)."
+      ],
+      [
+        "Ülke / mobil alt alan adları",
+        "Otomatik normalleştirme → JPG",
+        "tr.linkedin.com/in/..., m.linkedin.com/in/... ve dil ekli adresler standart /in/ profiline dönüştürülür."
+      ],
+      [
+        "Giriş duvarı (authwall) durumu",
+        "Yerel sürükle-bırak yedeği",
+        "Oturum duvarı aşılmaz; fotoğrafı tarayıcıdan sürükleyip yerel olarak cihazınıza kaydedebilirsiniz."
+      ],
+      [
+        "Şirket sayfaları (/company/)",
+        "Desteklenmez",
+        "Araç yalnızca kişisel /in/ profilleriyle çalışır; şirket ve okul sayfaları kapsam dışıdır."
+      ],
+      [
+        "Gönderiler, videolar ve gizli profiller",
+        "Desteklenmez",
+        "/posts/ bağlantıları, LinkedIn videoları, kilitli profiller ve varsayılan hayalet avatarlar indirilmez."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "LinkedIn profil fotoğrafı sorunları ve çözümleri",
+    "subheading": "Giriş duvarı, şirket bağlantıları, varsayılan avatarlar ve dosya biçimiyle ilgili beş gerçek durum.",
+    "items": [
+      {
+        "problem": "LinkedIn giriş duvarı (authwall) nedeniyle fotoğraf çekilemedi",
+        "solution": "LinkedIn bazı profilleri oturumsuz ziyaretçilere kapatır veya geçici erişim sınırı uygular. VIDNEX giriş duvarını aşmaz; profil fotoğrafını kendi oturumunuzdan açıp sayfadaki %100 yerel sürükle-bırak alanına bırakarak kaydedebilirsiniz."
+      },
+      {
+        "problem": "Şirket sayfası (/company/) veya gönderi (/posts/) bağlantısı reddedildi",
+        "solution": "Bu araç yalnızca kişisel linkedin.com/in/{slug} profil fotoğrafları için tasarlanmıştır. Şirket sayfaları, makaleler, haber akışı gönderileri ve LinkedIn videoları desteklenmez."
+      },
+      {
+        "problem": "Profil açık olmasına rağmen varsayılan hayalet avatar uyarısı çıkıyor",
+        "solution": "Kullanıcı hesabına özel bir profil fotoğrafı yüklemediyse ya da fotoğraf görünürlüğünü yalnızca birinci derece bağlantılara kısıtladıysa LinkedIn genel görünüme boş simge döndürür; bu durumda indirilebilir gerçek bir fotoğraf yoktur."
+      },
+      {
+        "problem": "Ülke kodlu veya dil ekli LinkedIn bağlantısı hata veriyor",
+        "solution": "tr.linkedin.com/in/ad-soyad/en gibi bağlantılar desteklenir, ancak adresin sonunda fazladan izleme parametreleri veya metin kalmışsa hata oluşabilir. Bağlantıyı /in/{slug} kısmına kadar sadeleştirip tekrar deneyin."
+      },
+      {
+        "problem": "Dosya iPhone'da Fotoğraflar uygulamasına doğrudan düşmedi",
+        "solution": "Safari indirilen linkedin_{slug}_profile.jpg görselini Dosyalar > İndirilenler klasörüne kaydeder. Görseli açıp Paylaş simgesine dokunun ve Görüntüyü Kaydet diyerek Fotoğraflar galerinize aktarın."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen LinkedIn profil fotoğrafını nerede bulabilirsiniz?",
+    "subheading": "Cihazınıza linkedin_{slug}_profile.jpg adıyla kaydedilen görsele hemen ulaşın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari indirme okundan İndirilenler listesini açın veya Dosyalar > İndirilenler klasörüne girin. Profil fotoğrafını Fotoğraflar galerinize aktarmak için JPG dosyasına dokunun, sol alttaki Paylaş simgesini açın ve Görüntüyü Kaydet seçeneğini seçin."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome ve diğer Android tarayıcıları indirilen linkedin_{slug}_profile.jpg dosyasını dahili depolamadaki İndirilenler (Download) klasörüne kaydeder. Galeri içindeki İndirilenler albümünden veya Dosyalarım uygulamasından görseli hemen görüntüleyebilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "Profil fotoğrafı kullanıcı klasörünüzdeki varsayılan İndirilenler dizinine kaydedilir. Windows üzerinde Ctrl+J, macOS üzerinde Cmd+Shift+J kısayoluyla tarayıcı indirme listesini açıp dosyayı doğrudan klasörde gösterebilirsiniz."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Bu araçla LinkedIn videoları veya şirket logoları indirilebilir mi?",
+      "answer": "Hayır, VIDNEX LinkedIn aracı yalnızca herkese açık kişisel profillerin (linkedin.com/in/{slug}) profil fotoğrafını kaydetmek için özel olarak geliştirilmiştir. Şirket sayfaları (/company/), haber akışı gönderileri (/posts/), makaleler ve LinkedIn videoları kesinlikle desteklenmez; bu tür bir adres yapıştırıldığında araç kapsam sınırını kullanıcıya açıkça belirtir."
+    },
+    {
+      "question": "VIDNEX bir LinkedIn profilinden isim, unvan veya özgeçmiş bilgisi topluyor mu?",
+      "answer": "Hayır, VIDNEX hiçbir zaman ad, unvan, iş geçmişi, e-posta adresi veya özgeçmiş verisi kazımaz (scrape etmez) ve bunları herhangi bir veritabanında saklamaz. Motor yalnızca herkese açık profil sayfasındaki imzalı media.licdn.com görsel kaynağını doğrular, dosya bütünlüğünü kontrol eder ve görseli doğrudan cihazınıza aktarır."
+    },
+    {
+      "question": "LinkedIn giriş duvarı (authwall) çıkarsa ne yapabilirim?",
+      "answer": "LinkedIn bazı profilleri oturum açmamış ziyaretçilere gizlediğinde VIDNEX bu erişim sınırını asla aşmaya çalışmaz. Bunun yerine sayfada tamamen kendi tarayıcınız içinde yerel olarak çalışan bir sürükle-bırak yedek alanı sunulur; görseli tarayıcınızdan bu alana bırakarak sunucuya yükleme yapmadan cihazınıza güvenle kaydedebilirsiniz."
+    },
+    {
+      "question": "İndirilen LinkedIn profil fotoğrafının dosya güvenliği nasıl doğrulanıyor?",
+      "answer": "VIDNEX yalnızca LinkedIn'in resmi imzalı media.licdn.com alan adından gelen profil görsellerini kabul eder. Dosyanın gerçekten geçerli bir JPG, PNG veya WebP görseli olduğu sihirli bayt (magic-byte) kontrolüyle doğrulanır, 10 MB üst sınırı uygulanır, 10 dakika önbelleğe alınır ve linkedin_{slug}_profile.jpg adıyla kaydedilir."
+    },
+    {
+      "question": "tr.linkedin.com veya mobil LinkedIn profil bağlantıları çalışır mı?",
+      "answer": "Evet, standart linkedin.com/in/{slug} adreslerinin yanı sıra tr.linkedin.com ve de.linkedin.com gibi ülke alt alan adları, mobil bağlantılar ve adres sonundaki dil ekleri otomatik olarak tanınır ve normalleştirilir. Tek koşul, profilin ve profil fotoğrafının LinkedIn gizlilik ayarlarında herkese açık olarak tanımlanmış olmasıdır."
+    },
+    {
+      "question": "Varsayılan boş (hayalet) avatarlı bir profil neden indirilemiyor?",
+      "answer": "Bir LinkedIn üyesi hesabına kişisel fotoğraf yüklemediyse veya fotoğrafını yalnızca kendi bağlantılarına görünür kıldıysa LinkedIn dışarıya yalnızca varsayılan boş simge döndürür. VIDNEX bu hayalet simgeyi gerçek profil fotoğrafı gibi indirmez; bunun yerine fotoğrafın herkese açık olmadığını bildiren açıklayıcı bir mesaj gösterir."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Diğer VIDNEX araçları ve gizlilik",
+    "subheading": "Profil görselinizi ızgaraya bölün veya diğer sosyal ağlardan herkese açık içerik indirin.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Gizlilik politikası ve veri minimizasyonu",
+    "privacyDescription": "LinkedIn profil verilerinin neden kazınmadığını ve 10 dakikalık geçici önbellek kuralını okuyun."
+  }
+}

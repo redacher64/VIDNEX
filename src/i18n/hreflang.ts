@@ -42,7 +42,11 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from './config.ts';
-import { getLegalDocSync, getLocaleBundleSync } from './localeLoader.ts';
+import {
+  getLegalDocSync,
+  getLocaleBundleSync,
+  getToolContentSync,
+} from './localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 
 export interface ShareUrls {
@@ -651,6 +655,9 @@ export function buildHeadMetadataForRoute(
     );
     const ogImageAlt = home.ogImageAlt || ogTitle;
 
+    const homeToolContent = getToolContentSync(locale, 'home');
+    const homeFaqs = homeToolContent?.faqs || home.faqs || [];
+
     const graph: Record<string, unknown>[] = [
       {
         '@type': 'WebSite',
@@ -676,7 +683,7 @@ export function buildHeadMetadataForRoute(
         '@type': 'FAQPage',
         '@id': `${canonicalUrl}#faq`,
         inLanguage: localeMeta.hreflang,
-        mainEntity: home.faqs.map((faq) => ({
+        mainEntity: homeFaqs.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
           acceptedAnswer: {
@@ -732,6 +739,15 @@ export function buildHeadMetadataForRoute(
     );
     const ogImageAlt = p.ogImageAlt || ogTitle;
 
+    const platformToolContent = getToolContentSync(locale, pageKey);
+    const featureList =
+      platformToolContent?.editorial.formatsList ||
+      p.editorial?.formatsList ||
+      [];
+    const howToSteps =
+      platformToolContent?.howToSteps || p.howToSteps || [];
+    const platformFaqs = platformToolContent?.faqs || p.faqs || [];
+
     const graph: Record<string, unknown>[] = [
       {
         '@type': 'WebApplication',
@@ -743,7 +759,7 @@ export function buildHeadMetadataForRoute(
         operatingSystem: 'All',
         description,
         image: ogImage,
-        featureList: p.editorial.formatsList,
+        featureList,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -756,7 +772,7 @@ export function buildHeadMetadataForRoute(
         name: `${bundle.ui.sections.howToHeading} — ${p.h1}`,
         description: p.subtitle,
         inLanguage: localeMeta.hreflang,
-        step: p.howToSteps.map((step, idx) => ({
+        step: howToSteps.map((step, idx) => ({
           '@type': 'HowToStep',
           position: idx + 1,
           name: step.title,
@@ -768,7 +784,7 @@ export function buildHeadMetadataForRoute(
         '@type': 'FAQPage',
         '@id': `${canonicalUrl}#faq`,
         inLanguage: localeMeta.hreflang,
-        mainEntity: p.faqs.map((faq) => ({
+        mainEntity: platformFaqs.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
           acceptedAnswer: {
@@ -842,6 +858,12 @@ export function buildHeadMetadataForRoute(
     );
     const ogImageAlt = s.ogImageAlt || ogTitle;
 
+    const splitToolContent = getToolContentSync(locale, 'split_image');
+    const splitFeatureList =
+      splitToolContent?.editorial.formatsList || s.editorial.formatsList;
+    const splitHowToSteps = splitToolContent?.howToSteps || s.howToSteps;
+    const splitFaqs = splitToolContent?.faqs || s.faqs;
+
     const graph: Record<string, unknown>[] = [
       {
         '@type': 'WebApplication',
@@ -853,7 +875,7 @@ export function buildHeadMetadataForRoute(
         operatingSystem: 'All',
         description,
         image: ogImage,
-        featureList: s.editorial.formatsList,
+        featureList: splitFeatureList,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -866,7 +888,7 @@ export function buildHeadMetadataForRoute(
         name: `${bundle.ui.sections.howToHeading} — ${s.h1}`,
         description: s.subtitle,
         inLanguage: localeMeta.hreflang,
-        step: s.howToSteps.map((step, idx) => ({
+        step: splitHowToSteps.map((step, idx) => ({
           '@type': 'HowToStep',
           position: idx + 1,
           name: step.title,
@@ -878,7 +900,7 @@ export function buildHeadMetadataForRoute(
         '@type': 'FAQPage',
         '@id': `${canonicalUrl}#faq`,
         inLanguage: localeMeta.hreflang,
-        mainEntity: s.faqs.map((faq) => ({
+        mainEntity: splitFaqs.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
           acceptedAnswer: {

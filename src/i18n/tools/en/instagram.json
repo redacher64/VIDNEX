@@ -1,0 +1,147 @@
+{
+  "editorial": {
+    "heading": "Download public Instagram Reels, /p/ photo posts, multi-media carousels, and avatars",
+    "subheading": "Accurate URL routing across /reel/, /p/, /tv/, /share/, and public profiles with browser-side ZIP export",
+    "paragraphs": [
+      "The VIDNEX Instagram downloader accurately distinguishes each Instagram URL structure before running extraction: public Reels (/reel/ and /reels/), longer videos (/tv/), single photos or mixed posts (/p/), mobile share links (/share/... and instagr.am), and public profiles (instagram.com/username or @handle). A /p/ post is never misrouted through a Reel-only pipeline.",
+      "For public Reels and video posts, VIDNEX streams the highest available HD MP4 file with synchronized original audio whenever included by the creator. Single photo posts save directly as clean JPG files without extra compression applied by VIDNEX.",
+      "When a public /p/ post contains a multi-slide carousel mixing photos and videos, VIDNEX opens a checkbox selection grid. You can grab a single slide or assemble up to twenty files (up to 100 MB) into a ZIP archive right inside your browser without uploading anything to a server.",
+      "Instagram Stories (/stories/{user}/{id}) and Highlights (/stories/highlights/{id}) are detected distinctly from Reels. Because Instagram gates stories behind user authentication, VIDNEX never attempts to bypass login walls and displays a clear login-required notice whenever no authenticated session is available."
+    ],
+    "formatsTitle": "Supported Instagram media types",
+    "formatsList": [
+      "Public Instagram Reels (/reel/, /reels/) and videos (/tv/, /p/ video) in HD MP4 with audio",
+      "Single public photo posts (/p/ photo) in original public JPG resolution",
+      "Multi-media carousels (/p/ mixed photos & videos): interactive checkboxes, single file download, or browser-built ZIP (max 20 items / 100 MB)",
+      "Public Instagram profile pictures (instagram.com/username or @handle) in HD JPG",
+      "Automatic resolution of instagram.com/share/... and instagr.am short links"
+    ],
+    "limitsTitle": "Stories, Highlights, and private accounts",
+    "limitsText": "Private Instagram accounts are never accessible. Stories and Highlights are recognized separately from Reels and require Instagram authentication; VIDNEX does not bypass login screens and informs you clearly when a story cannot be downloaded."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copy the public Instagram URL",
+      "description": "Open the public Reel, /p/ photo post, carousel, or profile on Instagram, tap the Share or menu icon, and select Copy link.",
+      "codeHint": "/REEL/ · /P/ · /SHARE/ · @HANDLE"
+    },
+    {
+      "number": "02",
+      "title": "Paste and verify detected media type",
+      "description": "Paste the URL into VIDNEX. The badge below the input immediately confirms the detected type (Reel, Post, Carousel, or Profile) before loading results.",
+      "codeHint": "EXACT TYPE · PREVIEW GRID"
+    },
+    {
+      "number": "03",
+      "title": "Download single items or a local ZIP",
+      "description": "Save your Reel in MP4, your photo in JPG, or tick the slides you want from a carousel to export a local ZIP archive.",
+      "codeHint": "MP4 HD · JPG · LOCAL ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Instagram formats and qualities supported by VIDNEX",
+    "subheading": "What VIDNEX actually extracts for each Instagram URL pattern.",
+    "headers": ["Instagram URL type", "Output format", "Actual quality and behavior"],
+    "rows": [
+      ["Public Reel (/reel/, /reels/)", "MP4 with audio", "Vertical HD MP4 stream with original audio track when supplied by Instagram."],
+      ["Video post (/p/, /tv/)", "MP4", "Direct progressive MP4 download at the highest publicly exposed resolution."],
+      ["Single photo post (/p/)", "JPG", "Clean public JPG image without recompression added by VIDNEX."],
+      ["Multi-media carousel (/p/)", "JPG / MP4 or ZIP", "Checkbox grid for individual downloads or browser-assembled ZIP (max 20 files / 100 MB)."],
+      ["Public profile (@handle)", "HD JPG", "Public profile avatar resolved from an instagram.com/{user} URL or plain @handle."],
+      ["Stories & Highlights", "Requires login", "Detected distinctly from Reels; returns a clear login-required notice without bypassing authentication."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Instagram troubleshooting and solutions",
+    "subheading": "Six common issues when saving Instagram Reels, posts, or carousels and how to fix them.",
+    "guideLink": {
+      "label": "Read our guide on Instagram Reels and carousel resolution",
+      "href": "/en/blog/instagram-reels-carousels-resolution-compression-guide"
+    },
+    "items": [
+      {
+        "problem": "Instagram Story or Highlight shows a login-required error",
+        "solution": "Instagram restricts Stories and Highlights to signed-in users. VIDNEX classifies them separately from Reels and never bypasses authentication walls, so only open public posts can be saved without login."
+      },
+      {
+        "problem": "Mobile /share/... link fails to resolve",
+        "solution": "Short /share/ links can expire or point to a post whose privacy changed. Open the link in a browser to get the canonical /reel/ or /p/ URL, then paste that address into VIDNEX."
+      },
+      {
+        "problem": "Downloaded Reel plays silently",
+        "solution": "Check that the original Reel still has audio on Instagram (licensed tracks are sometimes muted by the platform). On phones, unmute silent mode and play the MP4 in your native Photos or Video app."
+      },
+      {
+        "problem": "Carousel exceeds the browser ZIP limit",
+        "solution": "Browser-side ZIP packaging is capped at twenty files or 100 MB to keep mobile tabs stable. Uncheck a few heavy clips to download in two smaller batches, or save individual videos directly."
+      },
+      {
+        "problem": "Post belongs to a private or age-restricted account",
+        "solution": "If an Instagram profile is locked or requires age verification while signed in, no public media metadata is exposed and extraction cannot proceed."
+      },
+      {
+        "problem": "Cannot find the carousel ZIP on iPhone",
+        "solution": "Safari stores downloaded ZIP archives inside Apple's Files app under Downloads. Tap the ZIP file inside Files to unpack every JPG and MP4 slide, then save them to Photos."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Where to find your downloaded Instagram files",
+    "subheading": "Exact locations for saved Reels, JPG photos, and carousel ZIP files across iOS, Android, and desktop.",
+    "ios": {
+      "title": "iPhone & iPad (Safari)",
+      "steps": "Open the Apple Files app and navigate to Downloads (On My iPhone or iCloud Drive). Open your MP4 Reel or JPG photo, tap Share, and select Save Video or Save Image to move it into Photos. Tap a carousel ZIP file once to unpack all slides automatically."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Single Reels and photos save directly into Download and appear in your Gallery or Google Photos under Downloads. If you saved a multi-slide carousel as a ZIP file, open My Files or Files by Google, locate the archive in Downloads, and tap Extract."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "Your browser puts MP4, JPG, and ZIP files into the default Downloads folder. Press Ctrl+J on Windows or Cmd+Shift+J on macOS to view the file immediately, then double-click or right-click Extract All on any carousel ZIP archive."
+    }
+  },
+  "faqs": [
+    {
+      "question": "How do I download a public Instagram Reel with audio on VIDNEX?",
+      "answer": "Copy the public Reel URL from Instagram's Share button and paste it into the input box above. VIDNEX identifies the Reel format automatically, resolves the high-definition video stream along with its original synchronized audio track, and displays a direct MP4 download button immediately."
+    },
+    {
+      "question": "Does VIDNEX separate /p/ photo posts from Instagram Reels properly?",
+      "answer": "Yes, VIDNEX parses the exact Instagram path before contacting any extractor: /p/ links are routed as posts supporting single JPG photos, MP4 videos, or mixed carousels, whereas /reel/ and /reels/ target Reels. A photo publication is therefore never forced through a Reel-only video path."
+    },
+    {
+      "question": "How can I save multiple photos and videos from an Instagram carousel?",
+      "answer": "Paste the public carousel /p/ link into VIDNEX to open a visual gallery with checkboxes on every slide. You can select all items or pick specific photos and clips, then save each file individually or build a local ZIP archive of up to twenty items."
+    },
+    {
+      "question": "Can I download Instagram Stories or Highlights without logging in?",
+      "answer": "VIDNEX detects Stories and Highlights accurately instead of misclassifying them as Reels, but Instagram requires user authentication to access them. Without an authenticated session, VIDNEX returns a clear login-required message and never attempts to bypass Instagram login walls or private account restrictions."
+    },
+    {
+      "question": "How do I download an Instagram profile picture in HD?",
+      "answer": "Paste the full public profile URL such as instagram.com/username or simply type the @username handle into the main field. VIDNEX detects the profile type automatically, previews the public avatar, and provides a direct JPG download button with no login or third-party app needed."
+    },
+    {
+      "question": "Why does an Instagram photo or Reel sometimes look slightly compressed?",
+      "answer": "Instagram recompresses images and videos during upload whenever dimensions or bitrates exceed its platform thresholds. VIDNEX delivers the exact highest-resolution file exposed publicly by Instagram's servers without adding any extra compression or reducing the original resolution already published on the platform."
+    },
+    {
+      "question": "Can I slice an Instagram photo into a 3×3 profile grid on VIDNEX?",
+      "answer": "Yes, VIDNEX includes a free browser-local Split Image tool that never uploads your pictures to any server. Drop any JPG, PNG, or WebP photo into the grid cutter, choose the 3×3 preset with Instagram Order enabled, and export every numbered tile inside one ZIP archive."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Related tools and Instagram guides",
+    "subheading": "Create 3×3 Instagram grids locally or save public videos from other supported platforms.",
+    "toolKeys": ["split_image", "tiktok", "facebook"],
+    "guideLink": {
+      "label": "Complete guide: downloading public Instagram Reels and carousels",
+      "description": "Step-by-step details on /reel/, /p/ posts, multi-media ZIP selection, and public visibility rules.",
+      "href": "/en/blog/download-public-instagram-reels-carousels-guide"
+    },
+    "privacyLabel": "VIDNEX Privacy Policy",
+    "privacyDescription": "Zero server-side media storage, no account login needed, and local browser ZIP assembly."
+  }
+}

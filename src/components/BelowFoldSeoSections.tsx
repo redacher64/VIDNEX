@@ -10,17 +10,22 @@ import {
 import {
   getLocalizedPagePath,
   PLATFORM_PAGE_KEYS,
+  type PageKey,
   type PlatformPageKey,
   type SupportedLocale,
 } from '../i18n/config.ts';
-import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
+import {
+  getLocaleBundleSync,
+  getToolContentSync,
+} from '../i18n/localeLoader.ts';
 import { isPlatformSupported } from '../utils/urlDetector.ts';
 import { AdSlot } from './AdSlot.tsx';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
+import { ToolRichSections } from './ToolRichSections.tsx';
 
 interface BelowFoldSeoSectionsProps {
   pageKey: 'home' | PlatformPageKey;
-  onNavigatePage: (pageKey: 'home' | PlatformPageKey) => void;
+  onNavigatePage: (pageKey: PageKey) => void;
   onNavigatePath?: (path: string) => void;
   language: SupportedLocale;
 }
@@ -56,7 +61,10 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
   const t = bundle.ui.sections;
   const pageContent =
     pageKey === 'home' ? bundle.home : bundle.platforms[pageKey];
-  const editorial = pageContent.editorial;
+  const toolContent = getToolContentSync(language, pageKey);
+  const editorial = toolContent?.editorial || pageContent.editorial;
+  const howToSteps = toolContent?.howToSteps || pageContent.howToSteps || [];
+  const faqs = toolContent?.faqs || pageContent.faqs || [];
 
   // Strictly match an article published in the page's current language; never fall back to English on non-EN tool pages.
   const currentBlogLocale: BlogLocale | null = isBlogHubLocale(language)
@@ -97,7 +105,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
 
   const handlePageSelect = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    target: 'home' | PlatformPageKey
+    target: PageKey
   ) => {
     e.preventDefault();
     onNavigatePage(target);
@@ -117,40 +125,42 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
   return (
     <div className="w-full">
       {/* AEO DIRECT SUMMARY + PILLAR BLOG GUIDE LINK (40–60 words below the tool for Featured Snippets) */}
-      <section
-        aria-label={editorial.heading}
-        className="w-full bg-[#fffaf5] dark:bg-[#140e0a] border-b border-orange-200/60 dark:border-orange-900/40 py-5"
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <p className="text-sm sm:text-base text-[#4a3429] dark:text-orange-100/90 leading-relaxed max-w-3xl">
-            <strong className="font-display font-bold text-[#1f130b] dark:text-[#fffaf5]">
-              {pageContent.h1} :{' '}
-            </strong>
-            {editorial.paragraphs[0]}
-          </p>
+      {editorial && (
+        <section
+          aria-label={editorial.heading}
+          className="w-full bg-[#fffaf5] dark:bg-[#140e0a] border-b border-orange-200/60 dark:border-orange-900/40 py-5"
+        >
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <p className="text-sm sm:text-base text-[#4a3429] dark:text-orange-100/90 leading-relaxed max-w-3xl">
+              <strong className="font-display font-bold text-[#1f130b] dark:text-[#fffaf5]">
+                {pageContent.h1} :{' '}
+              </strong>
+              {editorial.paragraphs[0]}
+            </p>
 
-          {pillarHref && pillarTranslation && (
-            <a
-              href={pillarHref}
-              onClick={(e) => handlePillarGuideClick(e, pillarHref)}
-              className="shrink-0 inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-white/95 dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm hover:border-orange-400 hover:shadow-orange-sm transition-all group max-w-sm"
-            >
-              <div className="min-w-0">
-                <span className="block font-mono text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400">
-                  {PRACTICAL_GUIDE_LABELS[language]} ·{' '}
-                  {pillarTranslation.readingTimeMinutes} {blogUi.minReadSuffix}
+            {pillarHref && pillarTranslation && (
+              <a
+                href={pillarHref}
+                onClick={(e) => handlePillarGuideClick(e, pillarHref)}
+                className="shrink-0 inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-white/95 dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm hover:border-orange-400 hover:shadow-orange-sm transition-all group max-w-sm"
+              >
+                <div className="min-w-0">
+                  <span className="block font-mono text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-amber-400">
+                    {PRACTICAL_GUIDE_LABELS[language]} ·{' '}
+                    {pillarTranslation.readingTimeMinutes} {blogUi.minReadSuffix}
+                  </span>
+                  <span className="block font-display text-xs sm:text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] group-hover:text-orange-600 dark:group-hover:text-amber-400 transition-colors line-clamp-2 mt-0.5">
+                    {pillarTranslation.title}
+                  </span>
+                </div>
+                <span className="text-orange-600 dark:text-amber-400 font-mono text-sm font-bold shrink-0 rtl:rotate-180">
+                  →
                 </span>
-                <span className="block font-display text-xs sm:text-sm font-bold text-[#1f130b] dark:text-[#fffaf5] group-hover:text-orange-600 dark:group-hover:text-amber-400 transition-colors line-clamp-2 mt-0.5">
-                  {pillarTranslation.title}
-                </span>
-              </div>
-              <span className="text-orange-600 dark:text-amber-400 font-mono text-sm font-bold shrink-0 rtl:rotate-180">
-                →
-              </span>
-            </a>
-          )}
-        </div>
-      </section>
+              </a>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 1. SPECS RIBBON */}
       <section className="w-full bg-gradient-to-r from-orange-50 via-white to-amber-50/60 dark:from-[#1c140e] dark:via-[#140e0a] dark:to-[#1c140e] border-b border-orange-200/60 dark:border-orange-900/40 shadow-sm py-5">
@@ -177,135 +187,150 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
       </section>
 
       {/* 2. 3-STEP HOW IT WORKS BENTO GRID */}
-      <section
-        aria-labelledby="howto-heading"
-        className="w-full py-10 sm:py-14 bg-[#fffaf5] dark:bg-[#140e0a]"
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-3">
-            <div>
-              <span className="font-mono text-[11px] text-orange-700 dark:text-amber-400 tracking-widest uppercase font-bold">
-                {t.workflowProtocol}
-              </span>
-              <h2
-                id="howto-heading"
-                className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5] mt-1.5"
-              >
-                {t.howToHeading}
-              </h2>
-            </div>
-            <p className="text-base text-[#6c4e40] dark:text-orange-200/80 max-w-md leading-relaxed">
-              {pageContent.subtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-            {pageContent.howToSteps.map((step, idx) => (
-              <div
-                key={step.number}
-                className="bg-white/90 dark:bg-[#1c140e]/90 backdrop-blur-md p-5 sm:p-6 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-card-warm flex flex-col justify-between hover:shadow-orange-glow hover:border-orange-400 transition-all duration-300 group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-xs font-bold text-white px-3 py-1 bg-gradient-to-r from-orange-600 to-amber-600 rounded-lg shadow-sm">
-                      {t.stepOf} {step.number}
-                    </span>
-                    <span
-                      dir="ltr"
-                      className="font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold"
-                    >
-                      0{idx + 1} / 03
-                    </span>
-                  </div>
-                  <h3 className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed mb-5 break-words">
-                    {step.description}
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200/70 dark:border-orange-900/50 rounded-xl">
-                  <div className="flex items-center justify-between font-mono text-[11px] text-orange-950 dark:text-orange-100 mb-2">
-                    <span className="font-semibold uppercase tracking-wider text-orange-800 dark:text-amber-400 truncate pr-2">
-                      {step.codeHint}
-                    </span>
-                    <span className="text-orange-700 dark:text-amber-400 font-bold shrink-0">
-                      {t.readyStatus}
-                    </span>
-                  </div>
-                  <div className="w-full bg-orange-200/70 dark:bg-orange-950 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      style={{
-                        width: idx === 0 ? '100%' : idx === 1 ? '96%' : '100%',
-                      }}
-                      className="bg-gradient-to-r from-orange-600 to-amber-500 h-full shadow-[0_0_8px_#ea580c]"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. ORIGINAL EDITORIAL CONTENT SECTION (16px base text, comfortable line-height, zero horizontal scroll) */}
-      <section
-        aria-labelledby="editorial-heading"
-        className="w-full py-10 sm:py-14 bg-white/75 dark:bg-[#18110c] border-t border-orange-200/60 dark:border-orange-900/40"
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-7 space-y-4">
-              <h2
-                id="editorial-heading"
-                className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5]"
-              >
-                {editorial.heading}
-              </h2>
-              <p className="text-base font-medium text-orange-800 dark:text-amber-400 leading-relaxed">
-                {editorial.subheading}
-              </p>
-              {editorial.paragraphs.map((paragraph, idx) => (
-                <p
-                  key={idx}
-                  className="text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed break-words"
+      {howToSteps.length > 0 && (
+        <section
+          aria-labelledby="howto-heading"
+          className="w-full py-10 sm:py-14 bg-[#fffaf5] dark:bg-[#140e0a]"
+        >
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-3">
+              <div>
+                <span className="font-mono text-[11px] text-orange-700 dark:text-amber-400 tracking-widest uppercase font-bold">
+                  {t.workflowProtocol}
+                </span>
+                <h2
+                  id="howto-heading"
+                  className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5] mt-1.5"
                 >
-                  {paragraph}
-                </p>
+                  {t.howToHeading}
+                </h2>
+              </div>
+              <p className="text-base text-[#6c4e40] dark:text-orange-200/80 max-w-md leading-relaxed">
+                {pageContent.subtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+              {howToSteps.map((step, idx) => (
+                <div
+                  key={step.number}
+                  id={`step-${idx + 1}`}
+                  className="bg-white/90 dark:bg-[#1c140e]/90 backdrop-blur-md p-5 sm:p-6 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-card-warm flex flex-col justify-between hover:shadow-orange-glow hover:border-orange-400 transition-all duration-300 group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-mono text-xs font-bold text-white px-3 py-1 bg-gradient-to-r from-orange-600 to-amber-600 rounded-lg shadow-sm">
+                        {t.stepOf} {step.number}
+                      </span>
+                      <span
+                        dir="ltr"
+                        className="font-mono text-xs text-orange-700 dark:text-amber-400 font-semibold"
+                      >
+                        0{idx + 1} / 03
+                      </span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed mb-5 break-words">
+                      {step.description}
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-orange-50/80 dark:bg-[#2a1b12] border border-orange-200/70 dark:border-orange-900/50 rounded-xl">
+                    <div className="flex items-center justify-between font-mono text-[11px] text-orange-950 dark:text-orange-100 mb-2">
+                      <span className="font-semibold uppercase tracking-wider text-orange-800 dark:text-amber-400 truncate pr-2">
+                        {step.codeHint}
+                      </span>
+                      <span className="text-orange-700 dark:text-amber-400 font-bold shrink-0">
+                        {t.readyStatus}
+                      </span>
+                    </div>
+                    <div className="w-full bg-orange-200/70 dark:bg-orange-950 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        style={{
+                          width: idx === 0 ? '100%' : idx === 1 ? '96%' : '100%',
+                        }}
+                        className="bg-gradient-to-r from-orange-600 to-amber-500 h-full shadow-[0_0_8px_#ea580c]"
+                      />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
 
-            <div className="lg:col-span-5 space-y-5">
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#fffaf5] dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm">
-                <h3 className="font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-3">
-                  {editorial.formatsTitle}
-                </h3>
-                <ul className="space-y-2.5">
-                  {editorial.formatsList.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2.5 text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed break-words"
-                    >
-                      <span className="mt-2 w-2 h-2 rounded-full bg-orange-600 dark:bg-amber-400 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+      {/* 3. ORIGINAL EDITORIAL CONTENT SECTION (16px base text, comfortable line-height, zero horizontal scroll) */}
+      {editorial && (
+        <section
+          aria-labelledby="editorial-heading"
+          className="w-full py-10 sm:py-14 bg-white/75 dark:bg-[#18110c] border-t border-orange-200/60 dark:border-orange-900/40"
+        >
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="lg:col-span-7 space-y-4">
+                <h2
+                  id="editorial-heading"
+                  className="font-display text-2xl sm:text-3xl font-bold text-[#1f130b] dark:text-[#fffaf5]"
+                >
+                  {editorial.heading}
+                </h2>
+                <p className="text-base font-medium text-orange-800 dark:text-amber-400 leading-relaxed">
+                  {editorial.subheading}
+                </p>
+                {editorial.paragraphs.map((paragraph, idx) => (
+                  <p
+                    key={idx}
+                    className="text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed break-words"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
               </div>
 
-              <div className="p-5 rounded-2xl bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50">
-                <h3 className="font-display text-base font-bold text-[#1f130b] dark:text-[#fffaf5] mb-1.5">
-                  {editorial.limitsTitle}
-                </h3>
-                <p className="text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed break-words">
-                  {editorial.limitsText}
-                </p>
+              <div className="lg:col-span-5 space-y-5">
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#fffaf5] dark:bg-[#1c140e] border border-orange-200/90 dark:border-orange-900/60 shadow-sm">
+                  <h3 className="font-display text-base sm:text-lg font-bold text-[#1f130b] dark:text-[#fffaf5] mb-3">
+                    {editorial.formatsTitle}
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {editorial.formatsList.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2.5 text-base text-[#6c4e40] dark:text-orange-200/85 leading-relaxed break-words"
+                      >
+                        <span className="mt-2 w-2 h-2 rounded-full bg-orange-600 dark:bg-amber-400 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-orange-50/80 dark:bg-[#231710] border border-orange-200/80 dark:border-orange-900/50">
+                  <h3 className="font-display text-base font-bold text-[#1f130b] dark:text-[#fffaf5] mb-1.5">
+                    {editorial.limitsTitle}
+                  </h3>
+                  <p className="text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed break-words">
+                    {editorial.limitsText}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* 3b. FORMATS TABLE, TROUBLESHOOTING, WHERE TO FIND FILE, INTERNAL LINKS */}
+      {toolContent && (
+        <ToolRichSections
+          locale={language}
+          toolContent={toolContent}
+          onNavigatePage={onNavigatePage}
+          onNavigatePath={onNavigatePath}
+        />
+      )}
 
       {/* MILIEU : 728x90 desktop OU 300x250 mobile (via matchMedia) */}
       <AdSlot
@@ -406,11 +431,12 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-3">
-              {pageContent.faqs.map((faq, idx) => {
+              {faqs.map((faq, idx) => {
                 const isOpen = openFaqIndex === idx;
                 return (
                   <div
                     key={faq.question}
+                    data-faq-item="true"
                     className="bg-white/95 dark:bg-[#1c140e]/95 rounded-2xl border border-orange-200/90 dark:border-orange-900/60 shadow-sm overflow-hidden transition-all"
                   >
                     <button
@@ -421,7 +447,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                       }
                       className="w-full min-h-[52px] p-4 sm:p-5 text-start flex items-center justify-between gap-4 font-display text-base font-semibold text-[#1f130b] dark:text-[#fffaf5] hover:text-orange-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
                     >
-                      <span>{faq.question}</span>
+                      <span data-faq-question="true">{faq.question}</span>
                       <span
                         className={`font-mono text-lg text-orange-600 dark:text-amber-400 shrink-0 transition-transform duration-200 ${
                           isOpen ? 'rotate-180' : ''
@@ -432,6 +458,7 @@ export const BelowFoldSeoSections: React.FC<BelowFoldSeoSectionsProps> = ({
                     </button>
 
                     <div
+                      data-faq-answer="true"
                       className={
                         isOpen
                           ? 'px-4 sm:px-5 pb-5 pt-3 text-base text-[#6c4e40] dark:text-orange-200/80 leading-relaxed border-t border-orange-100 dark:border-orange-900/40 break-words'

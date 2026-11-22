@@ -1,0 +1,170 @@
+{
+  "editorial": {
+    "heading": "Instagram Reels, video, fotoğraf ve karusel indir — herkese açık gönderiler için",
+    "subheading": "Sesli HD MP4 Reels, /p/ fotoğraf ve karuseller için yerel ZIP arşivi ve profil resmi indirme",
+    "paragraphs": [
+      "VIDNEX Instagram indirici, yalnızca Reels klipleriyle sınırlı kalmadan herkese açık tüm Instagram gönderi türlerini doğru biçimde ayırt eder. Yapıştırdığınız bağlantı /reel/, /reels/, /tv/ veya video içeren bir /p/ gönderisi ise araç sesli HD MP4 akışını çözümler; tekil fotoğraf gönderilerinde ise yüksek çözünürlüklü JPG dosyasını sunar.",
+      "Birden fazla fotoğraf veya video içeren Instagram karusel gönderilerinde (/p/...) her öğe onay kutularıyla düzenli bir ızgarada açılır. İstediğiniz kareyi tek başına indirebilir ya da en fazla 20 medya öğesini (toplam 100 MB sınırına kadar) sunucuya yükleme yapmadan doğrudan tarayıcınızda bir ZIP paketine dönüştürebilirsiniz. Mobil uygulamadan gelen /share/ ve instagr.am kısa bağlantıları da otomatik olarak yönlendirilip sınıflandırılır.",
+      "Herkese açık bir profilin adresini (instagram.com/kullaniciadi) veya doğrudan @kullaniciadi bilgisini girdiğinizde profil fotoğrafı JPG olarak görüntülenir. Buna karşılık /stories/ hikâyeleri ve /stories/highlights/ öne çıkanları, Reels akışından ayrı olarak algılanır: bu içerikler Instagram üzerinde oturum açma gerektirdiği için VIDNEX giriş duvarını aşmaya çalışmaz ve açık bir bilgilendirme mesajı gösterir.",
+      "Hiçbir Instagram medyası sunucularımızda arşivlenmez. Araç yalnızca oturum açmadan erişilebilen herkese açık paylaşımları doğrudan cihazınıza aktarır ve telif haklarına saygılı kullanım ilkesiyle çalışır."
+    ],
+    "formatsTitle": "Desteklenen Instagram içerik ve dosya formatları",
+    "formatsList": [
+      "Herkese açık Instagram Reels (/reel/, /reels/) ve videolar (/tv/, /p/ video) — sesli HD MP4",
+      "Tekil /p/ fotoğraf gönderileri — orijinal kaliteye yakın JPG dosya",
+      "Karışık fotoğraf ve video karuselleri (/p/...) — onay kutulu seçim, tekli indirme veya yerel ZIP arşivi (en fazla 20 öğe / 100 MB)",
+      "Herkese açık profil fotoğrafları (instagram.com/kullanici veya @kullaniciadi) — JPG formatında",
+      "Kısa paylaşım bağlantıları (/share/..., instagr.am) için otomatik çözümleme ve tür algılama"
+    ],
+    "limitsTitle": "Instagram hikâyeleri ve desteklenmeyen içerikler",
+    "limitsText": "Gizli hesaplar, yakın arkadaş paylaşımları, /stories/ hikâyeleri ve /stories/highlights/ öne çıkanları Instagram oturumu gerektirdiğinden giriş yapılmadan indirilemez. VIDNEX hiçbir zaman oturum duvarını aşmaz ve hikâyeleri yanlışlıkla Reels olarak işlemez."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Instagram gönderi bağlantısını kopyalayın",
+      "description": "Instagram uygulamasında veya web sürümünde herkese açık Reel, fotoğraf, karusel ya da profil sayfasında Paylaş veya üç nokta menüsünden Bağlantıyı kopyala deyin.",
+      "codeHint": "/REEL/ · /P/ · /SHARE/ · @PROFİL"
+    },
+    {
+      "number": "02",
+      "title": "Adresi yapıştırıp analizi başlatın",
+      "description": "Bağlantıyı yukarıdaki kutuya yapıştırıp İndir düğmesine basın. VIDNEX bağlantının Reel, tekil fotoğraf, karusel veya profil olduğunu otomatik tanır.",
+      "codeHint": "MP4 HD · JPG · KARUSEL ZIP"
+    },
+    {
+      "number": "03",
+      "title": "Videoyu, fotoğrafı veya ZIP paketini kaydedin",
+      "description": "Sesli MP4 videosunu indirin ya da karusel ızgarasından istediğiniz öğeleri seçerek tek tek veya tarayıcı içi ZIP arşivi hâlinde cihazınıza kaydedin.",
+      "codeHint": "SESLİ MP4 · YEREL ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Instagram içerik türleri ve çıkış formatları tablosu",
+    "subheading": "VIDNEX motorunun her Instagram bağlantı biçiminde sunduğu gerçek dosya türleri ve sınırlamalar.",
+    "headers": [
+      "Instagram içerik türü",
+      "Çıkış formatı",
+      "Gerçek davranış ve sınırlar"
+    ],
+    "rows": [
+      [
+        "Herkese açık Reel (/reel/, /reels/)",
+        "Sesli HD MP4",
+        "Instagram'ın herkese açık sunduğu en yüksek uyumlu MP4 akışı ses kanalıyla birlikte aktarılır."
+      ],
+      [
+        "Video gönderisi (/p/, /tv/)",
+        "Sesli HD MP4",
+        "Klasik gönderi videoları ve uzun formatlı /tv/ klipleri doğrudan MP4 olarak kaydedilir."
+      ],
+      [
+        "Tekil fotoğraf (/p/)",
+        "JPG",
+        "Herkese açık tek fotoğraflı gönderiler kırpılmadan JPG dosyası olarak indirilir."
+      ],
+      [
+        "Karışık karusel (/p/)",
+        "JPG, MP4 veya ZIP",
+        "Fotoğraf ve video içeren slaytlar onay kutularıyla seçilir; en fazla 20 dosya / 100 MB yerel ZIP oluşturulur."
+      ],
+      [
+        "Herkese açık profil (@kullanici)",
+        "JPG",
+        "Herkese açık profil adresi veya @kullaniciadi ile hesap avatarı JPG olarak getirilir."
+      ],
+      [
+        "Hikâye ve Öne Çıkanlar (/stories/)",
+        "Desteklenmez (giriş gerekli)",
+        "Reels'ten ayrı tanınır; oturum zorunluluğu nedeniyle giriş duvarı aşılmaz ve açık uyarı gösterilir."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Instagram indirme sorunları ve pratik çözümler",
+    "subheading": "Reels, /p/ gönderileri, karuseller ve hikâyelerle ilgili sık yaşanan altı durumun açıklaması.",
+    "items": [
+      {
+        "problem": "Instagram hikâye veya Öne Çıkanlar bağlantısı giriş gerekli hatası veriyor",
+        "solution": "Instagram /stories/ ve /stories/highlights/ içerikleri için kullanıcı oturumu ister. VIDNEX bu bağlantıları doğru biçimde hikâye olarak tanır, yanlışlıkla Reels motoruna göndermez ve hesap girişi olmadan indirilemeyeceğini bildirir."
+      },
+      {
+        "problem": "Gönderi gizli veya oturum gerekli uyarısı alıyorum",
+        "solution": "Hesap gizli olarak ayarlandıysa ya da gönderi yaş/bölge kısıtlaması taşıyorsa Instagram herkese açık veri döndürmez. Bağlantıyı gizli sekmede (oturum açmadan) açmayı deneyin; orada görünmüyorsa araç üzerinden de indirilemez."
+      },
+      {
+        "problem": "Mobil uygulamadan kopyalanan /share/ bağlantısı hata veriyor",
+        "solution": "Bazı /share/ bağlantıları geçici yönlendirme belirteçleri içerir. Gönderiyi mobil tarayıcıda açıp adres çubuğundaki doğrudan /reel/ veya /p/ adresini kopyalamak sorunu çoğunlukla çözer."
+      },
+      {
+        "problem": "Karusel içindeki bazı görseller ZIP dosyasına eklenmiyor",
+        "solution": "Tarayıcı içi ZIP oluşturucu bellek kararlılığı için en fazla 20 öğe ve 100 MB toplam boyut sınırı uygular. Seçimi iki parçaya bölerek veya istediğiniz öğeleri tek tek indirerek işlemi tamamlayabilirsiniz."
+      },
+      {
+        "problem": "Kaydedilen Instagram Reel videosu iPhone galerisine düşmedi",
+        "solution": "iPhone üzerinde Safari indirilen MP4 dosyasını Dosyalar > İndirilenler klasörüne yazar. Dosyalar uygulamasından videoyu açın, Paylaş simgesine dokunun ve Videoyu Kaydet diyerek Fotoğraflar arşivine aktarın."
+      },
+      {
+        "problem": "Instagram profil resmi yerine hata mesajı çıkıyor",
+        "solution": "Kullanıcı adında yazım hatası olmadığından ve profilin herkese açık olduğundan emin olun. @kullaniciadi biçiminde fazladan boşluk bırakmadan veya tam instagram.com/kullaniciadi bağlantısını yapıştırarak yeniden deneyin."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen Instagram Reel ve fotoğraflarını nerede bulabilirsiniz?",
+    "subheading": "Kaydettiğiniz MP4 video, JPG fotoğraf veya karusel ZIP paketine cihazınızdan kolayca ulaşın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari adres çubuğundaki mavi indirme simgesine dokunun veya Dosyalar uygulamasında İndirilenler klasörünü açın. MP4 Reels videolarını ve JPG kareleri Fotoğraflar galerisine eklemek için dosyayı açıp Paylaş > Videoyu Kaydet veya Görüntüyü Kaydet adımını uygulayın. Karusel ZIP dosyasına tek dokunuşla arşiv açılır."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome üzerinden kaydedilen Instagram videoları ve fotoğrafları cihazınızın İndirilenler (Download) klasöründe saklanır. Galeri uygulamasındaki İndirilenler albümünden ya da Dosyalarım uygulamasından medyayı anında açabilirsiniz. ZIP olarak indirilen karuselleri tek dokunuşla ayrı bir klasöre çıkarabilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "Tüm MP4, JPG ve ZIP dosyaları bilgisayarınızın İndirilenler klasörüne kaydedilir. Tarayıcıda Windows için Ctrl+J, macOS için Cmd+Shift+J kısayoluyla indirme geçmişini açıp dosyanın bulunduğu klasöre doğrudan geçebilirsiniz. Karusel ZIP paketleri işletim sisteminizin yerleşik aracıyla hemen açılır."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Instagram Reels ve /p/ gönderileri arasındaki farkı araç nasıl yönetiyor?",
+      "answer": "VIDNEX yapıştırdığınız bağlantının yapısını analiz ederek /reel/, /reels/, /tv/ ve /p/ adreslerini birbirinden ayırır. Video içeren gönderilerde sesli HD MP4 akışı sunulurken, tekil /p/ fotoğraf veya karışık karusel bağlantılarında her kare onay kutularıyla listelenir; böylece fotoğraf gönderileri hiçbir zaman yanlışlıkla Reel olarak işlenmez."
+    },
+    {
+      "question": "Instagram hikâyeleri ve Öne Çıkanlar VIDNEX ile indirilebilir mi?",
+      "answer": "Hayır, Instagram /stories/ hikâyeleri ve /stories/highlights/ öne çıkanları platform tarafından oturum açma zorunluluğuna bağlandığı için hesap olmadan indirilemez. VIDNEX bu bağlantıları Reels'ten ayrı olarak doğru biçimde tanır, giriş duvarını aşmaya çalışmaz ve kullanıcıya oturum gerektiğini bildiren net bir açıklama mesajı gösterir."
+    },
+    {
+      "question": "Birden fazla fotoğraf içeren Instagram karuselini toplu indirebilir miyim?",
+      "answer": "Evet, herkese açık bir /p/ karusel bağlantısı yapıştırdığınızda VIDNEX tüm fotoğraf ve video öğelerini seçim kutularıyla birlikte ekranda gösterir. İstediğiniz öğeleri tek tek indirebileceğiniz gibi en fazla 20 öğe ve 100 MB sınırına kadar doğrudan tarayıcınızda tek bir ZIP arşivi hâlinde paketleyip kaydedebilirsiniz."
+    },
+    {
+      "question": "İndirilen Instagram Reels videolarında ses korunuyor mu?",
+      "answer": "Evet, Instagram'ın herkese açık olarak sunduğu Reels ve video gönderilerinde görüntü ile ses akışı birlikte MP4 dosyası olarak aktarılır. Eğer orijinal gönderinin sesi telif hakkı veya içerik üreticisi tercihi nedeniyle Instagram üzerinde zaten sessize alınmışsa, indirilen video da kaynak dosyayla aynı şekilde sessiz olur."
+    },
+    {
+      "question": "Instagram /share/ veya instagr.am kısa bağlantıları destekleniyor mu?",
+      "answer": "Evet, mobil Instagram uygulamasından kopyalanan /share/ bağlantıları ile instagr.am kısa adresleri VIDNEX tarafından otomatik olarak izlenir. Yönlendirme çözümlendikten sonra araç asıl bağlantının Reel, gönderi, profil veya hikâye olduğunu yeniden sınıflandırır ve yalnızca desteklenen herkese açık medya türleri için indirme düğmelerini hazırlar."
+    },
+    {
+      "question": "Bir Instagram hesabının profil fotoğrafını yüksek kalitede indirebilir miyim?",
+      "answer": "Evet, herkese açık bir Instagram profilinin tam adresini veya @kullaniciadi biçimindeki kullanıcı adını yukarıdaki alana doğrudan yazabilirsiniz. VIDNEX bağlantının profil olduğunu otomatik algılar ve herhangi bir Instagram hesabına giriş yapmanıza gerek kalmadan profil fotoğrafını JPG formatında önizleyip cihazınıza kaydetmenizi sağlar."
+    },
+    {
+      "question": "Instagram profilim için 3×3 ızgara fotoğrafı nasıl hazırlayabilirim?",
+      "answer": "VIDNEX içindeki ücretsiz Görsel Bölme aracını kullanarak tek bir fotoğrafı 3×3, 1×3 veya özel ızgara düzeninde parçalara ayırabilirsiniz. İşlem tamamen tarayıcınızda yerel olarak gerçekleşir ve Instagram Sırası seçeneği, kareleri sağ alttan sol üste doğru yükleme sırasıyla numaralandırarak tek ZIP paketinde sunar."
+    }
+  ],
+  "relatedSection": {
+    "heading": "İlgili VIDNEX araçları ve gizlilik",
+    "subheading": "Instagram profil ızgarası oluşturun veya diğer sosyal ağlardan herkese açık medya kaydedin.",
+    "toolKeys": [
+      "split_image",
+      "tiktok",
+      "facebook"
+    ],
+    "privacyLabel": "Gizlilik politikası ve yerel işleme",
+    "privacyDescription": "Instagram bağlantılarının sunucuda saklanmadan nasıl aktarıldığını ayrıntılarıyla öğrenin."
+  }
+}

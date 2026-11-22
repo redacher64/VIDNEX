@@ -1,0 +1,165 @@
+{
+  "editorial": {
+    "heading": "TikTok videosu filigransız indir: MP4 HD, orijinal ses ve Photo Mode slaytları",
+    "subheading": "Uzun ve kısa TikTok bağlantılarından MP4 video, doğrulanmış MP3/M4A ses ve yerel ZIP albümü",
+    "paragraphs": [
+      "VIDNEX TikTok indirici, TikTok mobil uygulamasından veya web sürümünden paylaşılan herkese açık bağlantıları doğrudan tarayıcınızda çözümler. Standart tiktok.com/@kullanici/video/ adreslerinin yanı sıra mobilde sıkça kopyalanan vm.tiktok.com, vt.tiktok.com ve tiktok.com/t/ kısa bağlantılarını da otomatik olarak takip ederek hedef gönderiyi belirler.",
+      "Herkese açık bir TikTok videosu çözümlendiğinde, kaynak akış izin verdiği ölçüde üzerinde logo bulunmayan filigransız MP4 seçeneği sunulur. İçerik üreticisinin yüklediği kaliteye bağlı olarak HD 1080p veya daha hafif SD 720p akışı seçebilirsiniz. Yalnızca ses kaydına ihtiyacınız varsa araç, dosyanın gerçek MIME ve HEAD başlığını kontrol ederek sahte uzantı kullanmadan orijinal MP3 veya M4A/AAC ses dosyasını indirmenizi sağlar.",
+      "Birden fazla fotoğraftan oluşan TikTok Photo Mode slayt gönderilerinde (/@kullanici/photo/...) her kare ayrı onay kutusuyla listelenir. İsterseniz tek bir JPG görseli indirebilir, isterseniz 20 dosyaya ve 100 MB toplam boyuta kadar seçtiğiniz kareleri doğrudan tarayıcınızda oluşturulan tek bir ZIP arşivi olarak kaydedebilirsiniz. Ayrıca herkese açık bir profil bağlantısı veya @kullaniciadi girerek profil fotoğrafını yüksek kalitede indirebilirsiniz.",
+      "İndirilen hiçbir TikTok videosu veya ses dosyası VIDNEX sunucularında saklanmaz. Araç yalnızca oturum açma gerektirmeyen herkese açık içerikleri işler ve içerik üreticilerinin telif haklarına saygılı kullanım için tasarlanmıştır."
+    ],
+    "formatsTitle": "Desteklenen TikTok içerik ve dosya formatları",
+    "formatsList": [
+      "Filigransız herkese açık TikTok videosu: kaynak akışa göre HD 1080p veya SD 720p MP4",
+      "Gerçek MIME/HEAD doğrulamasıyla orijinal TikTok ses parçası (MP3 veya M4A/AAC)",
+      "TikTok Photo Mode fotoğraf slaytları: onay kutusu seçimi, tekli JPG veya yerel ZIP arşivi (en fazla 20 görsel / 100 MB)",
+      "Herkese açık TikTok profil fotoğrafı (tiktok.com/@kullanici veya @kullaniciadi) JPG formatında",
+      "Mobil kısa bağlantılar (vm.tiktok.com, vt.tiktok.com, /t/) için otomatik yönlendirme çözümlemesi"
+    ],
+    "limitsTitle": "TikTok aracında desteklenmeyen içerikler",
+    "limitsText": "Gizli hesaplara ait videolar, yalnızca arkadaşlara açık gönderiler, silinmiş veya bölge kısıtlamalı klipler, yayınlanmamış taslaklar ve canlı TikTok Live yayınları indirilemez. Yalnızca herkese açık ve giriş gerektirmeyen gönderiler işlenir."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "TikTok bağlantısını kopyalayın",
+      "description": "TikTok uygulamasında veya tarayıcıda herkese açık video, slayt ya da profil ekranında Paylaş okuna dokunun ve Bağlantıyı kopyala seçeneğini seçin.",
+      "codeHint": "VM.TIKTOK.COM · /VIDEO/ · /PHOTO/"
+    },
+    {
+      "number": "02",
+      "title": "Bağlantıyı VIDNEX kutusuna yapıştırın",
+      "description": "Kopyaladığınız adresi yukarıdaki alana yapıştırıp İndir düğmesine tıklayın. Araç kısa bağlantıyı çözer ve içeriğin video, ses veya slayt olduğunu algılar.",
+      "codeHint": "FİLİGRANSIZ MP4 · SES · SLAYT"
+    },
+    {
+      "number": "03",
+      "title": "MP4, ses veya ZIP dosyasını kaydedin",
+      "description": "İhtiyacınıza göre HD/SD filigransız MP4 video, orijinal MP3/M4A ses, tekli JPG fotoğraf veya yerel ZIP paketi düğmesine tıklayarak dosyayı cihazınıza indirin.",
+      "codeHint": "DOĞRUDAN AKIŞ · YEREL ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "TikTok format ve kalite tablosu",
+    "subheading": "Her herkese açık TikTok bağlantı türü için VIDNEX tarafından sunulan gerçek dosya formatları ve teknik detaylar.",
+    "headers": [
+      "TikTok içerik türü",
+      "Çıkış formatı",
+      "Gerçek kalite ve davranış"
+    ],
+    "rows": [
+      [
+        "Herkese açık HD video",
+        "Filigransız MP4",
+        "Kaynakta HD akış bulunduğunda 1080p H.264 video; iOS, Android, Windows ve macOS ile uyumludur."
+      ],
+      [
+        "Herkese açık SD video",
+        "Filigransız MP4",
+        "Daha düşük dosya boyutlu 720p akış; mobil veri veya sınırlı depolama alanı için uygundur."
+      ],
+      [
+        "TikTok ses parçası",
+        "MP3 veya M4A (AAC)",
+        "Kaynak ses akışının gerçek MIME/HEAD başlığına göre doğru uzantı verilir; uyumsuz dosya yeniden adlandırılmaz."
+      ],
+      [
+        "Photo Mode slaytı",
+        "Tekli JPG veya ZIP",
+        "Onay kutulu ızgara görünümü; tek tek fotoğraf indirme veya tarayıcıda yerel ZIP paketleme (en fazla 20 dosya / 100 MB)."
+      ],
+      [
+        "Herkese açık profil resmi",
+        "Yüksek çözünürlüklü JPG",
+        "tiktok.com/@kullanici bağlantısı veya doğrudan @kullaniciadi ile herkese açık avatar indirilir."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "TikTok indirirken sık yaşanan sorunlar ve çözümleri",
+    "subheading": "TikTok videoları, kısa bağlantılar ve ses dosyalarıyla ilgili altı gerçek sorun ile uygulanabilir çözüm adımları.",
+    "items": [
+      {
+        "problem": "vm.tiktok.com veya vt.tiktok.com kısa bağlantısı açılmıyor",
+        "solution": "Mobilde paylaşılan kısa bağlantılar bazen video açıklamasıyla birlikte yapıştırılır veya süresi dolabilir. TikTok içinde Paylaş > Bağlantıyı kopyala yolunu tekrarlayın ve yalnızca https:// ile başlayan saf adresi yapıştırın."
+      },
+      {
+        "problem": "Gizli hesap veya arkadaşlara özel video uyarısı çıkıyor",
+        "solution": "İçerik üreticisi hesabını gizliye aldıysa ya da videoyu yalnızca karşılıklı takipçilere açtıysa TikTok genel erişimi kapatır. VIDNEX bu kısıtlamayı aşmaz ve içeriğin gizli olduğunu açıkça bildirir."
+      },
+      {
+        "problem": "İndirilen TikTok videosunda ses duyulmuyor",
+        "solution": "TikTok telif hakları nedeniyle bazı videoların sesini platform üzerinde sessize alabilir. Önce videonun TikTok uygulamasında sesli çaldığını doğrulayın; ses varsa dosyayı cihazınızdaki VLC veya yerel medya oynatıcıda test edin."
+      },
+      {
+        "problem": "Ses dosyası MP3 yerine M4A uzantısıyla iniyor",
+        "solution": "Bu bir hata değildir; TikTok pek çok ses parçasını AAC biçiminde sunar. VIDNEX bozuk dosya oluşmaması için gerçek M4A uzantısını korur ve bu format iPhone, Mac, Android ile Windows cihazlarda sorunsuz çalar."
+      },
+      {
+        "problem": "Kaydedilen video iPhone Fotoğraflar uygulamasında görünmüyor",
+        "solution": "Safari üzerinden indirilen MP4 dosyaları iPhone üzerinde Dosyalar > İndirilenler klasörüne düşer. Videoyu açın, sol alttaki Paylaş simgesine dokunun ve galeriye taşımak için Videoyu Kaydet seçeneğini seçin."
+      },
+      {
+        "problem": "TikTok Live bağlantısı veya silinen video hata veriyor",
+        "solution": "Canlı TikTok Live (/live) yayınları sürekli akış olduğu için desteklenmez. Benzer şekilde sahibi tarafından silinen veya moderasyonla kaldırılan videolarda artık erişilebilir bir genel medya akışı bulunmaz."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen TikTok videosu veya sesi nerede bulunur?",
+    "subheading": "Kaydettiğiniz MP4 video, MP3/M4A ses ya da Photo Mode ZIP dosyasına cihazınızda hızla ulaşın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari adres çubuğundaki indirme okuna dokunup İndirilenler listesini açın veya Dosyalar > İndirilenler klasörüne gidin. MP4 videosunu ya da JPG fotoğrafı Fotoğraflar uygulamasına aktarmak için dosyayı açıp Paylaş simgesine basın ve Videoyu Kaydet ya da Görüntüyü Kaydet deyin. Slayt ZIP arşivleri tek dokunuşla klasöre çıkar."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome ve diğer Android tarayıcıları indirilen TikTok videolarını, ses dosyalarını ve fotoğrafları cihazın İndirilenler (Download) klasörüne yerleştirir. Dosyalarım uygulamasından ya da Galeri içindeki İndirilenler albümünden içeriği hemen oynatabilirsiniz. Photo Mode ZIP paketine dokunarak tüm JPG karelerini çıkarabilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "İndirilen tüm TikTok dosyaları işletim sisteminin varsayılan İndirilenler klasörüne kaydedilir. Tarayıcıda Windows için Ctrl+J, macOS için Cmd+Shift+J tuşlarına basarak dosyayı doğrudan klasörde gösterebilirsiniz. MP3 ve M4A dosyaları varsayılan ses oynatıcınızda, ZIP arşivleri ise sistem çıkarıcısıyla tek tıkla açılır."
+    }
+  },
+  "faqs": [
+    {
+      "question": "VIDNEX ile filigransız TikTok videosu nasıl indirilir?",
+      "answer": "TikTok uygulamasında herkese açık videonun Paylaş menüsünden bağlantıyı kopyalayın, yukarıdaki giriş alanına yapıştırın ve İndir düğmesine basın. VIDNEX kaynak akışta filigransız sürüm bulunduğunda logo eklenmemiş MP4 dosyasını çözümler; ardından cihazınıza uygun HD 1080p veya SD 720p seçeneğine tıklayarak doğrudan indirebilirsiniz."
+    },
+    {
+      "question": "vm.tiktok.com ve vt.tiktok.com kısa bağlantıları çalışır mı?",
+      "answer": "Evet, VIDNEX algılayıcısı hem tam tiktok.com/@kullanici/video/ adreslerini hem de mobil uygulamadan paylaşılan vm.tiktok.com, vt.tiktok.com ve tiktok.com/t/ kısa bağlantılarını sorunsuz biçimde destekler. Sistem yönlendirmeyi otomatik olarak izleyerek asıl herkese açık gönderi kimliğine ulaşır ve mevcut video, ses veya slayt seçeneklerini listeler."
+    },
+    {
+      "question": "TikTok ses indirme neden bazen MP3 yerine M4A dosyası verir?",
+      "answer": "VIDNEX indirme bağlantısını hazırlamadan önce TikTok medya sunucusunun döndürdüğü gerçek MIME türünü ve HEAD başlığını kontrol eder. Kaynak ses AAC kodeğiyle sunuluyorsa aracımız bozuk dosya oluşmasını önlemek için uzantıyı yapay olarak MP3 yapmaz; bunun yerine tüm modern cihazların desteklediği gerçek M4A uzantısını korur."
+    },
+    {
+      "question": "TikTok Photo Mode slaytındaki tüm fotoğrafları tek seferde indirebilir miyim?",
+      "answer": "Evet, /@kullanici/photo/ yapısındaki herkese açık bir slayt bağlantısı yapıştırdığınızda VIDNEX tüm kareleri onay kutularıyla birlikte ekranda gösterir. İstediğiniz kareleri tek tek JPG olarak indirebilir ya da en fazla 20 fotoğraf ve toplam 100 MB sınırına kadar doğrudan tarayıcınızda tek bir ZIP arşivi oluşturabilirsiniz."
+    },
+    {
+      "question": "Bir TikTok hesabının profil fotoğrafını nasıl indirebilirim?",
+      "answer": "Herkese açık bir TikTok profilinin tiktok.com/@kullaniciadi bağlantısını veya yalnızca başında @ işareti bulunan kullanıcı adını giriş kutusuna yapıştırmanız yeterlidir. VIDNEX bağlantının profil olduğunu otomatik algılar ve herhangi bir hesaba giriş yapmadan yüksek çözünürlüklü profil fotoğrafını JPG formatında önizleyip indirmenize olanak tanır."
+    },
+    {
+      "question": "Bazı TikTok videoları neden 1080p yerine yalnızca 720p olarak görünüyor?",
+      "answer": "VIDNEX indirilen videoları yapay olarak yeniden kodlayıp çözünürlüğünü şişirmez. Sunulan video kalitesi tamamen içerik üreticisinin yüklediği dosyaya ve TikTok sunucusunun herkese açık paylaştığı akışa bağlıdır. Orijinal kaynak 720p ise yalnızca SD sunulur; 1080p kaynak akışı mevcut olduğunda HD düğmesi etkinleşir."
+    },
+    {
+      "question": "Gizli TikTok hesapları veya canlı TikTok Live yayınları indirilebilir mi?",
+      "answer": "Hayır, gizli hesaplara ait videolar, yalnızca onaylı takipçilere açık paylaşımlar ve devam eden TikTok Live canlı yayınları desteklenmez. VIDNEX yalnızca oturum açmadan erişilebilen herkese açık medya bağlantılarını çözümler; kısıtlı veya silinmiş bir bağlantı yapıştırıldığında sorunun nedenini açıklayan net bir uyarı mesajı gösterir."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Diğer VIDNEX indirme araçları ve gizlilik",
+    "subheading": "Başka sosyal ağlardaki herkese açık içerikleri kaydedin veya görsellerinizi ızgaraya bölün.",
+    "toolKeys": [
+      "instagram",
+      "x",
+      "split_image"
+    ],
+    "privacyLabel": "Gizlilik ve depolamasız aktarım",
+    "privacyDescription": "TikTok bağlantılarınızın nasıl işlendiğini ve dosyaların neden sunucuda tutulmadığını inceleyin."
+  }
+}

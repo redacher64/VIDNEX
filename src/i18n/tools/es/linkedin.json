@@ -1,0 +1,157 @@
+{
+  "editorial": {
+    "heading": "Descargar una foto de perfil pública de LinkedIn en su resolución original",
+    "subheading": "Dedicado exclusivamente a perfiles personales públicos /in/ con validación binaria y modo manual local",
+    "paragraphs": [
+      "La herramienta de LinkedIn de VIDNEX está diseñada exclusivamente para visualizar y descargar la foto de perfil pública de un perfil personal de LinkedIn (rutas linkedin.com/in/{slug}, incluyendo subdominios regionales como es.linkedin.com, m.linkedin.com y sufijos de idioma como /in/{slug}/es).",
+      "Cuando el perfil es visible públicamente, VIDNEX lee únicamente metadatos públicos de imagen expuestos por la página (etiquetas OpenGraph, Twitter Card, esquema Person o URL firmada de media.licdn.com). La imagen obtenida — hasta 10 MB en JPG, PNG o WebP — se verifica mediante firma binaria (magic bytes), se almacena brevemente en caché técnica durante diez minutos y se guarda como linkedin_{slug}_profile.jpg.",
+      "Por respeto estricto a la privacidad, VIDNEX jamás extrae el nombre completo, puesto laboral, empresa ni historial profesional: solo procesa el retrato público. Si LinkedIn muestra un muro de inicio de sesión (authwall), VIDNEX no lo elude y activa un módulo manual 100 % local de arrastrar y soltar para previsualizar y guardar una imagen desde tu dispositivo sin subir nada al servidor.",
+      "Las páginas de empresa (/company/), publicaciones (/posts/), videos de LinkedIn, perfiles tras muro de acceso y avatares grises por defecto no son compatibles."
+    ],
+    "formatsTitle": "Qué hace realmente la herramienta de LinkedIn",
+    "formatsList": [
+      "Obtiene la foto de perfil personal pública (/in/{slug}) en resolución original desde media.licdn.com",
+      "Compatible con subdominios regionales (es.linkedin.com, m.linkedin.com) y sufijos de idioma (/in/{slug}/es)",
+      "Validación por firma binaria para JPG, PNG y WebP hasta 10 MB, guardado como linkedin_{slug}_profile.jpg",
+      "Modo manual 100 % en navegador (arrastrar y soltar, vista previa HD, cero envío al servidor) ante muros de acceso",
+      "Cero extracción de datos personales: nunca lee nombre, cargo, empresa ni currículum"
+    ],
+    "limitsTitle": "Exclusiones explícitas en LinkedIn",
+    "limitsText": "No se admiten páginas de empresa (/company/), entradas del feed (/posts/), videos de LinkedIn, perfiles ocultos tras inicio de sesión ni cuentas sin fotografía (silueta genérica). VIDNEX nunca elude muros de acceso de LinkedIn."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copia la URL pública /in/ de LinkedIn",
+      "description": "Abre el perfil personal de LinkedIn en tu navegador y copia su dirección oficial con el formato linkedin.com/in/{slug}.",
+      "codeHint": "LINKEDIN.COM/IN/..."
+    },
+    {
+      "number": "02",
+      "title": "Verifica y resuelve el retrato público",
+      "description": "Pega el enlace en VIDNEX: el módulo consulta metadatos públicos de media.licdn.com y comprueba la firma binaria JPG, PNG o WebP.",
+      "codeHint": "FIRMA BINARIA · MÁX. 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Guarda el JPG o usa el modo local",
+      "description": "Revisa la vista previa ampliada y pulsa Descargar, o utiliza la carga manual 100 % local si LinkedIn exige iniciar sesión.",
+      "codeHint": "LINKEDIN_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formatos y límites de la herramienta de foto de perfil LinkedIn",
+    "subheading": "Comportamiento exacto del módulo de LinkedIn según la URL y las reglas de visibilidad.",
+    "headers": [
+      "Escenario o URL LinkedIn",
+      "Formato / Resultado",
+      "Comportamiento real en VIDNEX"
+    ],
+    "rows": [
+      [
+        "Perfil personal público (/in/slug)",
+        "JPG / PNG / WebP",
+        "Recupera la foto firmada de media.licdn.com (máx. 10 MB), valida magic bytes, caché de 10 min, guarda linkedin_{slug}_profile.jpg."
+      ],
+      [
+        "Subdominios de país o móvil",
+        "JPG / PNG / WebP",
+        "Normaliza automáticamente subdominios (es., fr., m.linkedin.com) y sufijos de idioma."
+      ],
+      [
+        "Muro de inicio de sesión",
+        "Modo manual local",
+        "Aviso honesto sin eludir el muro, junto a un visor y descargador local de arrastrar y soltar."
+      ],
+      [
+        "Avatar genérico por defecto",
+        "Foto no disponible",
+        "Detecta la silueta predeterminada e informa que no existe retrato público descargable."
+      ],
+      [
+        "/company/, /posts/ o videos",
+        "No compatible",
+        "Rechazado en la detección de URL: este módulo trata exclusivamente fotos de perfil /in/."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frecuentes en LinkedIn y soluciones",
+    "subheading": "Motivos por los que LinkedIn bloquea una consulta pública y qué alternativas tienes.",
+    "items": [
+      {
+        "problem": "LinkedIn muestra un muro de inicio de sesión (authwall)",
+        "solution": "LinkedIn limita a menudo las visitas anónimas según la privacidad de la cuenta o el tráfico. VIDNEX no elude este muro y ofrece en su lugar la herramienta manual 100 % local dentro del panel."
+      },
+      {
+        "problem": "El perfil devuelve «foto no disponible»",
+        "solution": "Ocurre cuando la persona configuró su fotografía solo para contactos de primer grado o usa la silueta gris por defecto. Solo las fotos marcadas como Públicas pueden resolverse."
+      },
+      {
+        "problem": "Enlace de página de empresa (/company/) o publicación (/posts/) rechazado",
+        "solution": "El módulo LinkedIn de VIDNEX acepta únicamente URLs personales linkedin.com/in/{slug}. Logotipos de empresas, posts y videos quedan fuera de alcance."
+      },
+      {
+        "problem": "La foto descargada muestra una versión anterior tras cambiarla",
+        "solution": "Los retratos resueltos se guardan en una caché técnica breve de diez minutos. Espera unos minutos después del cambio en LinkedIn y vuelve a consultar la dirección."
+      },
+      {
+        "problem": "No veo el JPG descargado en Fotos de iPhone",
+        "solution": "Safari guarda las imágenes en Archivos > Descargas. Abre linkedin_profile.jpg desde Archivos, toca Compartir y pulsa Guardar imagen para copiarlo a Fotos."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dónde encontrar tu foto de perfil de LinkedIn guardada",
+    "subheading": "Localiza rápidamente el archivo linkedin_{slug}_profile.jpg en móvil u ordenador.",
+    "ios": {
+      "title": "iPhone y iPad",
+      "steps": "Abre Descargas en Safari o entra en Archivos > Descargas. Toca linkedin_{slug}_profile.jpg, pulsa Compartir y elige Guardar imagen para pasarlo a la app Fotos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "La imagen descargada se guarda dentro de la carpeta Download de tu dispositivo y aparece automáticamente en la Galería o Google Fotos en el álbum Descargas."
+    },
+    "desktop": {
+      "title": "Ordenador (Windows y macOS)",
+      "steps": "Tu navegador guarda linkedin_{slug}_profile.jpg en la carpeta Descargas del sistema. Pulsa Ctrl+J en Windows o Cmd+Shift+J en macOS para abrirla al momento."
+    }
+  },
+  "faqs": [
+    {
+      "question": "¿Qué direcciones de LinkedIn funcionan en el descargador de VIDNEX?",
+      "answer": "VIDNEX admite exclusivamente enlaces de perfiles personales públicos con la ruta linkedin.com/in/{slug}, incluidos subdominios regionales como es.linkedin.com o m.linkedin.com y sufijos de idioma opcionales. En cambio, las páginas de empresa (/company/), publicaciones del muro (/posts/), artículos y videos de LinkedIn se rechazan automáticamente al detectarse."
+    },
+    {
+      "question": "¿Extrae VIDNEX el nombre, cargo laboral o currículum del perfil?",
+      "answer": "No, en ningún caso. El módulo de LinkedIn lee metadatos públicos únicamente para localizar la URL firmada de la fotografía de perfil en media.licdn.com. Nunca recopila, muestra ni almacena nombres completos, titulares profesionales, empresas, correos electrónicos ni datos de trayectoria laboral durante ninguna consulta."
+    },
+    {
+      "question": "¿Por qué aparece a veces un aviso de muro de inicio de sesión en LinkedIn?",
+      "answer": "LinkedIn permite a cada usuario restringir su visibilidad pública y activa periódicamente muros de acceso frente a visitas sin cuenta. VIDNEX respeta esas barreras sin eludirlas y habilita una herramienta local de arrastrar y soltar para revisar y guardar una imagen desde tu equipo."
+    },
+    {
+      "question": "¿Cómo funciona la carga manual local si LinkedIn bloquea el acceso?",
+      "answer": "Cuando LinkedIn presenta un muro de conexión, el panel de resultados te permite arrastrar o seleccionar una imagen almacenada en tu propio dispositivo. La comprobación de formato binario, el zoom en alta definición y el guardado ocurren enteramente en tu navegador sin enviar datos."
+    },
+    {
+      "question": "¿Qué formatos de imagen y tamaño máximo acepta el módulo de LinkedIn?",
+      "answer": "VIDNEX comprueba la firma binaria real de cada archivo para aceptar imágenes JPG, PNG y WebP de hasta diez megabytes como máximo. La foto pública se mantiene en caché técnica durante diez minutos y se descarga limpiamente como linkedin_{slug}_profile.jpg sin recompresión."
+    },
+    {
+      "question": "¿Por qué un perfil público de LinkedIn indica que la foto no está disponible?",
+      "answer": "Este aviso aparece cuando la cuenta utiliza la silueta genérica de LinkedIn o limita la visibilidad de su foto a contactos directos. Para que la imagen pueda obtenerse sin iniciar sesión, su visibilidad debe estar configurada como Pública en los ajustes de LinkedIn."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Más herramientas VIDNEX para imágenes y redes",
+    "subheading": "Divide fotos en cuadrículas localmente o descarga medios públicos de otras plataformas.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Política de privacidad de VIDNEX",
+    "privacyDescription": "Cero rastreo de perfiles personales, caché breve de 10 minutos y modo manual 100 % navegador."
+  }
+}

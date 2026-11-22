@@ -152,67 +152,6 @@
       "TANPA AKUN",
       "KONTEN PUBLIK"
     ],
-    "editorial": {
-      "heading": "Satu alat mudah untuk menyimpan video publik media sosial",
-      "subheading": "Unduh video dan trek audio Anda dalam kualitas aslinya, gratis dan tanpa membuat akun.",
-      "paragraphs": [
-        "VIDNEX memudahkan Anda menyimpan video publik dari TikTok, Instagram, X (sebelumnya Twitter), dan Facebook langsung dari browser. Cukup tempel tautan postingan di kolom pencarian di atas untuk mendapatkan file MP4, JPG, atau MP3 asli.",
-        "Selama video tersebut bersifat publik, VIDNEX mendeteksi pilihan resolusi yang tersedia (HD 1080p, 720p, atau standar) agar dapat langsung disimpan ke perangkat Anda. Tidak ada file yang disimpan di server kami.",
-        "Dirancang agar nyaman digunakan di ponsel pintar (Android dan iPhone/iPad) maupun komputer (Windows, macOS, Linux) tanpa perlu menginstal aplikasi tambahan."
-      ],
-      "formatsTitle": "Kompatibilitas dan format per platform",
-      "formatsList": [
-        "TikTok: unduh video publik MP4 tanpa watermark bawaan dan ekstrak audio dalam format MP3/M4A.",
-        "Instagram: dukungan untuk Instagram Reels publik, video feed, dan postingan karusel multi-slide.",
-        "X (Twitter): ekstraksi video dari tweet publik dengan pilihan resolusi (360p hingga 1080p) serta konversi GIF ke MP4.",
-        "Facebook: simpan video halaman publik, Facebook Reels, dan tautan pendek fb.watch dalam kualitas SD atau HD.",
-        "LinkedIn: pratinjau dan unduhan foto profil publik (linkedin.com/in/{slug}) dalam format JPG asli."
-      ],
-      "limitsTitle": "Ketentuan penggunaan dan batasan teknis",
-      "limitsText": "VIDNEX hanya memproses konten yang bersifat publik. Video dari akun pribadi, grup tertutup, Stories yang memerlukan login, atau postingan dengan batasan usia tidak dapat diambil. Harap selalu menghormati hak cipta pembuat konten."
-    },
-    "howToSteps": [
-      {
-        "number": "01",
-        "title": "Salin tautan postingan publik",
-        "description": "Buka aplikasi atau situs TikTok, Instagram, X, atau Facebook, ketuk tombol Bagikan pada video publik lalu pilih Salin tautan.",
-        "codeHint": "URL"
-      },
-      {
-        "number": "02",
-        "title": "Tempel URL di VIDNEX",
-        "description": "Masukkan tautan yang telah disalin ke kotak input di atas dan tekan tombol Unduh untuk memulai analisis.",
-        "codeHint": "VIDNEX"
-      },
-      {
-        "number": "03",
-        "title": "Pilih kualitas dan simpan file",
-        "description": "Pilih resolusi video MP4 atau file audio yang diinginkan untuk menyimpannya langsung ke perangkat Anda.",
-        "codeHint": "MP4 / MP3"
-      }
-    ],
-    "faqs": [
-      {
-        "question": "Apakah layanan VIDNEX gratis digunakan?",
-        "answer": "Ya, semua alat pengunduh dapat digunakan secara gratis langsung dari browser tanpa langganan atau pembuatan akun."
-      },
-      {
-        "question": "Bisakah saya mengunduh video dari akun pribadi?",
-        "answer": "Tidak. VIDNEX menghormati pengaturan privasi dan hanya dapat memproses tautan publik yang dapat dibuka tanpa login."
-      },
-      {
-        "question": "Perangkat apa saja yang kompatibel?",
-        "answer": "Alat ini berjalan di browser modern (Chrome, Safari, Firefox, Edge) pada Android, iOS/iPadOS, Windows, macOS, dan Linux."
-      },
-      {
-        "question": "Apakah kualitas video berkurang setelah diunduh?",
-        "answer": "Tidak, kami meneruskan aliran file MP4 asli dari server distribusi platform sumber tanpa kompresi ulang."
-      },
-      {
-        "question": "Apakah VIDNEX menyimpan riwayat unduhan saya?",
-        "answer": "Tidak. Pemrosesan tautan dilakukan secara langsung dan kami tidak mengarsipkan file media di server kami."
-      }
-    ],
     "ogTitle": "VIDNEX — Download Video TikTok, Instagram, X & Facebook MP4",
     "ogDescription": "Unduh video publik TikTok tanpa watermark, Instagram Reels, video X, Facebook, dan foto profil LinkedIn gratis langsung dari browser.",
     "ogImageAlt": "Pratinjau VIDNEX: pengunduh video publik TikTok, Instagram, X, dan Facebook dalam MP4 HD"
@@ -233,61 +172,6 @@
         "TANPA AKUN",
         "KONTEN PUBLIK"
       ],
-      "editorial": {
-        "heading": "Simpan video TikTok publik kualitas asli tanpa tanda air",
-        "subheading": "Mendukung tautan tiktok.com/@pengguna/video/... serta tautan pendek vm.tiktok.com dan vt.tiktok.com.",
-        "paragraphs": [
-          "Saat menyimpan video langsung dari fitur bawaan aplikasi TikTok, biasanya terdapat watermark bergerak berisi logo dan nama pengguna di atas video. Pengunduh TikTok VIDNEX mengambil aliran file MP4 sumber secara langsung tanpa lapisan watermark tersebut, selama postingan bersifat publik.",
-          "Mesin kami mengenali URL lengkap dari browser desktop maupun tautan pendek yang dibuat oleh aplikasi seluler (vm.tiktok.com dan vt.tiktok.com). Pengalihan tautan diselesaikan secara otomatis untuk menemukan ID postingan dan menampilkan opsi unduhan video MP4 beserta trek audio terpisah.",
-          "Cocok untuk mencadangkan karya video Anda sendiri tanpa watermark atau menyimpan video tutorial publik agar dapat ditonton secara offline."
-        ],
-        "formatsTitle": "Fitur teknis untuk TikTok",
-        "formatsList": [
-          "Video MP4 tanpa watermark dalam resolusi asli postingan (hingga 1080p HD).",
-          "Ekstraksi trek audio asli dalam format MP3 / M4A.",
-          "Resolusi otomatis tautan pendek aplikasi vm.tiktok.com dan vt.tiktok.com."
-        ],
-        "limitsTitle": "Batasan platform",
-        "limitsText": "Hanya video TikTok publik yang didukung. Akun pribadi, video khusus teman, atau konten yang telah dihapus tidak dapat diproses."
-      },
-      "howToSteps": [
-        {
-          "number": "01",
-          "title": "Salin tautan video TikTok",
-          "description": "Di aplikasi atau web TikTok, ketuk Bagikan pada video publik lalu pilih Salin tautan.",
-          "codeHint": "TIKTOK"
-        },
-        {
-          "number": "02",
-          "title": "Tempel tautan di kolom atas",
-          "description": "Masukkan URL yang disalin ke kotak pencarian halaman ini dan klik tombol Unduh.",
-          "codeHint": "VIDNEX"
-        },
-        {
-          "number": "03",
-          "title": "Simpan sebagai MP4 atau MP3",
-          "description": "Pilih tombol Unduh MP4 tanpa watermark atau simpan file audionya saja.",
-          "codeHint": "MP4"
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Bagaimana cara download video TikTok tanpa watermark?",
-          "answer": "Cukup tempel tautan video TikTok publik atau tautan pendek vm.tiktok.com di VIDNEX; tombol Unduh MP4 akan langsung memberikan file video sumber berkualitas HD yang bersih tanpa lapisan watermark, dilengkapi pemutar pratinjau langsung, opsi ekstraksi musik asli MP3 atau M4A, serta unduhan slideshow foto dalam arsip .ZIP."
-        },
-        {
-          "question": "Apakah tautan pendek vm.tiktok.com bisa digunakan?",
-          "answer": "Ya, tautan pendek dari aplikasi Android maupun iOS didukung sepenuhnya secara otomatis."
-        },
-        {
-          "question": "Bisakah saya mengambil suara atau musiknya saja?",
-          "answer": "Ya, jika postingan menyediakan trek audio terpisah, tombol Ekstrak Audio akan muncul di hasil analisis."
-        },
-        {
-          "question": "Bagaimana cara menyimpan video di iPhone?",
-          "answer": "Gunakan browser Safari (iOS 13 ke atas), ketuk Unduh MP4, lalu buka file di aplikasi File dan pilih Bagikan > Simpan Video."
-        }
-      ],
       "ogTitle": "Download Video TikTok Tanpa Watermark MP4 & MP3 | VIDNEX",
       "ogDescription": "Unduh video TikTok publik tanpa watermark dalam kualitas MP4 HD atau ekstrak musik MP3 secara gratis lewat browser di HP Android, iPhone, dan PC.",
       "ogImageAlt": "Pratinjau pengunduh video TikTok tanpa watermark dalam format MP4 HD dan MP3 di VIDNEX"
@@ -306,61 +190,6 @@
         "TANPA WATERMARK",
         "TANPA AKUN",
         "KONTEN PUBLIK"
-      ],
-      "editorial": {
-        "heading": "Ekstraksi Instagram Reels dan postingan karusel publik",
-        "subheading": "Mendukung tautan instagram.com/reel/..., instagram.com/p/..., dan instagram.com/tv/...",
-        "paragraphs": [
-          "Aplikasi Instagram tidak selalu menyediakan tombol untuk menyimpan video atau Reels publik langsung ke penyimpanan perangkat untuk ditonton offline. Alat Instagram VIDNEX menganalisis tautan postingan publik dan mengekstrak file video MP4 lengkap dengan audio aslinya.",
-          "Sistem mendukung tautan Reels (/reel/), postingan feed standar (/p/), dan video berdurasi panjang (/tv/). Selain itu, jika tautan yang ditempel adalah postingan karusel publik yang berisi beberapa foto dan video sekaligus, antarmuka kami akan menampilkan setiap slide secara terpisah agar Anda dapat mengunduh bagian yang diinginkan.",
-          "Seluruh proses berlangsung di browser tanpa meminta login akun Instagram dan tanpa menambahkan watermark pada video."
-        ],
-        "formatsTitle": "Jenis media Instagram yang didukung",
-        "formatsList": [
-          "Instagram Reels publik dalam format MP4 dengan kualitas asli.",
-          "Video feed tunggal dan video panjang (/tv/).",
-          "Karusel publik (multi-foto dan multi-video dalam satu tautan /p/)."
-        ],
-        "limitsTitle": "Batasan privasi",
-        "limitsText": "Hanya postingan publik yang dapat diproses. Akun pribadi, Stories yang memerlukan login, serta konten dengan batasan usia tidak didukung."
-      },
-      "howToSteps": [
-        {
-          "number": "01",
-          "title": "Salin tautan Reel atau postingan",
-          "description": "Di Instagram, ketuk ikon bagikan atau menu tiga titik pada postingan publik dan pilih Salin tautan.",
-          "codeHint": "INSTAGRAM"
-        },
-        {
-          "number": "02",
-          "title": "Tempel URL di kolom analisis",
-          "description": "Masukkan tautan yang disalin ke kotak di atas lalu tekan tombol Unduh.",
-          "codeHint": "VIDNEX"
-        },
-        {
-          "number": "03",
-          "title": "Unduh video MP4 atau item karusel",
-          "description": "Klik Unduh MP4 (atau pilih slide tertentu jika postingan berupa karusel).",
-          "codeHint": "MP4"
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Bisakah saya mengunduh semua slide dari karusel Instagram?",
-          "answer": "Ya, saat menganalisis tautan karusel publik Instagram, VIDNEX menampilkan kisi pemilihan interaktif dengan kotak centang individual dan penghitung jumlah item. Anda dapat melihat pratinjau setiap foto JPG maupun video MP4, menyimpan slide satu per satu, atau menggabungkan seluruh slide terpilih ke dalam satu arsip .ZIP langsung di browser Anda."
-        },
-        {
-          "question": "Mengapa beberapa Reels gagal diambil dan meminta login?",
-          "answer": "Sebagian akun bersifat pribadi atau memiliki pembatasan usia/wilayah dari Meta. Alat kami hanya dapat membaca konten yang terbuka untuk umum."
-        },
-        {
-          "question": "Apakah video Reels yang diunduh memiliki watermark tambahan?",
-          "answer": "Tidak, file MP4 diambil langsung dari server distribusi asli tanpa penambahan logo apa pun."
-        },
-        {
-          "question": "Apakah saya perlu login ke akun Instagram saya?",
-          "answer": "Tidak pernah. Kami tidak meminta nama pengguna atau kata sandi Instagram Anda."
-        }
       ],
       "ogTitle": "Download Reels & Video Instagram MP4 Gratis | VIDNEX",
       "ogDescription": "Unduh video Instagram Reels, postingan feed, dan karusel publik dalam format MP4 dan JPG langsung di HP atau PC tanpa login akun.",
@@ -381,61 +210,6 @@
         "TANPA AKUN",
         "KONTEN PUBLIK"
       ],
-      "editorial": {
-        "heading": "Cara menyimpan video dan GIF dari postingan publik di X",
-        "subheading": "Mendukung tautan x.com/.../status/..., twitter.com/.../status/..., dan tautan pendek t.co.",
-        "paragraphs": [
-          "Video yang dibagikan di X (sebelumnya Twitter) dikirim menggunakan protokol streaming tersegmen sehingga tidak dapat disimpan langsung melalui menu klik kanan browser. Pengunduh X dari VIDNEX membaca data sematan publik tweet untuk menemukan file kontainer MP4 langsung.",
-          "Ketika sebuah tweet publik memuat video, server X umumnya menyediakan beberapa varian resolusi (seperti 360p, 720p, dan 1080p). Alat kami menampilkan semua pilihan kualitas yang tersedia dari yang tertinggi hingga terendah, sehingga Anda bebas memilih antara kualitas HD terbaik atau ukuran file yang lebih hemat kuota.",
-          "Kami juga mendukung tweet yang melampirkan beberapa video sekaligus serta animasi GIF yang disimpan sebagai file MP4."
-        ],
-        "formatsTitle": "Fitur pengunduh X / Twitter",
-        "formatsList": [
-          "Pilihan resolusi MP4 (SD, 720p, 1080p HD sesuai ketersediaan pada tweet asli).",
-          "Kompatibilitas penuh untuk domain x.com, twitter.com, dan tautan pendek t.co.",
-          "Dukungan untuk tweet multi-video dan pengunduhan GIF sebagai MP4."
-        ],
-        "limitsTitle": "Konten yang tidak didukung",
-        "limitsText": "Akun yang dilindungi (tweet digembok), postingan sensitif yang mewajibkan login verifikasi usia, dan siaran audio Spaces tidak didukung."
-      },
-      "howToSteps": [
-        {
-          "number": "01",
-          "title": "Salin tautan tweet",
-          "description": "Ketuk ikon Bagikan di bawah tweet publik pada aplikasi atau web X, lalu pilih Salin tautan.",
-          "codeHint": "X (TWITTER)"
-        },
-        {
-          "number": "02",
-          "title": "Tempel URL di VIDNEX",
-          "description": "Masukkan tautan x.com atau twitter.com ke kolom pencarian di atas dan tekan Unduh.",
-          "codeHint": "VIDNEX"
-        },
-        {
-          "number": "03",
-          "title": "Pilih resolusi MP4",
-          "description": "Pilih kualitas video yang diinginkan dari daftar hasil untuk menyimpannya ke perangkat Anda.",
-          "codeHint": "MP4"
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Apakah tautan twitter.com lama dan x.com baru sama-sama berfungsi?",
-          "answer": "Ya, kedua domain resmi tersebut beserta tautan pendek t.co dikenali secara otomatis."
-        },
-        {
-          "question": "Bagaimana cara memilih kualitas video Twitter tertinggi?",
-          "answer": "Setelah menganalisis tautan tweet publik dari x.com, twitter.com, atau tautan pendek t.co, VIDNEX menyaring daftar streaming tersegmen dan mengurutkan semua file MP4 progresif dari bitrate tertinggi ke terendah. Tombol utama mengunduh kualitas terbaik (1080p atau 720p) lengkap dengan pratinjau video, atau pilih ukuran yang lebih hemat kuota."
-        },
-        {
-          "question": "Mengapa GIF Twitter diunduh sebagai file MP4?",
-          "answer": "Platform X secara otomatis mengonversi semua unggahan GIF menjadi video MP4 berulang agar ukuran file lebih kecil dan lancar diputar."
-        },
-        {
-          "question": "Bagaimana jika satu tweet berisi lebih dari satu video?",
-          "answer": "Jika tweet publik memiliki hingga 4 video terlampir, setiap klip akan ditampilkan secara terpisah agar dapat diunduh satu per satu."
-        }
-      ],
       "ogTitle": "Download Video X (Twitter) MP4 HD Gratis | VIDNEX",
       "ogDescription": "Unduh video dan GIF dari tweet publik X (Twitter) dalam format MP4 dengan pilihan resolusi (1080p, 720p) langsung dari browser Anda.",
       "ogImageAlt": "Pratinjau pengunduh video dan GIF publik X (Twitter) dalam format MP4 HD di VIDNEX"
@@ -455,61 +229,6 @@
         "TANPA AKUN",
         "KONTEN PUBLIK"
       ],
-      "editorial": {
-        "heading": "Ekstraksi video publik dari halaman Facebook, Watch, dan Reels",
-        "subheading": "Mendukung facebook.com/reel/..., facebook.com/watch/?v=..., fb.watch/..., dan /share/v/...",
-        "paragraphs": [
-          "Facebook memiliki beragam format URL untuk konten videonya: postingan halaman publik, tautan Facebook Watch, klip pendek Facebook Reels, hingga tautan berbagi seperti fb.watch dan /share/v/. Pengunduh Facebook VIDNEX menormalisasi berbagai format tautan tersebut dan mengikuti pengalihan secara aman untuk menemukan ID video publik.",
-          "Saat menganalisis halaman video publik, mesin kami mencari aliran file MP4 bersuara baik dalam kualitas standar (SD) maupun definisi tinggi (HD) apabila tersedia di server sumber. Anda dapat memilih kualitas yang paling sesuai dengan kecepatan koneksi atau kapasitas penyimpanan perangkat.",
-          "Semua proses dilakukan langsung melalui browser HP atau komputer tanpa perlu menghubungkan akun Facebook Anda."
-        ],
-        "formatsTitle": "Format Facebook yang didukung",
-        "formatsList": [
-          "Video halaman publik dan Facebook Watch (/watch/?v=).",
-          "Klip publik Facebook Reels (/reel/{id}).",
-          "Tautan pendek fb.watch/{kode}, /share/v/, dan /share/r/ dengan opsi kualitas HD atau SD."
-        ],
-        "limitsTitle": "Batasan akses",
-        "limitsText": "Video yang diposting di grup Facebook tertutup, profil pribadi khusus teman, siaran langsung yang sedang berlangsung, atau konten yang mewajibkan login tidak dapat diunduh."
-      },
-      "howToSteps": [
-        {
-          "number": "01",
-          "title": "Salin tautan video Facebook",
-          "description": "Ketuk tombol Bagikan pada video atau Reel publik di Facebook lalu pilih Salin tautan.",
-          "codeHint": "FACEBOOK"
-        },
-        {
-          "number": "02",
-          "title": "Tempel tautan di halaman ini",
-          "description": "Masukkan URL yang disalin ke kolom pencarian VIDNEX dan klik tombol Unduh.",
-          "codeHint": "VIDNEX"
-        },
-        {
-          "number": "03",
-          "title": "Pilih kualitas HD atau SD",
-          "description": "Unduh file MP4 dalam resolusi HD atau SD sesuai opsi yang tersedia pada postingan tersebut.",
-          "codeHint": "MP4"
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Mengapa sebagian video Facebook hanya menampilkan kualitas SD?",
-          "answer": "Saat memeriksa tautan video publik Facebook Watch, Reels, atau fb.watch, mesin VIDNEX mengekstrak aliran video MP4 progresif bersuara dalam resolusi tinggi (HD 720p atau 1080p) maupun standar (SD) lengkap dengan pemutar pratinjau langsung; apabila pembuat aslinya tidak mengunggah versi HD, maka versi SD otomatis disediakan."
-        },
-        {
-          "question": "Apakah tautan pendek fb.watch dan /share/v/ didukung?",
-          "answer": "Ya, server kami mengikuti pengalihan tautan pendek tersebut hingga menemukan halaman video publik aslinya."
-        },
-        {
-          "question": "Bisakah saya mengunduh video dari grup Facebook tertutup?",
-          "answer": "Tidak. Video di dalam grup pribadi memerlukan otentikasi anggota dan tidak dapat diakses oleh alat publik."
-        },
-        {
-          "question": "Apakah file MP4 yang diunduh sudah termasuk suara?",
-          "answer": "Ya, ekstraktor kami memprioritaskan aliran MP4 gabungan yang memuat gambar video dan trek audio dalam satu file."
-        }
-      ],
       "ogTitle": "Download Video Facebook & Reels MP4 HD / SD | VIDNEX",
       "ogDescription": "Unduh video publik Facebook, Facebook Reels, dan tautan fb.watch dalam format MP4 kualitas HD atau SD secara gratis tanpa login.",
       "ogImageAlt": "Pratinjau pengunduh video Facebook Watch dan Reels publik dalam kualitas HD dan SD"
@@ -528,57 +247,6 @@
         "PROFIL PUBLIK",
         "TANPA LOGIN",
         "KUALITAS ASLI"
-      ],
-      "editorial": {
-        "heading": "Cara melihat dan menyimpan foto profil LinkedIn publik ukuran penuh",
-        "subheading": "Ekstraksi langsung untuk tautan profil pribadi linkedin.com/in/{slug} tanpa akun, tanpa cookie, dan tanpa API pihak ketiga.",
-        "paragraphs": [
-          "Saat membuka halaman anggota di LinkedIn melalui browser ponsel maupun komputer desktop, foto profil biasanya ditampilkan dalam bingkai lingkaran kecil dan sering meminta pengguna masuk (login) ketika diklik untuk diperbesar. Alat LinkedIn di VIDNEX memeriksa halaman web publik dari profil pribadi (dengan format tautan linkedin.com/in/nama-pengguna) guna menemukan alamat gambar profil publik asli yang disajikan oleh server jaringan distribusi resmi media.licdn.com.",
-          "Seluruh proses ini bekerja sepenuhnya tanpa akun LinkedIn, tanpa cookie sesi, dan tanpa layanan pihak ketiga. Begitu Anda menempelkan URL profil publik ke kolom pencarian di atas, server kami membaca metadata terbuka pada halaman tersebut, mempertahankan URL gambar bertanda tangan asli tanpa kompresi ulang, dan memungkinkan Anda mengunduh file JPG langsung ke ponsel Android, iPhone, tablet, atau komputer.",
-          "Demi menjaga privasi pengguna secara ketat, alat ini hanya mengambil foto profil publik dengan penanda @slug dan tidak pernah menyimpan salinan gambar di server kami. Kami tidak pernah mengambil nama lengkap, jabatan pekerjaan, atau riwayat karier, serta tidak pernah mencoba melewati dinding login LinkedIn."
-        ],
-        "formatsTitle": "Format dan tautan LinkedIn yang didukung",
-        "formatsList": [
-          "URL profil pribadi: tautan dengan format linkedin.com/in/{slug} (termasuk www. dan subdomain negara seperti id.linkedin.com).",
-          "File JPG asli: gambar bertanda tangan langsung dari media.licdn.com tanpa pemotongan lingkaran.",
-          "Penamaan file rapi: disimpan otomatis dengan nama linkedin_{slug}_profile.jpg."
-        ],
-        "limitsTitle": "Khusus foto profil publik — tidak ada janji untuk profil privat",
-        "limitsText": "Hanya foto profil yang diatur oleh pemiliknya agar dapat dilihat oleh publik tanpa login yang dapat diunduh. Jika profil disembunyikan, tidak memiliki foto, atau jika LinkedIn menampilkan halaman login (authwall), foto tidak dapat diambil. Halaman perusahaan (/company/) dan postingan (/posts/) tidak didukung."
-      },
-      "howToSteps": [
-        {
-          "number": "01",
-          "title": "Salin tautan profil LinkedIn",
-          "description": "Salin URL publik profil pribadi yang diawali dengan linkedin.com/in/ dari bilah alamat browser atau aplikasi.",
-          "codeHint": "linkedin.com/in/{slug}"
-        },
-        {
-          "number": "02",
-          "title": "Tempel tautan ke kolom VIDNEX",
-          "description": "Masukkan alamat yang disalin ke kotak di atas lalu tekan tombol Unduh untuk memeriksa profil publik.",
-          "codeHint": "PEMERIKSAAN PUBLIK"
-        },
-        {
-          "number": "03",
-          "title": "Unduh foto profil dalam JPG",
-          "description": "Lihat pratinjau foto ukuran penuh dan klik «Unduh foto profil» untuk menyimpan file JPG ke perangkat Anda.",
-          "codeHint": "linkedin_{slug}_profile.jpg"
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Bisakah saya mengunduh foto dari profil LinkedIn yang diprivat?",
-          "answer": "Tidak. Jika pemilik akun membatasi visibilitas foto profilnya hanya untuk pengguna yang login atau jika LinkedIn menampilkan halaman login, VIDNEX tidak pernah melewati batasan privasi tersebut; sebagai gantinya tersedia kotak impor gambar manual 100% lokal lewat seret dan lepas untuk memvalidasi, melihat pratinjau, dan menyimpan file di browser."
-        },
-        {
-          "question": "Apakah halaman perusahaan atau postingan video LinkedIn didukung?",
-          "answer": "Tidak. Alat ini khusus menerima URL profil pribadi berformat linkedin.com/in/{slug} untuk mengambil foto profil publik."
-        },
-        {
-          "question": "Apakah saya harus login ke akun LinkedIn saya?",
-          "answer": "Tidak. Anda tidak perlu memasukkan akun atau kata sandi apa pun karena alat ini hanya membaca metadata halaman publik."
-        }
       ],
       "ogTitle": "Download Foto Profil LinkedIn Publik Ukuran Penuh | VIDNEX",
       "ogDescription": "Lihat dan unduh foto profil publik LinkedIn dalam resolusi JPG asli melalui tautan linkedin.com/in/ secara gratis tanpa perlu login akun.",

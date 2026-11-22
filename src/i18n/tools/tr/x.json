@@ -1,0 +1,156 @@
+{
+  "editorial": {
+    "heading": "X (Twitter) video, GIF ve orijinal fotoğraf indir — HD MP4 ve ?name=orig",
+    "subheading": "Bit hızına göre sıralanmış aşamalı MP4 videolar, döngülü GIF dosyaları ve 4'e kadar fotoğraf",
+    "paragraphs": [
+      "VIDNEX X (Twitter) indirici, resmi x.com, twitter.com, mobile.twitter.com ve m.twitter.com gönderi bağlantılarının yanı sıra /i/status/ adreslerini ve t.co kısa bağlantılarını (en fazla üç yönlendirmeye kadar) çözümler. Gönderideki herkese açık medya dosyaları tarayıcı üzerinden hızla indirilebilir formatlara ayrılır.",
+      "Video içeren X paylaşımlarında motor yalnızca uyumlu aşamalı video/mp4 akışlarını seçer ve HLS (.m3u8) parçalı yayınlarını ayıklar. Bulunan tüm MP4 seçenekleri en yüksek bit hızından en düşüğe doğru sıralanır; böylece kaynak gönderide mevcutsa 1080p, 720p, 480p veya 360p çözünürlüklerinden ihtiyacınıza uygun olanı tek tıkla kaydedebilirsiniz. X üzerindeki hareketli GIF gönderileri platform tarafından zaten MP4 video olarak saklandığından, döngülü MP4 biçiminde doğrudan indirilir.",
+      "Birden fazla görsel içeren X gönderilerinde (1 ila 4 fotoğraf) VIDNEX her görseli ?name=orig parametresiyle orijinal çözünürlüğünde (JPG veya PNG) çeker. Görselleri onay kutularıyla seçip tek tek kaydedebilir ya da tamamını doğrudan tarayıcınızda yerel bir ZIP arşivi hâlinde paketleyebilirsiniz.",
+      "Güvenilirlik ve kaynak doğruluğu adına fxtwitter, vxtwitter, fixupx veya nitter gibi üçüncü taraf ayna alan adları kabul edilmez. Korumalı (kilitli) hesaplar, oturum veya yaş doğrulaması isteyen gönderiler, yalnızca metin içeren paylaşımlar ve X Spaces ses odaları indirme kapsamı dışındadır."
+    ],
+    "formatsTitle": "Desteklenen X (Twitter) medya ve bağlantı türleri",
+    "formatsList": [
+      "Aşamalı video/mp4 akışları: bit hızına göre sıralı 1080p, 720p, 480p veya 360p (HLS .m3u8 filtrelenir)",
+      "X GIF paylaşımları: platformun yerel biçimi olan döngülü MP4 dosyası",
+      "1 ila 4 fotoğraflı X gönderileri: ?name=orig tam çözünürlüklü JPG/PNG, tekli veya tarayıcı içi ZIP",
+      "Resmi alan adları: x.com, twitter.com, mobile.twitter.com, m.twitter.com, /i/status/ ve t.co (en fazla 3 yönlendirme)"
+    ],
+    "limitsTitle": "X (Twitter) aracında hariç tutulan içerikler",
+    "limitsText": "Üçüncü taraf ayna bağlantıları (fxtwitter, vxtwitter, fixupx, nitter), korumalı hesaplar, yaş veya giriş engelli gönderiler, medya içermeyen metin tweet'leri ve X Spaces yayınları desteklenmez."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Resmi X gönderi bağlantısını kopyalayın",
+      "description": "X uygulamasında veya web sürümünde herkese açık video, GIF ya da fotoğraflı gönderinin altındaki Paylaş simgesine dokunun ve Bağlantıyı kopyala deyin.",
+      "codeHint": "X.COM · TWITTER.COM · T.CO"
+    },
+    {
+      "number": "02",
+      "title": "Bağlantıyı yapıştırıp akışları listeleyin",
+      "description": "Adresi yukarıdaki alana yapıştırıp İndir düğmesine basın. VIDNEX t.co yönlendirmelerini çözer ve aşamalı MP4 seçeneklerini ya da orijinal fotoğrafları getirir.",
+      "codeHint": "MP4 1080P–360P · GIF · ORIG JPG"
+    },
+    {
+      "number": "03",
+      "title": "Çözünürlüğü veya fotoğraf paketini kaydedin",
+      "description": "En yüksek bit hızlı MP4 videoyu, döngülü GIF dosyasını ya da seçili orijinal fotoğrafları tek tek veya yerel ZIP olarak cihazınıza kaydedin.",
+      "codeHint": "DOĞRUDAN MP4 · YEREL ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "X (Twitter) format ve çözünürlük tablosu",
+    "subheading": "Resmi X gönderilerinde VIDNEX'in döndürdüğü gerçek dosya biçimleri ve çözünürlük seçenekleri.",
+    "headers": [
+      "X içerik türü",
+      "Çıkış formatı",
+      "Gerçek kalite ve teknik ayrıntı"
+    ],
+    "rows": [
+      [
+        "Herkese açık HD video",
+        "Aşamalı MP4",
+        "Kaynakta mevcutsa 1080p veya 720p video/mp4 akışı; en yüksek bit hızı üstte listelenir."
+      ],
+      [
+        "Standart / hafif video",
+        "Aşamalı MP4",
+        "480p veya 360p MP4 seçenekleri; parçalı HLS (.m3u8) akışları uyumluluk için ayıklanır."
+      ],
+      [
+        "X hareketli GIF",
+        "Döngülü MP4",
+        "X'in kendi video tabanlı GIF akışı kalite kaybı olmadan doğrudan MP4 olarak kaydedilir."
+      ],
+      [
+        "Fotoğraflı gönderi (1–4)",
+        "JPG / PNG veya ZIP",
+        "Tüm kareler ?name=orig tam boyutunda getirilir; onay kutusuyla tek tek veya yerel ZIP indirilir."
+      ],
+      [
+        "t.co kısa bağlantısı",
+        "Otomatik yönlendirme",
+        "En fazla 3 yönlendirme adımı izlenerek resmi x.com/twitter.com gönderisine ulaşılır."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "X (Twitter) indirirken sık karşılaşılan sorunlar ve çözümleri",
+    "subheading": "Kilitli hesaplar, ayna bağlantıları, yaş sınırı ve GIF formatıyla ilgili beş yaygın durum.",
+    "items": [
+      {
+        "problem": "fxtwitter, vxtwitter veya fixupx bağlantısı kabul edilmiyor",
+        "solution": "VIDNEX güvenlik ve kararlılık nedeniyle yalnızca resmi x.com, twitter.com ve t.co adreslerini kabul eder. Alan adını x.com olarak değiştirin veya orijinal X gönderisinin bağlantısını doğrudan kopyalayın."
+      },
+      {
+        "problem": "Gönderi korumalı hesap veya giriş gerekli hatası veriyor",
+        "solution": "Kilitli (korumalı) hesapların gönderileri ile yaş kısıtlaması veya hassas içerik nedeniyle oturum açma isteyen paylaşımlar halka açık değildir. VIDNEX oturum duvarını aşmaz ve bu içerikleri indiremez."
+      },
+      {
+        "problem": "Gönderide medya bulunamadı uyarısı çıkıyor",
+        "solution": "Bağlantı yalnızca metin, anket veya harici web sitesi kartı içeren bir gönderiye ait olabilir. Alıntılanan gönderideki videoyu indirmek için ana tweet yerine doğrudan alıntılanan gönderinin kendi bağlantısını kopyalayın."
+      },
+      {
+        "problem": "İndirdiğim X GIF dosyası .gif yerine .mp4 olarak kaydedildi",
+        "solution": "X platformu GIF animasyonlarını zaten sessiz ve döngülü MP4 video olarak depolar. VIDNEX bu yerel akışı bozmadan doğrudan MP4 olarak indirir; böylece dosya boyutu küçük kalır ve tüm telefonlarda sorunsuz oynatılır."
+      },
+      {
+        "problem": "1080p seçeneği görünmüyor, en yüksek 720p veya 480p çıkıyor",
+        "solution": "VIDNEX videoları sonradan büyütmez. Listelenen aşamalı MP4 seçenekleri tamamen X sunucusunun o gönderi için yayınladığı gerçek bit hızı varyantlarına bağlıdır; gönderi 720p yüklendiyse en yüksek seçenek 720p olur."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "İndirilen X videoları ve fotoğrafları cihazınızda nerede?",
+    "subheading": "Kaydettiğiniz MP4 video, GIF veya orijinal fotoğraf dosyalarına işletim sisteminize göre ulaşın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari indirme okundan İndirilenler listesini açın veya Dosyalar > İndirilenler klasörüne girin. MP4 video veya GIF dosyasını Fotoğraflar uygulamasına aktarmak için dosyayı açıp Paylaş simgesine basın ve Videoyu Kaydet deyin. Birden fazla fotoğrafı içeren ZIP paketleri dokununca hemen açılır."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome ve diğer Android tarayıcıları indirilen X videolarını ve ?name=orig fotoğraflarını dahili İndirilenler (Download) klasörüne yazar. Galeri uygulamasındaki İndirilenler albümünden ya da Dosyalarım uygulamasından medyaya hemen erişebilirsiniz. ZIP paketlerini dokunarak ayrı klasöre çıkarabilirsiniz."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "İndirilen MP4, JPG, PNG ve ZIP dosyaları bilgisayarınızdaki İndirilenler klasörüne kaydedilir. Windows üzerinde Ctrl+J, macOS üzerinde Cmd+Shift+J kısayoluyla tarayıcı indirme penceresini açıp dosyayı doğrudan klasörde gösterebilirsiniz."
+    }
+  },
+  "faqs": [
+    {
+      "question": "VIDNEX ile X (Twitter) videoları hangi çözünürlüklerde indirilebilir?",
+      "answer": "VIDNEX bir X gönderisindeki tüm uyumlu aşamalı video/mp4 akışlarını bulur ve en yüksek bit hızından en düşüğe doğru sıralar. Kaynak gönderide hangi sürümler yayınlandıysa 1080p, 720p, 480p veya 360p seçenekleri görünür; oynatma sorunları yaratabilen parçalı HLS (.m3u8) akışları ise otomatik olarak filtrelenir."
+    },
+    {
+      "question": "X üzerindeki GIF animasyonları neden MP4 olarak indiriliyor?",
+      "answer": "X (Twitter) platformuna yüklenen GIF dosyaları teknik olarak zaten sessiz ve döngülü MP4 video formatında saklanır ve sunulur. VIDNEX bu yerel MP4 akışını dönüştürmeden doğrudan cihazınıza indirir; böylece görüntü kalitesi korunur, dosya boyutu düşük kalır ve dosya tüm mobil ile masaüstü oynatıcılarda sorunsuz çalışır."
+    },
+    {
+      "question": "Birden fazla fotoğraf içeren bir X gönderisinin tüm görsellerini indirebilir miyim?",
+      "answer": "Evet, 1 ila 4 fotoğraf içeren herkese açık bir X gönderisinin bağlantısını yapıştırdığınızda VIDNEX her görseli ?name=orig parametresiyle tam orijinal çözünürlüğünde listeler. Onay kutularıyla dilediğiniz JPG veya PNG karelerini tek tek kaydedebilir ya da tamamını tarayıcınızda yerel bir ZIP arşivi olarak indirebilirsiniz."
+    },
+    {
+      "question": "t.co kısa bağlantıları ve mobile.twitter.com adresleri çalışıyor mu?",
+      "answer": "Evet, resmi x.com ve twitter.com adreslerinin yanı sıra mobile.twitter.com, m.twitter.com, /i/status/ bağlantıları ve en fazla üç yönlendirmeye kadar t.co kısa bağlantıları desteklenir. Ancak fxtwitter, vxtwitter, fixupx veya nitter gibi üçüncü taraf ayna alan adları güvenlik ve doğruluk gerekçesiyle kabul edilmez."
+    },
+    {
+      "question": "Korumalı X hesaplarından veya yaş kısıtlamalı gönderilerden indirme yapılabilir mi?",
+      "answer": "Hayır, kilitli (korumalı) X hesapları, hassas içerik veya yaş doğrulaması nedeniyle oturum açma isteyen gönderiler ve canlı X Spaces ses odaları desteklenmez. VIDNEX yalnızca herkesin giriş yapmadan görüntüleyebildiği kamuya açık gönderileri işler ve erişim engeli bulunan bağlantılarda kullanıcıyı açık bir mesajla bilgilendirir."
+    },
+    {
+      "question": "Alıntılanan bir tweet içindeki videoyu indirmek için hangi bağlantıyı yapıştırmalıyım?",
+      "answer": "Bir kullanıcı başka bir videolu gönderiyi alıntıladığında üstteki gönderi çoğu zaman kendi başına medya barındırmaz. Videoyu sorunsuz şekilde indirmek için alıntılanan iç gönderiye dokunarak doğrudan onun sayfasını açın ve adres çubuğundaki veya Paylaş menüsündeki asıl gönderi bağlantısını kopyalayıp VIDNEX kutusuna yapıştırın."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Diğer VIDNEX araçları ve gizlilik",
+    "subheading": "TikTok, Facebook veya LinkedIn üzerinden herkese açık içerik indirin.",
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "linkedin"
+    ],
+    "privacyLabel": "Gizlilik politikası ve depolamasız çalışma",
+    "privacyDescription": "X bağlantılarınızın neden kaydedilmediğini ve dosyaların nasıl aktarıldığını inceleyin."
+  }
+}

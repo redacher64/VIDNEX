@@ -1,0 +1,137 @@
+{
+  "editorial": {
+    "heading": "Scaricare video TikTok senza filigrana: MP4 HD, audio originale e slideshow foto",
+    "subheading": "Risoluzione di link lunghi e brevi TikTok in MP4 HD/SD, audio MP3/M4A verificato e ZIP locale",
+    "paragraphs": [
+      "Lo strumento TikTok di VIDNEX analizza i post pubblici condivisi dall'app mobile o dal sito web di TikTok. Oltre agli URL estesi tiktok.com/@utente/video/, risolve automaticamente i collegamenti brevi vm.tiktok.com, vt.tiktok.com e tiktok.com/t/, riconoscendo subito se il link punta a un video classico, a una galleria Photo Mode o a un profilo pubblico.",
+      "Quando è presente una versione pulita sulla sorgente, VIDNEX propone il file MP4 senza filigrana sovrimpressa in qualità HD 1080p oppure SD 720p in base alla codifica caricata dall'autore. Se ti serve solo la colonna sonora, il sistema verifica l'intestazione MIME e HEAD effettiva del flusso per consegnarti un vero file MP3 oppure M4A/AAC, senza camuffare estensioni incompatibili.",
+      "Per gli slideshow TikTok Photo Mode (/@utente/photo/...), ogni fotografia viene elencata con caselle di selezione: puoi salvare una singola immagine JPG oppure raccogliere fino a 20 foto (entro il limite complessivo di 100 MB) in un archivio ZIP generato localmente nel browser. Incollando un profilo pubblico (@utente o tiktok.com/@utente), ottieni anche l'avatar ad alta definizione.",
+      "Nessun video o audio TikTok viene conservato sui nostri server: lo streaming raggiunge direttamente il tuo dispositivo, nel pieno rispetto dei contenuti pubblici e del diritto d'autore."
+    ],
+    "formatsTitle": "Formati TikTok supportati da VIDNEX",
+    "formatsList": [
+      "Video TikTok pubblici in MP4 senza filigrana (HD 1080p o SD 720p in base alla sorgente)",
+      "Estrazione audio originale verificata via MIME/HEAD in formato reale MP3 o M4A/AAC",
+      "Slideshow Photo Mode (/@utente/photo/...): selezione a caselle, JPG singolo o ZIP locale (max 20 file / 100 MB)",
+      "Foto profilo TikTok pubblica (tiktok.com/@utente o @nomeutente) in JPG",
+      "Risoluzione automatica dei link brevi vm.tiktok.com, vt.tiktok.com e tiktok.com/t/"
+    ],
+    "limitsTitle": "Contenuti esclusi su TikTok",
+    "limitsText": "Account privati, video visibili solo agli amici, bozze non pubblicate, clip rimosse o soggette a restrizioni geografiche e dirette TikTok Live in corso non sono supportati. Vengono elaborati solo contenuti pubblici senza login."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copia il link pubblico di TikTok",
+      "description": "Nell'app o nel sito TikTok tocca la freccia Condividi sul video, sullo slideshow fotografico o sul profilo pubblico e seleziona Copia link.",
+      "codeHint": "VM.TIKTOK.COM · /VIDEO/ · /PHOTO/"
+    },
+    {
+      "number": "02",
+      "title": "Incolla il collegamento in VIDNEX",
+      "description": "Incolla l'indirizzo nel campo in alto e clicca Scarica. VIDNEX segue i reindirizzamenti brevi e identifica automaticamente il tipo di contenuto.",
+      "codeHint": "MP4 SENZA FILIGRANA · AUDIO"
+    },
+    {
+      "number": "03",
+      "title": "Salva il file MP4, audio o ZIP",
+      "description": "Scegli MP4 HD o SD senza filigrana, la traccia audio MP3/M4A originale, una foto JPG singola o il pacchetto ZIP locale per salvarlo sul dispositivo.",
+      "codeHint": "STREAM DIRETTO · ZIP LOCALE"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabella di formati e qualità TikTok disponibili",
+    "subheading": "Corrispondenza reale tra i diversi collegamenti TikTok pubblici e i file forniti da VIDNEX.",
+    "headers": ["Tipo di contenuto TikTok", "Formato di uscita", "Qualità e comportamento reale"],
+    "rows": [
+      ["Video pubblico HD", "MP4 senza filigrana", "Risoluzione 1080p quando lo stream HD sorgente è disponibile; codifica H.264 pronta per mobile e desktop."],
+      ["Video pubblico SD", "MP4 senza filigrana", "Flusso 720p più leggero, pratico su rete cellulare o dispositivi con spazio limitato."],
+      ["Traccia audio TikTok", "MP3 o M4A (AAC)", "Estensione reale determinata con controllo MIME/HEAD sulla sorgente; nessun falso MP3 rinominato."],
+      ["Slideshow Photo Mode", "JPG singolo o ZIP", "Griglia con caselle di selezione; download per singola foto o ZIP locale (fino a 20 file / 100 MB)."],
+      ["Foto profilo pubblica", "JPG alta risoluzione", "Estrazione dell'avatar pubblico tramite URL tiktok.com/@utente oppure inserendo @nomeutente."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemi frequenti su TikTok e soluzioni",
+    "subheading": "Sei situazioni reali che possono verificarsi durante il salvataggio di un link TikTok.",
+    "items": [
+      {
+        "problem": "Il link breve vm.tiktok.com o vt.tiktok.com non viene risolto",
+        "solution": "I link condivisi da smartphone includono spesso la didascalia completa oppure possono scadere. Torna su TikTok, scegli Condividi > Copia link e incolla esclusivamente l'URL che inizia con https://."
+      },
+      {
+        "problem": "Compare l'errore di account privato o video riservato agli amici",
+        "solution": "Se il creatore ha impostato il profilo come privato o ha limitato la visione agli amici, TikTok blocca l'accesso pubblico. VIDNEX non aggira queste impostazioni e segnala che il contenuto richiede accesso."
+      },
+      {
+        "problem": "Il video TikTok scaricato non ha audio",
+        "solution": "TikTok disattiva talvolta l'audio di un post per motivi di diritti musicali direttamente sulla piattaforma. Verifica prima se il suono si sente su TikTok; in caso affermativo, prova il file MP4 in VLC o nell'app Foto."
+      },
+      {
+        "problem": "La traccia audio viene salvata in M4A invece che in MP3",
+        "solution": "È un comportamento intenzionale: TikTok distribuisce spesso l'audio con codec AAC (contenitore M4A). VIDNEX mantiene l'estensione autentica M4A per evitare file danneggiati; iPhone, Mac, Android e Windows lo riproducono nativamente."
+      },
+      {
+        "problem": "Non trovo il video TikTok scaricato nell'app Foto su iPhone",
+        "solution": "Su iOS Safari salva i file MP4 dentro File > Download e non direttamente nella libreria Foto. Apri il file dall'app File, tocca Condividi in basso a sinistra e premi Salva video."
+      },
+      {
+        "problem": "Un TikTok Live o un video eliminato restituisce «media non trovato»",
+        "solution": "Le dirette (/live) sono flussi continui non supportati e un video cancellato dall'autore o rimosso dalla moderazione di TikTok non dispone più di alcun flusso pubblico scaricabile."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dove trovare video e audio TikTok salvati sul dispositivo",
+    "subheading": "Percorso esatto per aprire file MP4, tracce MP3/M4A, foto JPG e archivi ZIP.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "In Safari tocca la freccia blu nella barra degli indirizzi e scegli Download, oppure apri File > Download. Per portare un video MP4 o una foto JPG nell'app Foto, apri il file, tocca Condividi e seleziona Salva video o Salva immagine. Gli ZIP di slideshow si aprono con un tocco."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome e i browser Android salvano i video MP4, i file audio MP3/M4A e le foto nella cartella Download della memoria interna. Apri l'app File o l'album Download nella Galleria per riprodurre subito il file o estrarre uno slideshow ZIP."
+    },
+    "desktop": {
+      "title": "Computer (Windows / macOS)",
+      "steps": "Tutti i file vengono salvati nella cartella Download del sistema. Premi Ctrl+J su Windows o Cmd+Shift+J su macOS nel browser per aprire l'elenco dei download recenti e localizzare il file nella cartella di destinazione."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Come posso scaricare un video TikTok senza filigrana con VIDNEX?",
+      "answer": "Copia l'indirizzo del video pubblico dal menu Condividi di TikTok, incollalo nel campo qui sopra e clicca su Scarica. Quando la piattaforma espone il flusso pulito senza logo, VIDNEX prepara immediatamente i pulsanti MP4 HD 1080p e SD 720p pronti per il salvataggio diretto sul tuo dispositivo."
+    },
+    {
+      "question": "I link brevi vm.tiktok.com e vt.tiktok.com funzionano correttamente?",
+      "answer": "Sì, il rilevatore di VIDNEX accetta sia gli indirizzi completi tiktok.com/@utente/video/ sia i collegamenti brevi generati da app come vm.tiktok.com, vt.tiktok.com e tiktok.com/t/. Il motore segue in automatico il reindirizzamento fino al post pubblico canonico prima di mostrare i formati video, audio o fotografici."
+    },
+    {
+      "question": "Perché l'estrazione audio TikTok scarica talvolta un file M4A anziché MP3?",
+      "answer": "Prima di assegnare il nome al file, VIDNEX controlla il tipo MIME e l'intestazione HEAD reali restituiti dal server multimediale di TikTok. Quando la traccia sorgente utilizza il codec AAC, conserviamo l'estensione corretta M4A invece di rinominarla falsamente in MP3, evitando errori di riproduzione su mobile e desktop."
+    },
+    {
+      "question": "Posso salvare tutte le immagini di uno slideshow TikTok Photo Mode insieme?",
+      "answer": "Sì, non appena incolli un link Photo Mode (/@utente/photo/...), VIDNEX carica l'intera serie di diapositive con caselle di selezione interattive. Puoi salvare ogni immagine JPG singolarmente oppure impacchettare fino a 20 foto, entro il limite complessivo di 100 MB, in un archivio ZIP creato localmente nel browser."
+    },
+    {
+      "question": "Come si scarica la foto profilo di un account TikTok pubblico?",
+      "answer": "Ti basta incollare l'URL del profilo pubblico tiktok.com/@utente oppure digitare direttamente il nome utente preceduto dalla chiocciola (@nomeutente) nel campo principale. VIDNEX riconosce in automatico la modalità profilo e mostra l'avatar pubblico in formato JPG pronto per l'anteprima e il salvataggio senza accesso."
+    },
+    {
+      "question": "Perché alcuni video TikTok compaiono solo in 720p e non in 1080p?",
+      "answer": "VIDNEX non ricodifica artificialmente i filmati per aumentarne la risoluzione in modo fittizio. Le qualità proposte riflettono fedelmente il file caricato dall'autore e gli stream resi pubblici da TikTok: se la sorgente è disponibile solo a 720p verrà mostrato lo SD, mentre in presenza di sorgente 1080p compare HD."
+    },
+    {
+      "question": "È possibile scaricare una diretta TikTok Live o i video di un profilo privato?",
+      "answer": "No, i profili TikTok privati, i video riservati agli amici approvati e le dirette TikTok Live in corso non sono supportati. VIDNEX interroga soltanto i metadati pubblici accessibili senza autenticazione e mostra un avviso chiaro quando un link richiede l'accesso o è stato rimosso dalla piattaforma."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Altri strumenti VIDNEX e informativa sulla privacy",
+    "subheading": "Salva contenuti pubblici anche da Instagram e X oppure crea griglie fotografiche 3×3 nel browser.",
+    "toolKeys": ["instagram", "x", "split_image"],
+    "privacyLabel": "Privacy e trasmissione senza archiviazione",
+    "privacyDescription": "Scopri perché VIDNEX non conserva i tuoi video TikTok né registra i link incollati."
+  }
+}

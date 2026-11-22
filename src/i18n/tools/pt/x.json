@@ -1,0 +1,157 @@
+{
+  "editorial": {
+    "heading": "Baixar vídeos do X (Twitter) em MP4, GIFs animados e fotos na resolução original",
+    "subheading": "Fluxos MP4 progressivos ordenados por bitrate, GIFs em MP4 e fotos ?name=orig de domínios oficiais",
+    "paragraphs": [
+      "O baixador de X (Twitter) do VIDNEX extrai mídias de publicações públicas hospedadas nos domínios oficiais x.com, twitter.com, mobile.twitter.com, m.twitter.com, links /i/status/ e encurtadores oficiais t.co (seguindo automaticamente até três redirecionamentos). Basta colar o link /status/ do post para ver todas as opções disponíveis.",
+      "Nos vídeos públicos do X, o VIDNEX filtra automaticamente listas fragmentadas HLS (.m3u8) impróprias para download direto e mantém apenas variantes progressivas video/mp4 ordenadas do maior ao menor bitrate — como 1080p, 720p, 480p ou 360p conforme o envio original. Os GIFs animados do X são baixados diretamente no arquivo MP4 em loop leve gerado pela própria rede.",
+      "Quando uma publicação inclui de uma a quatro fotos, o VIDNEX solicita a versão original (?name=orig) em JPG ou PNG sem redimensionamento extra. Em posts com várias imagens, as caixas de seleção permitem baixar fotos isoladas ou montar um arquivo ZIP localmente no navegador.",
+      "Para manter segurança e confiabilidade, domínios espelho de terceiros como fxtwitter, vxtwitter, fixupx e nitter são recusados: cole sempre o endereço oficial x.com ou twitter.com."
+    ],
+    "formatsTitle": "Mídias do X (Twitter) suportadas",
+    "formatsList": [
+      "Vídeos públicos do X em MP4 progressivo ordenados por bitrate (1080p, 720p, 480p, 360p conforme o post)",
+      "GIFs animados do X salvos nativamente como vídeo MP4 leve em loop",
+      "Posts com 1 a 4 fotos na resolução original (?name=orig) em JPG ou PNG",
+      "Caixas de seleção e pacote ZIP criado no navegador para publicações com múltiplas fotos",
+      "Expansão automática de links curtos t.co (até 3 redirecionamentos) e caminhos /i/status/"
+    ],
+    "limitsTitle": "Links do X (Twitter) não suportados",
+    "limitsText": "Contas protegidas com cadeado, publicações com restrição de idade ou login obrigatório, posts apenas de texto, salas Spaces e domínios espelho de terceiros (fxtwitter, vxtwitter, fixupx, nitter) não são suportados."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copie o link oficial do post no X",
+      "description": "Toque em Compartilhar abaixo da publicação pública no x.com ou no app X e selecione Copiar link para obter a URL /status/ ou t.co.",
+      "codeHint": "X.COM/.../STATUS/ · T.CO"
+    },
+    {
+      "number": "02",
+      "title": "Consulte as resoluções MP4 ou fotos",
+      "description": "Cole o endereço no VIDNEX: o sistema descarta playlists HLS, ordena os fluxos MP4 por qualidade ou carrega as fotos em ?name=orig.",
+      "codeHint": "MP4 PROGRESSIVO · ?NAME=ORIG"
+    },
+    {
+      "number": "03",
+      "title": "Baixe a qualidade desejada ou ZIP",
+      "description": "Clique na resolução MP4 escolhida, salve o GIF em MP4 ou exporte as fotos selecionadas uma a uma ou em arquivo ZIP local.",
+      "codeHint": "1080P / 720P / 480P · ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formatos e resoluções do X (Twitter) no VIDNEX",
+    "subheading": "Arquivos reais entregues a partir de publicações públicas em x.com e twitter.com.",
+    "headers": [
+      "Tipo de mídia no X",
+      "Formato de saída",
+      "Resolução e comportamento técnico"
+    ],
+    "rows": [
+      [
+        "Vídeo X alta qualidade",
+        "MP4 progressivo",
+        "Variante video/mp4 com maior bitrate exposta pelo X (geralmente 1080p ou 720p conforme origem)."
+      ],
+      [
+        "Vídeo X padrão",
+        "MP4 progressivo",
+        "Versões 480p ou 360p mais leves para envio rápido em mensageiros."
+      ],
+      [
+        "GIF animado do X",
+        "MP4 em loop",
+        "O X converte GIFs nativamente em MP4 leve sem som; o VIDNEX baixa esse arquivo limpo."
+      ],
+      [
+        "Foto única",
+        "JPG ou PNG",
+        "Solicitada no tamanho original (?name=orig) sem cortes nem compressão adicional."
+      ],
+      [
+        "Post com várias fotos (2–4)",
+        "JPG / PNG ou ZIP",
+        "Grade com caixas para download avulso ou arquivo ZIP montado no navegador."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frequentes no X (Twitter) e soluções",
+    "subheading": "Cinco motivos técnicos pelos quais um link do X pode falhar e como corrigir rapidamente.",
+    "items": [
+      {
+        "problem": "Link recusado por usar domínio espelho (vxtwitter, fxtwitter, nitter)",
+        "solution": "O VIDNEX aceita somente os endereços oficiais x.com, twitter.com e t.co. Substitua o domínio espelho por x.com mantendo o caminho /usuario/status/{id}."
+      },
+      {
+        "problem": "Conta protegida ou conteúdo sensível exige login",
+        "solution": "Se o perfil tem cadeado ou o post exige confirmação de idade logado, o X oculta a mídia para acessos públicos. O VIDNEX informa essa limitação sem tentar contorná-la."
+      },
+      {
+        "problem": "Link curto t.co não encontra nenhum vídeo",
+        "solution": "Um link t.co pode apontar para site externo, post apagado ou ultrapassar três redirecionamentos. Abra o link no navegador primeiro e copie a URL final x.com/.../status/."
+      },
+      {
+        "problem": "Apenas 720p aparece em vez de 1080p",
+        "solution": "O VIDNEX exibe todas as variantes MP4 progressivas reais criadas pelo X. Se o autor enviou o clipe em 720p ou baixa resolução, não existe faixa 1080p nos servidores do X."
+      },
+      {
+        "problem": "O GIF baixado veio com extensão .mp4",
+        "solution": "O X transforma GIFs animados em clipes MP4 muito menores e mais fluidos no momento da publicação. O arquivo MP4 reproduz em loop na maioria das galerias e mensageiros."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Onde encontrar seus vídeos, GIFs e fotos do X",
+    "subheading": "Localização padrão dos arquivos salvos no iPhone, Android e computador.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "Confira a lista de Downloads do Safari ou abra o app Arquivos > Downloads. Toque no MP4 ou na imagem JPG/PNG, aperte Compartilhar e escolha Salvar Vídeo ou Salvar Imagem para levar a Fotos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Vídeos MP4, GIFs em MP4 e fotos vão para a pasta Download e aparecem na Galeria. Em pacotes ZIP com várias fotos, abra Arquivos ou Meus Arquivos e toque em Extrair."
+    },
+    "desktop": {
+      "title": "Computador (Windows e macOS)",
+      "steps": "Os arquivos são salvos automaticamente na pasta Downloads do sistema. Pressione Ctrl+J no Windows ou Cmd+Shift+J no macOS para abrir o histórico recente e acessar o arquivo."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Como baixar um vídeo público do X (Twitter) em HD no VIDNEX?",
+      "answer": "Copie a URL oficial do post em x.com ou twitter.com, cole no campo acima e clique em Baixar. O VIDNEX remove playlists HLS incompatíveis e ordena todas as faixas MP4 progressivas do maior ao menor bitrate para você salvar a melhor resolução disponível."
+    },
+    {
+      "question": "Por que um GIF animado do X é baixado como arquivo MP4?",
+      "answer": "O X converte automaticamente todo GIF enviado em um vídeo MP4 otimizado em loop para reduzir o tamanho do arquivo e melhorar a fluidez. O VIDNEX entrega diretamente esse arquivo MP4 nativo, totalmente compatível com iPhone, Android, WhatsApp, Telegram e computadores."
+    },
+    {
+      "question": "Posso salvar todas as quatro fotos de um post do X em tamanho original?",
+      "answer": "Sim, quando uma publicação pública do X contém até quatro imagens, o VIDNEX busca cada foto usando o parâmetro oficial de resolução original sem redução extra. Você pode marcar as imagens desejadas por caixas para baixá-las avulsas em JPG/PNG ou em ZIP local."
+    },
+    {
+      "question": "Links antigos twitter.com e encurtadores t.co ainda funcionam?",
+      "answer": "Sim, o VIDNEX aceita endereços oficiais x.com, twitter.com, mobile.twitter.com, m.twitter.com, caminhos /i/status/ e links curtos oficiais t.co seguindo automaticamente até três redirecionamentos. Em contrapartida, domínios espelho de terceiros como vxtwitter, fxtwitter, fixupx e nitter são recusados para preservar a confiabilidade e a segurança."
+    },
+    {
+      "question": "Por que uma conta trancada ou post sensível retorna erro de login?",
+      "answer": "O VIDNEX consulta exclusivamente publicações públicas do X que podem ser abertas sem conta conectada. Perfis protegidos com cadeado e posts restritos por idade bloqueiam requisições anônimas na plataforma, e nossa ferramenta exibe uma mensagem clara respeitando essas restrições sem tentar contornar a autenticação."
+    },
+    {
+      "question": "Como baixar um vídeo publicado em uma resposta dentro de uma thread no X?",
+      "answer": "Certifique-se de copiar o link direto da resposta específica que contém o vídeo, em vez do primeiro post da sequência. Toque na resposta para abrir seu próprio endereço /status/, cole essa URL no VIDNEX e escolha a resolução MP4 preferida."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Explorar outras ferramentas do VIDNEX",
+    "subheading": "Baixe mídias públicas de outras redes ou prepare grades de fotos localmente no navegador.",
+    "toolKeys": [
+      "tiktok",
+      "facebook",
+      "split_image"
+    ],
+    "privacyLabel": "Política de Privacidade do VIDNEX",
+    "privacyDescription": "Sem arquivamento de mídias em servidor, sem login do X e geração ZIP local."
+  }
+}

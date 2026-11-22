@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Split any image into a 2×2, 3×3 Instagram grid, or seamless carousel locally",
+    "subheading": "100% browser-side slicing powered by HTML5 Canvas and JSZip with zero server upload",
+    "paragraphs": [
+      "The VIDNEX Split Image tool cuts any JPG, PNG, or WebP picture into evenly aligned tiles for a 3×3 Instagram profile mosaic, a seamless 1×3 horizontal carousel, a 3×1 vertical strip, a 2×2 quad layout, or a custom grid up to 10 rows by 10 columns (100 tiles maximum).",
+      "Every step — loading your artwork, calculating exact pixel slices on HTML5 Canvas, and bundling the final ZIP with JSZip — runs completely locally inside your browser. Your source photo never leaves your phone or computer, protecting private client visuals while delivering instant previews even on slow connections.",
+      "Enabling the Instagram Order toggle automatically reverses tile numbering from bottom-right (image-1) to top-left so you can upload tiles sequentially onto your Instagram profile grid without mixing up rows. Export each slice individually or grab one vidnex-split-{rows}x{cols}.zip archive in lossless PNG or adjustable JPG (10%–100% quality, with automatic white background fill behind transparent PNG areas)."
+    ],
+    "formatsTitle": "Grid presets and export controls",
+    "formatsList": [
+      "One-click presets: 2×2 (4 tiles), 3×3 (9-tile Instagram grid), 1×3 (horizontal carousel), and 3×1 (vertical strip)",
+      "Custom grid selector from 1 to 10 rows and 1 to 10 columns (up to 100 tiles)",
+      "Instagram Order toggle reversing numbering from bottom-right (image-1) to top-left",
+      "Lossless PNG export or JPG export with 10%–100% quality slider and automatic white fill on transparency",
+      "Single tile download (image-1.jpg…) or complete vidnex-split-{rows}x{cols}.zip archive built via JSZip",
+      "100% browser-local HTML5 Canvas processing with automatic proportional downscaling above 8000 px"
+    ],
+    "limitsTitle": "Supported inputs and 8000 px safeguard",
+    "limitsText": "Split Image accepts JPG, PNG, and WebP files directly in the browser. To prevent browser memory crashes on smartphones, any image wider or taller than 8000 pixels is automatically downscaled proportionally to 8000 px before slicing."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Drop or select your local image",
+      "description": "Drag a JPG, PNG, or WebP file into the dropzone or choose a photo from your device. Zero bytes are uploaded to any server.",
+      "codeHint": "JPG / PNG / WEBP · LOCAL"
+    },
+    {
+      "number": "02",
+      "title": "Pick grid layout and export format",
+      "description": "Select 2×2, 3×3, 1×3, 3×1, or custom rows and columns (1–10), toggle Instagram Order if needed, and choose PNG or JPG quality.",
+      "codeHint": "3×3 · IG ORDER · PNG / JPG"
+    },
+    {
+      "number": "03",
+      "title": "Save individual tiles or full ZIP",
+      "description": "Review the live numbered cut lines on the preview, then download single tiles or export everything at once as a ZIP archive.",
+      "codeHint": "VIDNEX-SPLIT.ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Split Image grids, formats, and real technical specs",
+    "subheading": "Exact capabilities of VIDNEX's client-side HTML5 Canvas and JSZip image splitter.",
+    "headers": ["Setting or format", "Supported options", "Actual browser behavior"],
+    "rows": [
+      ["Input image formats", "JPG, PNG, WebP", "Decoded locally in browser memory; auto-downscales proportionally if width or height exceeds 8000 px."],
+      ["Quick grid presets", "2×2, 3×3, 1×3, 3×1", "Instant grid coordinates for square mosaics, 9-post Instagram grids, and panoramic carousels."],
+      ["Custom grid", "1–10 rows × 1–10 cols", "Generates between 1 and 100 clean pixel-aligned tiles with live numbered overlay lines."],
+      ["Instagram Order", "On / Off toggle", "Reverses numbering from bottom-right (image-1) to top-left for accurate Instagram posting sequence."],
+      ["PNG output", "Lossless PNG", "Preserves crisp typography, logos, and transparent backgrounds with zero compression artifacts."],
+      ["JPG + ZIP output", "JPG (10%–100%) / .ZIP", "Adjustable compression slider, automatic white fill for transparent PNGs, and vidnex-split-{R}x{C}.zip."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Split Image troubleshooting and tips",
+    "subheading": "Quick answers if an image is downscaled, transparency turns white, or tiles stay inside a ZIP.",
+    "guideLink": {
+      "label": "Read our guide on Instagram resolution and compression",
+      "href": "/en/blog/instagram-reels-carousels-resolution-compression-guide"
+    },
+    "items": [
+      {
+        "problem": "Notice says the image was downscaled to 8000 pixels",
+        "solution": "Mobile and desktop browsers limit maximum HTML5 Canvas memory. Whenever an uploaded file exceeds 8000 px on either side, VIDNEX scales it proportionally to 8000 px so slicing completes cleanly without crashing."
+      },
+      {
+        "problem": "Transparent PNG background turns white in JPG export",
+        "solution": "The JPG format does not support alpha transparency, so VIDNEX automatically paints a clean white background behind transparent areas instead of solid black. Switch output format to PNG to preserve transparency."
+      },
+      {
+        "problem": "Tiles look out of order on my Instagram profile",
+        "solution": "Instagram places your newest upload in the top-left slot. Turn on Instagram Order before exporting so image-1 corresponds to the bottom-right tile, then post in ascending numerical order."
+      },
+      {
+        "problem": "iPhone HEIC photo is not accepted",
+        "solution": "Split Image supports JPG, PNG, and WebP natively. On iPhone, export or copy the photo as JPG from Apple Photos, or switch Camera > Formats to Most Compatible."
+      },
+      {
+        "problem": "Tiles from the ZIP archive do not appear in mobile Gallery",
+        "solution": "Mobile photo apps cannot read files inside an unopened ZIP. Tap the ZIP in Apple Files (iOS) or tap Extract in Android's Files app first, then save the unpacked images."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Where to find your sliced tiles and ZIP archive",
+    "subheading": "How to unpack image-1, image-2… and move them to your photo library on any device.",
+    "ios": {
+      "title": "iPhone & iPad",
+      "steps": "Open Apple's Files app and go to Downloads. Tap vidnex-split-{rows}x{cols}.zip once to unzip a folder containing all numbered tiles, open that folder, select all images, and tap Share > Save Images to place them in Photos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Individual slices save straight into Download and show up in Gallery immediately. If you downloaded the full ZIP archive, open Files or My Files > Downloads, tap the archive, and press Extract so every tile appears in your Gallery."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "Your browser places vidnex-split-{rows}x{cols}.zip or individual slices inside the system Downloads folder. Press Ctrl+J (Windows) or Cmd+Shift+J (macOS) to open the download, then double-click or right-click Extract All."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Are my photos uploaded to a server when using Split Image?",
+      "answer": "No, zero bytes of your image ever leave your device. Decoding the file, drawing grid previews, slicing every tile on HTML5 Canvas, and compressing the ZIP archive with JSZip happen completely locally inside your browser tab, even if you disconnect from the internet afterward."
+    },
+    {
+      "question": "What does the Instagram Order option do?",
+      "answer": "Instagram always puts your most recently published photo in the top-left square of your profile grid. Turning on Instagram Order automatically numbers the bottom-right tile as image-1 and counts backward to the top-left corner, letting you upload files in ascending order cleanly."
+    },
+    {
+      "question": "Should I export sliced tiles as PNG or JPG?",
+      "answer": "Choose PNG when your visual contains sharp text, UI graphics, logos, or transparent backgrounds that need lossless quality. Pick JPG for photography when smaller file sizes matter, using the ten to one hundred percent quality slider with automatic white fill for transparent PNG inputs."
+    },
+    {
+      "question": "How many tiles can I generate with a custom grid?",
+      "answer": "Alongside the built-in 2×2, 3×3, 1×3, and 3×1 presets, Custom mode supports anywhere from one to ten rows and one to ten columns. That allows splitting a single picture into up to one hundred pixel-aligned tiles exported individually or inside one ZIP archive."
+    },
+    {
+      "question": "Why is an oversized image automatically downscaled to 8000 pixels?",
+      "answer": "Web browsers enforce strict Canvas memory ceilings, particularly on smartphones and tablets. When an input picture exceeds eight thousand pixels in width or height, VIDNEX automatically scales it down proportionally to eight thousand pixels so grid slicing finishes smoothly without crashing your browser tab."
+    },
+    {
+      "question": "Which image file formats can I load into Split Image?",
+      "answer": "Split Image natively accepts JPG, PNG, and WebP images selected from your device or dragged directly onto the workspace, plus a built-in sample visual for instant testing. If your phone shoots HEIC photos, convert or export the picture to JPG before importing it."
+    }
+  ],
+  "relatedSection": {
+    "heading": "More VIDNEX creator tools and guides",
+    "subheading": "Pair local grid slicing with our public media downloaders or review our privacy practices.",
+    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "guideLink": {
+      "label": "Guide: Instagram Reels & carousel resolution and compression",
+      "description": "Learn how aspect ratios and compression affect visual clarity on Instagram grids and carousels.",
+      "href": "/en/blog/instagram-reels-carousels-resolution-compression-guide"
+    },
+    "privacyLabel": "VIDNEX Privacy Policy",
+    "privacyDescription": "100% browser-local processing for Split Image with zero file uploads and no account tracking."
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "editorial": {
+    "heading": "Potong gambar grid 3×3 Instagram dan kisi kustom — 100% lokal di browser",
+    "subheading": "Pemotongan gambar via HTML5 Canvas dan JSZip menjadi PNG, JPG, atau ZIP tanpa unggah ke server",
+    "paragraphs": [
+      "Alat Potong Gambar VIDNEX memudahkan Anda membagi satu foto menjadi beberapa potongan grid yang rapi untuk feed Instagram, carousel panorama, maupun tata letak desain. Seluruh pemrosesan berlangsung 100% secara lokal di browser Anda memakai HTML5 Canvas dan JSZip, sehingga gambar JPG, PNG, atau WebP milik Anda tidak pernah diunggah ke server mana pun.",
+      "Tersedia pilihan preset siap pakai yaitu 2×2 untuk empat kotak simetris, 3×3 yang populer untuk dinding profil Instagram, 1×3 untuk carousel geser horizontal, serta 3×1 untuk tampilan vertikal. Jika membutuhkan susunan lain, mode Kustom memberi keleluasaan memilih 1 hingga 10 baris dan 1 hingga 10 kolom, hingga maksimal 100 potongan gambar.",
+      "Untuk memudahkan pengunggahan ke profil Instagram, aktifkan opsi Urutan Instagram. Fitur ini membalik penomoran potongan dari sudut kanan bawah (image-1) menuju kiri atas sehingga saat Anda mengunggah file secara berurutan, seluruh grid menyatu tepat pada posisinya. Gambar berukuran sangat besar di atas 8000 piksel akan diperkecil secara proporsional agar memori browser tetap stabil.",
+      "Anda dapat memilih format keluaran PNG tanpa kehilangan kualitas atau JPG dengan pengatur kualitas 10% hingga 100% (PNG transparan otomatis diberi latar belakang putih saat diubah ke JPG). Setiap potongan bisa disimpan satuan atau langsung diunduh sekaligus dalam arsip vidnex-split-{baris}x{kolom}.zip."
+    ],
+    "formatsTitle": "Fitur nyata alat Potong Gambar lokal",
+    "formatsList": [
+      "Format masukan: JPG, PNG, dan WebP (sisi di atas 8000 px diperkecil otomatis secara proporsional)",
+      "Preset cepat (2×2, 3×3, 1×3, 3×1) dan mode kustom 1–10 baris × 1–10 kolom (hingga 100 potongan)",
+      "Opsi Urutan Instagram: penomoran terbalik dari kanan bawah (image-1) ke kiri atas",
+      "Format keluaran: PNG lossless atau JPG (kualitas 10%–100%, latar putih otomatis untuk PNG transparan)",
+      "Unduh satuan per ubin atau arsip lengkap vidnex-split-{baris}x{kolom}.zip yang dibuat langsung di browser"
+    ],
+    "limitsTitle": "Batas teknis dan jaminan pemrosesan lokal",
+    "limitsText": "Foto tidak pernah dikirim ke server. Demi mencegah browser ponsel kehabisan memori, gambar melebihi 8000 piksel diskalakan proporsional otomatis dan grid kustom dibatasi hingga maksimal 10×10 (100 ubin)."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Pilih foto lokal dari perangkat Anda",
+      "description": "Seret file JPG, PNG, atau WebP ke area kerja atau pilih dari galeri perangkat. Gambar langsung dimuat di memori browser tanpa pengunggahan.",
+      "codeHint": "JPG · PNG · WEBP · 100% LOKAL"
+    },
+    {
+      "number": "02",
+      "title": "Atur grid, Urutan Instagram, dan format",
+      "description": "Pilih preset 2×2, 3×3, 1×3, 3×1 atau isi baris/kolom kustom 1–10; atur opsi Urutan Instagram serta format keluaran PNG atau JPG.",
+      "codeHint": "3×3 · KUSTOM 1–10 · URUTAN IG"
+    },
+    {
+      "number": "03",
+      "title": "Simpan ubin satuan atau arsip ZIP",
+      "description": "Periksa garis pratinjau grid, lalu unduh satu potongan gambar atau seluruh ubin sekaligus dalam file vidnex-split-{baris}x{kolom}.zip.",
+      "codeHint": "HTML5 CANVAS · JSZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel spesifikasi masukan, grid, dan keluaran Potong Gambar",
+    "subheading": "Seluruh format file, ukuran grid, dan perilaku keluaran nyata yang berjalan di browser Anda.",
+    "headers": ["Pengaturan / Fitur", "Pilihan tersedia", "Perilaku teknis nyata"],
+    "rows": [
+      ["Format masukan", "JPG, PNG, WebP", "Dibaca langsung oleh HTML5 Canvas di browser; dimensi di atas 8000 px diperkecil proporsional."],
+      ["Preset grid", "2×2, 3×3, 1×3, 3×1", "Pemotongan instan untuk profil Instagram 3×3 dan carousel panorama horizontal atau vertikal."],
+      ["Grid kustom", "1–10 baris × 1–10 kolom", "Menghasilkan hingga 100 ubin simetris dengan pratinjau garis potong secara langsung."],
+      ["Urutan Instagram", "Aktif / Nonaktif", "Saat aktif, potongan kanan bawah menjadi image-1 hingga kiri atas agar siap unggah berurutan."],
+      ["Format keluaran", "PNG atau JPG (10%–100%)", "PNG menjaga transparansi lossless; JPG mengisi latar putih otomatis di balik area transparan."],
+      ["Paket unduhan", "Satuan atau ZIP", "JSZip merakit vidnex-split-{baris}x{kolom}.zip secara lokal tanpa menyentuh server."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Masalah umum saat memotong gambar grid dan solusinya",
+    "subheading": "Lima kendala umum terkait urutan feed Instagram, latar PNG, skala 8000 px, dan ekstraksi ZIP.",
+    "items": [
+      {
+        "problem": "Susunan foto di profil Instagram terbalik setelah diunggah",
+        "solution": "Instagram selalu menempatkan unggahan terbaru di sudut kiri atas. Pastikan Anda mengaktifkan opsi Urutan Instagram sebelum mengunduh sehingga potongan kanan bawah dinamai image-1; unggah mulai dari image-1 secara berurutan."
+      },
+      {
+        "problem": "Latar belakang PNG transparan berubah menjadi putih saat disimpan ke JPG",
+        "solution": "Format JPG tidak mendukung saluran transparansi alpha. Agar area transparan tidak berubah menjadi blok hitam pekat, VIDNEX otomatis menambahkan latar putih; pilih format keluaran PNG jika ingin mempertahankan transparansi."
+      },
+      {
+        "problem": "Mengapa dimensi foto di atas 8000 piksel otomatis diperkecil?",
+        "solution": "Batas memori HTML5 Canvas pada browser seluler maupun desktop bisa menyebabkan tab tertutup paksa bila memproses gambar raksasa. Penskalaan proporsional otomatis menjaga rasio gambar utuh sambil mencegah crash."
+      },
+      {
+        "problem": "Bagaimana cara membuka file vidnex-split ZIP di iPhone?",
+        "solution": "Safari menyimpan paket ZIP di aplikasi File > Unduhan. Ketuk file ZIP tersebut satu kali di aplikasi File agar iOS langsung mengekstrak seluruh ubin ke folder baru, lalu pilih semua gambar dan simpan ke Foto."
+      },
+      {
+        "problem": "Proses pembuatan ZIP untuk grid 10×10 (100 ubin) terasa beberapa detik lebih lama",
+        "solution": "Karena seluruh pemotongan dan kompresi ZIP berjalan lokal di prosesor perangkat Anda, membuat 100 file PNG resolusi penuh memang butuh beberapa detik. Memilih JPG kualitas 85%–90% akan mempercepat proses secara signifikan."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana menemukan hasil potongan gambar dan file ZIP Anda",
+    "subheading": "Lokasi file ubin satuan maupun arsip vidnex-split-{baris}x{kolom}.zip pada setiap perangkat.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Ketuk ikon unduhan Safari atau buka aplikasi File > Unduhan. Ketuk sekali file vidnex-split-{baris}x{kolom}.zip untuk mengekstrak isinya ke folder baru, lalu pilih semua gambar di dalamnya dan tekan Bagikan > Simpan Gambar untuk memindahkannya ke aplikasi Foto."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome menyimpan ubin satuan atau arsip ZIP di folder internal Download (Unduhan). Buka aplikasi File Saya, ketuk file ZIP lalu pilih Ekstrak agar seluruh file JPG atau PNG langsung muncul di Galeri."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "File gambar satuan dan paket vidnex-split-{baris}x{kolom}.zip tersimpan di folder Downloads komputer Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada browser untuk membuka foldernya lalu ekstrak ZIP dengan sekali klik."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Apakah foto yang saya potong dengan alat ini diunggah ke server VIDNEX?",
+      "answer": "Tidak pernah. Seluruh file JPG, PNG, atau WebP yang Anda pilih hanya dibaca secara lokal di memori browser Anda menggunakan HTML5 Canvas dan JSZip. Tidak ada gambar yang dikirim ke internet atau disimpan di server kami, sehingga privasi foto pribadi Anda tetap terjaga sepenuhnya."
+    },
+    {
+      "question": "Apa fungsi opsi Urutan Instagram pada alat Potong Gambar?",
+      "answer": "Pada profil Instagram, postingan baru selalu masuk di posisi kiri atas dan menggeser postingan lama ke kanan bawah. Ketika Urutan Instagram aktif, VIDNEX menamai potongan kanan bawah sebagai image-1 hingga kiri atas, sehingga Anda tinggal mengunggah berurutan dari nomor terkecil agar grid terbentuk sempurna."
+    },
+    {
+      "question": "Berapa ukuran grid maksimal yang bisa saya buat di mode Kustom?",
+      "answer": "Selain preset cepat 2×2, 3×3, 1×3, dan 3×1, mode Kustom memungkinkan Anda menentukan jumlah baris antara 1 sampai 10 dan kolom antara 1 sampai 10 secara terpisah. Dengan pengaturan ini, Anda bisa membuat tata letak apa pun mulai dari dua potong hingga maksimal 100 ubin (10×10)."
+    },
+    {
+      "question": "Apa perbedaan memilih format keluaran PNG dibandingkan JPG?",
+      "answer": "Format PNG menghasilkan kompresi lossless tanpa penurunan ketajaman serta mempertahankan transparansi jika gambar asli memilikinya, namun ukuran filenya lebih besar. Sementara itu, format JPG menyediakan pengaturan kualitas 10% hingga 100% untuk ukuran lebih ringkas dan otomatis mengisi latar belakang putih di balik area transparan."
+    },
+    {
+      "question": "Apa yang terjadi jika saya memasukkan foto beresolusi lebih dari 8000 piksel?",
+      "answer": "Foto berdimensi sangat besar di atas 8000 piksel berisiko melampaui batas memori HTML5 Canvas terutama pada ponsel dan tablet. Untuk mencegah browser macet, VIDNEX secara otomatis memperkecil gambar tersebut secara proporsional ke batas 8000 piksel tanpa mengubah rasio asli sebelum membaginya menjadi ubin grid."
+    },
+    {
+      "question": "Bisakah saya mengunduh semua hasil potongan sekaligus dalam satu file?",
+      "answer": "Ya, selain mengunduh tiap ubin satu per satu, Anda dapat mengklik tombol unduh ZIP untuk menggabungkan semua potongan ke satu paket bernama vidnex-split-{baris}x{kolom}.zip. Arsip ini dibuat langsung di browser memakai JSZip lengkap dengan penomoran file sesuai pilihan Urutan Instagram Anda."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat VIDNEX lainnya dan jaminan privasi",
+    "subheading": "Lengkapi kebutuhan konten Anda dengan pengunduh publik Instagram, TikTok, dan LinkedIn.",
+    "toolKeys": ["instagram", "tiktok", "linkedin"],
+    "privacyLabel": "Kebijakan privasi dan pemrosesan 100% lokal",
+    "privacyDescription": "Baca rincian mengapa alat Potong Gambar tidak pernah mengunggah file Anda ke server."
+  }
+}

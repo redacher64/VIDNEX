@@ -1,0 +1,156 @@
+{
+  "editorial": {
+    "heading": "Scaricare foto profilo LinkedIn pubbliche — solo profili personali /in/",
+    "subheading": "Verifica firmata su media.licdn.com fino a 10 MB e fallback locale drag-and-drop nel browser",
+    "paragraphs": [
+      "Lo strumento LinkedIn di VIDNEX è progettato per un solo compito preciso: salvare la foto profilo pubblica di un account personale LinkedIn a partire dal suo indirizzo linkedin.com/in/{slug}. I sottodomini nazionali (come it.linkedin.com/in/...), i link mobili e i suffissi di lingua vengono normalizzati in automatico.",
+      "Sul piano tecnico, il motore accetta esclusivamente risorse firmate provenienti dal dominio ufficiale media.licdn.com entro il limite di 10 MB, verifica l'autenticità del formato JPG, PNG o WebP tramite controllo dei magic-byte e nomina il file in modo ordinato come linkedin_{slug}_profile.jpg. Le immagini pubbliche verificate restano in cache temporanea per 10 minuti per garantire risposte rapide.",
+      "Quando LinkedIn mostra una barriera di accesso (authwall) ai visitatori non autenticati, VIDNEX non tenta mai di aggirarla. In quel caso mette a disposizione un'area drag-and-drop 100% locale nel browser che consente di trascinare la foto già aperta nella tua sessione e salvarla senza alcun caricamento sul server.",
+      "Per tutela rigorosa della privacy, VIDNEX non estrae né memorizza mai nome, ruolo, azienda o dati del CV. Pagine aziendali (/company/), post (/posts/), video LinkedIn, profili protetti da login e avatar fantasma predefiniti sono esplicitamente esclusi."
+    ],
+    "formatsTitle": "Specifiche reali dello strumento foto profilo LinkedIn",
+    "formatsList": [
+      "Esclusivamente profili personali pubblici linkedin.com/in/{slug} (inclusi sottodomini nazionali, mobili e suffissi lingua)",
+      "Verifica magic-byte JPG, PNG o WebP su sorgente firmata media.licdn.com entro il limite di 10 MB",
+      "Nome file pulito linkedin_{slug}_profile.jpg con cache temporanea di 10 minuti",
+      "Fallback drag-and-drop 100% locale nel browser in caso di authwall LinkedIn"
+    ],
+    "limitsTitle": "Contenuti LinkedIn espressamente esclusi",
+    "limitsText": "Pagine aziendali (/company/), post del feed (/posts/), video LinkedIn, profili protetti da login e avatar fantasma predefiniti non sono supportati. Nessun dato biografico o CV viene mai raccolto."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copia il link del profilo LinkedIn (/in/)",
+      "description": "Apri nel browser o nell'app un profilo personale LinkedIn pubblico con percorso /in/{slug} e copia l'indirizzo completo.",
+      "codeHint": "LINKEDIN.COM/IN/{SLUG}"
+    },
+    {
+      "number": "02",
+      "title": "Incolla l'URL per la verifica dell'immagine",
+      "description": "Incolla il link nel campo qui sopra e avvia il controllo. VIDNEX verifica la sorgente media.licdn.com con controllo magic-byte fino a 10 MB.",
+      "codeHint": "MEDIA.LICDN.COM · MAX 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Salva il JPG o usa il fallback locale",
+      "description": "Scarica il file linkedin_{slug}_profile.jpg dall'anteprima oppure usa il drag-and-drop locale nel browser se LinkedIn mostra un authwall.",
+      "codeHint": "LINKEDIN_SLUG_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabella del perimetro tecnico LinkedIn",
+    "subheading": "Tipologie di URL LinkedIn supportate, verifiche applicate ed esclusioni esplicite.",
+    "headers": [
+      "Tipo di risorsa LinkedIn",
+      "Risultato / Azione",
+      "Comportamento tecnico reale"
+    ],
+    "rows": [
+      [
+        "Profilo personale pubblico (/in/)",
+        "JPG (linkedin_{slug}_profile.jpg)",
+        "Immagine firmata media.licdn.com verificata via magic-byte (JPG/PNG/WebP), max 10 MB, cache 10 min."
+      ],
+      [
+        "Sottodomini paese / mobile",
+        "Normalizzazione → JPG",
+        "it.linkedin.com/in/..., m.linkedin.com/in/... e suffissi lingua vengono ricondotti allo slug."
+      ],
+      [
+        "Barriera di accesso (authwall)",
+        "Fallback drag-and-drop locale",
+        "Nessun aggiramento dell'authwall: trascina la foto nel browser per salvarla in locale."
+      ],
+      [
+        "Pagine aziendali (/company/)",
+        "Non supportato",
+        "Lo strumento è limitato ai profili individuali /in/; loghi e pagine azienda sono esclusi."
+      ],
+      [
+        "Post, video e profili bloccati",
+        "Non supportato",
+        "Link /posts/, video LinkedIn, profili non pubblici e avatar fantasma predefiniti vengono respinti."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemi frequenti con le foto profilo LinkedIn e soluzioni",
+    "subheading": "Cinque situazioni tipiche legate a authwall, pagine aziendali, avatar fantasma e parametri URL.",
+    "items": [
+      {
+        "problem": "LinkedIn mostra una barriera di accesso (authwall) e blocca l'estrazione",
+        "solution": "LinkedIn limita spesso la visibilità dei profili agli utenti non connessi. VIDNEX non aggira mai l'authwall: apri la foto nella tua sessione e trascinala nel riquadro drag-and-drop locale 100% lato browser."
+      },
+      {
+        "problem": "Un link /company/ o /posts/ viene rifiutato dallo strumento",
+        "solution": "Questo strumento gestisce esclusivamente foto profilo personali linkedin.com/in/{slug}. Pagine aziendali, articoli, post del feed e video LinkedIn non rientrano nel perimetro supportato."
+      },
+      {
+        "problem": "Il profilo è pubblico ma compare l'avviso di avatar fantasma",
+        "solution": "Se l'utente non ha caricato una foto oppure ne ha ristretto la visibilità ai soli collegamenti diretti, LinkedIn restituisce solo la sagoma generica predefinita, che VIDNEX non scarica come foto reale."
+      },
+      {
+        "problem": "L'URL con parametri di tracciamento lunghi genera un errore",
+        "solution": "Sottodomini nazionali e suffissi lingua sono supportati, ma parametri di tracciamento troncati possono invalidare il link. Rimuovi la parte dopo il punto interrogativo mantenendo linkedin.com/in/{slug}."
+      },
+      {
+        "problem": "La foto linkedin_{slug}_profile.jpg non compare nell'app Foto su iPhone",
+        "solution": "Su iOS Safari salva l'immagine in File > Download. Apri il file JPG dall'app File, tocca Condividi in basso a sinistra e seleziona Salva immagine per aggiungerla al rullino."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dove trovare la foto profilo LinkedIn scaricata",
+    "subheading": "Individua subito il file linkedin_{slug}_profile.jpg sul tuo telefono o computer.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "Tocca la freccia di download in Safari oppure apri File > Download. Per trasferire l'immagine linkedin_{slug}_profile.jpg nella libreria Foto, apri il file JPG, premi Condividi e scegli Salva immagine."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome e gli altri browser Android salvano il file JPG nella cartella Download della memoria interna. Puoi aprirlo immediatamente dall'album Download nella Galleria o dall'app File."
+    },
+    "desktop": {
+      "title": "Computer (Windows / macOS)",
+      "steps": "La foto profilo viene salvata nella cartella Download predefinita del tuo computer. Premi Ctrl+J su Windows o Cmd+Shift+J su macOS nel browser per aprire l'elenco recente e mostrare il file nella cartella."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Posso scaricare video LinkedIn o loghi di pagine aziendali con questo strumento?",
+      "answer": "No, lo strumento LinkedIn di VIDNEX è dedicato esclusivamente alle foto profilo pubbliche dei profili personali linkedin.com/in/{slug}. Le pagine aziendali (/company/), i post del feed (/posts/), gli articoli e i video LinkedIn non sono supportati e producono un messaggio chiaro sui limiti di perimetro."
+    },
+    {
+      "question": "VIDNEX estrae nome, qualifica o dati del CV dal profilo LinkedIn?",
+      "answer": "Mai. VIDNEX non effettua scraping di nomi, titoli professionali, esperienze lavorative, contatti o contenuti del curriculum e non crea database di profili. Il motore si limita a verificare l'immagine firmata su media.licdn.com per i profili pubblici, controllarne l'integrità e trasmetterla al tuo dispositivo."
+    },
+    {
+      "question": "Cosa posso fare se LinkedIn blocca il profilo dietro un authwall?",
+      "answer": "Quando LinkedIn richiede il login per visualizzare un profilo, VIDNEX rispetta la barriera senza mai tentare di aggirarla. In alternativa puoi usare l'area drag-and-drop locale presente nella pagina: trascina l'immagine dalla tua sessione direttamente nel browser per salvarla in locale senza alcun invio al server."
+    },
+    {
+      "question": "Come verifica VIDNEX la sicurezza della foto profilo prima del download?",
+      "answer": "Accettiamo esclusivamente immagini provenienti dal dominio ufficiale firmato media.licdn.com entro un limite massimo di 10 MB. Ogni file viene controllato tramite verifica dei magic-byte per confermare un formato JPG, PNG o WebP autentico, mantenuto in cache temporanea per 10 minuti e salvato come linkedin_{slug}_profile.jpg."
+    },
+    {
+      "question": "I link it.linkedin.com e gli indirizzi mobili con suffisso lingua funzionano?",
+      "answer": "Sì, oltre all'indirizzo standard linkedin.com/in/{slug} sono supportati automaticamente i sottodomini nazionali come it.linkedin.com/in/..., gli indirizzi mobili m.linkedin.com/in/... e i suffissi di lingua alla fine dell'URL. L'unica condizione indispensabile è che il profilo e la foto siano visibili pubblicamente su LinkedIn."
+    },
+    {
+      "question": "Perché non riesco a scaricare l'immagine di un profilo con sagoma grigia?",
+      "answer": "Quando un utente LinkedIn non ha impostato una foto oppure ne ha limitato la visibilità ai soli collegamenti autenticati, la piattaforma espone soltanto un'icona fantasma predefinita. VIDNEX riconosce questa sagoma generica e la rifiuta anziché farti scaricare un'immagine vuota priva della foto reale."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Altri strumenti VIDNEX e informativa sulla privacy",
+    "subheading": "Dividi immagini in griglie locali oppure salva contenuti pubblici da Instagram e X.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Privacy e minimizzazione dei dati",
+    "privacyDescription": "Leggi perché non estraiamo mai dati CV e come funziona la cache temporanea di 10 minuti."
+  }
+}

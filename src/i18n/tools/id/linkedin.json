@@ -1,0 +1,156 @@
+{
+  "editorial": {
+    "heading": "Download foto profil LinkedIn publik — khusus profil pribadi /in/",
+    "subheading": "Verifikasi sumber resmi media.licdn.com hingga 10 MB plus cadangan drag-and-drop lokal di browser",
+    "paragraphs": [
+      "Alat LinkedIn VIDNEX berfokus secara khusus pada satu fungsi yang rapi: menyimpan foto profil pribadi LinkedIn yang bersifat publik dari alamat linkedin.com/in/{slug}. Subdomain negara (seperti id.linkedin.com/in/...), tautan seluler, serta akhiran kode bahasa pada URL akan dinormalisasi otomatis sebelum diproses.",
+      "Untuk menjaga integritas file, sistem kami hanya menerima gambar bertanda tangan dari domain resmi media.licdn.com dengan batas maksimal 10 MB, memverifikasi keaslian format JPG, PNG, atau WebP melalui pemeriksaan magic-byte, lalu menyimpannya dengan nama rapi linkedin_{slug}_profile.jpg. Hasil publik yang berhasil diverifikasi di-cache sementara selama 10 menit demi kestabilan respons.",
+      "Terkadang LinkedIn menampilkan dinding login (authwall) kepada pengunjung tanpa akun. VIDNEX tidak pernah mencoba melewati authwall tersebut; sebagai gantinya, halaman ini menyediakan zona drag-and-drop 100% lokal di browser sehingga Anda dapat menyeret foto yang sudah terbuka di sesi Anda sendiri untuk disimpan tanpa pengunggahan ke server.",
+      "Demi kepatuhan privasi yang ketat, alat ini tidak pernah mengambil atau mengikis (scrape) nama, jabatan, riwayat pekerjaan, maupun isi CV. Halaman perusahaan (/company/), postingan (/posts/), video LinkedIn, profil privat terkunci login, serta avatar bayangan bawaan (ghost avatar) dikecualikan."
+    ],
+    "formatsTitle": "Spesifikasi nyata alat foto profil LinkedIn",
+    "formatsList": [
+      "Hanya profil pribadi publik linkedin.com/in/{slug} (termasuk subdomain negara, seluler, dan akhiran bahasa)",
+      "Sumber resmi media.licdn.com maksimal 10 MB dengan verifikasi magic-byte JPG, PNG, atau WebP",
+      "Penamaan file otomatis linkedin_{slug}_profile.jpg dengan cache sementara selama 10 menit",
+      "Cadangan drag-and-drop 100% lokal di browser apabila LinkedIn memunculkan dinding login (authwall)"
+    ],
+    "limitsTitle": "Konten LinkedIn yang secara tegas tidak didukung",
+    "limitsText": "Halaman perusahaan (/company/), postingan feed (/posts/), video LinkedIn, profil yang terkunci di balik login, serta avatar kosong bawaan tidak didukung. VIDNEX tidak pernah mengumpulkan nama, jabatan, atau data CV."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Salin tautan profil pribadi LinkedIn (/in/)",
+      "description": "Buka halaman profil pribadi LinkedIn publik yang alamatnya memuat /in/{slug}, lalu salin URL lengkapnya dari bilah alamat atau tombol Bagikan.",
+      "codeHint": "LINKEDIN.COM/IN/{SLUG}"
+    },
+    {
+      "number": "02",
+      "title": "Tempel tautan untuk memverifikasi gambar",
+      "description": "Tempel URL di kolom atas lalu tekan Download. VIDNEX memverifikasi gambar media.licdn.com melalui pengecekan magic-byte dengan batas 10 MB.",
+      "codeHint": "MEDIA.LICDN.COM · MAKS 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Simpan file JPG atau pakai mode lokal",
+      "description": "Klik simpan untuk mengunduh linkedin_{slug}_profile.jpg, atau gunakan zona drag-and-drop lokal di browser jika LinkedIn memunculkan authwall.",
+      "codeHint": "LINKEDIN_SLUG_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabel cakupan teknis alat LinkedIn VIDNEX",
+    "subheading": "Jenis alamat LinkedIn yang diterima, aturan verifikasi file, dan konten yang dikecualikan.",
+    "headers": [
+      "Jenis tautan LinkedIn",
+      "Hasil / Perilaku",
+      "Detail teknis dan batasan nyata"
+    ],
+    "rows": [
+      [
+        "Profil pribadi publik (/in/)",
+        "JPG (linkedin_{slug}_profile.jpg)",
+        "Sumber media.licdn.com terverifikasi magic-byte (JPG/PNG/WebP), maks 10 MB, cache sementara 10 menit."
+      ],
+      [
+        "Subdomain negara / seluler",
+        "Normalisasi otomatis → JPG",
+        "id.linkedin.com/in/..., m.linkedin.com/in/..., dan akhiran bahasa otomatis diarahkan ke slug profil."
+      ],
+      [
+        "Profil terkena authwall",
+        "Cadangan drag-and-drop lokal",
+        "Authwall tidak dilewati; Anda dapat menyeret gambar langsung di browser tanpa unggah ke server."
+      ],
+      [
+        "Halaman perusahaan (/company/)",
+        "Tidak didukung",
+        "Alat hanya melayani profil individu /in/; logo perusahaan dan halaman organisasi dikecualikan."
+      ],
+      [
+        "Postingan, video, profil terkunci",
+        "Tidak didukung",
+        "Tautan /posts/, video LinkedIn, profil privat, dan avatar bayangan bawaan ditolak secara jelas."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Kendala umum foto profil LinkedIn dan solusinya",
+    "subheading": "Lima situasi nyata saat mengambil foto profil LinkedIn publik beserta penyelesaiannya.",
+    "items": [
+      {
+        "problem": "Muncul hambatan dinding login (authwall) LinkedIn",
+        "solution": "LinkedIn sering membatasi tampilan profil bagi pengunjung tanpa login. VIDNEX tidak mencoba melewati authwall; buka profil lewat sesi akun Anda sendiri, lalu seret gambar ke kotak drag-and-drop lokal di halaman ini."
+      },
+      {
+        "problem": "Tautan halaman perusahaan (/company/) atau kiriman (/posts/) ditolak",
+        "solution": "Alat ini memang dibatasi khusus untuk foto profil pribadi dengan struktur linkedin.com/in/{slug}. Halaman perusahaan, artikel, kiriman feed, dan video LinkedIn berada di luar cakupan alat."
+      },
+      {
+        "problem": "Profil terbuka tetapi muncul pemberitahuan avatar bawaan (ghost avatar)",
+        "solution": "Apabila pemilik akun belum memasang foto atau membatasi visibilitas foto profil hanya untuk koneksi internal, LinkedIn hanya menampilkan ikon siluet bawaan sehingga tidak ada foto publik untuk diunduh."
+      },
+      {
+        "problem": "URL profil dengan parameter panjang dari aplikasi gagal dikenali",
+        "solution": "Meskipun subdomain negara dan kode bahasa didukung, parameter pelacakan berlebihan di ujung tautan kadang mengganggu. Hapus tanda tanya dan parameter di belakang /in/{slug} lalu coba tempel kembali."
+      },
+      {
+        "problem": "File linkedin_{slug}_profile.jpg tidak tampil langsung di Galeri iPhone",
+        "solution": "Safari di iPhone menyimpan gambar ke aplikasi File > Unduhan. Buka aplikasi File, ketuk file JPG tersebut, pilih ikon Bagikan di kiri bawah, lalu ketuk Simpan Gambar untuk memindahkannya ke aplikasi Foto."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana letak foto profil LinkedIn yang tersimpan",
+    "subheading": "Temukan file linkedin_{slug}_profile.jpg yang baru saja diunduh di perangkat Anda.",
+    "ios": {
+      "title": "iPhone dan iPad",
+      "steps": "Ketuk panah biru Safari lalu buka Unduhan, atau langsung menuju aplikasi File > Unduhan. Untuk memindahkan gambar ke Galeri Foto, buka file linkedin_{slug}_profile.jpg, ketuk Bagikan, lalu pilih Simpan Gambar."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome dan browser Android menempatkan file JPG hasil unduhan di folder Download (Unduhan) penyimpanan internal. Anda dapat langsung melihatnya di aplikasi Galeri (album Download) maupun aplikasi File Saya."
+    },
+    "desktop": {
+      "title": "Komputer (Windows / macOS)",
+      "steps": "File linkedin_{slug}_profile.jpg masuk ke folder Downloads bawaan sistem Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS pada browser untuk membuka daftar unduhan dan menampilkan lokasi gambar."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Bisakah saya mengunduh video LinkedIn atau logo halaman perusahaan di sini?",
+      "answer": "Tidak bisa. Alat LinkedIn VIDNEX sengaja dirancang hanya untuk mengambil foto profil pribadi publik dari alamat linkedin.com/in/{slug}. Halaman perusahaan (/company/), postingan feed (/posts/), artikel, dan video LinkedIn tidak didukung; sistem langsung menampilkan pesan jelas bila tautan di luar cakupan ditempelkan."
+    },
+    {
+      "question": "Apakah VIDNEX mengambil nama, jabatan, atau informasi CV dari profil LinkedIn?",
+      "answer": "Tidak pernah. VIDNEX tidak mengikis (scrape), menyimpan, atau mengumpulkan nama, jabatan, pengalaman kerja, alamat email, maupun data CV dari profil mana pun. Sistem hanya mengambil alamat gambar bertanda tangan dari media.licdn.com untuk profil publik, memeriksa keaslian file gambar, lalu menyalurkannya ke browser Anda."
+    },
+    {
+      "question": "Apa yang harus dilakukan jika LinkedIn menampilkan authwall (dinding login)?",
+      "answer": "Ketika LinkedIn menutup tampilan profil bagi pengunjung tanpa login, VIDNEX tidak pernah mencoba menerobos authwall tersebut. Sebagai solusi yang aman, gunakan kotak drag-and-drop 100% lokal di halaman ini: cukup seret foto dari tab LinkedIn Anda sendiri untuk disimpan tanpa pengunggahan ke server."
+    },
+    {
+      "question": "Bagaimana VIDNEX memverifikasi file foto profil LinkedIn sebelum diunduh?",
+      "answer": "Sistem hanya mengizinkan gambar dari server resmi media.licdn.com dengan batas ukuran maksimal 10 MB. Sebelum disajikan dengan nama linkedin_{slug}_profile.jpg, file melewati pemeriksaan magic-byte guna memastikan format JPG, PNG, atau WebP yang sah serta di-cache sementara selama 10 menit demi kestabilan."
+    },
+    {
+      "question": "Apakah tautan id.linkedin.com atau tautan seluler dengan akhiran bahasa didukung?",
+      "answer": "Ya, alamat dengan subdomain negara seperti id.linkedin.com/in/..., versi seluler m.linkedin.com/in/..., serta akhiran kode bahasa di belakang slug profil otomatis dikenali dan dinormalisasi oleh sistem. Syarat utamanya hanyalah profil dan foto profil tersebut memang diatur terbuka untuk publik pada pengaturan privasi LinkedIn."
+    },
+    {
+      "question": "Mengapa profil yang tidak memiliki foto asli tidak bisa diunduh?",
+      "answer": "Jika pengguna LinkedIn belum mengunggah foto atau menyembunyikan fotonya dari pengunjung publik, LinkedIn hanya mengembalikan ikon siluet bawaan (ghost avatar). VIDNEX mendeteksi ikon bawaan tersebut dan menolaknya secara jujur agar Anda tidak mengunduh gambar kosong yang bukan foto profil sebenarnya."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat VIDNEX lainnya dan informasi privasi",
+    "subheading": "Potong gambar langsung di browser atau simpan media publik dari Instagram dan X.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Kebijakan privasi dan minimisasi data",
+    "privacyDescription": "Baca komitmen kami untuk tidak pernah mengikis data profil maupun menyimpan gambar Anda."
+  }
+}

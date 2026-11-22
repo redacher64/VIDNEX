@@ -1,0 +1,162 @@
+{
+  "editorial": {
+    "heading": "Görsel bölme aracı: 3×3 Instagram ızgarası ve özel parçalar — %100 tarayıcı içi",
+    "subheading": "HTML5 Canvas ve JSZip ile sunucuya yükleme olmadan PNG, JPG ve ZIP çıktı",
+    "paragraphs": [
+      "VIDNEX Görsel Bölme aracı, tek bir fotoğrafı sosyal medya profilleri, karuseller veya tasarım sunumları için eşit parçalara ayırmanızı sağlar. Tüm işlemler HTML5 Canvas ve JSZip kullanılarak tamamen kendi tarayıcınızda gerçekleşir: seçtiğiniz JPG, PNG veya WebP dosyaları hiçbir sunucuya yüklenmez ve cihazınızdan dışarı çıkmaz.",
+      "Hazır ızgara şablonları arasında klasik kare 2×2, Instagram profil düzeni için popüler 3×3, yatay panorama karuselleri için 1×3 ve dikey akışlar için 3×1 seçenekleri bulunur. Daha özel düzenler için satır ve sütun sayısını ayrı ayrı 1 ile 10 arasında belirleyerek en fazla 100 parçalık özel ızgaralar oluşturabilirsiniz.",
+      "Instagram profilinizde görsel bütünlüğü korumak için yerleşik Instagram Sırası seçeneğini etkinleştirebilirsiniz. Bu mod parçaları sağ alttan başlayarak (image-1) sol üste doğru numaralandırır; böylece dosyaları sırayla yüklediğinizde profil ızgarasında büyük görsel kusursuz hizalanır. 8000 pikselin üzerindeki çok büyük görseller tarayıcı belleğini korumak için orantılı olarak otomatik ölçeklenir.",
+      "Çıktı formatı olarak kayıpsız PNG veya %10 ile %100 arasında kalite ayarlı JPG seçebilirsiniz. Şeffaf arka planlı PNG görselleri JPG formatına dönüştürülürken siyah kenarlık oluşmaması için otomatik beyaz arka plan doldurulur. Parçaları tek tek ya da vidnex-split-{satır}x{sütun}.zip arşivi hâlinde indirebilirsiniz."
+    ],
+    "formatsTitle": "Yerel görsel bölme aracının gerçek yetenekleri",
+    "formatsList": [
+      "Giriş formatları: JPG, PNG ve WebP (8000 piksel üzerindeki kenarlar orantılı olarak otomatik küçültülür)",
+      "Hazır şablonlar (2×2, 3×3, 1×3, 3×1) ve özel ızgara (1–10 satır × 1–10 sütun, en fazla 100 parça)",
+      "Instagram Sırası modu: sağ alt köşeden (image-1) sol üste doğru ters yükleme numaralandırması",
+      "Çıktı formatları: kayıpsız PNG veya %10–%100 kalite ayarlı JPG (şeffaf PNG için otomatik beyaz dolgu)",
+      "Tek parça indirme veya tarayıcıda oluşturulan vidnex-split-{satır}x{sütun}.zip arşivi"
+    ],
+    "limitsTitle": "Çalışma sınırları ve gizlilik garantisi",
+    "limitsText": "Görselleriniz hiçbir zaman sunucuya gönderilmez. Çok yüksek çözünürlüklü dosyalarda mobil tarayıcıların çökmesini önlemek için 8000 piksel üstü kenarlar otomatik orantılı küçültülür ve özel ızgaralar en fazla 10×10 (100 parça) ile sınırlandırılır."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Görselinizi yerel olarak seçin",
+      "description": "Cihazınızdan bir JPG, PNG veya WebP dosyasını sürükleyip bırakın ya da dosya seçiciyle açın. Dosya yalnızca tarayıcı belleğinize yüklenir.",
+      "codeHint": "JPG · PNG · WEBP · %100 YEREL"
+    },
+    {
+      "number": "02",
+      "title": "Izgara düzenini ve formatı ayarlayın",
+      "description": "2×2, 3×3, 1×3, 3×1 şablonlarından birini ya da 1–10 arası özel satır/sütun değerlerini seçin; gerekirse Instagram Sırası ve PNG/JPG kalitesini belirleyin.",
+      "codeHint": "3×3 · ÖZEL 1–10 · IG SIRASI"
+    },
+    {
+      "number": "03",
+      "title": "Tek tek veya ZIP olarak indirin",
+      "description": "Canlı ızgara önizlemesini kontrol ettikten sonra tek bir parçayı kaydedin veya tüm kareleri vidnex-split-{satır}x{sütun}.zip dosyası olarak indirin.",
+      "codeHint": "HTML5 CANVAS · JSZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Görsel bölme giriş, ızgara ve çıkış tablosu",
+    "subheading": "Tarayıcı içi görsel bölme aracının desteklediği dosya türleri, ızgara modları ve çıktı kuralları.",
+    "headers": [
+      "Özellik / Ayar",
+      "Seçenekler",
+      "Gerçek çalışma davranışı"
+    ],
+    "rows": [
+      [
+        "Giriş dosyaları",
+        "JPG, PNG, WebP",
+        "Tamamen tarayıcı içinde HTML5 Canvas ile okunur; 8000 px üstü görseller orantılı küçültülür."
+      ],
+      [
+        "Hazır ızgaralar",
+        "2×2, 3×3, 1×3, 3×1",
+        "Instagram profil duvarı ve yatay/dikey panoramik karuseller için tek tıkla oranlı bölme."
+      ],
+      [
+        "Özel ızgara",
+        "1–10 satır × 1–10 sütun",
+        "En fazla 100 eşit parça oluşturulur ve canlı önizleme çizgileri anında güncellenir."
+      ],
+      [
+        "Instagram Sırası",
+        "Açık / Kapalı",
+        "Açıkken sağ alt kare image-1 olarak numaralanır; sırayla yüklemede profil ızgarası düzgün dizilir."
+      ],
+      [
+        "Çıktı formatı",
+        "PNG veya JPG (%10–%100)",
+        "Kayıpsız PNG ya da kalite ayarlı JPG; şeffaf PNG dosyaları JPG olurken otomatik beyaz arka plan eklenir."
+      ],
+      [
+        "Toplu indirme",
+        "Tek parça veya ZIP",
+        "JSZip ile yerel olarak vidnex-split-{satır}x{sütun}.zip paketi oluşturulur."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Görsel bölerken sık karşılaşılan sorunlar ve çözümleri",
+    "subheading": "Şeffaf PNG arka planı, Instagram yükleme sırası, çok büyük görseller ve ZIP açma hakkında beş pratik çözüm.",
+    "items": [
+      {
+        "problem": "Parçaları Instagram'a yüklediğimde ızgara ters sırayla göründü",
+        "solution": "Instagram yeni gönderileri sol üstten başlayarak ekler. Bölme işleminden önce Instagram Sırası seçeneğini açın; böylece sağ alt kare image-1 olarak adlandırılır ve 1'den başlayarak yüklediğinizde görsel doğru birleşir."
+      },
+      {
+        "problem": "Şeffaf PNG görseli JPG seçtiğimde arka plan beyaz oldu",
+        "solution": "JPG formatı şeffaflık kanalını desteklemez. Siyah ve bozuk kenarlıklar oluşmaması için VIDNEX JPG çıktısında otomatik beyaz arka plan uygular; şeffaflığı korumak istiyorsanız çıktı formatını PNG olarak seçin."
+      },
+      {
+        "problem": "8000 pikselden büyük görselin boyutu neden küçüldü?",
+        "solution": "Çok büyük görseller özellikle mobil tarayıcılarda HTML5 Canvas bellek sınırını aşarak sekmenin kapanmasına yol açabilir. VIDNEX en-boy oranını bozmadan 8000 piksel üstü kenarları otomatik olarak güvenli boyuta ölçekler."
+      },
+      {
+        "problem": "iPhone üzerinde indirilen vidnex-split ZIP dosyası nasıl açılır?",
+        "solution": "Safari ZIP dosyasını Dosyalar > İndirilenler klasörüne kaydeder. Dosyalar uygulamasında ZIP arşivine bir kez dokunmanız yeterlidir; iOS aynı adla bir klasör oluşturur ve içindeki kareleri Fotoğraflar'a kaydedebilirsiniz."
+      },
+      {
+        "problem": "10×10 (100 parça) ZIP oluştururken tarayıcı kısa süre bekliyor",
+        "solution": "Tüm kesme ve ZIP sıkıştırma işlemi cihazınızın işlemcisinde yerel olarak yapılır. 100 yüksek çözünürlüklü PNG parça oluşturmak birkaç saniye sürebilir; daha hızlı sonuç ve daha küçük dosya için JPG %85–%90 kalitesini seçebilirsiniz."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Bölünen görselleri ve ZIP arşivini nerede bulabilirsiniz?",
+    "subheading": "Tarayıcınızda oluşturulan tekli kareleri veya vidnex-split ZIP paketini cihazınızda hızla açın.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "Safari indirme okuna dokunun veya Dosyalar > İndirilenler klasörünü açın. vidnex-split-{satır}x{sütun}.zip dosyasına tek kez dokunarak klasörü çıkarın; ardından klasöre girip kareleri seçerek Paylaş > Görüntüleri Kaydet adımıyla Fotoğraflar galerinize aktarın."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Chrome indirilen kareleri veya ZIP arşivini İndirilenler (Download) klasörüne kaydeder. Dosyalarım uygulamasından ZIP dosyasına dokunup Çıkar seçeneğini kullanın; çıkarılan PNG veya JPG parçaları hemen Galeri uygulamanızda görünür."
+    },
+    "desktop": {
+      "title": "Bilgisayar (Windows / macOS)",
+      "steps": "Tekli görseller ve vidnex-split-{satır}x{sütun}.zip paketi bilgisayarınızın İndirilenler klasörüne kaydedilir. Windows'ta Ctrl+J, macOS'ta Cmd+Shift+J ile klasöre geçip ZIP arşivini tek tıkla çıkarabilirsiniz."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Görsel bölme aracına yüklediğim fotoğraflar VIDNEX sunucusuna gidiyor mu?",
+      "answer": "Hayır, seçtiğiniz JPG, PNG veya WebP fotoğraflar hiçbir zaman VIDNEX sunucularına yüklenmez ve cihazınızdan dışarıya gönderilmez. Tüm kesme, orantılı boyutlandırma, canlı ızgara önizleme ve ZIP paketleme işlemleri HTML5 Canvas ile JSZip teknolojileri kullanılarak tamamen kendi tarayıcınızın yerel belleğinde güvenle çalışır."
+    },
+    {
+      "question": "Instagram Sırası seçeneği ne işe yarar ve nasıl kullanılır?",
+      "answer": "Instagram profil ızgarasına her yeni gönderi eklendiğinde eski kareler sağa ve aşağı doğru kayar. Instagram Sırası açıldığında VIDNEX parçaları sağ alt köşeden (image-1) başlayarak sol üste doğru ters biçimde numaralandırır; dosyaları küçük numaradan büyüğe sırayla paylaştığınızda profilinizde büyük fotoğraf eksiksiz birleşir."
+    },
+    {
+      "question": "Kaç parçaya kadar özel ızgara oluşturabilirim?",
+      "answer": "Hazır 2×2, 3×3, 1×3 ve 3×1 şablonlarına ek olarak özel ızgara modunda satır ve sütun sayılarını ayrı ayrı 1 ile 10 arasında belirleyebilirsiniz. Bu sayede 1×2 veya 4×3 gibi asimetrik düzenlerden en fazla 10×10 yani 100 eşit parçaya kadar ızgara oluşturmak mümkündür."
+    },
+    {
+      "question": "PNG ve JPG çıktı formatları arasında hangi farklar vardır?",
+      "answer": "PNG çıktı kayıpsız sıkıştırma uygular ve varsa görselin şeffaf arka planını aynen korur; ancak dosya boyutu daha büyüktür. JPG çıktıda ise %10 ile %100 arasında kalite ayarı yapabilirsiniz; şeffaf bir PNG seçtiyseniz siyah kenarlık olmaması için arka plan otomatik olarak beyaz doldurulur."
+    },
+    {
+      "question": "Çok büyük çözünürlüklü bir fotoğraf yüklersem ne olur?",
+      "answer": "Genişliği veya yüksekliği 8000 pikselin üzerinde olan çok büyük görseller, özellikle telefon ve tablet tarayıcılarında bellek taşmasına neden olabilir. Bunu önlemek için VIDNEX bu sınırı aşan görselleri en-boy oranını koruyarak otomatik olarak 8000 piksel sınırına orantılı biçimde ölçekler ve ardından böler."
+    },
+    {
+      "question": "Tüm parçaları tek tek indirmek yerine tek bir ZIP dosyasında alabilir miyim?",
+      "answer": "Evet, tek bir kareyi ayrı ayrı indirebileceğiniz gibi tüm parçaları tek tıkla toplu ZIP arşivi olarak da kaydedebilirsiniz. JSZip kütüphanesi seçtiğiniz PNG veya JPG karelerini tarayıcınızda paketleyip vidnex-split-{satır}x{sütun}.zip adıyla cihazınıza sunar; Instagram Sırası açıksa dosya numaraları da buna göre sıralanır."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Diğer VIDNEX araçları ve gizlilik",
+    "subheading": "Izgara oluşturmanın yanında Instagram, TikTok veya LinkedIn içeriklerini de kaydedin.",
+    "toolKeys": [
+      "instagram",
+      "tiktok",
+      "linkedin"
+    ],
+    "privacyLabel": "Gizlilik politikası ve %100 yerel işleme",
+    "privacyDescription": "Tarayıcı içi çalışan araçlarımızda dosyalarınızın cihazınızda nasıl kaldığını okuyun."
+  }
+}

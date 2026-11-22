@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "One browser hub to save public social media and split images locally",
+    "subheading": "Automatic URL routing, zero-storage streaming pass-through, and browser-side grid slicing",
+    "paragraphs": [
+      "VIDNEX combines public media downloading across five platforms — TikTok, Instagram, X (Twitter), Facebook, and LinkedIn public profile pictures — with a browser-based Split Image utility inside one fast interface. Paste any supported public link into the input bar and VIDNEX automatically inspects the domain and URL path to choose the right engine and display the exact media type without manual tab switching.",
+      "Every download resolves publicly accessible metadata on demand and relays the resulting MP4 video, MP3 or M4A audio track, or JPG/PNG photo directly to your device. VIDNEX does not require user registration, browser extensions, or server-side media archiving. Multi-item downloads such as TikTok Photo Mode slideshows and Instagram carousels are packaged into a ZIP archive locally inside your browser.",
+      "For creators preparing grid layouts, the companion Split Image tool operates completely offline once loaded using HTML5 Canvas and JSZip, keeping source artwork strictly on your device while outputting crisp PNG or JPG tiles."
+    ],
+    "formatsTitle": "What VIDNEX supports out of the box",
+    "formatsList": [
+      "TikTok: public MP4 videos without watermark (HD 1080p / SD 720p), verified MP3 or M4A audio, Photo Mode slideshows (JPG or local ZIP), public avatars",
+      "Instagram: public Reels and /p/ or /tv/ videos in MP4 with audio, single JPG photo posts, selectable carousels (single or ZIP), public profile pictures",
+      "X (Twitter): progressive MP4 video variants sorted by bitrate, animated GIFs saved as looping MP4, single and multi-photo posts up to 4 original-resolution images",
+      "Facebook: public videos (/watch/, /videos/, fb.watch) and public Reels (/reel/) in HD or SD MP4 with synchronized audio",
+      "LinkedIn: public personal profile pictures (/in/...) validated via magic bytes, plus a browser-local manual upload fallback when an authwall appears",
+      "Split Image: 100% browser-local JPG, PNG, and WebP grid cutter (2×2, 3×3, 1×3, 3×1, or custom up to 10×10) with Instagram Order and ZIP export"
+    ],
+    "limitsTitle": "Public scope and clear exclusions",
+    "limitsText": "VIDNEX only handles publicly accessible links that do not require authentication. YouTube, Snapchat, private accounts, closed groups, ongoing livestreams, Facebook photos, and login-gated stories are not supported, and no login wall is ever bypassed."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copy the public share link",
+      "description": "Open the public post, Reel, tweet, video, or LinkedIn profile you want to save, tap Share, and copy the official full or short URL.",
+      "codeHint": "PUBLIC URL · SHORT LINK"
+    },
+    {
+      "number": "02",
+      "title": "Paste into the universal bar",
+      "description": "Paste the link above. VIDNEX automatically identifies the platform and content type (video, Reel, carousel, photo, or profile) without extra clicks.",
+      "codeHint": "AUTO-DETECT · NO LOGIN"
+    },
+    {
+      "number": "03",
+      "title": "Pick your format and save",
+      "description": "Choose your preferred MP4 resolution, original audio track, individual photos, or browser-built ZIP archive to save directly to your device.",
+      "codeHint": "MP4 / MP3 / JPG / ZIP"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Supported formats and qualities across VIDNEX tools",
+    "subheading": "A transparent summary of the exact file formats and behavior implemented in each VIDNEX module.",
+    "headers": ["Platform or tool", "Output formats", "Actual quality and behavior"],
+    "rows": [
+      ["TikTok", "MP4, MP3 / M4A, JPG, ZIP", "Public 1080p HD or 720p SD video without watermark depending on source; MIME-checked real audio; slideshows up to 20 items in local ZIP."],
+      ["Instagram", "MP4, JPG, ZIP", "Public Reels and videos with audio, single /p/ JPG photos, checkbox-selectable carousels (up to 20 files / 100 MB ZIP), and HD public avatars."],
+      ["X (Twitter)", "MP4, JPG / PNG, ZIP", "Progressive video/mp4 streams sorted by bitrate (HLS filtered out), GIFs as looping MP4, and up to 4 original-size (?name=orig) photos."],
+      ["Facebook", "MP4 (HD / SD)", "Public videos (/watch/, /videos/, fb.watch) and public Reels with audio; Facebook photos and login-gated stories return clear notices."],
+      ["LinkedIn", "JPG, PNG, WebP", "Public personal /in/ profile photos only (up to 10 MB, magic-byte verified), plus a browser-local drag-and-drop fallback on authwalls."],
+      ["Split Image", "PNG, JPG, ZIP", "Client-side HTML5 Canvas + JSZip slicer (JPG, PNG, WebP input; auto-downscale above 8000 px), custom grids up to 10×10, Instagram Order."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Common issues and practical fixes",
+    "subheading": "Why a public link occasionally fails to resolve or where a downloaded file goes on mobile browsers.",
+    "guideLink": {
+      "label": "Read the link troubleshooting guide",
+      "href": "/en/blog/troubleshooting-expired-blocked-social-media-links"
+    },
+    "items": [
+      {
+        "problem": "Error says the content is private or requires login",
+        "solution": "Test the URL inside an incognito browser window while logged out. If the platform asks you to sign in or displays a lock icon, the post is restricted and VIDNEX will not bypass authentication."
+      },
+      {
+        "problem": "Short mobile link expired or included extra caption text",
+        "solution": "Mobile apps often copy the post caption together with vm.tiktok.com, fb.watch, or /share/ URLs. Paste only the clean https:// link, or open it once in a browser to copy the canonical address."
+      },
+      {
+        "problem": "Saved video plays with no audio",
+        "solution": "First check whether the original post still has sound on the source platform, as muted tracks or copyright removals cannot be restored. On mobile, also ensure silent mode is off and test playback in the native gallery player."
+      },
+      {
+        "problem": "Downloaded file is missing from the iPhone Photos app",
+        "solution": "Safari saves MP4 videos and ZIP archives to Apple's Files app under Downloads rather than directly into Photos. Open Files > Downloads, tap the video, then choose Share > Save Video."
+      },
+      {
+        "problem": "Temporary rate limit notice appears",
+        "solution": "VIDNEX applies short-window rate limits to keep extraction stable and prevent automated abuse. Wait a brief moment before pasting another public link instead of clicking repeatedly."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Where to find your downloaded files",
+    "subheading": "Default save folders on iPhone, Android, and desktop browsers for individual media and ZIP archives.",
+    "ios": {
+      "title": "iPhone & iPad (Safari / Chrome)",
+      "steps": "Tap the blue download icon in Safari's address bar, or open the Apple Files app and check Downloads (under On My iPhone or iCloud Drive). To move an MP4 video or JPG image into your camera roll, open the file, tap Share, and select Save Video or Save Image. Tap any ZIP file once to unzip all slides in place."
+    },
+    "android": {
+      "title": "Android (Chrome, Firefox, Samsung Internet)",
+      "steps": "MP4 videos, MP3/M4A audio files, and JPG images save directly into internal storage under Download (Downloads). Videos and photos usually appear immediately inside Gallery or Google Photos under the Downloads folder. For carousel ZIP files, open Files or My Files and tap Extract."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "Every browser saves files into your system Downloads folder by default. Press Ctrl+J on Windows or Cmd+Shift+J on macOS (Cmd+Option+L in Safari) to view recent transfers and jump directly to the file folder. Double-click or right-click Extract All to open ZIP archives."
+    }
+  },
+  "faqs": [
+    {
+      "question": "How does VIDNEX pick the right extractor when I paste a link?",
+      "answer": "As soon as you paste a URL into the main input field, VIDNEX inspects the domain and URL path structure to identify both the platform and exact media kind automatically. You never have to pick a platform chip first, because routing always follows the pasted public link directly."
+    },
+    {
+      "question": "Does VIDNEX store my downloaded videos, photos, or URL history?",
+      "answer": "No, VIDNEX never archives your downloaded videos, audio tracks, or images on its servers. Public media streams pass straight through to your browser on demand, while multi-photo ZIP archives and Split Image tiles are generated locally inside your own device memory without creating any user history."
+    },
+    {
+      "question": "Can I download content from a private account or login-gated story?",
+      "answer": "No, VIDNEX strictly supports public posts that anyone can view without signing in. Private accounts, friends-only posts, closed Facebook groups, age-gated tweets, and stories requiring an active login return a clear error message, because VIDNEX never attempts to bypass platform privacy controls or authentication walls."
+    },
+    {
+      "question": "Why are YouTube and Snapchat not included on VIDNEX?",
+      "answer": "VIDNEX intentionally focuses on five well-defined public social platforms — TikTok, Instagram, X (Twitter), Facebook, and public LinkedIn profile photos — alongside the browser-local Split Image tool. YouTube and Snapchat are explicitly excluded so the service stays transparent, reliable, and aligned with clear usage boundaries."
+    },
+    {
+      "question": "Do I need an account, app install, or browser extension to use VIDNEX?",
+      "answer": "No registration, email address, mobile app download, or browser extension is required. Every VIDNEX tool runs directly inside standard browsers like Safari, Chrome, Firefox, and Edge across phones, tablets, and computers, storing only your optional local theme and language preferences inside your own browser storage."
+    },
+    {
+      "question": "How do multi-photo carousels and slideshows download on VIDNEX?",
+      "answer": "When a public TikTok Photo Mode post, Instagram carousel, or multi-image X tweet contains multiple files, VIDNEX presents an interactive preview grid with checkboxes. You can save individual photos with one tap or bundle up to twenty items into a single browser-built ZIP archive automatically."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Dedicated tools and helpful resources",
+    "subheading": "Jump directly to a platform downloader, open the local grid cutter, or read our privacy standards.",
+    "toolKeys": ["tiktok", "instagram", "split_image"],
+    "guideLink": {
+      "label": "Complete guide: saving public TikTok videos without watermark",
+      "description": "Learn how HD/SD MP4 streams, MP3/M4A audio checks, and slideshow ZIP exports work.",
+      "href": "/en/blog/save-public-tiktok-videos-without-watermark-guide"
+    },
+    "privacyLabel": "VIDNEX Privacy Policy",
+    "privacyDescription": "Full details on zero-storage media streaming, salted IP hashing, and browser-local processing."
+  }
+}

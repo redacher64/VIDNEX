@@ -1,0 +1,157 @@
+{
+  "editorial": {
+    "heading": "Baixar foto de perfil pública do LinkedIn na resolução original",
+    "subheading": "Focado exclusivamente em perfis pessoais públicos /in/ com validação binária e modo local de apoio",
+    "paragraphs": [
+      "A ferramenta do LinkedIn do VIDNEX foi criada exclusivamente para visualizar e baixar a foto de perfil pública de um perfil pessoal do LinkedIn (endereços linkedin.com/in/{slug}, incluindo subdomínios regionais como br.linkedin.com, pt.linkedin.com, m.linkedin.com e sufixos de idioma como /in/{slug}/pt).",
+      "Quando o perfil está acessível publicamente, o VIDNEX lê apenas metadados públicos de imagem expostos pela página (tags OpenGraph, Twitter Card, esquema Person ou endereço assinado em media.licdn.com). A foto obtida — até 10 MB em JPG, PNG ou WebP — passa por validação binária (magic bytes), fica em cache técnico curto de dez minutos e é salva como linkedin_{slug}_profile.jpg.",
+      "Por respeito rígido à privacidade, o VIDNEX nunca coleta nome completo, cargo, empresa nem histórico profissional: somente o retrato público é processado. Se o LinkedIn exibir um muro de login (authwall), o VIDNEX não o contorna e disponibiliza um módulo manual 100% local de arrastar e soltar para inspecionar e salvar uma imagem do próprio dispositivo sem envio ao servidor.",
+      "Páginas de empresa (/company/), posts do feed (/posts/), vídeos do LinkedIn, perfis fechados atrás de login e silhuetas padrão sem foto não são suportados."
+    ],
+    "formatsTitle": "O que o módulo LinkedIn realmente faz",
+    "formatsList": [
+      "Obtém a foto de perfil pessoal pública (/in/{slug}) na resolução original a partir de media.licdn.com",
+      "Compatível com subdomínios regionais (br.linkedin.com, m.linkedin.com) e sufixos de idioma (/in/{slug}/pt)",
+      "Validação por assinatura binária para JPG, PNG e WebP até 10 MB, salvo como linkedin_{slug}_profile.jpg",
+      "Modo manual 100% local no navegador (arrastar e soltar, zoom HD, zero envio ao servidor) diante de muro de login",
+      "Zero coleta de dados pessoais: nunca lê nome, cargo, empregador ou currículo"
+    ],
+    "limitsTitle": "Exclusões claras no LinkedIn",
+    "limitsText": "Páginas corporativas (/company/), publicações (/posts/), vídeos do LinkedIn, perfis bloqueados por login e contas com avatar genérico padrão não são suportados. O VIDNEX nunca burla telas de autenticação do LinkedIn."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Copie a URL pública /in/ do LinkedIn",
+      "description": "Abra o perfil pessoal público do LinkedIn no navegador e copie o endereço oficial contendo linkedin.com/in/{slug}.",
+      "codeHint": "LINKEDIN.COM/IN/..."
+    },
+    {
+      "number": "02",
+      "title": "Valide e carregue a foto pública",
+      "description": "Cole o link no VIDNEX: a ferramenta verifica os metadados públicos em media.licdn.com e confirma a assinatura binária JPG, PNG ou WebP.",
+      "codeHint": "MAGIC BYTES · MÁX. 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "Baixe o JPG ou use o modo local",
+      "description": "Veja a prévia em tamanho completo e clique em Baixar, ou use o envio manual 100% local se o LinkedIn exibir tela de login.",
+      "codeHint": "LINKEDIN_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formatos e limites da ferramenta de foto de perfil LinkedIn",
+    "subheading": "Comportamento real do módulo LinkedIn para cada tipo de URL e regra de acesso.",
+    "headers": [
+      "Cenário ou URL LinkedIn",
+      "Formato / Resultado",
+      "Comportamento real no VIDNEX"
+    ],
+    "rows": [
+      [
+        "Perfil pessoal público (/in/slug)",
+        "JPG / PNG / WebP",
+        "Busca a foto assinada em media.licdn.com (máx. 10 MB), valida magic bytes, cache de 10 min, salva linkedin_{slug}_profile.jpg."
+      ],
+      [
+        "Subdomínios de país ou mobile",
+        "JPG / PNG / WebP",
+        "Normaliza automaticamente subdomínios (br., pt., m.linkedin.com) e segmentos de idioma."
+      ],
+      [
+        "Muro de login do LinkedIn",
+        "Modo manual local",
+        "Aviso transparente sem burlar acesso, acompanhado de visualizador e salvamento local por arrastar e soltar."
+      ],
+      [
+        "Avatar padrão cinza",
+        "Foto indisponível",
+        "Detecta a silhueta genérica e informa que não há foto pública disponível para download."
+      ],
+      [
+        "/company/, /posts/ ou vídeos",
+        "Não suportado",
+        "Recusado na análise da URL: o módulo trata exclusivamente fotos de perfil pessoal /in/."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frequentes no LinkedIn e soluções",
+    "subheading": "Entenda os bloqueios de visibilidade mais comuns do LinkedIn e como proceder.",
+    "items": [
+      {
+        "problem": "O LinkedIn apresenta um muro de login (authwall)",
+        "solution": "O LinkedIn limita com frequência visitas anônimas conforme a privacidade da conta ou tráfego. O VIDNEX nunca burla esse muro e oferece no mesmo painel o modo manual 100% local."
+      },
+      {
+        "problem": "O perfil retorna «foto indisponível»",
+        "solution": "Acontece quando a pessoa restringiu a foto apenas a conexões diretas ou mantém a silhueta padrão sem imagem. Somente retratos configurados como Públicos podem ser obtidos."
+      },
+      {
+        "problem": "URL de página de empresa (/company/) ou post (/posts/) rejeitada",
+        "solution": "O módulo LinkedIn do VIDNEX aceita apenas perfis pessoais linkedin.com/in/{slug}. Logotipos empresariais, posts e vídeos ficam fora do escopo."
+      },
+      {
+        "problem": "Foto baixada ainda mostra a imagem anterior após atualização",
+        "solution": "Os retratos resolvidos ficam em cache técnico por dez minutos para reduzir requisições repetidas. Aguarde alguns minutos após atualizar no LinkedIn e tente novamente."
+      },
+      {
+        "problem": "Imagem JPG não aparece em Fotos no iPhone",
+        "solution": "O Safari grava imagens em Arquivos > Downloads. Abra linkedin_profile.jpg em Arquivos, toque em Compartilhar e escolha Salvar Imagem para copiá-la para Fotos."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Onde encontrar sua foto de perfil do LinkedIn salva",
+    "subheading": "Localize rapidamente o arquivo linkedin_{slug}_profile.jpg no celular ou computador.",
+    "ios": {
+      "title": "iPhone e iPad",
+      "steps": "Abra o menu Downloads no Safari ou acesse o app Arquivos > Downloads. Toque em linkedin_{slug}_profile.jpg, pressione Compartilhar e selecione Salvar Imagem para movê-la para Fotos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "A imagem é salva diretamente na pasta Download do aparelho e aparece em instantes na Galeria ou no Google Fotos dentro do álbum Downloads."
+    },
+    "desktop": {
+      "title": "Computador (Windows e macOS)",
+      "steps": "O navegador salva linkedin_{slug}_profile.jpg na pasta Downloads padrão. Pressione Ctrl+J no Windows ou Cmd+Shift+J no macOS para abrir ou exibir o arquivo na pasta."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Quais links do LinkedIn funcionam na ferramenta do VIDNEX?",
+      "answer": "O VIDNEX aceita exclusivamente links de perfis pessoais públicos no formato linkedin.com/in/{slug}, incluindo subdomínios regionais como br.linkedin.com ou m.linkedin.com e sufixos de idioma opcionais. Páginas de empresa (/company/), publicações do feed (/posts/), artigos e vídeos do LinkedIn são rejeitados automaticamente durante a etapa de detecção."
+    },
+    {
+      "question": "O VIDNEX extrai nome, cargo, empresa ou currículo do perfil?",
+      "answer": "Não, jamais. O módulo LinkedIn consulta metadados públicos estritamente para localizar a URL assinada da foto de perfil no domínio media.licdn.com. Nenhum nome completo, título profissional, empregador, endereço de contato ou histórico de carreira é coletado, exibido na tela ou armazenado durante a consulta."
+    },
+    {
+      "question": "Por que o LinkedIn exibe às vezes um erro de muro de login?",
+      "answer": "O LinkedIn permite que cada membro oculte o perfil do público geral e aplica periodicamente muros de login para acessos anônimos. O VIDNEX respeita esse controle sem burlá-lo e libera uma ferramenta local de arrastar e soltar para visualizar e salvar sua imagem."
+    },
+    {
+      "question": "Como funciona o modo de envio manual local quando há bloqueio?",
+      "answer": "Quando o LinkedIn bloqueia o acesso público, o painel de resultados permite arrastar ou escolher uma imagem já salva no seu aparelho. A validação binária, a prévia com zoom HD e o salvamento ocorrem inteiramente no seu navegador sem enviar bytes ao servidor."
+    },
+    {
+      "question": "Quais formatos de imagem e tamanho máximo são aceitos no LinkedIn?",
+      "answer": "O VIDNEX confere a assinatura binária real de cada arquivo para aceitar imagens JPG, PNG e WebP de até dez megabytes. A foto pública fica em cache técnico por dez minutos e é salva de forma limpa como linkedin_{slug}_profile.jpg sem compressão artificial."
+    },
+    {
+      "question": "Por que um perfil público do LinkedIn retorna foto não disponível?",
+      "answer": "Esse aviso indica que a conta utiliza a silhueta padrão do LinkedIn ou limitou a visibilidade da foto apenas a conexões de primeiro grau. Para ficar acessível sem login, a visibilidade da foto precisa estar definida como Pública nas configurações do LinkedIn."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Outras ferramentas VIDNEX para fotos e redes",
+    "subheading": "Divida retratos em grades localmente ou baixe mídias públicas de outras plataformas.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Política de Privacidade do VIDNEX",
+    "privacyDescription": "Zero extração de dados pessoais, cache técnico de 10 minutos e modo manual 100% navegador."
+  }
+}

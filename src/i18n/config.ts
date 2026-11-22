@@ -222,6 +222,18 @@ export const LEGAL_PAGE_KEYS: readonly LegalPageKey[] = [
   'dmca',
 ] as const;
 
+export const TOOL_PAGE_KEYS = [
+  'home',
+  'tiktok',
+  'instagram',
+  'x',
+  'facebook',
+  'linkedin',
+  'split_image',
+] as const;
+
+export type ToolPageKey = (typeof TOOL_PAGE_KEYS)[number];
+
 export const LEGAL_SUPPORTED_LOCALES: readonly SupportedLocale[] =
   SUPPORTED_LOCALES;
 
@@ -236,6 +248,13 @@ export function isLegalPageKey(value: unknown): value is LegalPageKey {
   return (
     typeof value === 'string' &&
     LEGAL_PAGE_KEYS.includes(value as LegalPageKey)
+  );
+}
+
+export function isToolPageKey(value: unknown): value is ToolPageKey {
+  return (
+    typeof value === 'string' &&
+    (TOOL_PAGE_KEYS as readonly string[]).includes(value)
   );
 }
 

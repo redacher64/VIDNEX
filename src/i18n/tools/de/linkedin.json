@@ -1,0 +1,157 @@
+{
+  "editorial": {
+    "heading": "Öffentliches LinkedIn-Profilbild in Originalauflösung herunterladen",
+    "subheading": "Ausschließlich für öffentliche persönliche /in/-Profile mit Magic-Byte-Prüfung und lokalem Fallback",
+    "paragraphs": [
+      "Das LinkedIn-Werkzeug von VIDNEX dient ausschließlich dazu, das öffentliche Profilbild eines persönlichen LinkedIn-Profils anzuzeigen und herunterzuladen (Adressen im Format linkedin.com/in/{slug}, einschließlich Länder-Subdomains wie de.linkedin.com, m.linkedin.com sowie Sprachzusätzen wie /in/{slug}/de).",
+      "Ist das Profil öffentlich sichtbar, liest VIDNEX ausschließlich öffentliche Bild-Metadaten der Seite (OpenGraph-Tags, Twitter Card, JSON-LD Person oder signierte media.licdn.com-Bild-URLs). Die abgerufene Datei — maximal 10 MB in JPG, PNG oder WebP — wird per binärer Signatur (Magic Bytes) validiert, kurzzeitig für zehn Minuten zwischengespeichert und sauber als linkedin_{slug}_profile.jpg gespeichert.",
+      "Zum strikten Schutz personenbezogener Daten erfasst VIDNEX niemals vollständige Namen, Jobtitel, Arbeitgeber oder Lebenslaufdaten: Verarbeitet wird allein das öffentliche Porträtfoto. Zeigt LinkedIn eine Anmeldewand (Authwall), umgeht VIDNEX diese nicht, sondern blendet ein 100 % lokales Drag-and-Drop-Werkzeug im Browser ein, mit dem Sie eine lokale Datei vergrößern und sichern können.",
+      "Unternehmensseiten (/company/), Feed-Beiträge (/posts/), LinkedIn-Videos, angemeldet-geschützte Profile und graue Standard-Platzhalterbilder werden nicht unterstützt."
+    ],
+    "formatsTitle": "Funktionen des LinkedIn-Moduls",
+    "formatsList": [
+      "Ruft öffentliche persönliche Profilbilder (/in/{slug}) in Originalauflösung von media.licdn.com ab",
+      "Unterstützt Länder- und Mobil-Subdomains (de.linkedin.com, m.linkedin.com) sowie Sprachsuffixe (/in/{slug}/de)",
+      "Validiert JPG, PNG und WebP bis 10 MB per Magic Bytes und speichert als linkedin_{slug}_profile.jpg",
+      "Bietet bei LinkedIn-Anmeldewänden einen 100 % browser-lokalen Drag-and-Drop-Fallback ohne Server-Upload",
+      "Kein Profil-Scraping: liest weder Namen noch Position, Unternehmen oder Werdegang"
+    ],
+    "limitsTitle": "Klare Ausschlüsse bei LinkedIn",
+    "limitsText": "Unternehmensseiten (/company/), Beiträge (/posts/), LinkedIn-Videos, hinter einer Anmeldewand verborgene Profile und Konten mit grauem Standard-Avatar werden nicht unterstützt. VIDNEX umgeht niemals Login-Sperren von LinkedIn."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Öffentliche /in/-URL kopieren",
+      "description": "Öffnen Sie das persönliche LinkedIn-Profil im Browser und kopieren Sie die offizielle Webadresse im Format linkedin.com/in/{slug}.",
+      "codeHint": "LINKEDIN.COM/IN/..."
+    },
+    {
+      "number": "02",
+      "title": "Öffentliches Foto prüfen und laden",
+      "description": "Fügen Sie den Link in VIDNEX ein: Das Tool prüft öffentliche Metadaten auf ein signiertes media.licdn.com-Bild und validiert dessen JPG-, PNG- oder WebP-Signatur.",
+      "codeHint": "MAGIC-BYTE-CHECK · MAX. 10 MB"
+    },
+    {
+      "number": "03",
+      "title": "JPG sichern oder lokalen Modus nutzen",
+      "description": "Betrachten Sie die hochauflösende Vorschau und laden Sie die Datei herunter — oder nutzen Sie das lokale Drag-and-Drop-Feld bei einer Anmeldewand.",
+      "codeHint": "LINKEDIN_PROFILE.JPG"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Formate und Grenzen des LinkedIn-Profilbild-Tools",
+    "subheading": "Reales Verhalten des VIDNEX-LinkedIn-Moduls je nach URL und Zugriffsstatus.",
+    "headers": [
+      "LinkedIn-Szenario oder URL",
+      "Format / Ergebnis",
+      "Tatsächliches Verhalten in VIDNEX"
+    ],
+    "rows": [
+      [
+        "Öffentliches Profil (/in/slug)",
+        "JPG / PNG / WebP",
+        "Lädt signiertes media.licdn.com-Foto (max. 10 MB), prüft Magic Bytes, 10-Minuten-Cache, Dateiname linkedin_{slug}_profile.jpg."
+      ],
+      [
+        "Länder- und Mobil-Subdomains",
+        "JPG / PNG / WebP",
+        "Normalisiert automatisch Subdomains (de., fr., m.linkedin.com) und angehängte Sprachkürzel."
+      ],
+      [
+        "LinkedIn-Anmeldewand",
+        "Lokaler Fallback",
+        "Klare Meldung ohne Umgehen der Sperre, plus lokaler Browser-Viewer per Drag-and-Drop."
+      ],
+      [
+        "Standard-Platzhalterbild",
+        "Foto nicht verfügbar",
+        "Erkennt die graue Silhouette und meldet, dass kein öffentliches Foto vorliegt."
+      ],
+      [
+        "/company/, /posts/ oder Videos",
+        "Nicht unterstützt",
+        "Direkt bei der URL-Prüfung abgewiesen: nur persönliche /in/-Profilbilder werden verarbeitet."
+      ]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Häufige LinkedIn-Probleme und Lösungen",
+    "subheading": "Weshalb LinkedIn einen öffentlichen Abruf blockieren kann und welche Optionen bereitstehen.",
+    "items": [
+      {
+        "problem": "LinkedIn zeigt eine Anmeldewand (Authwall)",
+        "solution": "LinkedIn begrenzt anonyme Profilabrufe je nach Privatsphäre-Einstellung oder Last regelmäßig. VIDNEX umgeht diese Barriere nicht und stellt stattdessen direkt im Ergebnisbereich das 100 % lokale Drag-and-Drop-Modul bereit."
+      },
+      {
+        "problem": "Meldung «Foto nicht verfügbar» erscheint",
+        "solution": "Die Person hat das Profilbild entweder nur für direkte Kontakte freigegeben oder nutzt die graue Standard-Silhouette. Nur auf Öffentlich gestellte Bilder lassen sich abrufen."
+      },
+      {
+        "problem": "Link zu Unternehmensseite (/company/) oder Post (/posts/) abgelehnt",
+        "solution": "Das LinkedIn-Modul akzeptiert ausschließlich persönliche linkedin.com/in/{slug}-Adressen. Firmenlogos, Beiträge und Videos gehören nicht zum Funktionsumfang."
+      },
+      {
+        "problem": "Nach einem Bildwechsel erscheint kurz noch das alte Foto",
+        "solution": "Abgerufene Profilbilder werden technisch zehn Minuten zwischengespeichert, um doppelte Abrufe zu vermeiden. Warten Sie wenige Minuten und starten Sie die Abfrage erneut."
+      },
+      {
+        "problem": "Gespeichertes JPG taucht nicht in iPhone Fotos auf",
+        "solution": "Safari speichert Bilder in Dateien > Downloads. Öffnen Sie linkedin_profile.jpg in Dateien, tippen Sie auf Teilen und wählen Sie Bild sichern."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Wo Sie das gespeicherte LinkedIn-Profilbild finden",
+    "subheading": "Schneller Zugriff auf linkedin_{slug}_profile.jpg auf Smartphone und Computer.",
+    "ios": {
+      "title": "iPhone und iPad",
+      "steps": "Öffnen Sie das Download-Menü in Safari oder die Apple-App Dateien > Downloads. Tippen Sie linkedin_{slug}_profile.jpg an und wählen Sie Teilen > Bild sichern für die Fotos-App."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Das gespeicherte Porträt liegt im Ordner Download Ihres Geräts und erscheint automatisch in Ihrer Galerie oder bei Google Fotos im Ordner Downloads."
+    },
+    "desktop": {
+      "title": "Computer (Windows und macOS)",
+      "steps": "Ihr Browser legt linkedin_{slug}_profile.jpg im Standardordner Downloads ab. Mit Strg+J unter Windows oder Cmd+Shift+J auf dem Mac öffnen Sie die Datei unmittelbar."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Welche LinkedIn-Adressen funktionieren im VIDNEX-Downloader?",
+      "answer": "VIDNEX unterstützt ausschließlich öffentliche persönliche Profiladressen im Format linkedin.com/in/{slug}, einschließlich regionaler oder mobiler Subdomains wie de.linkedin.com und m.linkedin.com sowie optionaler Sprachzusätze am Ende der Adresse. Unternehmensseiten (/company/), Feed-Beiträge (/posts/), Artikel und LinkedIn-Videos werden bereits direkt bei der automatischen URL-Erkennung zuverlässig abgewiesen."
+    },
+    {
+      "question": "Liest VIDNEX Namen, Jobtitel, Arbeitgeber oder Lebenslaufdaten aus?",
+      "answer": "Nein, niemals. Das LinkedIn-Modul wertet öffentliche Seiten-Metadaten ausschließlich aus, um die signierte URL des Profilbildes auf media.licdn.com zu finden. Weder vollständige Namen noch Jobtitel, Unternehmen, Kontaktdaten oder berufliche Stationen aus dem Lebenslauf werden ausgelesen, angezeigt oder während einer Abfrage irgendwo gespeichert."
+    },
+    {
+      "question": "Warum meldet LinkedIn gelegentlich eine Anmeldewand?",
+      "answer": "LinkedIn erlaubt Mitgliedern, ihre Profilsichtbarkeit auf angemeldete Nutzer einzuschränken, und schaltet bei anonymen Zugriffen regelmäßig eine Authwall vor. VIDNEX respektiert diese Beschränkung konsequent ohne Umgehung und bietet stattdessen ein hundertprozentig lokales Drag-and-Drop-Werkzeug im Browser zum Prüfen und Sichern eigener Bilddateien."
+    },
+    {
+      "question": "Wie funktioniert der lokale Drag-and-Drop-Modus bei blockiertem Abruf?",
+      "answer": "Blockiert LinkedIn den öffentlichen Zugriff per Authwall, können Sie direkt im Ergebnisbereich eine bereits auf Ihrem Gerät gespeicherte Bilddatei hineinziehen oder auswählen. Binäre Formatprüfung per Magic Bytes, hochauflösende Zoom-Vorschau und das Speichern laufen komplett lokal im Browser ab, ohne ein einziges Byte hochzuladen."
+    },
+    {
+      "question": "Welche Bildformate und Dateigrößen akzeptiert das LinkedIn-Werkzeug?",
+      "answer": "VIDNEX überprüft echte Dateisignaturen per Magic Bytes und akzeptiert valide JPG-, PNG- und WebP-Bilder bis zu zehn Megabyte Dateigröße direkt vom signierten Server media.licdn.com. Abgerufene öffentliche Porträts werden zehn Minuten zwischengespeichert und sauber als linkedin_{slug}_profile.jpg ohne künstliche Nachkompression zum Download bereitgestellt."
+    },
+    {
+      "question": "Warum meldet ein öffentliches LinkedIn-Profil «Foto nicht verfügbar»?",
+      "answer": "Diese Meldung erscheint, wenn das Konto lediglich die graue Standard-Silhouette verwendet oder die Sichtbarkeit des Profilfotos in den LinkedIn-Privatsphäre-Einstellungen auf direkte Kontakte beschränkt ist. Für einen öffentlichen Abruf muss die Fotosichtbarkeit bei LinkedIn ausdrücklich auf Öffentlich für alle Besucher gestellt sein."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Weitere VIDNEX-Tools für Bilder und Netzwerke",
+    "subheading": "Teilen Sie Bilder lokal in Raster oder nutzen Sie unsere weiteren öffentlichen Medien-Downloader.",
+    "toolKeys": [
+      "split_image",
+      "instagram",
+      "x"
+    ],
+    "privacyLabel": "Datenschutzerklärung von VIDNEX",
+    "privacyDescription": "Kein Profil-Scraping, 10-Minuten-Cache und 100 % lokaler Drag-and-Drop-Fallback."
+  }
+}

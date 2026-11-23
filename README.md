@@ -44,7 +44,7 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 ## 2. Stack et architecture
 
 ### Stack technique
-- **Frontend** : React `19.2`, TypeScript `5.8`, Vite `6.2`, Tailwind CSS `4.1` (`@tailwindcss/vite`), HTML5 Canvas & `jszip` (pour l'outil local `/tools/split-image`).
+- **Frontend** : React, TypeScript, Vite 6, Tailwind CSS, HTML5 Canvas + `jszip` (outil local `/tools/split-image`) et Web Audio API + `lamejs` + encodeur WAV PCM 16 bits manuel (outil local `/tools/video/video-to-mp3`, 100 % navigateur sans upload serveur).
 - **Icônes & Graphiques** : `lucide-react` (interface publique) et `recharts` (chargé uniquement en *lazy-loading* dans le bundle `/admin`).
 - **Backend Edge** : Cloudflare Pages Functions (`functions/`) et point d'entrée unifié Cloudflare Workers Static Assets (`worker.ts`).
 - **Base de données Edge** : Cloudflare D1 (SQLite distribué, binding `DB`, base `vidnex-db`).
@@ -214,7 +214,11 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   │   ├── PlatformIcons.tsx    # Icônes SVG vectorielles des 5 plateformes (TikTok, Instagram, X, Facebook, LinkedIn)
 │   │   ├── ResultCard.tsx       # Carte de résultat d'extraction (miniature, auteur, sélecteur de qualité, carrousel)
 │   │   ├── SeoHead.tsx          # Synchronisation dynamique du <head> lors de la navigation SPA
-│   │   └── SplitImageToolView.tsx # Outil « Découper une image » (/tools/split-image) 100 % côté navigateur (Canvas + JSZip)
+│   │   ├── SplitImageToolView.tsx # Outil « Découper une image » (/tools/split-image) 100 % côté navigateur (Canvas + JSZip)
+│   │   ├── ToolsHubView.tsx     # Hub catalogue des outils VIDNEX (/tools et /{locale}/tools) avec filtres par catégorie
+│   │   └── VideoToMp3ToolView.tsx # Outil « Vidéo → MP3 / WAV » (/tools/video/video-to-mp3) 100 % côté navigateur (Web Audio API + lamejs + WAV manuel)
+│   ├── data/
+│   │   └── toolsRegistry.ts     # Registre centralisé des outils VIDNEX et traductions 10 langues du hub /tools
 │   ├── i18n/                    # Système d'internationalisation (10 langues)
 │   │   ├── config.ts            # Configuration des langues, table des slugs localisés et résolveur de routes
 │   │   ├── index.ts             # Hook et utilitaires de traduction
@@ -233,11 +237,15 @@ VIDNEX permet d'extraire et de télécharger **exclusivement des contenus public
 │   │   └── extractorService.ts  # Client HTTP frontend appelant /api/extract et construisant les liens /api/download
 │   └── utils/
 │       ├── splitImageLogic.ts   # Logique pure de découpe d'image (grilles, ordre Instagram, limite 8000 px, JSZip, i18n 10 langues)
+│       ├── toolMediaBridge.ts   # Pont mémoire SPA sans re-upload entre les téléchargeurs (TikTok/Instagram/X/Facebook) et Vidéo → MP3 / WAV
+│       ├── videoToMp3Logic.ts   # Validation (500 Mo desktop / 200 Mo mobile), découpe, rééchantillonnage, normalisation, WAV manuel, lamejs MP3 et i18n 10 langues
 │       ├── urlDetector.ts       # Détection et validation d'URL côté client (miroir de functions/_lib/detect.ts)
-│       └── urlDetector.test.ts  # Suite de tests unitaires du détecteur d'URL et des outils
+│       └── urlDetector.test.ts  # Suite de tests unitaires du détecteur d'URL, routage multilingue et SEO
 │
-└── tests/                       # Tests unitaires backend
-    └── linkedin.test.ts         # Tests unitaires de détection, parsing HTML et allowlist LinkedIn
+└── tests/                       # Tests unitaires backend & outils
+    ├── linkedin.test.ts         # Tests unitaires de détection, parsing HTML et allowlist LinkedIn
+    ├── stories.test.ts          # Tests unitaires Instagram Stories (fournisseur simulé, limites, erreurs)
+    └── videoToMp3.test.ts       # Tests unitaires Vidéo → MP3 / WAV (WAV/MP3 lamejs, DSP, pont mémoire, registre /tools, 10 langues)
 ```
 
 ---
@@ -740,7 +748,7 @@ Pour configurer vos variables locales, copiez `.env.example` vers `.env` (ou `.d
 | `npm run preview` | `vite preview` | Sert localement le dossier `dist/` compilé. |
 | `npm run lint` | `tsc --noEmit && npm run lint:backend` | Vérifie le typage TypeScript de tout le frontend (`src/`) ainsi que du backend (`functions/`, `worker.ts`). |
 | `npm run lint:backend` | `tsc -p tsconfig.backend.json --noEmit` | Vérifie strictement le typage TypeScript des fonctions Cloudflare et de `worker.ts`. |
-| `npm test` | `npx tsx --test src/utils/urlDetector.test.ts tests/linkedin.test.ts` | Exécute la suite de tests unitaires (détecteur d'URL, LinkedIn, rate-limit `/api/download`, `daily_metrics` et alertes `ALERT_WEBHOOK_URL`). |
+| `npm test` | `node --experimental-strip-types --test src/utils/urlDetector.test.ts tests/linkedin.test.ts tests/stories.test.ts tests/videoToMp3.test.ts` | Exécute la suite de tests unitaires (détecteur d'URL, SEO/hreflang, LinkedIn, Stories Instagram et outil navigateur Vidéo → MP3 / WAV). |
 | `npm run generate:og` | `node scripts/generate-og.mjs` | Régénère les images OpenGraph `1200x630` dans `public/og/` et met à jour `public/og/manifest.json`. |
 | `npm run indexnow` | `node scripts/indexnow.mjs` | Envoie toutes les URLs de `public/sitemap.xml` à l'API IndexNow (`api.indexnow.org`). |
 
@@ -751,8 +759,10 @@ Pour configurer vos variables locales, copiez `.env.example` vers `.env` (ou `.d
 Avant toute mise en production, trois vérifications automatisées permettent de garantir l'intégrité fonctionnelle et SEO :
 
 1. **Tests unitaires (`npm test`)** :
-   - `src/utils/urlDetector.test.ts` : Teste la détection et le rejet des URLs pour TikTok, Instagram, X, Facebook et LinkedIn.
+   - `src/utils/urlDetector.test.ts` : Teste la détection et le rejet des URLs pour TikTok, Instagram, X, Facebook et LinkedIn, ainsi que les 213 routes indexables, métadonnées SEO, FAQ 40–60 mots et `llms.txt`.
    - `tests/linkedin.test.ts` : Teste `detectUrl` sur LinkedIn, le parsing HTML (`og:image`, `JSON-LD`, avatars « ghost », authwall), l'allowlist anti-SSRF, la limite de débit `/api/download` (`download_limit_per_min`, 1x par fichier/minute avec `Range`), les compteurs agrégés `daily_metrics` sans identifiant personnel et les alertes `ALERT_WEBHOOK_URL` à 5 échecs consécutifs + retour à la normale.
+   - `tests/stories.test.ts` : Teste le moteur Stories Instagram avec le fournisseur simulé (story unique, liste multi-stories, compte privé, aucune story active, rate-limit, panne fournisseur).
+   - `tests/videoToMp3.test.ts` : Teste l'outil 100 % navigateur **Vidéo → MP3 / WAV** (`/tools/video/video-to-mp3`) et le hub `/tools` : validation MP4/MOV/WebM, limites **500 Mo desktop / 200 Mo mobile**, découpe d'extrait, mixage mono/stéréo, rééchantillonnage 44,1/48 kHz, normalisation du volume, encodage manuel WAV PCM 16 bits, encodage MP3 CBR réel via `lamejs` (128/192/256/320 kbps), transfert direct sans re-upload depuis TikTok/Instagram/X/Facebook (`toolMediaBridge`) et routage/hreflang/JSON-LD sur les 10 langues.
 2. **Vérification des images OpenGraph (`node scripts/check-og.mjs`)** :
    - Vérifie que `public/og/manifest.json` existe et que chacune des 6 images (`default`, `tiktok`, `instagram`, `x`, `facebook`, `linkedin`) est présente, au format JPEG `1200×630` px et pèse moins de `300 Ko`.
 3. **Audit SEO du build prérendu (`node scripts/verify-seo.mjs`)** :
@@ -876,3 +886,23 @@ Le réglage système `allow_third_party` (activé par défaut : `'true'`) est st
    npx wrangler d1 execute vidnex-db --remote --command "INSERT INTO settings (key, value) VALUES ('allow_third_party', 'false') ON CONFLICT(key) DO UPDATE SET value = 'false';"
    ```
 Une fois désactivé (`allow_third_party = false`), **aucun appel** n'est émis vers `tikwm.com`, `vxinstagram.com` ni `ddinstagram.com` (seuls les niveaux d'extraction directs sont exécutés) et ces hôtes sont refusés par l'allowlist de `/api/download`, **immédiatement et sans redéploiement**.
+
+---
+
+## 17. Outils créateurs 100 % navigateur (`/tools`)
+
+Le catalogue centralisé (`src/data/toolsRegistry.ts`) alimente le hub **`/tools`** (et `/{locale}/tools` dans les 10 langues) ainsi que le menu déroulant **Outils** de l'en-tête et le pied de page.
+
+### 17.1 Vidéo → MP3 / WAV (`/tools/video/video-to-mp3`)
+- **Exécution 100 % locale** : aucune API externe et aucun upload serveur. La piste audio des fichiers **MP4, MOV et WebM** est décodée localement via la **Web Audio API**. Si le navigateur ne peut pas lire un codec ou que la vidéo est muette, un message d'erreur explicite s'affiche.
+- **Formats de sortie** :
+  - **MP3 (CBR via `lamejs`)** : `128`, `192`, `256` ou `320 kbps` (chargement paresseux de `lamejs/lame.min.js` pour ne pas alourdir le bundle principal).
+  - **WAV (encodage PCM 16 bits RIFF/WAVE manuel)** : `44,1 kHz` ou `48 kHz`, **Mono** ou **Stéréo**.
+- **Édition audio & confort** :
+  - Forme d'onde interactive avec poignées **Début / Fin** manipulables à la souris, au tactile et au clavier + lecture d'aperçu de l'extrait sélectionné.
+  - Option **« Normaliser le volume »** (mise à l'échelle uniforme préservant la balance stéréo jusqu'à `-0,2 dBFS`).
+  - Barre de progression en temps réel, taille de sortie estimée en direct, lecteur `<audio>` d'aperçu et téléchargement avec **nom de fichier modifiable**.
+  - Limites de sécurité mémoire : **500 Mo sur desktop**, **200 Mo sur mobile**, avec avertissement clair avant décodage.
+- **Transfert direct sans re-upload depuis le téléchargeur** : sur chaque résultat vidéo **TikTok, Instagram, X ou Facebook**, le bouton **« Extraire l'audio (MP3) »** transmet directement le flux au convertisseur via `src/utils/toolMediaBridge.ts` en mémoire SPA, sans aucun nouvel envoi serveur.
+- **SEO & Monétisation** : prérendu statique dans les 10 langues (`sitemap.xml` + `hreflang` + `llms.txt` + schémas JSON-LD `WebApplication`, `HowTo`, `FAQPage`, `BreadcrumbList`) et emplacements Adsterra standards placés exclusivement en dehors des boutons d'action et de la zone d'aperçu/forme d'onde.
+

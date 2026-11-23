@@ -8,6 +8,7 @@ import {
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import type { ToolPageContent } from '../i18n/types.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
+import { getVideoToMp3Content } from '../utils/videoToMp3Logic.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 
 interface ToolRichSectionsProps {
@@ -27,6 +28,7 @@ export const ToolRichSections: React.FC<ToolRichSectionsProps> = ({
 }) => {
   const bundle = getLocaleBundleSync(locale);
   const splitMeta = getSplitImageContent(locale);
+  const videoMeta = getVideoToMp3Content(locale);
   const { formatsTable, troubleshooting, whereToFind, relatedSection } =
     toolContent;
 
@@ -252,14 +254,22 @@ export const ToolRichSections: React.FC<ToolRichSectionsProps> = ({
             {relatedSection.toolKeys.map((targetKey) => {
               const href = getLocalizedPagePath(locale, targetKey);
               const isSplit = targetKey === 'split_image';
+              const isVideoToMp3 = targetKey === 'video_to_mp3';
+              const isBrowserTool = isSplit || isVideoToMp3;
               const title = isSplit
                 ? splitMeta.h1
+                : isVideoToMp3
+                ? videoMeta.h1
                 : bundle.platforms[targetKey as PlatformPageKey].h1;
               const subtitle = isSplit
                 ? splitMeta.subtitle
+                : isVideoToMp3
+                ? videoMeta.subtitle
                 : bundle.platforms[targetKey as PlatformPageKey].subtitle;
               const shortLabel = isSplit
                 ? splitMeta.breadcrumbLabel
+                : isVideoToMp3
+                ? videoMeta.breadcrumbLabel
                 : bundle.platforms[targetKey as PlatformPageKey].shortLabel;
 
               return (
@@ -271,7 +281,7 @@ export const ToolRichSections: React.FC<ToolRichSectionsProps> = ({
                 >
                   <div>
                     <div className="inline-flex items-center gap-2 font-mono text-xs font-bold text-orange-700 dark:text-amber-400 uppercase tracking-wider mb-2">
-                      {!isSplit && (
+                      {!isBrowserTool && (
                         <PlatformIcon
                           platform={targetKey as PlatformPageKey}
                           className="w-4 h-4"

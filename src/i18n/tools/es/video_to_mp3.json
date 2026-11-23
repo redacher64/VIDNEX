@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Convierte vídeos MP4, MOV o WebM a MP3 o WAV 100 % en tu navegador",
+    "subheading": "Decodificación nativa con Web Audio API, codificación MP3 mediante lamejs y exportación WAV PCM manual sin subir archivos",
+    "paragraphs": [
+      "La herramienta Vídeo → MP3 / WAV de VIDNEX extrae la pista de audio de tus archivos MP4, MOV o WebM directamente en la memoria local de tu navegador. No se utiliza ninguna API remota ni se envía ningún byte a un servidor: la decodificación funciona con Web Audio API, la conversión a MP3 emplea la librería lamejs (128, 192, 256 o 320 kbps) y el archivo WAV se genera manualmente en formato PCM de 16 bits (44,1 o 48 kHz, mono o estéreo).",
+      "En cuanto se decodifica la pista, una forma de onda interactiva muestra la señal completa para que puedas recortar el fragmento exacto que necesitas. Arrastra los tiradores de inicio y fin o escribe el tiempo exacto, comprueba el corte con el reproductor de vista previa integrado y activa la opción «Normalizar volumen» para elevar el pico máximo a -0,2 dB sin saturación digital.",
+      "Puedes cargar vídeos locales de hasta 500 MB en ordenador (o 200 MB en dispositivos móviles para mantener la memoria estable) o enviar cualquier vídeo público directamente desde los descargadores de VIDNEX (TikTok, Instagram, X, Facebook) con el botón «Extraer audio (MP3)» sin volver a subirlo. Incluye barra de progreso, tamaño estimado en tiempo real y nombre de archivo editable."
+    ],
+    "formatsTitle": "Formatos, ajustes de audio y funciones locales",
+    "formatsList": [
+      "Vídeos admitidos en entrada: MP4 (H.264/AAC), MOV (QuickTime) y WebM (VP8/VP9/Opus/Vorbis)",
+      "Salida MP3 CBR con lamejs: tasas seleccionables de 128 kbps, 192 kbps, 256 kbps y 320 kbps",
+      "Salida WAV PCM 16-bit manual: 44,1 kHz (estándar CD) o 48 kHz (edición de vídeo), Estéreo o Mono",
+      "Recorte visual sobre forma de onda interactiva con tiradores de Inicio y Fin más campos de tiempo",
+      "Opción «Normalizar volumen»: ajuste uniforme del pico sonoro a -0,2 dBFS respetando el balance estéreo",
+      "Envío directo sin resubida desde los descargadores de TikTok, Instagram, X y Facebook"
+    ],
+    "limitsTitle": "Límites de memoria del navegador (500 MB escritorio / 200 MB móvil)",
+    "limitsText": "Como la decodificación Web Audio API convierte el sonido en muestras PCM sin comprimir dentro de la RAM del navegador, el tamaño máximo es de 500 MB en ordenador y 200 MB en móvil. Si el códec no es compatible con tu navegador o el vídeo no tiene sonido, verás un aviso claro de inmediato."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Suelta tu vídeo o envíalo desde VIDNEX",
+      "description": "Arrastra un archivo MP4, MOV o WebM (hasta 500 MB en ordenador o 200 MB en móvil) o pulsa «Extraer audio (MP3)» desde cualquier vídeo público de TikTok, Instagram, X o Facebook.",
+      "codeHint": "MP4 / MOV / WEBM · 100 % LOCAL"
+    },
+    {
+      "number": "02",
+      "title": "Recorta en la forma de onda y elige MP3 o WAV",
+      "description": "Ajusta los tiradores de Inicio y Fin sobre la forma de onda, elige MP3 (128–320 kbps) o WAV (44,1/48 kHz, mono/estéreo) y activa la normalización de volumen si lo deseas.",
+      "codeHint": "FORMA DE ONDA · 320 KBPS / WAV 48 KHZ"
+    },
+    {
+      "number": "03",
+      "title": "Escucha, renombra y descarga tu audio",
+      "description": "Sigue la barra de progreso local, escucha el resultado en el reproductor integrado, edita el nombre del archivo y descarga tu MP3 o WAV al instante.",
+      "codeHint": "VISTA PREVIA · EXPORTACIÓN LOCAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Tabla de formatos, tasas de bits y límites de Vídeo → MP3 / WAV",
+    "subheading": "Especificaciones técnicas reales del motor local basado en Web Audio API, lamejs y generador WAV PCM.",
+    "headers": ["Formato o parámetro", "Valores admitidos", "Uso recomendado y comportamiento real"],
+    "rows": [
+      ["Vídeos de entrada", "MP4, MOV, WebM", "Decodificación local mediante Web Audio API sin subidas al servidor; límite de 500 MB en escritorio y 200 MB en móvil."],
+      ["MP3 128–192 kbps", "128 kbps / 192 kbps", "Archivos ligeros codificados con lamejs en tu dispositivo, ideales para voz, podcasts y envíos rápidos."],
+      ["MP3 256–320 kbps", "256 kbps / 320 kbps", "Alta fidelidad musical en tasa constante (CBR) compatible con cualquier móvil, reproductor o coche."],
+      ["WAV 44,1 kHz PCM", "16-bit · Mono o Estéreo", "Audio sin compresión en estándar CD creado manualmente en formato RIFF/WAVE para edición limpia."],
+      ["WAV 48 kHz PCM", "16-bit · Mono o Estéreo", "Frecuencia nativa de cámaras y editores de vídeo como Premiere, DaVinci Resolve o CapCut."],
+      ["Recorte + Normalización", "Tiradores Inicio/Fin · Pico -0,2 dB", "Selección precisa por décimas de segundo y ganancia uniforme sin saturar los canales estéreo."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Problemas frecuentes al extraer audio y soluciones",
+    "subheading": "Respuestas rápidas si un vídeo no se decodifica, supera el límite de tamaño o se escucha bajo.",
+    "guideLink": {
+      "label": "Leer guía: por qué un Reel o vídeo se descarga sin sonido",
+      "href": "/es/blog/reel-instagram-descargado-sin-audio"
+    },
+    "items": [
+      {
+        "problem": "El navegador indica que no puede leer la pista de audio",
+        "solution": "Algunos archivos MOV o MP4 utilizan códecs envolventes (AC-3 o DTS) no admitidos por Web Audio API, o el vídeo es mudo y no contiene pista de sonido. Prueba con un MP4 (AAC) o WebM estándar, o abre la herramienta en Chrome o Edge."
+      },
+      {
+        "problem": "Aviso de archivo demasiado grande (500 MB PC / 200 MB móvil)",
+        "solution": "La decodificación PCM en memoria ocupa varias veces el tamaño original del archivo. En teléfonos móviles limita los vídeos a 200 MB o utiliza un ordenador para procesar hasta 500 MB."
+      },
+      {
+        "problem": "El volumen del audio extraído resulta demasiado bajo",
+        "solution": "Activa la casilla «Normalizar volumen» antes de convertir. El motor detecta el pico más alto del tramo elegido y aplica una ganancia uniforme hasta -0,2 dB sin distorsión."
+      },
+      {
+        "problem": "El archivo WAV pesa mucho más que el MP3",
+        "solution": "Un archivo WAV PCM estéreo de 16 bits a 48 kHz ocupa alrededor de 11 MB por minuto al no tener compresión. Si prefieres archivos ligeros, elige MP3 a 192 o 320 kbps."
+      },
+      {
+        "problem": "La conversión a MP3 tarda varios segundos en vídeos largos",
+        "solution": "lamejs procesa los bloques en tu procesador de forma progresiva para no bloquear la pestaña. Recorta solo el fragmento útil o elige WAV si buscas una exportación casi instantánea."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Dónde encontrar tu archivo MP3 o WAV descargado",
+    "subheading": "Ubicación exacta del audio guardado en iPhone, Android, Windows y macOS.",
+    "ios": {
+      "title": "iPhone y iPad",
+      "steps": "En Safari para iOS, toca la flecha azul de descargas en la barra de direcciones y abre la app Archivos > Descargas. Toca tu archivo MP3 o WAV para reproducirlo o compártelo con GarageBand, CapCut o Notas de voz."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "El archivo MP3 o WAV se guarda automáticamente en la carpeta Download (Descargas). Abre Files de Google, Mis archivos o tu reproductor de música para escucharlo, moverlo o importarlo en tu editor de vídeo."
+    },
+    "desktop": {
+      "title": "Ordenador (Windows y macOS)",
+      "steps": "El audio renombrado aparece en la carpeta Descargas predeterminada de tu navegador. Pulsa Ctrl+J en Windows o Cmd+Shift+J en macOS para abrirlo directamente en el Explorador o el Finder."
+    }
+  },
+  "faqs": [
+    {
+      "question": "¿Se sube mi vídeo a algún servidor para convertirlo en MP3 o WAV?",
+      "answer": "No, ningún dato de tu vídeo se envía por internet en ningún momento. Todo el proceso ocurre dentro de la memoria local de tu navegador mediante Web Audio API para decodificar, lamejs para codificar en formato MP3 y un escritor manual PCM de dieciséis bits para archivos WAV."
+    },
+    {
+      "question": "¿Qué diferencia hay entre MP3 a 128, 192, 256 y 320 kbps?",
+      "answer": "La tasa de bits controla el equilibrio entre calidad acústica y peso del archivo resultante. Usa 128 kbps para notas de voz o podcasts ligeros, 192 kbps para un uso diario equilibrado y 256 o 320 kbps cuando quieras conservar la máxima fidelidad musical en auriculares y altavoces."
+    },
+    {
+      "question": "¿Cuándo conviene elegir WAV de 44,1 o 48 kHz en lugar de MP3?",
+      "answer": "Elige WAV PCM de dieciséis bits sin compresión si vas a editar, mezclar o masterizar el audio en programas profesionales sin pérdida de calidad. Utiliza 44,1 kHz para proyectos musicales estándar y 48 kHz para montaje de vídeo, pudiendo activar Mono para reducir el tamaño a la mitad."
+    },
+    {
+      "question": "¿Cómo recortar solo un fragmento concreto del vídeo antes de exportar?",
+      "answer": "Cuando termine la decodificación, desliza los tiradores izquierdo y derecho sobre la forma de onda o introduce manualmente los tiempos exactos de inicio y fin. Pulsa «Escuchar fragmento» para verificar el corte con precisión y convierte únicamente ese tramo seleccionado al formato MP3 o WAV."
+    },
+    {
+      "question": "¿Qué hace exactamente la opción «Normalizar volumen»?",
+      "answer": "La normalización analiza el pico de amplitud máximo del fragmento seleccionado y aplica una ganancia uniforme a ambos canales estéreo hasta alcanzar menos cero coma dos decibelios. Así aumenta el volumen de grabaciones demasiado bajas sin alterar el balance estéreo ni introducir saturación o recortes digitales."
+    },
+    {
+      "question": "¿Cómo envío un vídeo de TikTok, Instagram, X o Facebook a esta herramienta sin resubirlo?",
+      "answer": "Después de analizar un enlace público en el descargador de VIDNEX, pulsa el botón «Extraer audio (MP3)» en la tarjeta de resultado. La herramienta se abre automáticamente y carga el vídeo directamente en la memoria local de tu navegador, listo para recortar, normalizar y exportar."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Más herramientas VIDNEX para creadores",
+    "subheading": "Guarda vídeos públicos o divide tus imágenes en cuadrícula directamente desde el navegador.",
+    "toolKeys": ["split_image", "tiktok", "instagram"],
+    "guideLink": {
+      "label": "Guía: solucionar vídeos y Reels sin audio",
+      "description": "Entiende cómo funcionan las pistas de audio en redes sociales y cómo conservar siempre el sonido.",
+      "href": "/es/blog/reel-instagram-descargado-sin-audio"
+    },
+    "privacyLabel": "Política de privacidad de VIDNEX",
+    "privacyDescription": "Extracción de audio 100 % en navegador (Web Audio API y lamejs) sin subidas ni almacenamiento."
+  }
+}

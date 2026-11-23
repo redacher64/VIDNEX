@@ -76,8 +76,14 @@ export function pageKeyToPrimaryToolSlug(
 export function toolSlugToPageKey(slug?: string | null): PageKey {
   if (!slug) return 'home';
   const clean = slug.replace(/^\/+|\/+$/g, '');
+  if (clean === 'tools_hub' || clean === 'tools') {
+    return 'tools_hub';
+  }
   if (clean === 'split_image' || clean === 'tools/split-image') {
     return 'split_image';
+  }
+  if (clean === 'video_to_mp3' || clean === 'tools/video/video-to-mp3') {
+    return 'video_to_mp3';
   }
   if (
     clean === 'home' ||

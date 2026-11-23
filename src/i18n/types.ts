@@ -65,7 +65,7 @@ export interface WhereToFindBlock {
 export interface RelatedToolsBlock {
   heading: string;
   subheading: string;
-  toolKeys: Array<PlatformPageKey | 'split_image'>;
+  toolKeys: Array<PlatformPageKey | 'split_image' | 'video_to_mp3'>;
   privacyLabel: string;
   privacyDescription: string;
   guideLink?: {

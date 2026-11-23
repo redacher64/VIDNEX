@@ -1582,8 +1582,8 @@ describe('VIDNEX URL Detection & Security Suite', () => {
       'https://vidnex.space/'
     );
 
-    // 5. 120 routes publiques core au total (70 principales/outils + 50 légales sur 10 langues)
-    assert.equal(getAllPublicRoutes().length, 120);
+    // 5. 140 routes publiques core au total (90 principales/outils + 50 légales sur 10 langues)
+    assert.equal(getAllPublicRoutes().length, 140);
     assert.equal(
       getLocalizedPagePath('fr', 'linkedin'),
       '/telecharger-photo-profil-linkedin'
@@ -2688,11 +2688,11 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.equal(BLOG_NAV_LABELS.ar, 'المدونة');
     assert.equal(BLOG_NAV_LABELS.ru, 'Блог');
 
-    // 1. 120 core routes (60 main + 10 split-image tool + 50 legal across 10 languages); blog routes add 10 hubs (all 10 locales) + 63 published article pages (10 EN + 9 FR + 5 ES + 5 PT + 6 DE + 5 TR + 5 ID + 5 IT + 5 RU + 8 AR) = 73 routes -> 193 total
-    assert.equal(getAllPublicRoutes().length, 120);
+    // 1. 140 core routes (60 main + 10 tools hub + 10 split-image tool + 10 video-to-mp3 tool + 50 legal across 10 languages); blog routes add 10 hubs (all 10 locales) + 63 published article pages (10 EN + 9 FR + 5 ES + 5 PT + 6 DE + 5 TR + 5 ID + 5 IT + 5 RU + 8 AR) = 73 routes -> 213 total
+    assert.equal(getAllPublicRoutes().length, 140);
     const blogRoutes = getAllBlogPublicRoutes();
     assert.equal(blogRoutes.length, 73);
-    assert.equal(getAllIndexableRoutes().length, 193);
+    assert.equal(getAllIndexableRoutes().length, 213);
 
     // 2. Published articles across all 10 blog locales (every locale has >= 5 published core guides)
     const enArticles = getPublishedArticlesForLocale('en');
@@ -5184,7 +5184,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     assert.ok(llms.includes('Découper une image'));
   });
 
-  it('validates SEO, GEO, and AEO upgrades across all 193 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
+  it('validates SEO, GEO, and AEO upgrades across all 213 indexable routes (title <= 60c, meta description 120-155c, no forbidden claims, WebApplication.featureList, 40-60 word tool FAQs, Arabic FAQ accuracy, and llms.txt + About alignment)', async () => {
     const {
       SUPPORTED_LOCALES,
       TOOL_PAGE_KEYS,
@@ -5200,7 +5200,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     } = await import('../i18n/localeLoader.ts');
 
     const allRoutes = getAllIndexableRoutes();
-    assert.equal(allRoutes.length, 193);
+    assert.equal(allRoutes.length, 213);
 
     // Verify Arabic private-account FAQ answer is accurate (does not list platforms)
     const arHomeTool = getToolContentSync('ar', 'home');

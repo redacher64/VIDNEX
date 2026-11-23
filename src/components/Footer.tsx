@@ -21,6 +21,8 @@ import {
 } from '../data/blogArticles.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
+import { getVideoToMp3Content } from '../utils/videoToMp3Logic.ts';
+import { getToolsHubContent } from '../data/toolsRegistry.ts';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 
 interface FooterProps {
@@ -41,6 +43,8 @@ export const Footer: React.FC<FooterProps> = ({
   const bundle = getLocaleBundleSync(language);
   const f = bundle.ui.footer;
   const splitCopy = getSplitImageContent(language);
+  const videoToMp3Copy = getVideoToMp3Content(language);
+  const toolsHubCopy = getToolsHubContent(language);
 
   const pageForLangSwitch: PageKey =
     activePageKey === 'not_found'
@@ -85,6 +89,10 @@ export const Footer: React.FC<FooterProps> = ({
   })();
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const toolsHubHref = getLocalizedPagePath(language, 'tools_hub');
+  const isToolsHubActive = activePageKey === 'tools_hub';
+  const videoToMp3Href = getLocalizedPagePath(language, 'video_to_mp3');
+  const isVideoToMp3Active = activePageKey === 'video_to_mp3';
   const splitImageHref = getLocalizedPagePath(language, 'split_image');
   const isSplitImageActive = activePageKey === 'split_image';
   const blogHref = getLocalizedPagePath(language, 'blog');
@@ -159,6 +167,36 @@ export const Footer: React.FC<FooterProps> = ({
                   </li>
                 );
               })}
+              <li>
+                <a
+                  href={toolsHubHref}
+                  title={toolsHubCopy.h1}
+                  data-testid="footer-tools-hub"
+                  onClick={(e) => handlePageClick(e, 'tools_hub')}
+                  className={`min-h-[40px] inline-flex items-center gap-2 py-1 transition-colors ${
+                    isToolsHubActive
+                      ? 'text-orange-600 dark:text-amber-400 font-bold'
+                      : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
+                  }`}
+                >
+                  <span>{toolsHubCopy.allToolsLinkLabel}</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={videoToMp3Href}
+                  title={videoToMp3Copy.h1}
+                  data-testid="footer-video-to-mp3"
+                  onClick={(e) => handlePageClick(e, 'video_to_mp3')}
+                  className={`min-h-[40px] inline-flex items-center gap-2 py-1 transition-colors ${
+                    isVideoToMp3Active
+                      ? 'text-orange-600 dark:text-amber-400 font-bold'
+                      : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium'
+                  }`}
+                >
+                  <span>{videoToMp3Copy.navLabel}</span>
+                </a>
+              </li>
               <li>
                 <a
                   href={splitImageHref}

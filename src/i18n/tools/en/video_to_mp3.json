@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Convert MP4, MOV, or WebM videos to MP3 or WAV 100% inside your browser",
+    "subheading": "Native Web Audio API decoding, lamejs MP3 encoding, and manual 16-bit PCM WAV export with zero server uploads",
+    "paragraphs": [
+      "The VIDNEX Video → MP3 / WAV converter extracts clean audio tracks from MP4, MOV, and WebM files entirely inside your browser's local memory. Zero external APIs are called and no video bytes ever leave your device: decoding runs on the Web Audio API, MP3 encoding uses lamejs (128, 192, 256, or 320 kbps), and WAV files are assembled by a manual 16-bit RIFF/WAVE PCM encoder (44.1 or 48 kHz, mono or stereo).",
+      "As soon as your file is decoded, an interactive waveform visualizes the complete audio envelope so you can trim the exact clip you want. Drag the start and end handles or enter precise timestamps, audition the selection with the built-in clip preview player, and toggle volume normalization to scale peak loudness cleanly to -0.2 dB without digital clipping.",
+      "You can drop local videos up to 500 MB on desktop (or 200 MB on mobile devices to keep browser memory stable), or hand off any public TikTok, Instagram, X, or Facebook video straight from the VIDNEX downloader in one click via the Extract Audio (MP3) button without re-uploading. A real-time progress bar, live estimated output size, audio preview player, and editable filename input streamline every export."
+    ],
+    "formatsTitle": "Supported formats, audio settings, and browser features",
+    "formatsList": [
+      "Input video files: MP4 (H.264/AAC), MOV (QuickTime), and WebM (VP8/VP9/Opus/Vorbis)",
+      "MP3 CBR output powered by lamejs: selectable 128 kbps, 192 kbps, 256 kbps, or 320 kbps bitrates",
+      "Manual 16-bit PCM WAV output: 44.1 kHz (CD standard) or 48 kHz (video editing), Stereo or Mono",
+      "Interactive waveform trimmer with draggable Start and End handles plus numeric timecode controls",
+      "Volume normalization option: uniform stereo-safe peak scaling to -0.2 dBFS with silence protection",
+      "Zero re-upload handoff from VIDNEX TikTok, Instagram, X, and Facebook downloaders"
+    ],
+    "limitsTitle": "Browser memory limits (500 MB desktop / 200 MB mobile)",
+    "limitsText": "Because Web Audio API decodes the full audio stream into uncompressed PCM inside your device's RAM, maximum input file size is set to 500 MB on desktop computers and 200 MB on mobile phones. If a video uses an unsupported codec or has no audio track, the tool displays a clear message right away."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Drop a video file or send from VIDNEX",
+      "description": "Drag and drop an MP4, MOV, or WebM video (up to 500 MB on desktop or 200 MB on mobile) or click Extract Audio (MP3) directly inside any TikTok, Instagram, X, or Facebook download result.",
+      "codeHint": "MP4 / MOV / WEBM · 100% LOCAL"
+    },
+    {
+      "number": "02",
+      "title": "Trim on the waveform and pick MP3 or WAV",
+      "description": "Drag the Start and End handles to select your clip, pick MP3 (128–320 kbps) or WAV (44.1/48 kHz, mono/stereo), check the estimated size, and enable volume normalization if needed.",
+      "codeHint": "WAVEFORM · 320 KBPS / WAV 48 KHZ"
+    },
+    {
+      "number": "03",
+      "title": "Preview, rename, and save your audio",
+      "description": "Track live conversion progress in your browser, play back the exported audio in the built-in preview player, customize the output filename, and click Download.",
+      "codeHint": "AUDIO PREVIEW · LOCAL EXPORT"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Video → MP3 / WAV formats, bitrates, and browser limits",
+    "subheading": "Real technical specifications of the browser-local Web Audio API decoder, lamejs MP3 encoder, and manual PCM WAV writer.",
+    "headers": ["Format or setting", "Supported values", "Recommended use and real behavior"],
+    "rows": [
+      ["Input videos", "MP4, MOV, WebM", "Decoded locally with Web Audio API and zero server upload; capped at 500 MB on desktop and 200 MB on mobile."],
+      ["MP3 128–192 kbps", "128 kbps / 192 kbps", "Compact files encoded locally via lamejs, well suited for speech, podcasts, voice notes, and fast sharing."],
+      ["MP3 256–320 kbps", "256 kbps / 320 kbps", "High-fidelity constant-bitrate MP3 compatible with every phone, car stereo, and desktop audio player."],
+      ["WAV 44.1 kHz PCM", "16-bit · Mono or Stereo", "Uncompressed CD-standard RIFF/WAVE audio built manually in browser memory for lossless post-production."],
+      ["WAV 48 kHz PCM", "16-bit · Mono or Stereo", "Native video-editing sample rate for Premiere Pro, DaVinci Resolve, Final Cut, and CapCut timelines."],
+      ["Trim + Normalize", "Start/End handles · -0.2 dB peak", "Tenth-of-a-second waveform clipping and balanced peak volume scaling across stereo channels."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Common audio extraction issues and quick fixes",
+    "subheading": "Practical answers when a video cannot be decoded, exceeds browser size limits, or sounds quiet.",
+    "guideLink": {
+      "label": "Read the technical guide: MP3 vs M4A/AAC audio tracks",
+      "href": "/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide"
+    },
+    "items": [
+      {
+        "problem": "Browser says the video audio track cannot be decoded",
+        "solution": "Some MOV or MP4 files use proprietary surround codecs (such as AC-3 or DTS) that browsers do not decode via Web Audio API, or the clip is muted with no audio stream. Try a standard MP4 (AAC) or WebM file, or open the page in Chrome or Edge."
+      },
+      {
+        "problem": "File size limit warning (500 MB desktop / 200 MB mobile)",
+        "solution": "Decoding video audio into uncompressed 32-bit float PCM requires substantial browser RAM. Keep files under 200 MB on smartphones, or switch to a desktop browser for videos up to 500 MB."
+      },
+      {
+        "problem": "Extracted audio sounds too quiet compared to other tracks",
+        "solution": "Enable the Normalize Volume toggle before clicking Convert. VIDNEX measures the highest peak inside your selected clip and applies uniform gain to bring the peak cleanly to -0.2 dB without distortion."
+      },
+      {
+        "problem": "WAV file is significantly larger than MP3",
+        "solution": "Uncompressed 16-bit stereo WAV at 48 kHz uses roughly 11 MB per minute. Switch to MP3 at 192 kbps or 320 kbps when you want near-transparent music quality in a fraction of the file size."
+      },
+      {
+        "problem": "MP3 encoding takes several seconds on long videos",
+        "solution": "lamejs encodes frames in batches on your CPU so the browser tab stays responsive and updates the progress bar smoothly. Trim the exact segment you need or choose WAV for nearly instant export."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Where to find your saved MP3 or WAV audio file",
+    "subheading": "Exact download folder locations across iPhone, Android, Windows, and macOS.",
+    "ios": {
+      "title": "iPhone & iPad",
+      "steps": "In Safari on iOS, tap the blue download arrow in the address bar and open the Files app under Downloads. Tap your MP3 or WAV file to play it immediately or share it directly into GarageBand, CapCut, or Voice Memos."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "Your MP3 or WAV file is saved straight into the Download folder. Open Files by Google, My Files, or your preferred music player to play it back, rename it, or import it into a mobile editing app."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "The renamed audio file lands in your browser's default Downloads folder. Press Ctrl+J on Windows or Cmd+Shift+J on macOS to jump straight to the saved MP3 or WAV file in Explorer or Finder."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Is my video uploaded to a server when converting to MP3 or WAV?",
+      "answer": "No, not a single byte of your video is ever uploaded to a remote server. Your browser decodes the audio locally using the Web Audio API, draws the waveform on your device, and encodes MP3 via lamejs or manual sixteen-bit PCM WAV entirely offline in memory."
+    },
+    {
+      "question": "What is the difference between 128, 192, 256, and 320 kbps MP3?",
+      "answer": "Bitrate controls the balance between acoustic detail and output file size. Choose 128 kbps for lightweight voice recordings and podcasts, 192 kbps for balanced everyday listening, or 256 and 320 kbps when preserving maximum musical clarity and high-frequency detail across headphones and speakers."
+    },
+    {
+      "question": "When should I choose WAV (44.1 or 48 kHz) instead of MP3?",
+      "answer": "Select uncompressed sixteen-bit PCM WAV whenever you plan to edit, mix, or master audio inside DAW or video software without compression artifacts. Use 44.1 kHz for standard music projects and 48 kHz for video timelines, with Mono available to halve file size for speech."
+    },
+    {
+      "question": "How do I cut a specific audio segment before exporting?",
+      "answer": "Once your video finishes decoding, drag the left and right trim handles along the interactive waveform or type exact start and end timecodes. Click Preview Clip to audition your exact selection immediately, and only that trimmed range will be encoded into your final MP3 or WAV file."
+    },
+    {
+      "question": "What does the Normalize Volume option do to my audio?",
+      "answer": "Volume normalization scans your trimmed audio for its single loudest peak and applies one uniform gain factor across both stereo channels so the peak reaches minus zero point two decibels. This boosts quiet recordings cleanly while preserving stereo balance and preventing harsh digital clipping."
+    },
+    {
+      "question": "How can I send a TikTok, Instagram, X, or Facebook video here without re-uploading?",
+      "answer": "After analyzing any public video link in the VIDNEX downloader, click the Extract Audio (MP3) button inside the result card. VIDNEX opens this converter automatically and streams the video directly into local browser memory so you can trim, normalize, and export MP3 or WAV right away."
+    }
+  ],
+  "relatedSection": {
+    "heading": "More VIDNEX tools for creators",
+    "subheading": "Download public social videos or split images into grids locally right in your browser.",
+    "toolKeys": ["split_image", "tiktok", "instagram"],
+    "guideLink": {
+      "label": "Guide: MP3 vs M4A/AAC for social media audio",
+      "description": "Understand bitrate, codec compatibility, and quality differences between MP3, AAC, and WAV.",
+      "href": "/en/blog/tiktok-audio-tracks-mp3-vs-m4a-aac-guide"
+    },
+    "privacyLabel": "VIDNEX Privacy Policy",
+    "privacyDescription": "100% client-side browser audio extraction (Web Audio API & lamejs) with zero server storage."
+  }
+}

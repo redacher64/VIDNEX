@@ -58,6 +58,7 @@ const TOOL_WORD_MINIMUMS = {
   facebook: 850,
   linkedin: 850,
   split_image: 700,
+  video_to_mp3: 700,
 };
 
 function fail(message) {

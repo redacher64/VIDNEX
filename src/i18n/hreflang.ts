@@ -48,6 +48,11 @@ import {
   getToolContentSync,
 } from './localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
+import { getVideoToMp3Content } from '../utils/videoToMp3Logic.ts';
+import {
+  getLocalizedRegisteredTools,
+  getToolsHubContent,
+} from '../data/toolsRegistry.ts';
 
 export interface ShareUrls {
   canonicalUrl: string;
@@ -928,6 +933,217 @@ export function buildHeadMetadataForRoute(
             '@type': 'ListItem',
             position: 2,
             name: s.breadcrumbLabel,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ];
+
+    return {
+      lang: localeMeta.code,
+      dir: localeMeta.dir,
+      title,
+      description,
+      canonicalUrl,
+      robots: 'index, follow',
+      themeColor: THEME_COLOR,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
+      ogTitle,
+      ogDescription,
+      ogUrl: canonicalUrl,
+      ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
+      ogLocale,
+      ogLocaleAlternates,
+      twitterCard: 'summary_large_image',
+      twitterTitle: ogTitle,
+      twitterDescription: ogDescription,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
+      hreflangs,
+      jsonLdGraph: {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+      },
+    };
+  }
+
+  if (pageKey === 'tools_hub') {
+    const hub = getToolsHubContent(locale);
+    const title = clampSocialText(hub.metaTitle, 60);
+    const description = clampSocialText(hub.metaDescription, 150);
+    const ogTitle = clampSocialText(hub.ogTitle || hub.metaTitle, 60);
+    const ogDescription = clampSocialText(
+      hub.ogDescription || hub.metaDescription,
+      150
+    );
+    const ogImageAlt = hub.ogImageAlt || ogTitle;
+    const registeredTools = getLocalizedRegisteredTools(locale);
+
+    const graph: Record<string, unknown>[] = [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonicalUrl}#collection`,
+        name: hub.h1,
+        url: canonicalUrl,
+        inLanguage: localeMeta.hreflang,
+        description,
+        isPartOf: {
+          '@id': `${SITE_URL}/#website`,
+        },
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: registeredTools.map((tool, idx) => ({
+            '@type': 'ListItem',
+            position: idx + 1,
+            name: tool.title,
+            description: tool.description,
+            url: getCanonicalUrl(tool.href),
+          })),
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: bundle.ui.sections.breadcrumbHome,
+            item: homeUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: hub.breadcrumbLabel,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ];
+
+    return {
+      lang: localeMeta.code,
+      dir: localeMeta.dir,
+      title,
+      description,
+      canonicalUrl,
+      robots: 'index, follow',
+      themeColor: THEME_COLOR,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
+      ogTitle,
+      ogDescription,
+      ogUrl: canonicalUrl,
+      ogImage,
+      ogImageSecureUrl: ogImage,
+      ogImageType: OG_IMAGE_TYPE,
+      ogImageWidth: OG_IMAGE_WIDTH,
+      ogImageHeight: OG_IMAGE_HEIGHT,
+      ogImageAlt,
+      ogLocale,
+      ogLocaleAlternates,
+      twitterCard: 'summary_large_image',
+      twitterTitle: ogTitle,
+      twitterDescription: ogDescription,
+      twitterImage: ogImage,
+      twitterImageAlt: ogImageAlt,
+      hreflangs,
+      jsonLdGraph: {
+        '@context': 'https://schema.org',
+        '@graph': graph,
+      },
+    };
+  }
+
+  if (pageKey === 'video_to_mp3') {
+    const v = getVideoToMp3Content(locale);
+    const hub = getToolsHubContent(locale);
+    const toolsHubUrl = getPageCanonicalUrl(locale, 'tools_hub');
+    const title = clampSocialText(v.metaTitle, 60);
+    const description = clampSocialText(v.metaDescription, 150);
+    const ogTitle = clampSocialText(v.ogTitle || v.metaTitle, 60);
+    const ogDescription = clampSocialText(
+      v.ogDescription || v.metaDescription,
+      150
+    );
+    const ogImageAlt = v.ogImageAlt || ogTitle;
+
+    const videoToolContent = getToolContentSync(locale, 'video_to_mp3');
+    const videoFeatureList = videoToolContent?.editorial.formatsList || [];
+    const videoHowToSteps = videoToolContent?.howToSteps || [];
+    const videoFaqs = videoToolContent?.faqs || [];
+
+    const graph: Record<string, unknown>[] = [
+      {
+        '@type': 'WebApplication',
+        '@id': `${canonicalUrl}#webapp`,
+        name: `${SITE_NAME} — ${v.h1}`,
+        url: canonicalUrl,
+        inLanguage: localeMeta.hreflang,
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'All',
+        description,
+        image: ogImage,
+        featureList: videoFeatureList,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+      {
+        '@type': 'HowTo',
+        '@id': `${canonicalUrl}#howto`,
+        name: `${bundle.ui.sections.howToHeading} — ${v.h1}`,
+        description: v.subtitle,
+        inLanguage: localeMeta.hreflang,
+        step: videoHowToSteps.map((step, idx) => ({
+          '@type': 'HowToStep',
+          position: idx + 1,
+          name: step.title,
+          text: step.description,
+          url: `${canonicalUrl}#step-${idx + 1}`,
+        })),
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faq`,
+        inLanguage: localeMeta.hreflang,
+        mainEntity: videoFaqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: bundle.ui.sections.breadcrumbHome,
+            item: homeUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: hub.breadcrumbLabel,
+            item: toolsHubUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: v.breadcrumbLabel,
             item: canonicalUrl,
           },
         ],

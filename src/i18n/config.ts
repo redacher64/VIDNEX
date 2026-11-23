@@ -34,7 +34,9 @@ export type PageKey =
   | PlatformPageKey
   | LegalPageKey
   | 'blog'
-  | 'split_image';
+  | 'tools_hub'
+  | 'split_image'
+  | 'video_to_mp3';
 export type RoutePageKey = PageKey | 'blog_article';
 
 import {
@@ -230,6 +232,7 @@ export const TOOL_PAGE_KEYS = [
   'facebook',
   'linkedin',
   'split_image',
+  'video_to_mp3',
 ] as const;
 
 export type ToolPageKey = (typeof TOOL_PAGE_KEYS)[number];
@@ -426,8 +429,16 @@ export function getLocalizedPagePath(
     return def.prefix || '/';
   }
 
+  if (pageKey === 'tools_hub') {
+    return `${def.prefix}/tools`;
+  }
+
   if (pageKey === 'split_image') {
     return `${def.prefix}/tools/split-image`;
+  }
+
+  if (pageKey === 'video_to_mp3') {
+    return `${def.prefix}/tools/video/video-to-mp3`;
   }
 
   if (pageKey === 'blog') {
@@ -500,7 +511,20 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
     };
   }
 
-  // 2a. Route /tools/split-image => Outil Découper une image en français (langue par défaut)
+  // 2a. Routes /tools, /tools/split-image et /tools/video/video-to-mp3 en français (langue par défaut)
+  if (first === 'tools' && segments.length === 1) {
+    return {
+      isValidRoute: true,
+      isNotFound: false,
+      isAdmin: false,
+      locale: DEFAULT_LOCALE,
+      pageKey: 'tools_hub',
+      platformKey: null,
+      legalKey: null,
+      canonicalPath: '/tools',
+    };
+  }
+
   if (first === 'tools' && segments.length === 2 && segments[1] === 'split-image') {
     return {
       isValidRoute: true,
@@ -511,6 +535,24 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
       platformKey: null,
       legalKey: null,
       canonicalPath: '/tools/split-image',
+    };
+  }
+
+  if (
+    first === 'tools' &&
+    segments.length === 3 &&
+    segments[1] === 'video' &&
+    segments[2] === 'video-to-mp3'
+  ) {
+    return {
+      isValidRoute: true,
+      isNotFound: false,
+      isAdmin: false,
+      locale: DEFAULT_LOCALE,
+      pageKey: 'video_to_mp3',
+      platformKey: null,
+      legalKey: null,
+      canonicalPath: '/tools/video/video-to-mp3',
     };
   }
 
@@ -545,6 +587,20 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
       };
     }
 
+    // Hub /tools sous préfixe de langue (ex: /en/tools)
+    if (segments.length === 2 && segments[1] === 'tools') {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale,
+        pageKey: 'tools_hub',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: getLocalizedPagePath(locale, 'tools_hub'),
+      };
+    }
+
     // Outil /tools/split-image sous préfixe de langue (ex: /en/tools/split-image)
     if (
       segments.length === 3 &&
@@ -560,6 +616,25 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         platformKey: null,
         legalKey: null,
         canonicalPath: getLocalizedPagePath(locale, 'split_image'),
+      };
+    }
+
+    // Outil /tools/video/video-to-mp3 sous préfixe de langue (ex: /en/tools/video/video-to-mp3)
+    if (
+      segments.length === 4 &&
+      segments[1] === 'tools' &&
+      segments[2] === 'video' &&
+      segments[3] === 'video-to-mp3'
+    ) {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale,
+        pageKey: 'video_to_mp3',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: getLocalizedPagePath(locale, 'video_to_mp3'),
       };
     }
 
@@ -675,6 +750,20 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
 
   // Support de /fr/blog, /fr/blog/{slug} et d'un ancien lien /fr ou /fr/...
   if (first === 'fr') {
+    if (segments.length === 2 && segments[1] === 'tools') {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale: 'fr',
+        pageKey: 'tools_hub',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: '/tools',
+        isLegacyAlias: true,
+      };
+    }
+
     if (
       segments.length === 3 &&
       segments[1] === 'tools' &&
@@ -689,6 +778,25 @@ export function resolveRouteFromPathname(rawPathname: string): ResolvedRoute {
         platformKey: null,
         legalKey: null,
         canonicalPath: '/tools/split-image',
+        isLegacyAlias: true,
+      };
+    }
+
+    if (
+      segments.length === 4 &&
+      segments[1] === 'tools' &&
+      segments[2] === 'video' &&
+      segments[3] === 'video-to-mp3'
+    ) {
+      return {
+        isValidRoute: true,
+        isNotFound: false,
+        isAdmin: false,
+        locale: 'fr',
+        pageKey: 'video_to_mp3',
+        platformKey: null,
+        legalKey: null,
+        canonicalPath: '/tools/video/video-to-mp3',
         isLegacyAlias: true,
       };
     }
@@ -881,9 +989,27 @@ export function getAllPublicRoutes(): PublicRouteEntry[] {
     }
 
     routes.push({
+      path: getLocalizedPagePath(code, 'tools_hub'),
+      locale: code,
+      pageKey: 'tools_hub',
+      hasHreflang: true,
+      priority: code === DEFAULT_LOCALE ? '0.9' : '0.8',
+      changefreq: 'weekly',
+    });
+
+    routes.push({
       path: getLocalizedPagePath(code, 'split_image'),
       locale: code,
       pageKey: 'split_image',
+      hasHreflang: true,
+      priority: code === DEFAULT_LOCALE ? '0.9' : '0.8',
+      changefreq: 'weekly',
+    });
+
+    routes.push({
+      path: getLocalizedPagePath(code, 'video_to_mp3'),
+      locale: code,
+      pageKey: 'video_to_mp3',
       hasHreflang: true,
       priority: code === DEFAULT_LOCALE ? '0.9' : '0.8',
       changefreq: 'weekly',
@@ -1053,12 +1179,16 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '- **Nature du service** : Résolveur web de métadonnées publiques à la demande et boîte à outils créateurs 100 % côté navigateur (sans compte utilisateur, sans extension navigateur, sans stockage serveur des vidéos ou photos).',
     '- **Plateformes prises en charge (5)** : TikTok, Instagram, X (Twitter), Facebook, LinkedIn (photo de profil publique uniquement).',
     '- **Sélection multi-médias et archive ZIP côté navigateur** : Pour les carrousels Instagram, les diaporamas photo TikTok et les Stories publiques, VIDNEX affiche un écran de sélection préalable (cases à cocher, Tout sélectionner / Tout désélectionner, aperçu individuel, téléchargement unitaire ou archive groupée `.ZIP` jusqu’à 50 éléments / 50 Mo).',
-    '- **Outils créateurs intégrés (100 % locaux)** : Découper une image / Split Image (`/tools/split-image`, décliné dans les 10 langues), traitement local HTML5 Canvas et JSZip sans aucune API ni upload serveur.',
+    '- **Outils créateurs intégrés (100 % locaux)** : Hub des outils (`/tools`), Convertisseur Vidéo → MP3 / WAV (`/tools/video/video-to-mp3`, décodage Web Audio API, encodage MP3 `lamejs` 128–320 kbps et WAV 16-bit PCM manuel 44,1/48 kHz, découpe par forme d’onde, normalisation du volume, 500 Mo desktop / 200 Mo mobile, zéro upload serveur) et Découper une image / Split Image (`/tools/split-image`, HTML5 Canvas + JSZip), tous déclinés dans les 10 langues.',
     '- **Exclusions strictes** : VIDNEX ne prend PAS en charge YouTube, Snapchat, ni aucun compte privé, story privée ou publication protégée par connexion.',
     '- **Confidentialité et droit d’auteur** : Aucun stockage de comptes utilisateurs ni d’historique d’URLs. L’enregistrement est réservé aux publications publiques dans le respect du droit d’auteur des créateurs.',
     '',
     '## Outils principaux et formats pris en charge',
     '',
+    `- **Hub des outils (/tools)** — [FR: ${base}${getLocalizedPagePath('fr', 'tools_hub')}](${base}${getLocalizedPagePath('fr', 'tools_hub')}) | [EN: ${base}${getLocalizedPagePath('en', 'tools_hub')}](${base}${getLocalizedPagePath('en', 'tools_hub')})`,
+    '  - Catalogue central regroupant les outils 100 % navigateur (Vidéo → MP3 / WAV, Découper une image) et les 5 téléchargeurs publics VIDNEX.',
+    `- **Vidéo → MP3 / WAV (100 % navigateur)** — [FR: ${base}${getLocalizedPagePath('fr', 'video_to_mp3')}](${base}${getLocalizedPagePath('fr', 'video_to_mp3')}) | [EN: ${base}${getLocalizedPagePath('en', 'video_to_mp3')}](${base}${getLocalizedPagePath('en', 'video_to_mp3')})`,
+    '  - Fonction : Extraction audio locale depuis MP4, MOV ou WebM via Web Audio API sans aucun upload ni API serveur. Encodage MP3 (`lamejs` : 128, 192, 256, 320 kbps) ou WAV PCM 16-bit manuel (44,1 / 48 kHz, mono ou stéréo), découpe d’extrait sur forme d’onde interactive avec poignées Début/Fin, normalisation du volume (-0,2 dB), barre de progression, taille estimée, lecteur d’aperçu et nom de fichier modifiable. Limite : 500 Mo sur ordinateur, 200 Mo sur mobile. Transfert direct en un clic depuis les téléchargeurs TikTok, Instagram, X et Facebook via « Extraire l’audio (MP3) » sans re-upload.',
     `- **TikTok** — [FR: ${base}${getLocalizedPagePath('fr', 'tiktok')}](${base}${getLocalizedPagePath('fr', 'tiktok')}) | [EN: ${base}${getLocalizedPagePath('en', 'tiktok')}](${base}${getLocalizedPagePath('en', 'tiktok')})`,
     '  - Formats : Vidéo MP4 publique (sans filigrane lorsque la piste source le permet), piste audio MP3 ou M4A/AAC originale, diaporamas photos publics (téléchargement unitaire ou archive `.ZIP`) et photo de profil publique.',
     `- **Instagram** — [FR: ${base}${getLocalizedPagePath('fr', 'instagram')}](${base}${getLocalizedPagePath('fr', 'instagram')}) | [EN: ${base}${getLocalizedPagePath('en', 'instagram')}](${base}${getLocalizedPagePath('en', 'instagram')})`,
@@ -1075,6 +1205,8 @@ export function buildLlmsTxt(siteUrl: string = 'https://vidnex.space'): string {
     '## Pages principales et Informations légales',
     '',
     `- [Accueil VIDNEX (FR)](${base}/) | [VIDNEX Home (EN)](${base}/en)`,
+    `- [Tous les outils VIDNEX (FR)](${base}/tools) | [All VIDNEX Tools (EN)](${base}/en/tools)`,
+    `- [Vidéo → MP3 / WAV (FR)](${base}/tools/video/video-to-mp3) | [Video to MP3 / WAV (EN)](${base}/en/tools/video/video-to-mp3)`,
     `- [Découper une image (FR)](${base}/tools/split-image) | [Split Image Online (EN)](${base}/en/tools/split-image)`,
     ...blogHubLines,
     `- **Pages de confiance (disponibles dans les 10 langues)** :`,

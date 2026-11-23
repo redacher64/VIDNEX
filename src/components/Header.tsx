@@ -21,6 +21,8 @@ import {
 } from '../data/blogArticles.ts';
 import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
+import { getVideoToMp3Content } from '../utils/videoToMp3Logic.ts';
+import { getToolsHubContent } from '../data/toolsRegistry.ts';
 
 export interface ToolTab {
   id: PlatformPageKey;
@@ -64,8 +66,10 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
   const bundle = getLocaleBundleSync(language);
   const navStrings = bundle.ui.nav;
@@ -125,12 +129,19 @@ export const Header: React.FC<HeaderProps> = ({
       ) {
         setLangMenuOpen(false);
       }
+      if (
+        toolsDropdownRef.current &&
+        !toolsDropdownRef.current.contains(target)
+      ) {
+        setToolsMenuOpen(false);
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false);
         setLangMenuOpen(false);
+        setToolsMenuOpen(false);
       }
     };
 
@@ -147,9 +158,19 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const homeHref = getLocalizedPagePath(language, 'home');
+  const toolsHubHref = getLocalizedPagePath(language, 'tools_hub');
   const splitImageHref = getLocalizedPagePath(language, 'split_image');
+  const videoToMp3Href = getLocalizedPagePath(language, 'video_to_mp3');
+  const toolsHubCopy = getToolsHubContent(language);
   const splitImageCopy = getSplitImageContent(language);
+  const videoToMp3Copy = getVideoToMp3Content(language);
+  const isToolsSectionActive =
+    activePageKey === 'tools_hub' ||
+    activePageKey === 'split_image' ||
+    activePageKey === 'video_to_mp3';
   const isSplitImageActive = activePageKey === 'split_image';
+  const isVideoToMp3Active = activePageKey === 'video_to_mp3';
+  const isToolsHubActive = activePageKey === 'tools_hub';
   const blogHref = getLocalizedPagePath(language, 'blog');
   const isBlogActive =
     activePageKey === 'blog' || activePageKey === 'blog_article';
@@ -221,22 +242,108 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
 
-          <a
-            href={splitImageHref}
-            data-testid="nav-split-image"
-            onClick={(e) => {
-              e.preventDefault();
-              setMobileMenuOpen(false);
-              onNavigatePage('split_image');
-            }}
-            className={`min-h-[44px] md:min-h-[36px] px-3 md:px-2.5 lg:px-3.5 py-2 md:py-1.5 rounded-xl md:rounded-lg text-xs font-semibold whitespace-nowrap flex items-center justify-center md:justify-start gap-1.5 transition-all ${
-              isSplitImageActive
-                ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
-                : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
-            }`}
-          >
-            <span>{splitImageCopy.navLabel}</span>
-          </a>
+          {/* Tools Menu: Dropdown on desktop, direct links on mobile */}
+          <div className="relative col-span-2 md:col-span-1" ref={toolsDropdownRef}>
+            <button
+              type="button"
+              data-testid="nav-tools-dropdown"
+              aria-expanded={toolsMenuOpen}
+              aria-haspopup="menu"
+              aria-controls="vidnex-tools-menu"
+              onClick={() => {
+                setToolsMenuOpen((prev) => !prev);
+                setLangMenuOpen(false);
+              }}
+              className={`hidden md:flex min-h-[36px] px-2.5 lg:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap items-center gap-1 transition-all cursor-pointer ${
+                isToolsSectionActive
+                  ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-[0_2px_8px_rgba(234,88,12,0.35)]'
+                  : 'text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100/60 dark:hover:bg-orange-950/50'
+              }`}
+            >
+              <span>{toolsHubCopy.navLabel}</span>
+              <span
+                aria-hidden="true"
+                className={`text-[10px] transition-transform duration-150 ${
+                  toolsMenuOpen ? 'rotate-180' : ''
+                }`}
+              >
+                ▾
+              </span>
+            </button>
+
+            <div
+              id="vidnex-tools-menu"
+              role="menu"
+              aria-label={toolsHubCopy.navLabel}
+              className={
+                mobileMenuOpen
+                  ? 'grid grid-cols-1 gap-1.5 md:hidden'
+                  : toolsMenuOpen
+                  ? 'hidden md:flex md:flex-col absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-64 bg-white dark:bg-[#1c140e] rounded-2xl border border-orange-200 dark:border-orange-900/80 shadow-2xl shadow-orange-950/15 dark:shadow-black/60 p-1.5 z-50 gap-1'
+                  : 'sr-only'
+              }
+            >
+              <a
+                role="menuitem"
+                href={videoToMp3Href}
+                data-testid="nav-video-to-mp3"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMobileMenuOpen(false);
+                  setToolsMenuOpen(false);
+                  onNavigatePage('video_to_mp3');
+                }}
+                className={`min-h-[44px] md:min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition-colors ${
+                  isVideoToMp3Active
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                    : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#1f130b] dark:text-[#fffaf5] hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600'
+                }`}
+              >
+                <span>{videoToMp3Copy.navLabel}</span>
+                <span className="font-mono text-[10px] opacity-80">MP3/WAV</span>
+              </a>
+
+              <a
+                role="menuitem"
+                href={splitImageHref}
+                data-testid="nav-split-image"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMobileMenuOpen(false);
+                  setToolsMenuOpen(false);
+                  onNavigatePage('split_image');
+                }}
+                className={`min-h-[44px] md:min-h-[40px] px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition-colors ${
+                  isSplitImageActive
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                    : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent border border-orange-200/70 md:border-0 dark:border-orange-900/50 text-[#1f130b] dark:text-[#fffaf5] hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:text-orange-600'
+                }`}
+              >
+                <span>{splitImageCopy.breadcrumbLabel}</span>
+                <span className="font-mono text-[10px] opacity-80">3×3</span>
+              </a>
+
+              <a
+                role="menuitem"
+                href={toolsHubHref}
+                data-testid="nav-tools-hub"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMobileMenuOpen(false);
+                  setToolsMenuOpen(false);
+                  onNavigatePage('tools_hub');
+                }}
+                className={`min-h-[44px] md:min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between gap-2 border-t border-orange-200/60 dark:border-orange-900/50 transition-colors ${
+                  isToolsHubActive
+                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm'
+                    : 'bg-orange-50/70 md:bg-transparent dark:bg-[#231710] md:dark:bg-transparent text-orange-700 dark:text-amber-400 hover:bg-orange-50 dark:hover:bg-orange-950/50'
+                }`}
+              >
+                <span>{toolsHubCopy.allToolsLinkLabel}</span>
+                <span aria-hidden="true" className="rtl:rotate-180">→</span>
+              </a>
+            </div>
+          </div>
 
           <a
             href={blogHref}

@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "Konversi video MP4, MOV, atau WebM ke MP3 atau WAV 100% di dalam browser Anda",
+    "subheading": "Dekode Web Audio API lokal, enkoding MP3 lamejs, dan ekspor WAV PCM 16-bit manual tanpa unggah ke server",
+    "paragraphs": [
+      "Konverter Video → MP3 / WAV dari VIDNEX mengekstrak trek audio jernih dari file MP4, MOV, dan WebM sepenuhnya di dalam memori lokal browser Anda. Tidak ada API eksternal yang dipanggil dan tidak ada satu byte pun dari video yang meninggalkan perangkat Anda: proses dekode berjalan pada Web Audio API, enkoding MP3 memakai lamejs (128, 192, 256, atau 320 kbps), dan file WAV disusun secara manual oleh encoder PCM RIFF/WAVE 16-bit (44,1 atau 48 kHz, mono atau stereo).",
+      "Segera setelah file selesai didekode, bentuk gelombang interaktif menampilkan seluruh amplop audio sehingga Anda dapat memotong klip yang diinginkan secara akurat. Seret tuas awal dan akhir atau ketik kode waktu yang tepat, dengarkan pilihan melalui pemutar pratinjau bawaan, lalu aktifkan opsi normalisasi volume untuk mengangkat puncak suara dengan rapi hingga -0,2 dB tanpa kliping digital.",
+      "Anda dapat menjatuhkan video lokal hingga 500 MB di desktop (atau 200 MB di perangkat seluler agar memori browser tetap stabil), atau mengirim langsung video publik TikTok, Instagram, X, maupun Facebook dari pengunduh VIDNEX dalam satu klik lewat tombol Ekstrak Audio (MP3) tanpa unggah ulang. Bilah progres langsung, perkiraan ukuran output, pemutar pratinjau audio, dan kolom nama file yang dapat diubah mempermudah setiap ekspor."
+    ],
+    "formatsTitle": "Format yang didukung, pengaturan audio, dan fitur browser",
+    "formatsList": [
+      "File video input: MP4 (H.264/AAC), MOV (QuickTime), dan WebM (VP8/VP9/Opus/Vorbis)",
+      "Output MP3 CBR dengan lamejs: pilihan bitrate 128 kbps, 192 kbps, 256 kbps, atau 320 kbps",
+      "Output WAV PCM 16-bit manual: 44,1 kHz (standar CD) atau 48 kHz (editing video), Stereo atau Mono",
+      "Pemotong bentuk gelombang interaktif dengan tuas Awal dan Akhir yang dapat diseret serta kontrol waktu angka",
+      "Opsi normalisasi volume: penskalaan puncak aman-stereo yang seragam ke -0,2 dBFS",
+      "Transfer langsung tanpa unggah ulang dari pengunduh TikTok, Instagram, X, dan Facebook di VIDNEX"
+    ],
+    "limitsTitle": "Batas memori browser (500 MB desktop / 200 MB seluler)",
+    "limitsText": "Karena Web Audio API mendekode seluruh aliran audio ke PCM tak terkompresi di dalam RAM perangkat Anda, batas ukuran file maksimum ditetapkan 500 MB di komputer desktop dan 200 MB di ponsel. Jika video memakai codec yang tidak didukung atau tidak memiliki trek audio, alat akan langsung menampilkan pesan yang jelas."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Jatuhkan file video atau kirim dari VIDNEX",
+      "description": "Seret dan jatuhkan video MP4, MOV, atau WebM (hingga 500 MB di desktop atau 200 MB di ponsel) atau klik Ekstrak Audio (MP3) langsung pada hasil unduhan TikTok, Instagram, X, atau Facebook.",
+      "codeHint": "MP4 / MOV / WEBM · 100% LOKAL"
+    },
+    {
+      "number": "02",
+      "title": "Potong pada gelombang dan pilih MP3 atau WAV",
+      "description": "Seret tuas Awal dan Akhir untuk memilih klip Anda, pilih MP3 (128–320 kbps) atau WAV (44,1/48 kHz, mono/stereo), periksa perkiraan ukuran, dan aktifkan normalisasi volume bila perlu.",
+      "codeHint": "WAVEFORM · 320 KBPS / WAV 48 KHZ"
+    },
+    {
+      "number": "03",
+      "title": "Pratinjau, ubah nama, dan simpan audio Anda",
+      "description": "Pantau progres konversi langsung di browser Anda, putar hasil audio pada pemutar pratinjau bawaan, sesuaikan nama file output, lalu klik Unduh.",
+      "codeHint": "PRATINJAU AUDIO · EKSPOR LOKAL"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Format Video → MP3 / WAV, bitrate, dan batas browser",
+    "subheading": "Spesifikasi teknis aktual dari dekoder Web Audio API lokal, encoder MP3 lamejs, dan penulis WAV PCM manual.",
+    "headers": ["Format atau pengaturan", "Nilai yang didukung", "Penggunaan yang disarankan dan perilaku aktual"],
+    "rows": [
+      ["Video input", "MP4, MOV, WebM", "Didekode secara lokal lewat Web Audio API tanpa unggah server; batas 500 MB desktop dan 200 MB seluler."],
+      ["MP3 128–192 kbps", "128 kbps / 192 kbps", "File ringkas yang dienkode lokal dengan lamejs, cocok untuk suara, podcast, catatan audio, dan berbagi cepat."],
+      ["MP3 256–320 kbps", "256 kbps / 320 kbps", "MP3 bitrate konstan berkualitas tinggi yang kompatibel dengan semua ponsel, audio mobil, dan pemutar desktop."],
+      ["WAV 44,1 kHz PCM", "16-bit · Mono atau Stereo", "Audio RIFF/WAVE standar CD tak terkompresi yang dirakit manual di memori browser untuk pascaproduksi lossless."],
+      ["WAV 48 kHz PCM", "16-bit · Mono atau Stereo", "Frekuensi sampel asli editing video untuk lini masa Premiere Pro, DaVinci Resolve, Final Cut, dan CapCut."],
+      ["Potong + Normalisasi", "Tuas Awal/Akhir · puncak -0,2 dB", "Pemotongan bentuk gelombang presisi sepersepuluh detik serta penyeimbangan puncak volume antar kanal stereo."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Masalah umum ekstraksi audio dan solusi cepat",
+    "subheading": "Jawaban praktis saat video tidak dapat didekode, melewati batas ukuran browser, atau terdengar pelan.",
+    "guideLink": {
+      "label": "Baca panduan teknis: Solusi Reel Instagram diunduh tanpa suara",
+      "href": "/id/blog/reel-instagram-didownload-tanpa-suara-solusi"
+    },
+    "items": [
+      {
+        "problem": "Browser menyatakan trek audio video tidak dapat didekode",
+        "solution": "Beberapa file MOV atau MP4 memakai codec surround khusus (seperti AC-3 atau DTS) yang tidak didekode oleh Web Audio API, atau video tersebut bisu tanpa trek suara. Coba file MP4 (AAC) atau WebM standar, atau buka di Chrome atau Edge."
+      },
+      {
+        "problem": "Peringatan batas ukuran file (500 MB desktop / 200 MB seluler)",
+        "solution": "Mendekode audio video menjadi PCM 32-bit float tak terkompresi membutuhkan RAM browser yang besar. Gunakan file di bawah 200 MB pada ponsel, atau beralih ke browser desktop untuk video hingga 500 MB."
+      },
+      {
+        "problem": "Audio hasil ekstraksi terdengar terlalu pelan dibanding trek lain",
+        "solution": "Aktifkan sakelar Normalisasi Volume sebelum menekan Konversi. VIDNEX mengukur puncak tertinggi pada klip pilihan Anda lalu menerapkan penguatan seragam hingga -0,2 dB secara bersih tanpa distorsi."
+      },
+      {
+        "problem": "Ukuran file WAV jauh lebih besar daripada MP3",
+        "solution": "WAV stereo 16-bit 48 kHz tanpa kompresi memakan sekitar 11 MB per menit. Beralihlah ke MP3 192 kbps atau 320 kbps jika Anda menginginkan kualitas musik sangat jernih dengan ukuran file jauh lebih kecil."
+      },
+      {
+        "problem": "Enkoding MP3 membutuhkan beberapa detik pada video panjang",
+        "solution": "lamejs mengenkode frame secara bertahap di CPU perangkat agar tab browser tetap responsif dan bilah progres berjalan mulus. Potong bagian yang benar-benar dibutuhkan atau pilih WAV untuk ekspor hampir instan."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Di mana menemukan file audio MP3 atau WAV yang tersimpan",
+    "subheading": "Lokasi pasti folder unduhan di iPhone, Android, Windows, dan macOS.",
+    "ios": {
+      "title": "iPhone & iPad",
+      "steps": "Di Safari pada iOS, ketuk panah unduhan biru di bilah alamat lalu buka aplikasi File di folder Unduhan (Downloads). Ketuk file MP3 atau WAV Anda untuk langsung diputar atau dibagikan ke GarageBand maupun CapCut."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "File MP3 atau WAV Anda disimpan langsung ke folder Download. Buka Files by Google, File Saya, atau pemutar musik favorit Anda untuk memutarnya, mengganti namanya, atau mengimpornya ke aplikasi edit seluler."
+    },
+    "desktop": {
+      "title": "Desktop (Windows & macOS)",
+      "steps": "File audio yang sudah diberi nama masuk ke folder Downloads bawaan browser Anda. Tekan Ctrl+J di Windows atau Cmd+Shift+J di macOS untuk langsung membuka file MP3 atau WAV di Explorer atau Finder."
+    }
+  },
+  "faqs": [
+    {
+      "question": "Apakah video saya diunggah ke server saat dikonversi ke MP3 atau WAV?",
+      "answer": "Tidak, tidak ada satu byte pun dari video Anda yang pernah diunggah ke server jarak jauh mana pun. Browser Anda mendekode audio secara lokal menggunakan Web Audio API, menggambar bentuk gelombang langsung di perangkat Anda, serta mengenkode MP3 via lamejs atau WAV PCM enam belas bit sepenuhnya secara luring di memori."
+    },
+    {
+      "question": "Apa perbedaan antara MP3 128, 192, 256, dan 320 kbps?",
+      "answer": "Bitrate mengatur keseimbangan antara ketajaman detail akustik dan ukuran file akhir yang dihasilkan. Pilih seratus dua puluh delapan kbps untuk rekaman suara ringan dan podcast, seratus sembilan puluh dua kbps untuk mendengarkan harian yang seimbang, atau dua ratus lima puluh enam hingga tiga ratus dua puluh kbps untuk kejernihan musik maksimal."
+    },
+    {
+      "question": "Kapan saya harus memilih WAV (44,1 atau 48 kHz) daripada MP3?",
+      "answer": "Pilih WAV PCM enam belas bit tanpa kompresi setiap kali Anda berencana mengedit, mencampur, atau melakukan mastering audio di perangkat lunak DAW maupun editor video tanpa artefak kompresi. Gunakan empat puluh empat koma satu kHz untuk proyek musik standar dan empat puluh delapan kHz untuk video, dengan Mono untuk menghemat ukuran."
+    },
+    {
+      "question": "Bagaimana cara memotong segmen audio tertentu sebelum mengekspor?",
+      "answer": "Setelah video selesai didekode oleh browser, seret tuas pemotong kiri dan kanan pada bentuk gelombang interaktif atau ketik angka waktu mulai dan selesai secara presisi. Klik Pratinjau Klip untuk langsung mendengarkan bagian pilihan Anda, dan hanya rentang terpotong tersebut yang akan dienkode menjadi file MP3 atau WAV akhir."
+    },
+    {
+      "question": "Apa fungsi opsi Normalisasi Volume pada audio saya?",
+      "answer": "Normalisasi volume memindai seluruh klip audio terpotong Anda untuk menemukan satu puncak suara tertinggi, lalu menerapkan faktor penguatan seragam pada kedua kanal stereo agar puncaknya tepat mencapai minus nol koma dua desibel. Cara ini memperkuat rekaman pelan secara bersih sekaligus menjaga keseimbangan stereo tanpa kliping digital yang kasar."
+    },
+    {
+      "question": "Bagaimana cara mengirim video TikTok, Instagram, X, atau Facebook ke sini tanpa unggah ulang?",
+      "answer": "Setelah menganalisis tautan video publik mana pun di pengunduh VIDNEX, klik tombol Ekstrak Audio (MP3) yang muncul di dalam kartu hasil. VIDNEX langsung membuka konverter ini dan mengalirkan video tersebut ke memori lokal browser tanpa unggah ulang sehingga Anda bisa memotong, menormalisasi, dan mengekspor MP3 atau WAV seketika."
+    }
+  ],
+  "relatedSection": {
+    "heading": "Alat VIDNEX lainnya untuk kreator",
+    "subheading": "Unduh video media sosial publik atau potong gambar menjadi grid secara lokal langsung di browser Anda.",
+    "toolKeys": ["split_image", "tiktok", "instagram"],
+    "guideLink": {
+      "label": "Panduan: Reel Instagram diunduh tanpa suara dan solusinya",
+      "description": "Pahami penyebab hilangnya audio pada video media sosial serta perbedaan format MP3, AAC, dan WAV.",
+      "href": "/id/blog/reel-instagram-didownload-tanpa-suara-solusi"
+    },
+    "privacyLabel": "Kebijakan Privasi VIDNEX",
+    "privacyDescription": "Ekstraksi audio 100% di sisi browser (Web Audio API & lamejs) tanpa penyimpanan server."
+  }
+}

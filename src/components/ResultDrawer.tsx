@@ -25,6 +25,11 @@ import {
 } from '../utils/zipArchive';
 import type { CarouselSlideItem } from '../services/extractorService';
 import { AdSlot } from './AdSlot';
+import {
+  isAudioExtractionSupportedPlatform,
+  setPendingVideoForAudioTool,
+} from '../utils/toolMediaBridge';
+import { getVideoToMp3Content } from '../utils/videoToMp3Logic';
 
 export function getInitialSelectedSlideIds(
   items: CarouselSlideItem[],
@@ -69,6 +74,7 @@ interface ResultDrawerProps {
   result: MediaResult | null;
   onClose: () => void;
   onRetry?: () => void;
+  onOpenVideoToMp3?: () => void;
   language: LanguageCode;
   platform?: string | null;
 }
@@ -425,6 +431,7 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
   result,
   onClose,
   onRetry,
+  onOpenVideoToMp3,
   language,
   platform,
 }) => {
@@ -618,6 +625,7 @@ export const ResultDrawer: React.FC<ResultDrawerProps> = ({
                     onViewAllStories={handleLoadAllStories}
                     isLoadingAllStories={isLoadingAllStories}
                     allStoriesError={allStoriesError}
+                    onOpenVideoToMp3={onOpenVideoToMp3}
                   />
                 )}
                 {result.payloadType === 'profile_dp' && (
@@ -658,6 +666,7 @@ const VideoResultView: React.FC<{
   ) => void;
   isLoadingAllStories?: boolean;
   allStoriesError?: string | null;
+  onOpenVideoToMp3?: () => void;
 }> = ({
   data,
   t,
@@ -665,6 +674,7 @@ const VideoResultView: React.FC<{
   onViewAllStories,
   isLoadingAllStories,
   allStoriesError,
+  onOpenVideoToMp3,
 }) => {
   const [activeDownloadId, setActiveDownloadId] = useState<string | null>(null);
   const [hasTriggeredDownload, setHasTriggeredDownload] = useState(false);
@@ -720,6 +730,50 @@ const VideoResultView: React.FC<{
 
   const isSingleImage =
     primaryFormat?.container === 'JPG' || primaryFormat?.container === 'PNG';
+
+  const canSendToAudioTool =
+    !isSingleImage &&
+    Boolean(primaryFormat?.downloadUrl) &&
+    Boolean(onOpenVideoToMp3) &&
+    isAudioExtractionSupportedPlatform(data.platform);
+  const v2mCopy = getVideoToMp3Content(language);
+
+  const handleSendToVideoToMp3 = () => {
+    if (!canSendToAudioTool || !primaryFormat?.downloadUrl || !onOpenVideoToMp3) {
+      return;
+    }
+    const cleanHandle = (data.creatorHandle || 'video')
+      .replace(/^@+/, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
+    const cleanId = (data.id || '')
+      .replace(/^vid-|^car-/, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '')
+      .slice(0, 24);
+    const suggestedBaseName = [
+      'vidnex',
+      data.platform,
+      cleanHandle || 'audio',
+      cleanId || undefined,
+    ]
+      .filter(Boolean)
+      .join('-');
+
+    setPendingVideoForAudioTool({
+      id: data.id,
+      platform: data.platform as
+        | 'tiktok'
+        | 'instagram'
+        | 'x'
+        | 'twitter'
+        | 'facebook',
+      title: data.title,
+      creatorHandle: data.creatorHandle,
+      fetchUrl: buildInlineVideoPreviewUrl(primaryFormat.downloadUrl),
+      suggestedBaseName,
+    });
+    onOpenVideoToMp3();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-stretch relative z-10">
@@ -907,6 +961,42 @@ const VideoResultView: React.FC<{
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Direct Zero-Reupload Handoff to Browser Video -> MP3 / WAV Tool (TikTok, Instagram, X, Facebook) */}
+          {canSendToAudioTool && (
+            <button
+              type="button"
+              data-testid="send-to-video-to-mp3-btn"
+              onClick={handleSendToVideoToMp3}
+              className="w-full min-h-[48px] px-4 py-2.5 rounded-xl flex items-center justify-between gap-3 bg-[#1f130b] hover:bg-[#352012] dark:bg-[#2a1b12] dark:hover:bg-[#3a2518] border border-orange-500/40 text-white dark:text-orange-100 shadow-sm transition-all cursor-pointer"
+            >
+              <span className="flex items-center gap-2.5 min-w-0">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="w-4 h-4 text-amber-400 shrink-0"
+                >
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+                <span className="font-display text-xs sm:text-sm font-bold truncate">
+                  {v2mCopy.downloaderExtractAudioBtn}
+                </span>
+              </span>
+              <span
+                dir="ltr"
+                className="font-mono text-[11px] font-semibold text-amber-300 shrink-0"
+              >
+                {v2mCopy.downloaderExtractAudioSub}
+              </span>
+            </button>
           )}
 
           {/* Instagram Story: Bouton "Voir toutes les stories de @username" + note 24 h */}

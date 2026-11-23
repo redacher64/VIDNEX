@@ -22,7 +22,9 @@ export type LocaleBundleScope =
   | 'full'
   | 'blog'
   | 'blog_article'
+  | 'tools_hub'
   | 'split_image'
+  | 'video_to_mp3'
   | 'home'
   | PlatformPageKey
   | LegalPageKey;
@@ -512,6 +514,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'fr:facebook': () => import('./tools/fr/facebook.json'),
   'fr:linkedin': () => import('./tools/fr/linkedin.json'),
   'fr:split_image': () => import('./tools/fr/split_image.json'),
+  'fr:video_to_mp3': () => import('./tools/fr/video_to_mp3.json'),
 
   'en:home': () => import('./tools/en/home.json'),
   'en:tiktok': () => import('./tools/en/tiktok.json'),
@@ -520,6 +523,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'en:facebook': () => import('./tools/en/facebook.json'),
   'en:linkedin': () => import('./tools/en/linkedin.json'),
   'en:split_image': () => import('./tools/en/split_image.json'),
+  'en:video_to_mp3': () => import('./tools/en/video_to_mp3.json'),
 
   'es:home': () => import('./tools/es/home.json'),
   'es:tiktok': () => import('./tools/es/tiktok.json'),
@@ -528,6 +532,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'es:facebook': () => import('./tools/es/facebook.json'),
   'es:linkedin': () => import('./tools/es/linkedin.json'),
   'es:split_image': () => import('./tools/es/split_image.json'),
+  'es:video_to_mp3': () => import('./tools/es/video_to_mp3.json'),
 
   'pt:home': () => import('./tools/pt/home.json'),
   'pt:tiktok': () => import('./tools/pt/tiktok.json'),
@@ -536,6 +541,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'pt:facebook': () => import('./tools/pt/facebook.json'),
   'pt:linkedin': () => import('./tools/pt/linkedin.json'),
   'pt:split_image': () => import('./tools/pt/split_image.json'),
+  'pt:video_to_mp3': () => import('./tools/pt/video_to_mp3.json'),
 
   'de:home': () => import('./tools/de/home.json'),
   'de:tiktok': () => import('./tools/de/tiktok.json'),
@@ -544,6 +550,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'de:facebook': () => import('./tools/de/facebook.json'),
   'de:linkedin': () => import('./tools/de/linkedin.json'),
   'de:split_image': () => import('./tools/de/split_image.json'),
+  'de:video_to_mp3': () => import('./tools/de/video_to_mp3.json'),
 
   'tr:home': () => import('./tools/tr/home.json'),
   'tr:tiktok': () => import('./tools/tr/tiktok.json'),
@@ -552,6 +559,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'tr:facebook': () => import('./tools/tr/facebook.json'),
   'tr:linkedin': () => import('./tools/tr/linkedin.json'),
   'tr:split_image': () => import('./tools/tr/split_image.json'),
+  'tr:video_to_mp3': () => import('./tools/tr/video_to_mp3.json'),
 
   'id:home': () => import('./tools/id/home.json'),
   'id:tiktok': () => import('./tools/id/tiktok.json'),
@@ -560,6 +568,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'id:facebook': () => import('./tools/id/facebook.json'),
   'id:linkedin': () => import('./tools/id/linkedin.json'),
   'id:split_image': () => import('./tools/id/split_image.json'),
+  'id:video_to_mp3': () => import('./tools/id/video_to_mp3.json'),
 
   'it:home': () => import('./tools/it/home.json'),
   'it:tiktok': () => import('./tools/it/tiktok.json'),
@@ -568,6 +577,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'it:facebook': () => import('./tools/it/facebook.json'),
   'it:linkedin': () => import('./tools/it/linkedin.json'),
   'it:split_image': () => import('./tools/it/split_image.json'),
+  'it:video_to_mp3': () => import('./tools/it/video_to_mp3.json'),
 
   'ru:home': () => import('./tools/ru/home.json'),
   'ru:tiktok': () => import('./tools/ru/tiktok.json'),
@@ -576,6 +586,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'ru:facebook': () => import('./tools/ru/facebook.json'),
   'ru:linkedin': () => import('./tools/ru/linkedin.json'),
   'ru:split_image': () => import('./tools/ru/split_image.json'),
+  'ru:video_to_mp3': () => import('./tools/ru/video_to_mp3.json'),
 
   'ar:home': () => import('./tools/ar/home.json'),
   'ar:tiktok': () => import('./tools/ar/tiktok.json'),
@@ -584,6 +595,7 @@ const TOOL_CONTENT_IMPORTERS: Record<
   'ar:facebook': () => import('./tools/ar/facebook.json'),
   'ar:linkedin': () => import('./tools/ar/linkedin.json'),
   'ar:split_image': () => import('./tools/ar/split_image.json'),
+  'ar:video_to_mp3': () => import('./tools/ar/video_to_mp3.json'),
 };
 
 /**
@@ -696,11 +708,45 @@ export function buildScopedLocaleBundle(
     };
   }
 
-  if (pageKey === 'split_image') {
-    const splitToolDoc = getToolContentSync(bundle.locale, 'split_image');
+  if (pageKey === 'tools_hub') {
+    const hubPlatforms = {} as Record<string, unknown>;
+    for (const pKey of PLATFORM_KEYS) {
+      hubPlatforms[pKey] = {
+        slug: bundle.platforms[pKey].slug,
+        shortLabel: bundle.platforms[pKey].shortLabel,
+        breadcrumbLabel: bundle.platforms[pKey].breadcrumbLabel,
+        h1: bundle.platforms[pKey].h1,
+        subtitle: bundle.platforms[pKey].subtitle,
+      };
+    }
     return {
       locale: bundle.locale,
-      __scope: 'split_image',
+      __scope: 'tools_hub',
+      ui: {
+        nav: minimalNav,
+        sections: {
+          breadcrumbHome: bundle.ui.sections.breadcrumbHome,
+          platformsHeading: bundle.ui.sections.platformsHeading,
+          openToolCta: bundle.ui.sections.openToolCta,
+        },
+        footer: bundle.ui.footer,
+        errors: {
+          MAINTENANCE: bundle.ui.errors.MAINTENANCE,
+        },
+      } as unknown as LocaleBundle['ui'],
+      home: {
+        specs: bundle.home.specs,
+        ogImageAlt: bundle.home.ogImageAlt,
+      } as unknown as LocaleBundle['home'],
+      platforms: hubPlatforms as unknown as LocaleBundle['platforms'],
+    };
+  }
+
+  if (pageKey === 'split_image' || pageKey === 'video_to_mp3') {
+    const activeToolDoc = getToolContentSync(bundle.locale, pageKey);
+    return {
+      locale: bundle.locale,
+      __scope: pageKey,
       ui: {
         nav: minimalNav,
         sections: {
@@ -723,10 +769,10 @@ export function buildScopedLocaleBundle(
         ogImageAlt: bundle.home.ogImageAlt,
       } as unknown as LocaleBundle['home'],
       platforms: minimalPlatforms as unknown as LocaleBundle['platforms'],
-      ...(splitToolDoc
+      ...(activeToolDoc
         ? {
             toolContent: {
-              split_image: splitToolDoc,
+              [pageKey]: activeToolDoc,
             },
           }
         : {}),

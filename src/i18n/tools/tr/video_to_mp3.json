@@ -1,0 +1,139 @@
+{
+  "editorial": {
+    "heading": "MP4, MOV veya WebM videolarını %100 tarayıcınızda MP3 veya WAV formatına dönüştürün",
+    "subheading": "Sunucuya yükleme olmadan yerel Web Audio API çözme, lamejs MP3 kodlama ve manuel 16-bit PCM WAV dışa aktarma",
+    "paragraphs": [
+      "VIDNEX Video → MP3 / WAV dönüştürücü, MP4, MOV ve WebM dosyalarındaki ses kanalını tamamen tarayıcınızın yerel belleğinde ayırır. Hiçbir harici API çağrılmaz ve videonuzun tek bir baytı bile cihazınızdan ayrılmaz: çözümleme Web Audio API üzerinden yapılır, MP3 kodlama lamejs (128, 192, 256 veya 320 kbps) ile çalışır ve WAV dosyaları manuel 16-bit RIFF/WAVE PCM kodlayıcı (44,1 veya 48 kHz, mono veya stereo) ile oluşturulur.",
+      "Dosyanız çözümlendiği anda etkileşimli dalga formu tüm ses zarfını gösterir; böylece tam olarak istediğiniz bölümü kesebilirsiniz. Başlangıç ve bitiş tutamaçlarını sürükleyin veya kesin zaman kodlarını girin, dahili kesit oynatıcıyla seçimi dinleyin ve dijital kırpma olmadan ses zirvesini -0,2 dB düzeyine dengeleyen ses normalleştirme seçeneğini açın.",
+      "Masaüstünde 500 MB'a kadar (mobil cihazlarda tarayıcı belleğini korumak için 200 MB'a kadar) yerel videoları bırakabilir veya VIDNEX indiricisindeki herhangi bir herkese açık TikTok, Instagram, X ya da Facebook videosunu Sesi çıkar (MP3) düğmesiyle yeniden yükleme yapmadan tek tıkla bu araca gönderebilirsiniz. Canlı ilerleme çubuğu, tahmini dosya boyutu, ses önizleme oynatıcısı ve düzenlenebilir dosya adı her dışa aktarmayı kolaylaştırır."
+    ],
+    "formatsTitle": "Desteklenen formatlar, ses ayarları ve tarayıcı özellikleri",
+    "formatsList": [
+      "Giriş video dosyaları: MP4 (H.264/AAC), MOV (QuickTime) ve WebM (VP8/VP9/Opus/Vorbis)",
+      "lamejs ile CBR MP3 çıkışı: 128 kbps, 192 kbps, 256 kbps veya 320 kbps bit hızı seçenekleri",
+      "Manuel 16-bit PCM WAV çıkışı: 44,1 kHz (CD standardı) veya 48 kHz (video kurgu), Stereo veya Mono",
+      "Sürüklenebilir Başlangıç/Bitiş tutamaçları ve sayısal zaman kodlu etkileşimli dalga formu kırpıcı",
+      "Ses normalleştirme seçeneği: stereo dengesini koruyarak -0,2 dBFS zirve seviyelendirme",
+      "VIDNEX TikTok, Instagram, X ve Facebook indiricilerinden yeniden yüklemesiz doğrudan aktarım"
+    ],
+    "limitsTitle": "Tarayıcı bellek sınırları (masaüstünde 500 MB / mobilde 200 MB)",
+    "limitsText": "Web Audio API tüm ses akışını cihazınızın RAM belleğinde sıkıştırılmamış PCM verisine dönüştürdüğü için maksimum dosya boyutu masaüstünde 500 MB ve mobil cihazlarda 200 MB olarak belirlenmiştir. Video desteklenmeyen bir kodek kullanıyorsa veya ses kanalı yoksa araç hemen anlaşılır bir mesaj gösterir."
+  },
+  "howToSteps": [
+    {
+      "number": "01",
+      "title": "Bir video dosyası bırakın veya VIDNEX'ten gönderin",
+      "description": "MP4, MOV veya WebM videonuzu (masaüstünde 500 MB, mobilde 200 MB'a kadar) sürükleyip bırakın ya da TikTok, Instagram, X veya Facebook indirme sonuçlarında Sesi çıkar (MP3) düğmesine tıklayın.",
+      "codeHint": "MP4 / MOV / WEBM · %100 YEREL"
+    },
+    {
+      "number": "02",
+      "title": "Dalga formunda kırpın ve MP3 veya WAV seçin",
+      "description": "Klibinizi belirlemek için Başlangıç ve Bitiş tutamaçlarını sürükleyin, MP3 (128–320 kbps) veya WAV (44,1/48 kHz, mono/stereo) seçin, tahmini boyutu kontrol edin ve gerekirse ses normalleştirmeyi açın.",
+      "codeHint": "DALGA FORMU · 320 KBPS / WAV 48 KHZ"
+    },
+    {
+      "number": "03",
+      "title": "Önizleyin, yeniden adlandırın ve sesi kaydedin",
+      "description": "Tarayıcınızdaki canlı dönüştürme ilerlemesini takip edin, dışa aktarılan sesi dahili önizleme oynatıcıda dinleyin, çıkış dosya adını düzenleyin ve İndir düğmesine tıklayın.",
+      "codeHint": "SES ÖNİZLEME · YEREL DIŞA AKTARMA"
+    }
+  ],
+  "formatsTable": {
+    "heading": "Video → MP3 / WAV formatları, bit hızları ve tarayıcı sınırları",
+    "subheading": "Tarayıcı içi Web Audio API çözücü, lamejs MP3 kodlayıcı ve manuel PCM WAV yazıcının gerçek teknik özellikleri.",
+    "headers": ["Format veya ayar", "Desteklenen değerler", "Önerilen kullanım ve gerçek davranış"],
+    "rows": [
+      ["Giriş videoları", "MP4, MOV, WebM", "Sunucuya yükleme olmadan Web Audio API ile yerel çözme; masaüstünde 500 MB, mobilde 200 MB sınırı."],
+      ["MP3 128–192 kbps", "128 kbps / 192 kbps", "lamejs ile yerel kodlanan hafif dosyalar; konuşma, podcast, sesli not ve hızlı paylaşım için idealdir."],
+      ["MP3 256–320 kbps", "256 kbps / 320 kbps", "Tüm telefonlar, araç müzik sistemleri ve masaüstü oynatıcılarla uyumlu yüksek kaliteli sabit bit hızlı MP3."],
+      ["WAV 44,1 kHz PCM", "16-bit · Mono veya Stereo", "Kayıpsız düzenleme için tarayıcı belleğinde manuel oluşturulan sıkıştırılmamış CD standardı RIFF/WAVE ses."],
+      ["WAV 48 kHz PCM", "16-bit · Mono veya Stereo", "Premiere Pro, DaVinci Resolve, Final Cut ve CapCut zaman çizelgeleri için yerel video kurgu örnekleme hızı."],
+      ["Kırpma + Normalleştirme", "Başlangıç/Bitiş tutamaçları · -0,2 dB zirve", "Saniyenin onda biri hassasiyetinde dalga formu kesimi ve stereo kanallarda dengeli ses yükseltme."]
+    ]
+  },
+  "troubleshooting": {
+    "heading": "Yaygın ses çıkarma sorunları ve hızlı çözümler",
+    "subheading": "Video çözümlenemediğinde, boyut sınırı aşıldığında veya ses kısık çıktığında pratik çözümler.",
+    "guideLink": {
+      "label": "Teknik rehberi okuyun: Instagram Reels neden sessiz iniyor?",
+      "href": "/tr/blog/instagram-reels-sessiz-iniyor-cozum-rehberi"
+    },
+    "items": [
+      {
+        "problem": "Tarayıcı videonun ses kanalını çözemediğini bildiriyor",
+        "solution": "Bazı MOV veya MP4 dosyaları tarayıcıların Web Audio API ile çözemediği AC-3 veya DTS gibi özel surround kodekler kullanır ya da videoda ses kanalı bulunmaz. Standart AAC sesli bir MP4 veya WebM deneyin ya da Chrome veya Edge kullanın."
+      },
+      {
+        "problem": "Dosya boyutu sınırı uyarısı (masaüstü 500 MB / mobil 200 MB)",
+        "solution": "Video sesini sıkıştırılmamış 32-bit float PCM verisine açmak yüksek tarayıcı RAM'i gerektirir. Akıllı telefonlarda 200 MB altındaki dosyaları kullanın veya 500 MB'a kadar videolar için masaüstü tarayıcıya geçin."
+      },
+      {
+        "problem": "Çıkarılan ses diğer parçalara göre çok kısık duyuluyor",
+        "solution": "Dönüştürmeden önce Ses seviyesini normalleştir anahtarını açın. VIDNEX seçili kesitteki en yüksek zirveyi ölçer ve bozulma oluşturmadan sesi dengeli biçimde -0,2 dB düzeyine yükseltir."
+      },
+      {
+        "problem": "WAV dosyası MP3 dosyasına göre çok daha büyük",
+        "solution": "48 kHz 16-bit stereo sıkıştırılmamış WAV dakikada yaklaşık 11 MB yer kaplar. Çok daha küçük boyutta yüksek müzik kalitesi istiyorsanız 192 kbps veya 320 kbps MP3 formatına geçin."
+      },
+      {
+        "problem": "Uzun videolarda MP3 kodlama birkaç saniye sürüyor",
+        "solution": "lamejs, tarayıcı sekmesinin donmaması ve ilerleme çubuğunun akıcı güncellenmesi için kareleri işlemcinizde paketler halinde kodlar. Yalnızca ihtiyacınız olan bölümü kırpın veya neredeyse anında dışa aktarma için WAV seçin."
+      }
+    ]
+  },
+  "whereToFind": {
+    "heading": "Kaydedilen MP3 veya WAV ses dosyasını nerede bulabilirsiniz",
+    "subheading": "iPhone, Android, Windows ve macOS cihazlarda kesin indirme klasörü konumları.",
+    "ios": {
+      "title": "iPhone ve iPad",
+      "steps": "iOS Safari'de adres çubuğundaki mavi indirme okuna dokunun ve Dosyalar uygulamasında İndirilenler klasörünü açın. MP3 veya WAV dosyanıza dokunarak hemen dinleyin veya doğrudan GarageBand ya da CapCut uygulamasına aktarın."
+    },
+    "android": {
+      "title": "Android",
+      "steps": "MP3 veya WAV dosyanız doğrudan İndirilenler (Download) klasörüne kaydedilir. Google Dosyalar, Dosyalarım veya müzik oynatıcınızı açarak dosyayı çalabilir, yeniden adlandırabilir veya mobil kurgu uygulamalarına aktarabilirsiniz."
+    },
+    "desktop": {
+      "title": "Masaüstü (Windows ve macOS)",
+      "steps": "Yeniden adlandırılan ses dosyası tarayıcınızın varsayılan İndirilenler klasörüne kaydedilir. Windows'ta Ctrl+J, macOS'ta Cmd+Shift+J tuşlarına basarak kaydedilen MP3 veya WAV dosyasını Gezgin veya Finder'da hemen açabilirsiniz."
+    }
+  },
+  "faqs": [
+    {
+      "question": "MP3 veya WAV dönüşümü sırasında videom bir sunucuya yükleniyor mu?",
+      "answer": "Hayır, videonuzun tek bir baytı bile hiçbir zaman uzak bir sunucuya yüklenmez. Tarayıcınız sesi Web Audio API kullanarak cihazınızda yerel olarak çözer, dalga formunu doğrudan ekranınızda çizer ve MP3 dosyasını lamejs ile veya on altı bit PCM WAV dosyasını tamamen çevrimdışı bellekte kodlar."
+    },
+    {
+      "question": "128, 192, 256 ve 320 kbps MP3 arasındaki fark nedir?",
+      "answer": "Bit hızı, ses detayı ile dosya boyutu arasındaki dengeyi belirler. Hafif konuşma kayıtları ve podcast bölümleri için yüz yirmi sekiz kbps, günlük dengeli dinleme için yüz doksan iki kbps, kulaklık ve hoparlörlerde en yüksek müzik netliğini korumak için iki yüz elli altı veya üç yüz yirmi kbps seçin."
+    },
+    {
+      "question": "MP3 yerine ne zaman WAV (44,1 veya 48 kHz) seçmeliyim?",
+      "answer": "Sesi herhangi bir sıkıştırma kaybı yaşamadan ses düzenleme veya video kurgu yazılımlarında işlemek, mikslemek ya da mastering yapmak istediğinizde sıkıştırılmamış on altı bit PCM WAV seçin. Standart müzik projeleri için kırk dört nokta bir kHz, video zaman çizelgeleri için kırk sekiz kHz kullanabilir, konuşmada Mono ile boyutu yarılayabilirsiniz."
+    },
+    {
+      "question": "Dışa aktarmadan önce belirli bir ses kesitini nasıl kırparım?",
+      "answer": "Videonuz çözümlendikten sonra etkileşimli dalga formu üzerindeki sol ve sağ kırpma tutamaçlarını sürükleyin veya kesin başlangıç ve bitiş zaman kodlarını kutulara yazın. Seçtiğiniz aralığı anında kontrol etmek için Kesiti Önizle düğmesine tıklayın; yalnızca kırptığınız bu bölüm son MP3 veya WAV dosyanıza kodlanacaktır."
+    },
+    {
+      "question": "Ses seviyesini normalleştir seçeneği ses dosyama ne yapar?",
+      "answer": "Ses normalleştirme, kırpılmış ses aralığınızı tarayarak en yüksek tek zirveyi tespit eder ve zirvenin eksi sıfır nokta iki desibele ulaşması için her iki stereo kanala eşit kazanç uygular. Bu işlem kısık kayıtları stereo dengesini bozmadan ve sert dijital kırpma oluşturmadan temiz biçimde güçlendirir."
+    },
+    {
+      "question": "TikTok, Instagram, X veya Facebook videosunu yeniden yüklemeden buraya nasıl gönderirim?",
+      "answer": "VIDNEX indiricisinde herkese açık herhangi bir video bağlantısını analiz ettikten sonra sonuç kartı içindeki Sesi çıkar (MP3) düğmesine tıklayın. VIDNEX bu dönüştürücüyü otomatik olarak açar ve videoyu yeniden yüklemeye gerek kalmadan doğrudan yerel tarayıcı belleğine aktarır; böylece anında kırpıp normalleştirerek MP3 veya WAV olarak kaydedebilirsiniz."
+    }
+  ],
+  "relatedSection": {
+    "heading": "İçerik üreticiler için diğer VIDNEX araçları",
+    "subheading": "Herkese açık sosyal medya videolarını indirin veya görselleri tarayıcınızda yerel olarak ızgaraya bölün.",
+    "toolKeys": ["split_image", "tiktok", "instagram"],
+    "guideLink": {
+      "label": "Rehber: Instagram Reels sessiz iniyor çözüm rehberi",
+      "description": "Sosyal medya videolarında ses kanalı neden kaybolur ve doğru MP3 veya WAV dosyası nasıl elde edilir öğrenin.",
+      "href": "/tr/blog/instagram-reels-sessiz-iniyor-cozum-rehberi"
+    },
+    "privacyLabel": "VIDNEX Gizlilik Politikası",
+    "privacyDescription": "Sunucu depolaması olmadan Web Audio API ve lamejs ile %100 tarayıcı içi ses çıkarma."
+  }
+}

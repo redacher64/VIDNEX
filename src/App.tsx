@@ -10,6 +10,8 @@ import { LegalPageView } from './components/LegalPageView.tsx';
 import { BlogIndexView } from './components/BlogIndexView.tsx';
 import { BlogArticleView } from './components/BlogArticleView.tsx';
 import { SplitImageToolView } from './components/SplitImageToolView.tsx';
+import { VideoToMp3ToolView } from './components/VideoToMp3ToolView.tsx';
+import { ToolsHubView } from './components/ToolsHubView.tsx';
 import { NotFoundView } from './components/NotFoundView.tsx';
 import { AdSlot } from './components/AdSlot.tsx';
 import { Footer } from './components/Footer.tsx';
@@ -483,8 +485,19 @@ export function App({ initialPath }: AppProps = {}) {
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
           />
+        ) : pageKey === 'tools_hub' ? (
+          <ToolsHubView
+            locale={language}
+            onNavigatePage={(target) => handleNavigatePage(target)}
+          />
         ) : pageKey === 'split_image' ? (
           <SplitImageToolView
+            locale={language}
+            onNavigatePage={(target) => handleNavigatePage(target)}
+            onNavigatePath={handleNavigatePath}
+          />
+        ) : pageKey === 'video_to_mp3' ? (
+          <VideoToMp3ToolView
             locale={language}
             onNavigatePage={(target) => handleNavigatePage(target)}
             onNavigatePath={handleNavigatePath}
@@ -537,6 +550,7 @@ export function App({ initialPath }: AppProps = {}) {
               result={mediaResult}
               onClose={handleCloseDrawer}
               onRetry={handleRetryExtraction}
+              onOpenVideoToMp3={() => handleNavigatePage('video_to_mp3')}
               language={language}
               platform={lastRequest?.detected?.platform || activePlatform}
             />

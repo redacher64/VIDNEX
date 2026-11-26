@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard,
-  HeartPulse,
+  Layers,
   Sliders,
-  ListOrdered,
   LogOut,
   ShieldAlert,
   ExternalLink,
@@ -13,21 +12,25 @@ import {
   UserCircle,
   FileText,
   Globe,
+  ChevronDown,
 } from './AdminIcons';
 import { VidnexLogoMark } from '../../components/icons/PlatformIcons';
 import { Login, type AdminUserProfile } from './Login';
 import { Dashboard } from './Dashboard';
+import { ExtractionsView } from './extractions/ExtractionsView';
 import { Visitors } from './Visitors';
-import { Health } from './Health';
 import { Controls } from './Controls';
-import { Activity } from './Activity';
 import { Blog } from './Blog';
 import {
   BLOG_MODULE_ENABLED,
   type AdminTab,
+  type ExtractionsSubTabId,
+  getAuthorizedExtractionsSubTabs,
   getFirstAuthorizedTabForUser,
   isTabAuthorizedForUser,
+  normalizeLegacyAdminTab,
 } from './blogAdminLogic';
+import type { AdminNavigationTarget } from './adminMetricsLogic';
 import { Users } from './Users';
 import { Account } from './Account';
 import {
@@ -44,34 +47,67 @@ export {
   isTabAuthorizedForUser,
 };
 
-function getExplicitUrlTab(): AdminTab | null {
-  if (typeof window === 'undefined') return null;
-  const tab = new URLSearchParams(window.location.search).get('tab');
+function getExplicitUrlNavigation(): {
+  tab: AdminTab | null;
+  subTab?: ExtractionsSubTabId;
+} {
+  if (typeof window === 'undefined') return { tab: null };
+  const params = new URLSearchParams(window.location.search);
+  const rawTab = params.get('tab');
+  const rawSub = params.get('sub');
+  const validSub: ExtractionsSubTabId | undefined =
+    rawSub === 'plateformes' || rawSub === 'erreurs' || rawSub === 'entonnoir'
+      ? rawSub
+      : undefined;
+
   if (
-    tab === 'dashboard' ||
-    tab === 'visitors' ||
-    tab === 'health' ||
-    tab === 'controls' ||
-    tab === 'activity' ||
-    tab === 'blog' ||
-    tab === 'users' ||
-    tab === 'account'
+    rawTab === 'dashboard' ||
+    rawTab === 'extractions' ||
+    rawTab === 'visitors' ||
+    rawTab === 'health' ||
+    rawTab === 'controls' ||
+    rawTab === 'activity' ||
+    rawTab === 'blog' ||
+    rawTab === 'users' ||
+    rawTab === 'account'
   ) {
-    return tab;
+    const normalized = normalizeLegacyAdminTab(rawTab);
+    return {
+      tab: normalized.tab,
+      subTab: validSub || normalized.subTab,
+    };
   }
-  return null;
+  return { tab: null };
+}
+
+function getUserInitials(user: AdminUserProfile): string {
+  const source = (user.displayName || user.login || 'A').trim();
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return source.slice(0, 2).toUpperCase();
 }
 
 export const AdminApp: React.FC = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<AdminUserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<AdminTab>(
-    () => getExplicitUrlTab() || 'dashboard'
+
+  const initialNav = getExplicitUrlNavigation();
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialNav.tab || 'dashboard');
+  const [extractionsSubTab, setExtractionsSubTab] = useState<ExtractionsSubTabId>(
+    initialNav.subTab || 'plateformes'
   );
-  const [theme, setTheme] = useState<AdminTheme>(() =>
-    resolveInitialAdminTheme()
-  );
+  const [extractionsFilter, setExtractionsFilter] = useState<{
+    platform: string;
+    errorCode: string;
+  }>({ platform: '', errorCode: '' });
+
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const [theme, setTheme] = useState<AdminTheme>(() => resolveInitialAdminTheme());
 
   useEffect(() => {
     applyAdminThemeToDocument(theme, document, window.localStorage, false);
@@ -96,9 +132,27 @@ export const AdminApp: React.FC = () => {
       applyAdminThemeToDocument(nextTheme, document, window.localStorage, false);
     };
     mediaQuery.addEventListener('change', handleSystemThemeChange);
-    return () =>
-      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, []);
+
+  // Close avatar dropdown on outside click or Escape
+  useEffect(() => {
+    if (!avatarMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target as Node)) {
+        setAvatarMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAvatarMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [avatarMenuOpen]);
 
   const handleToggleTheme = () => {
     setTheme((prev) => {
@@ -110,7 +164,7 @@ export const AdminApp: React.FC = () => {
 
   // Inject <meta name="robots" content="noindex, nofollow"> on /admin mount
   useEffect(() => {
-    document.title = 'VIDNEX · Administration D1';
+    document.title = 'VIDNEX · Administration';
     let robotsMeta = document.querySelector(
       'meta[name="robots"]'
     ) as HTMLMetaElement | null;
@@ -129,6 +183,18 @@ export const AdminApp: React.FC = () => {
       }
     };
   }, []);
+
+  const syncUrlParams = (tab: AdminTab, subTab?: ExtractionsSubTabId) => {
+    if (typeof window === 'undefined') return;
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('tab', tab);
+    if (tab === 'extractions' && subTab) {
+      nextUrl.searchParams.set('sub', subTab);
+    } else {
+      nextUrl.searchParams.delete('sub');
+    }
+    window.history.replaceState({}, '', nextUrl.toString());
+  };
 
   const applyAuthenticatedUser = (
     incomingUser: AdminUserProfile | null,
@@ -155,14 +221,20 @@ export const AdminApp: React.FC = () => {
     setUser(resolvedUser);
     setAuthenticated(true);
 
-    const explicitUrlTab = getExplicitUrlTab();
-    if (explicitUrlTab && isTabAuthorizedForUser(explicitUrlTab, resolvedUser)) {
-      setActiveTab(explicitUrlTab);
+    const explicitNav = getExplicitUrlNavigation();
+    if (explicitNav.tab && isTabAuthorizedForUser(explicitNav.tab, resolvedUser)) {
+      setActiveTab(explicitNav.tab);
+      if (explicitNav.subTab) {
+        setExtractionsSubTab(explicitNav.subTab);
+      }
     } else {
-      setActiveTab(
-        resolvedUser.firstAuthorizedTab ||
-          getFirstAuthorizedTabForUser(resolvedUser)
-      );
+      const firstRaw =
+        resolvedUser.firstAuthorizedTab || getFirstAuthorizedTabForUser(resolvedUser);
+      const normalized = normalizeLegacyAdminTab(firstRaw);
+      setActiveTab(normalized.tab);
+      if (normalized.subTab) {
+        setExtractionsSubTab(normalized.subTab);
+      }
     }
   };
 
@@ -192,6 +264,7 @@ export const AdminApp: React.FC = () => {
   }, []);
 
   const handleLogout = async () => {
+    setAvatarMenuOpen(false);
     await fetch('/api/admin/logout', {
       method: 'POST',
       headers: {
@@ -204,13 +277,38 @@ export const AdminApp: React.FC = () => {
     setUser(null);
   };
 
-  const handleSelectTab = (tab: AdminTab) => {
-    setActiveTab(tab);
-    if (typeof window !== 'undefined') {
-      const nextUrl = new URL(window.location.href);
-      nextUrl.searchParams.set('tab', tab);
-      window.history.replaceState({}, '', nextUrl.toString());
+  const handleSelectTab = (tab: AdminTab, subTab?: ExtractionsSubTabId) => {
+    const normalized = normalizeLegacyAdminTab(tab);
+    const resolvedTab = normalized.tab;
+    const resolvedSub = subTab || normalized.subTab;
+    setActiveTab(resolvedTab);
+    if (resolvedTab === 'extractions' && resolvedSub) {
+      setExtractionsSubTab(resolvedSub);
     }
+    setAvatarMenuOpen(false);
+    syncUrlParams(
+      resolvedTab,
+      resolvedTab === 'extractions' ? resolvedSub || extractionsSubTab : undefined
+    );
+  };
+
+  const handleNavigate = (target: AdminNavigationTarget) => {
+    if (!user) return;
+    if (!isTabAuthorizedForUser(target.tab, user)) return;
+    if (target.tab === 'extractions') {
+      const allowedSubTabs = getAuthorizedExtractionsSubTabs(user);
+      const desiredSub =
+        target.subTab && allowedSubTabs.includes(target.subTab)
+          ? target.subTab
+          : allowedSubTabs[0] || 'plateformes';
+      setExtractionsFilter({
+        platform: target.platform || '',
+        errorCode: target.errorCode || '',
+      });
+      handleSelectTab('extractions', desiredSub);
+      return;
+    }
+    handleSelectTab(target.tab);
   };
 
   if (checkingAuth) {
@@ -239,7 +337,6 @@ export const AdminApp: React.FC = () => {
     );
   }
 
-  // Écran obligatoire de changement de mot de passe avant tout accès
   if (user.mustChangePassword) {
     return (
       <Account
@@ -247,10 +344,12 @@ export const AdminApp: React.FC = () => {
         forcedMode={true}
         onPasswordChanged={(updatedUser) => {
           setUser(updatedUser);
-          setActiveTab(
+          const first = normalizeLegacyAdminTab(
             updatedUser.firstAuthorizedTab ||
               getFirstAuthorizedTabForUser(updatedUser)
           );
+          setActiveTab(first.tab);
+          if (first.subTab) setExtractionsSubTab(first.subTab);
         }}
         onLogout={handleLogout}
         theme={theme}
@@ -259,7 +358,8 @@ export const AdminApp: React.FC = () => {
     );
   }
 
-  const allTabs: Array<{
+  // Strictly 6 top-level navigation tabs
+  const primaryTabs: Array<{
     id: AdminTab;
     label: string;
     icon: React.ReactNode;
@@ -267,33 +367,21 @@ export const AdminApp: React.FC = () => {
   }> = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: "Vue d'ensemble",
       icon: <LayoutDashboard className="w-4 h-4" />,
       visible: isTabAuthorizedForUser('dashboard', user),
     },
     {
+      id: 'extractions',
+      label: 'Extractions',
+      icon: <Layers className="w-4 h-4" />,
+      visible: isTabAuthorizedForUser('extractions', user),
+    },
+    {
       id: 'visitors',
-      label: 'Visiteurs',
+      label: 'Audience',
       icon: <Globe className="w-4 h-4" />,
       visible: user.isOwner,
-    },
-    {
-      id: 'health',
-      label: 'Santé des moteurs',
-      icon: <HeartPulse className="w-4 h-4" />,
-      visible: isTabAuthorizedForUser('health', user),
-    },
-    {
-      id: 'controls',
-      label: 'Contrôles',
-      icon: <Sliders className="w-4 h-4" />,
-      visible: user.isOwner,
-    },
-    {
-      id: 'activity',
-      label: 'Activité',
-      icon: <ListOrdered className="w-4 h-4" />,
-      visible: isTabAuthorizedForUser('activity', user),
     },
     {
       id: 'blog',
@@ -302,51 +390,45 @@ export const AdminApp: React.FC = () => {
       visible: BLOG_MODULE_ENABLED && isTabAuthorizedForUser('blog', user),
     },
     {
+      id: 'controls',
+      label: 'Contrôles',
+      icon: <Sliders className="w-4 h-4" />,
+      visible: user.isOwner,
+    },
+    {
       id: 'users',
       label: 'Utilisateurs',
       icon: <UsersIcon className="w-4 h-4" />,
       visible: user.isOwner,
     },
-    {
-      id: 'account',
-      label: 'Mon compte',
-      icon: <UserCircle className="w-4 h-4" />,
-      visible: true,
-    },
   ];
 
-  const authorizedTabs = allTabs.filter((t) => t.visible);
+  const authorizedTabs = primaryTabs.filter((t) => t.visible);
+  const authorizedExtractionsSubTabs = getAuthorizedExtractionsSubTabs(user);
   const isCurrentTabAuthorized = isTabAuthorizedForUser(activeTab, user);
-  const fallbackTab = getFirstAuthorizedTabForUser(user);
+  const fallbackTab = normalizeLegacyAdminTab(getFirstAuthorizedTabForUser(user)).tab;
+  const userInitials = getUserInitials(user);
 
   return (
     <div className="min-h-screen bg-admin-bg text-admin-text flex flex-col transition-colors duration-150">
-      {/* Top bar */}
+      {/* Top Bar */}
       <header className="border-b border-admin-border bg-admin-surface/95 sticky top-0 z-30 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div
-              title={`VIDNEX Admin · ${user.displayName} (${user.login})`}
-              className="shrink-0"
-            >
-              <VidnexLogoMark className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-sm sm:text-base text-admin-text whitespace-nowrap truncate">
-                  VIDNEX<span className="hidden xs:inline sm:inline"> Admin</span>
-                </span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
-                  {user.isOwner ? 'Propriétaire' : user.roleLabel}
-                </span>
-              </div>
-              <p className="text-xs text-admin-text-muted hidden md:block truncate">
-                {user.displayName} (<span className="font-mono">{user.login}</span>) · Stockage Cloudflare D1
-              </p>
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <VidnexLogoMark className="w-8 h-8 rounded-lg shrink-0" />
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-display font-bold text-sm sm:text-base text-admin-text whitespace-nowrap">
+                VIDNEX Admin
+              </span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-admin-accent-bg border border-admin-accent-border text-admin-accent shrink-0 hidden md:inline-block">
+                {user.isOwner ? 'Propriétaire' : user.roleLabel}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Right Controls: Theme + Site public + Avatar Menu */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleToggleTheme}
@@ -360,7 +442,7 @@ export const AdminApp: React.FC = () => {
                   ? 'Passer en mode clair'
                   : 'Passer en mode sombre'
               }
-              className="w-9 h-9 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text flex items-center justify-center transition-colors cursor-pointer shrink-0"
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -373,29 +455,79 @@ export const AdminApp: React.FC = () => {
               href="/"
               aria-label="Site public"
               title="Ouvrir le site public"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
+              className="h-8 px-2.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-admin-text flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
-              <ExternalLink className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Site public</span>
             </a>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Déconnexion"
-              title="Déconnexion"
-              className="w-9 h-9 sm:w-auto sm:px-3 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-medium text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
-            >
-              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </button>
+            {/* Avatar Menu ("Mon compte" + "Déconnexion") */}
+            <div ref={avatarMenuRef} className="relative">
+              <button
+                type="button"
+                aria-label="Menu du compte"
+                aria-haspopup="menu"
+                aria-expanded={avatarMenuOpen}
+                onClick={() => setAvatarMenuOpen((prev) => !prev)}
+                className={`h-8 pl-1 pr-2 rounded-md border flex items-center gap-2 transition-colors cursor-pointer ${
+                  activeTab === 'account' || avatarMenuOpen
+                    ? 'bg-admin-hover border-admin-accent'
+                    : 'bg-admin-muted hover:bg-admin-hover border-admin-border-strong'
+                }`}
+              >
+                <span className="w-6 h-6 rounded bg-admin-accent text-white font-display font-bold text-[11px] flex items-center justify-center shrink-0">
+                  {userInitials}
+                </span>
+                <span className="text-xs font-semibold text-admin-text hidden sm:inline max-w-[110px] truncate">
+                  {user.displayName}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-admin-text-muted shrink-0" />
+              </button>
+
+              {avatarMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Options du compte"
+                  className="absolute right-0 mt-1.5 w-56 rounded-lg bg-admin-surface border border-admin-border-strong shadow-lg py-1.5 z-40"
+                >
+                  <div className="px-3 py-2 border-b border-admin-border">
+                    <div className="text-xs font-display font-bold text-admin-text truncate">
+                      {user.displayName}
+                    </div>
+                    <div className="text-[11px] font-mono text-admin-text-muted truncate">
+                      {user.login} · {user.isOwner ? 'Propriétaire' : user.roleLabel}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleSelectTab('account')}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-admin-text hover:bg-admin-hover flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <UserCircle className="w-4 h-4 text-admin-text-muted" />
+                    <span>Mon compte</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 hover:bg-admin-hover flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Déconnexion</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Navigation Tabs (icônes compactes sur mobile, libellés complets sur écrans >= sm) */}
+        {/* 6 Primary Navigation Tabs */}
         <nav
           aria-label="Navigation administration"
-          className="max-w-6xl mx-auto px-2 sm:px-6 flex items-center justify-between sm:justify-start gap-1 overflow-x-auto pb-2 no-scrollbar"
+          className="max-w-6xl mx-auto px-2 sm:px-6 flex items-center gap-1 overflow-x-auto pb-2 no-scrollbar"
         >
           {authorizedTabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -407,14 +539,14 @@ export const AdminApp: React.FC = () => {
                 aria-label={tab.label}
                 aria-current={isActive ? 'page' : undefined}
                 title={tab.label}
-                className={`flex-1 sm:flex-initial min-w-[40px] h-9 sm:h-auto px-2.5 sm:px-3.5 py-2 rounded-md text-xs font-display font-semibold flex items-center justify-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-md text-xs font-display font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
-                    ? 'bg-admin-accent text-white shadow'
+                    ? 'bg-admin-accent text-white'
                     : 'text-admin-text-secondary hover:text-admin-text hover:bg-admin-hover'
                 }`}
               >
                 <span className="shrink-0">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span>{tab.label}</span>
               </button>
             );
           })}
@@ -422,11 +554,11 @@ export const AdminApp: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6">
         {!isCurrentTabAuthorized ? (
           <div
             data-testid="admin-access-denied"
-            className="max-w-lg mx-auto bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-lg p-6 sm:p-8 text-center space-y-4 shadow-md"
+            className="max-w-lg mx-auto bg-admin-surface border border-red-300 dark:border-red-800/70 rounded-lg p-6 text-center space-y-4"
           >
             <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-950/70 border border-red-300 dark:border-red-800/70 text-red-700 dark:text-red-400 flex items-center justify-center mx-auto">
               <ShieldAlert className="w-6 h-6" />
@@ -441,7 +573,7 @@ export const AdminApp: React.FC = () => {
             <button
               type="button"
               onClick={() => handleSelectTab(fallbackTab)}
-              className="px-4 py-2.5 rounded-md bg-admin-accent hover:opacity-90 text-white font-display font-semibold text-xs cursor-pointer transition-colors"
+              className="px-4 py-2 rounded-md bg-admin-accent hover:opacity-90 text-white font-display font-semibold text-xs cursor-pointer transition-colors"
             >
               Retourner à mon espace autorisé
             </button>
@@ -450,18 +582,39 @@ export const AdminApp: React.FC = () => {
           <>
             {activeTab === 'dashboard' && (
               <Dashboard
-                onNavigateTab={(t) => {
-                  if (isTabAuthorizedForUser(t, user)) {
-                    handleSelectTab(t);
-                  }
-                }}
+                canViewHealth={
+                  user.isOwner || user.permissions.includes('health.view')
+                }
+                onNavigate={handleNavigate}
               />
             )}
+
+            {activeTab === 'extractions' && (
+              <ExtractionsView
+                authorizedSubTabs={authorizedExtractionsSubTabs}
+                activeSubTab={extractionsSubTab}
+                onSelectSubTab={(sub) => {
+                  setExtractionsSubTab(sub);
+                  syncUrlParams('extractions', sub);
+                }}
+                isOwner={user.isOwner}
+                canViewStats={
+                  user.isOwner || user.permissions.includes('dashboard.view')
+                }
+                canViewHealth={
+                  user.isOwner || user.permissions.includes('health.view')
+                }
+                canViewActivity={
+                  user.isOwner || user.permissions.includes('activity.view')
+                }
+                initialPlatformFilter={extractionsFilter.platform}
+                initialErrorCodeFilter={extractionsFilter.errorCode}
+              />
+            )}
+
             {activeTab === 'visitors' && user.isOwner && <Visitors />}
-            {activeTab === 'health' && <Health readOnly={!user.isOwner} />}
-            {activeTab === 'controls' && user.isOwner && <Controls />}
-            {activeTab === 'activity' && <Activity />}
             {activeTab === 'blog' && <Blog user={user} />}
+            {activeTab === 'controls' && user.isOwner && <Controls />}
             {activeTab === 'users' && user.isOwner && <Users />}
             {activeTab === 'account' && (
               <Account

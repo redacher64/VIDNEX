@@ -23,6 +23,24 @@ import {
   buildD1VisitorsMapSummary,
   getChoroplethLevel,
 } from '../src/pages/admin/visitorsMapLogic.ts';
+import {
+  formatSafePercent,
+  formatSafeRateValue,
+  formatTimeHHMM,
+  formatDeltaPercent,
+  computeCombinedPlatformStatus,
+  buildPlatformTableRows,
+  sortPlatformTableRows,
+  buildActionRequiredItems,
+  buildDailyChartSeries,
+  extractDynamicErrorCodes,
+  getVisibleErrorLogColumns,
+} from '../src/pages/admin/adminMetricsLogic.ts';
+import {
+  isTabAuthorizedForUser,
+  getAuthorizedExtractionsSubTabs,
+  normalizeLegacyAdminTab,
+} from '../src/pages/admin/blogAdminLogic.ts';
 
 test('visitAnalytics pure helpers: bot detection, referrer categorization, entry page filtering, safe domain & error sanitization', () => {
   // Bot detection
@@ -690,5 +708,201 @@ test('Cookie consent: versioned localStorage persistence, default opt-out gating
     );
   }
 });
+
+test('adminMetricsLogic: zero denominator always renders "—" and never 0% or 100%', () => {
+  assert.equal(formatSafePercent(0, 0), '—');
+  assert.equal(formatSafePercent(10, 0), '—');
+  assert.equal(formatSafePercent(5, -3), '—');
+  assert.equal(formatSafePercent(null, 0), '—');
+  assert.equal(formatSafePercent(1, 4), '25 %');
+  assert.equal(formatSafePercent(4, 4), '100 %');
+
+  assert.equal(formatSafeRateValue(0, 0), '—');
+  assert.equal(formatSafeRateValue(100, 0), '—');
+  assert.equal(formatSafeRateValue(92.4, 25), '92,4 %');
+
+  assert.equal(formatDeltaPercent(10, 0), null);
+  assert.deepEqual(formatDeltaPercent(120, 100), { label: '+20 %', direction: 'up' });
+  assert.deepEqual(formatDeltaPercent(80, 100), { label: '-20 %', direction: 'down' });
+  assert.deepEqual(formatDeltaPercent(50, 50), { label: '0 %', direction: 'flat' });
+
+  assert.equal(formatTimeHHMM(null), '—');
+  assert.match(formatTimeHHMM(new Date(2026, 10, 26, 9, 5)), /^09:05$/);
+});
+
+test('adminMetricsLogic: combined platform status never shows OK on 0% real traffic or failed probe', () => {
+  // Never green at 0% with real traffic
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 1, successRate: 0, lastTestOk: 1, lastTestTs: 1700000000 }),
+    'critical'
+  );
+  // < 50% with >= 5 requests => critical even if probe passed
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 10, successRate: 40, lastTestOk: 1, lastTestTs: 1700000000 }),
+    'critical'
+  );
+  // Failed probe => critical even with high past success
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 50, successRate: 98, lastTestOk: 0, lastTestTs: 1700000000 }),
+    'critical'
+  );
+  // 50-84% => degraded
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 10, successRate: 70, lastTestOk: 1, lastTestTs: 1700000000 }),
+    'degraded'
+  );
+  // >= 85% and healthy => ok
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 20, successRate: 95, lastTestOk: 1, lastTestTs: 1700000000 }),
+    'ok'
+  );
+  // 0 traffic and no probe => idle ("Sans trafic")
+  assert.equal(
+    computeCombinedPlatformStatus({ total: 0, successRate: null, lastTestOk: null, lastTestTs: null }),
+    'idle'
+  );
+});
+
+test('adminMetricsLogic: buildActionRequiredItems flags <50% (>=5 req), down engine, and dominant error', () => {
+  const stats: any = {
+    platforms: {
+      tiktok: { total: 40, success: 38, error: 2, successRate: 95 },
+      instagram: { total: 12, success: 4, error: 8, successRate: 33.3 }, // <50% & >=5 => flagged
+      facebook: { total: 3, success: 0, error: 3, successRate: 0 }, // <5 req => not low-rate flagged
+      linkedin: { total: 10, success: 9, error: 1, successRate: 90 },
+    },
+    errors: [
+      { code: 'BLOCKED_BY_PLATFORM', count: 9 },
+      { code: 'TIMEOUT', count: 3 },
+    ],
+    errorsByPlatform: {
+      '30d': [
+        { platform: 'instagram', error_code: 'BLOCKED_BY_PLATFORM', count: 8 },
+      ],
+    },
+  };
+  const engines: any = {
+    tiktok: { platform: 'tiktok', last_test_ok: 1, last_test_ts: 1700000000, last_success_ts: 1700000000, last_error_code: null },
+    instagram: { platform: 'instagram', last_test_ok: 0, last_test_ts: 1700000000, last_success_ts: null, last_error_code: 'BLOCKED_BY_PLATFORM' },
+    linkedin: { platform: 'linkedin', last_test_ok: 0, last_test_ts: 1700000000, last_success_ts: null, last_error_code: 'LOGIN_REQUIRED' },
+  };
+
+  const rows = buildPlatformTableRows(stats, engines);
+  assert.equal(rows.length, 6);
+  const sortedByTotal = sortPlatformTableRows(rows, 'total', 'desc');
+  assert.equal(sortedByTotal[0].key, 'tiktok');
+  const igRow = rows.find((r) => r.key === 'instagram')!;
+  assert.equal(igRow.status, 'critical');
+  assert.equal(igRow.topError, 'BLOCKED_BY_PLATFORM');
+
+  const actions = buildActionRequiredItems(stats, engines);
+  const ids = actions.map((a) => a.id);
+  assert.ok(ids.includes('low-rate-instagram'));
+  assert.ok(!ids.includes('low-rate-facebook'), 'must ignore platforms with < 5 requests');
+  assert.ok(ids.includes('engine-down-linkedin'));
+  assert.ok(!ids.includes('engine-down-instagram'), 'must not duplicate already-flagged low-rate platform');
+  assert.ok(ids.includes('dominant-error-BLOCKED_BY_PLATFORM'));
+});
+
+test('adminMetricsLogic: buildDailyChartSeries fills dense 7d and 30d series even when sparse or empty', () => {
+  const empty7 = buildDailyChartSeries([], '7d', '2026-11-26');
+  assert.equal(empty7.points.length, 7);
+  assert.equal(empty7.points[0].day, '2026-11-20');
+  assert.equal(empty7.points[6].day, '2026-11-26');
+  assert.equal(empty7.maxTotal, 0);
+
+  const sparse30 = buildDailyChartSeries(
+    [
+      { day: '2026-11-25', total: 10, success: 8, error: 2, download_success: 6 },
+      { day: '2026-11-26', total: 15, success: 12, error: 3, download_success: 10 },
+    ],
+    '30d',
+    '2026-11-26'
+  );
+  assert.equal(sparse30.points.length, 30);
+  assert.equal(sparse30.maxTotal, 15);
+  assert.equal(sparse30.totalCalls, 25);
+  assert.equal(sparse30.totalSuccess, 20);
+  assert.equal(sparse30.totalError, 5);
+  assert.equal(sparse30.points[29].successRate, 80);
+  assert.equal(sparse30.points[0].successRate, null);
+});
+
+test('adminMetricsLogic: dynamic error codes & auto-hiding empty log columns', () => {
+  const codes = extractDynamicErrorCodes({
+    statsErrors: [
+      { code: 'TIMEOUT', count: 3 },
+      { code: 'BLOCKED_BY_PLATFORM', count: 14 },
+    ],
+    errorsByPlatform: [{ platform: 'x', error_code: 'MEDIA_NOT_FOUND', count: 2 }],
+    activityItems: [{ error_code: 'LOGIN_REQUIRED' }, { error_code: null }],
+  });
+  assert.deepEqual(codes, ['BLOCKED_BY_PLATFORM', 'TIMEOUT', 'MEDIA_NOT_FOUND', 'LOGIN_REQUIRED']);
+
+  const colsAllEmpty = getVisibleErrorLogColumns([
+    {
+      id: 1,
+      ts: 1700000000,
+      platform: 'tiktok',
+      status: 'error',
+      error_code: 'TIMEOUT',
+      http_status: 504,
+      duration_ms: 1200,
+      source_domain: null,
+      error_message: '',
+      content_kind: null,
+      ip_hash_short: 'anonyme',
+    },
+  ]);
+  assert.equal(colsAllEmpty.httpStatus, true);
+  assert.equal(colsAllEmpty.duration, true);
+  assert.equal(colsAllEmpty.sourceDomain, false);
+  assert.equal(colsAllEmpty.errorMessage, false);
+  assert.equal(colsAllEmpty.contentKind, false);
+  assert.equal(colsAllEmpty.ip, false);
+
+  const colsWithData = getVisibleErrorLogColumns([
+    {
+      id: 2,
+      ts: 1700000001,
+      platform: 'instagram',
+      status: 'error',
+      error_code: 'BLOCKED_BY_PLATFORM',
+      http_status: 403,
+      duration_ms: 840,
+      source_domain: 'www.instagram.com',
+      error_message: 'HTTP 403',
+      content_kind: 'reel',
+      ip_hash_short: 'a1b2c3d4',
+    },
+  ]);
+  assert.equal(colsWithData.sourceDomain, true);
+  assert.equal(colsWithData.errorMessage, true);
+  assert.equal(colsWithData.contentKind, true);
+  assert.equal(colsWithData.ip, true);
+});
+
+test('blogAdminLogic: Extractions RBAC permissions & legacy tab normalization', () => {
+  const owner: any = { id: 'owner', username: 'admin', isOwner: true, permissions: [] };
+  assert.equal(isTabAuthorizedForUser('extractions', owner), true);
+  assert.deepEqual(getAuthorizedExtractionsSubTabs(owner), ['plateformes', 'erreurs', 'entonnoir']);
+
+  const healthOnly: any = { id: 'u1', username: 'ops', isOwner: false, permissions: ['health.view'] };
+  assert.equal(isTabAuthorizedForUser('extractions', healthOnly), true);
+  assert.deepEqual(getAuthorizedExtractionsSubTabs(healthOnly), ['plateformes']);
+
+  const activityOnly: any = { id: 'u2', username: 'support', isOwner: false, permissions: ['activity.view'] };
+  assert.equal(isTabAuthorizedForUser('extractions', activityOnly), true);
+  assert.deepEqual(getAuthorizedExtractionsSubTabs(activityOnly), ['erreurs']);
+
+  const blogOnly: any = { id: 'u3', username: 'editor', isOwner: false, permissions: ['blog.write'] };
+  assert.equal(isTabAuthorizedForUser('extractions', blogOnly), false);
+  assert.deepEqual(getAuthorizedExtractionsSubTabs(blogOnly), []);
+
+  assert.deepEqual(normalizeLegacyAdminTab('health'), { tab: 'extractions', subTab: 'plateformes' });
+  assert.deepEqual(normalizeLegacyAdminTab('activity'), { tab: 'extractions', subTab: 'erreurs' });
+  assert.deepEqual(normalizeLegacyAdminTab('dashboard'), { tab: 'dashboard' });
+});
+
 
 

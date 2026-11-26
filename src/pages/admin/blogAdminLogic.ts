@@ -12,6 +12,7 @@ import type { AdminPermission, AdminUserProfile } from './Login.tsx';
 
 export type AdminTab =
   | 'dashboard'
+  | 'extractions'
   | 'visitors'
   | 'health'
   | 'controls'
@@ -19,6 +20,8 @@ export type AdminTab =
   | 'blog'
   | 'users'
   | 'account';
+
+export type ExtractionsSubTabId = 'plateformes' | 'erreurs' | 'entonnoir';
 
 export const BLOG_MODULE_ENABLED = true;
 
@@ -64,6 +67,25 @@ export function hasBlogPermission(
   return BLOG_ADMIN_PERMISSIONS.some((p) => perms.includes(p));
 }
 
+export function getAuthorizedExtractionsSubTabs(
+  user: Pick<AdminUserProfile, 'isOwner' | 'permissions'> | null
+): ExtractionsSubTabId[] {
+  if (!user) return [];
+  if (user.isOwner) return ['plateformes', 'erreurs', 'entonnoir'];
+  const perms = user.permissions || [];
+  const tabs: ExtractionsSubTabId[] = [];
+  if (perms.includes('dashboard.view') || perms.includes('health.view')) {
+    tabs.push('plateformes');
+  }
+  if (perms.includes('dashboard.view') || perms.includes('activity.view')) {
+    tabs.push('erreurs');
+  }
+  if (perms.includes('dashboard.view')) {
+    tabs.push('entonnoir');
+  }
+  return tabs;
+}
+
 export function isTabAuthorizedForUser(
   tab: AdminTab,
   user: AdminUserProfile | null
@@ -73,6 +95,7 @@ export function isTabAuthorizedForUser(
   if (tab === 'account') return true;
   if (tab === 'controls' || tab === 'users' || tab === 'visitors') return false;
   if (tab === 'dashboard') return user.permissions.includes('dashboard.view');
+  if (tab === 'extractions') return getAuthorizedExtractionsSubTabs(user).length > 0;
   if (tab === 'health') return user.permissions.includes('health.view');
   if (tab === 'activity') return user.permissions.includes('activity.view');
   if (tab === 'blog') return hasBlogPermission(user);
@@ -89,6 +112,18 @@ export function getFirstAuthorizedTabForUser(
   if (user.permissions.includes('activity.view')) return 'activity';
   if (hasBlogPermission(user)) return 'blog';
   return 'account';
+}
+
+export function normalizeLegacyAdminTab(
+  tab: AdminTab
+): { tab: AdminTab; subTab?: ExtractionsSubTabId } {
+  if (tab === 'health') {
+    return { tab: 'extractions', subTab: 'plateformes' };
+  }
+  if (tab === 'activity') {
+    return { tab: 'extractions', subTab: 'erreurs' };
+  }
+  return { tab };
 }
 
 export function buildUnifiedAdminBlogArticles(

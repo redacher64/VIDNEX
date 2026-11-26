@@ -69,7 +69,7 @@
     "ogImageAlt": "Política de Privacidade do VIDNEX — Transparência técnica e proteção de dados",
     "h1": "Política de Privacidade",
     "breadcrumbLabel": "Privacidade",
-    "updatedAt": "21 de novembro de 2026",
+    "updatedAt": "26 de novembro de 2026",
     "intro": "Esta Política de Privacidade explica de forma transparente quais dados técnicos são tratados quando você acessa o VIDNEX, por que são utilizados, por quanto tempo são mantidos, quais provedores atuam na infraestrutura e na publicidade e como exercer seus direitos.",
     "sections": [
       {
@@ -112,17 +112,18 @@
         ]
       },
       {
-        "heading": "6. Armazenamento local do navegador (localStorage)",
+        "heading": "6. Armazenamento local do navegador (localStorage) e consentimento de cookies",
         "paragraphs": [
-          "O VIDNEX não cria cookies próprios de rastreamento ou sessão. Para salvar suas preferências visuais localmente sem enviá-las ao servidor, gravamos apenas três chaves técnicas no localStorage do navegador: vidnex_theme (tema claro ou escuro), vidnex_lang (idioma escolhido) e vidnex_lang_banner_dismissed (fechamento da sugestão de idioma). Você pode limpar essas chaves quando quiser nas configurações do navegador."
+          "O VIDNEX não cria cookies próprios de rastreamento ou sessão. Para salvar suas preferências localmente sem enviá-las ao servidor, gravamos chaves técnicas no localStorage do navegador: vidnex_theme (tema claro ou escuro), vidnex_lang (idioma escolhido), vidnex_lang_banner_dismissed (fechamento da sugestão de idioma) e vidnex_cookie_consent_v1 (chave versionada que registra sua escolha de consentimento por categoria: essenciais, estatísticas e publicidade). Você pode limpar essas chaves quando quiser nas configurações do navegador.",
+          "Na sua primeira visita a uma página pública, um banner de cookies permite Aceitar tudo, Recusar tudo ou Personalizar preferências em três categorias: Essenciais (sempre ativos para o funcionamento técnico), Estatísticas (medição agregada sem cookies via /api/visit) e Publicidade (carregamento de parceiros de anúncios). Você pode alterar ou retirar seu consentimento a qualquer momento pelo link «Cookies» no rodapé. Nenhum banner ou anúncio é exibido em /admin ou no pré-render estático."
         ]
       },
       {
-        "heading": "7. Infraestrutura, medição e cookies de publicidade",
+        "heading": "7. Infraestrutura, medição e parceiros de publicidade (Adsterra e Google AdSense)",
         "paragraphs": [
           "Infraestrutura de rede (Cloudflare): o site e suas APIs rodam sobre Cloudflare Workers, Cloudflare Static Assets e Cloudflare D1. A Cloudflare trata metadados técnicos de conexão na borda da rede para mitigação de DDoS, entrega de conteúdo e estatísticas agregadas de tráfego (país, família de navegador, códigos de resposta e largura de banda). Quando o Cloudflare Web Analytics está ativo na zona, coleta métricas de desempenho sem cookies.",
           "Resolvedores públicos de terceiros: para alguns links públicos do TikTok ou Instagram, o servidor pode encaminhar somente a URL pública a um resolvedor técnico compatível, sem cookies nem credenciais do usuário.",
-          "Redes de publicidade (Adsterra e Google AdSense): para manter o VIDNEX gratuito, o site exibe anúncios operados pela Adsterra (banners em iframe isolado, Native Banner e Social Bar apenas em desktop a partir de 768 px, carregados de forma adiada após interação) e, quando ativado com identificador de editor, Google AdSense (pagead2.googlesyndication.com). Esses parceiros podem gravar cookies próprios ou identificadores técnicos para limitar a frequência de exibição, combater fraudes ou personalizar anúncios conforme suas respectivas políticas. Você pode ajustar preferências do Google em adssettings.google.com ou restringir cookies de terceiros no navegador."
+          "Parceiros de publicidade (Adsterra e Google AdSense): para manter o VIDNEX gratuito, o site integra anúncios da Adsterra (bellnewyork.org: banners em iframe isolado 728×90, 300×250, 320×50 e 160×600, Native Banner e Social Bar apenas em desktop >= 768 px, carregados de forma adiada) e, quando ativado com identificador de editor, Google AdSense (pagead2.googlesyndication.com). Nenhum script publicitário é carregado sem o seu consentimento explícito para a categoria «Publicidade»; sem consentimento, nenhum script é executado e nenhum espaço vazio é reservado (CLS = 0). Após o consentimento, esses parceiros podem gravar cookies próprios ou sinais técnicos conforme suas políticas de privacidade. Você pode revogar seu consentimento a qualquer momento pelo link «Cookies» no rodapé ou ajustar preferências do Google em adssettings.google.com."
         ]
       },
       {

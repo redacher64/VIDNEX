@@ -69,7 +69,7 @@
     "ogImageAlt": "Datenschutzerklärung von VIDNEX — Technische Transparenz und Datenschutz",
     "h1": "Datenschutzerklärung",
     "breadcrumbLabel": "Datenschutz",
-    "updatedAt": "21. November 2026",
+    "updatedAt": "26. November 2026",
     "intro": "Diese Datenschutzerklärung erläutert sachlich, welche technischen Daten beim Besuch von VIDNEX verarbeitet werden, auf welcher Rechtsgrundlage dies geschieht, wie lange Daten gespeichert bleiben, welche Infrastruktur- und Werbedienste eingebunden sind und welche Rechte dir zustehen.",
     "sections": [
       {
@@ -112,17 +112,18 @@
         ]
       },
       {
-        "heading": "6. Lokaler Browserspeicher (localStorage)",
+        "heading": "6. Lokaler Browserspeicher (localStorage) und Cookie-Einwilligung",
         "paragraphs": [
-          "VIDNEX setzt keine eigenen Tracking- oder Sitzungs-Cookies. Um deine Anzeigeeinstellungen rein lokal im Browser zu merken, speichern wir lediglich drei technische Schlüssel im localStorage: vidnex_theme (helles oder dunkles Design), vidnex_lang (gewählte Sprache) und vidnex_lang_banner_dismissed (Ausblenden des Sprachhinweises). Du kannst diese Einträge jederzeit in den Browsereinstellungen entfernen."
+          "VIDNEX setzt keine eigenen Tracking- oder Sitzungs-Cookies. Um deine Einstellungen rein lokal im Browser zu speichern, ohne sie an unseren Server zu übertragen, nutzen wir technische Schlüssel im localStorage: vidnex_theme (helles oder dunkles Design), vidnex_lang (gewählte Sprache), vidnex_lang_banner_dismissed (Ausblenden des Sprachhinweises) sowie vidnex_cookie_consent_v1 (versionierter Schlüssel für deine Einwilligung in die Kategorien Essenziell, Statistiken und Werbung). Du kannst diese Einträge jederzeit in den Browsereinstellungen entfernen.",
+          "Beim ersten Besuch einer öffentlichen Seite erlaubt dir ein Cookie-Banner, Alle akzeptieren, Alle ablehnen oder deine Einstellungen zwischen drei Kategorien anzupassen: Essenziell (immer aktiv für den technischen Betrieb), Statistiken (cookie-freie aggregierte Besuchsmessung über /api/visit) und Werbung (Aktivierung externer Werbepartner). Du kannst deine Einwilligung jederzeit über den Link «Cookies» im Footer ändern oder widerrufen. Auf /admin sowie im statischen Prerender erscheinen weder Banner noch Werbung."
         ]
       },
       {
-        "heading": "7. Infrastruktur, Messung und Werbe-Cookies Dritter",
+        "heading": "7. Infrastruktur, Messung und Werbepartner (Adsterra und Google AdSense)",
         "paragraphs": [
           "Hosting und Edge-Netzwerk (Cloudflare): Die Website und ihre API-Endpunkte laufen auf Cloudflare Workers, Cloudflare Static Assets und Cloudflare D1. Cloudflare verarbeitet technische Verbindungsdaten am Netzwerkrand zur DDoS-Abwehr, Inhaltsauslieferung und für aggregierte Verkehrsstatistiken (Land, Browserfamilie, Statuscodes, Bandbreite). Sofern Cloudflare Web Analytics in der Zone aktiviert ist, erfolgt die Reichweiten- und Leistungsmessung ohne Tracking-Cookies.",
           "Technische Drittanbieter-Resolver: Für ausgewählte öffentliche TikTok- oder Instagram-Links kann der Server ausschließlich die öffentliche URL an einen kompatiblen Auflösungsdienst weiterreichen, ohne Cookies oder Kontodaten des Besuchers.",
-          "Werbenetzwerke (Adsterra und Google AdSense): Zur kostenlosen Bereitstellung bindet VIDNEX Werbeflächen von Adsterra ein (isolierte iFrame-Banner, Native Banner sowie eine Social Bar ausschließlich auf Desktop-Geräten ab 768 px, verzögert nach Nutzerinteraktion) sowie — sofern mit Publisher-ID aktiviert — Google AdSense (pagead2.googlesyndication.com). Diese Drittanbieter können eigene Cookies oder technische Kennungen verwenden, um Anzeigenhäufigkeit zu begrenzen, Werbebetrug abzuwehren oder Werbung nach ihren jeweiligen Datenschutzrichtlinien auszuliefern. Einstellungen zu Google-Werbung lassen sich unter adssettings.google.com verwalten; Drittanbieter-Cookies können direkt im Browser blockiert werden."
+          "Werbepartner (Adsterra und Google AdSense): Zur kostenlosen Bereitstellung unterstützt VIDNEX Werbeflächen von Adsterra (bellnewyork.org: isolierte iFrame-Banner 728×90, 300×250, 320×50 und 160×600, Native Banner sowie Social Bar ausschließlich auf Desktop >= 768 px, verzögert geladen) sowie — sofern mit Publisher-ID aktiviert — Google AdSense (pagead2.googlesyndication.com). Kein Werbeskript wird ohne deine ausdrückliche Einwilligung in die Kategorie «Werbung» geladen; ohne Zustimmung oder bei Ablehnung laufen keine Werbeskripte und es wird kein leerer Werbeplatz reserviert (CLS = 0). Nach Einwilligung können diese Partner eigene Cookies oder technische Signale gemäß ihren Datenschutzrichtlinien nutzen. Du kannst deine Auswahl jederzeit über «Cookies» im Footer widerrufen oder Google-Anzeigen unter adssettings.google.com verwalten."
         ]
       },
       {

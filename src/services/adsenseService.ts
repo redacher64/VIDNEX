@@ -9,6 +9,10 @@ import {
   isDesktopViewportForSocialBar,
 } from '../config/adsterraConfig';
 import { setRuntimePlatformStates } from '../utils/urlDetector';
+import {
+  hasAdvertisingConsent,
+  subscribeCookieConsent,
+} from '../utils/cookieConsent.ts';
 
 export interface PublicConfig {
   maintenance: boolean;
@@ -64,6 +68,9 @@ export function isAdSenseDemoMode(): boolean {
 }
 
 export function isAdSenseEnabled(): boolean {
+  if (typeof window === 'undefined' || !hasAdvertisingConsent()) {
+    return false;
+  }
   return Boolean(
     currentPublicConfig.ads_enabled &&
       ENABLE_ADS &&
@@ -75,7 +82,26 @@ export function isAdsterraEnabled(pathname?: string): boolean {
   if (isAdminRoutePath(pathname)) {
     return false;
   }
+  if (!hasAdvertisingConsent()) {
+    return false;
+  }
   return Boolean(currentPublicConfig.ads_adsterra_enabled);
+}
+
+export function removeInjectedAdScripts(): void {
+  if (typeof document === 'undefined') return;
+  document.getElementById('vidnex-adsterra-social-bar')?.remove();
+  document.getElementById('vidnex-adsterra-native-banner')?.remove();
+  document.getElementById('vidnex-adsense-script')?.remove();
+}
+
+if (typeof window !== 'undefined') {
+  subscribeCookieConsent((state) => {
+    if (!state?.advertising) {
+      removeInjectedAdScripts();
+    }
+    notifyListeners();
+  });
 }
 
 export function subscribePublicConfig(

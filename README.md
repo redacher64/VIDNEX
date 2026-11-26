@@ -716,8 +716,17 @@ npm run indexnow
     - **Rails latéraux (`≥ 1280px`)** (`format="skyscraper"`) : `160x600` (clé `d64ffc8510f6f1d20e3d96b787b7ff34`), chargés uniquement si `window.matchMedia('(min-width: 1280px)')` correspond.
   - **Native Banner** (`format="native"`, sous les sections SEO de la page d'accueil) : script async `${ADSTERRA_DOMAIN}/21/b6b738ed32552f1fb5a38165c5c7ee4a` (`data-cfasync="false"`) + `<div id="container-b6b738ed32552f1fb5a38165c5c7ee4a">`.
   - **Social Bar** : script `${ADSTERRA_DOMAIN}/14/d0aaec22d250227f3813abba951b9e0a` (`data-cfasync="false"`), injecté une seule fois globalement sur les pages publiques uniquement sur desktop (`≥ 768px` vérifié via `window.matchMedia('(min-width: 768px)')` avant injection ; non chargé sur mobile `< 768px`).
-  - **Exclusion stricte** : aucune publicité n'est injectée sur `/admin` ni dans le prérendu statique / SEO (`scripts/prerender.mjs`).
+  - **Consentement cookies obligatoire** : aucun script Adsterra (Social Bar, Native Banner, bannières iframe) ni Google AdSense n'est chargé tant que l'utilisateur n'a pas accepté la catégorie **`publicité`**. Sans consentement ou en cas de refus, `AdSlot` ne réserve aucun espace vide (`CLS = 0`).
+  - **Exclusion stricte** : aucune publicité ni aucun bandeau de consentement n'est injecté sur `/admin` ni dans le prérendu statique / SEO (`scripts/prerender.mjs`).
   - **Interrupteurs `/admin` séparés** : `ads_adsterra_enabled` (Adsterra) et `ads_enabled` (Google AdSense) dans `/admin` → **Contrôles**.
+
+### 9.4 Consentement cookies (`src/utils/cookieConsent.ts` & `src/components/CookieConsentBanner.tsx`)
+
+- **Bandeau minimal traduit dans les 10 langues** (`fr`, `en`, `ar`, `es`, `pt`, `de`, `tr`, `id`, `it`, `ru`, avec support RTL en arabe) proposant 3 actions : **Tout accepter**, **Tout refuser** et **Personnaliser** (catégories : **Essentiels** toujours actifs, **Statistiques** pour la balise `/api/visit`, **Publicité** pour Adsterra et Google AdSense).
+- **Stockage versionné** : choix enregistré uniquement côté navigateur dans `localStorage` sous la clé versionnée **`vidnex_cookie_consent_v1`** (`{ version: 1, essential: true, analytics, advertising, updatedAt }`).
+- **Modification à tout moment** : accessible via le bouton/lien **« Cookies »** dans le pied de page (`Footer.tsx`), qui rouvre la fenêtre de personnalisation et applique immédiatement la révocation (retrait instantané des emplacements et scripts publicitaires injectés).
+- **Mobile & exclusions** : positionnement compact en bas d'écran afin de ne jamais masquer le champ de téléchargement sur mobile ; totalement absent de `/admin` et du HTML prérendu statique (`scripts/prerender.mjs`).
+- **Confidentialité (10 langues)** : la page Confidentialité (`/src/i18n/legal/*.json`) décrit la clé `vidnex_cookie_consent_v1`, les trois catégories et les partenaires publicitaires (Adsterra / Google AdSense).
 
 | Nom de la variable | Obligatoire | Rôle dans le code |
 | :--- | :---: | :--- |

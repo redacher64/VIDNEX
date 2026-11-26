@@ -68,7 +68,7 @@
     "ogImageAlt": "VIDNEX Privacy Policy — Ephemeral URL processing and cookie disclosures",
     "h1": "Privacy Policy",
     "breadcrumbLabel": "Privacy Policy",
-    "updatedAt": "November 21, 2026",
+    "updatedAt": "November 26, 2026",
     "intro": "This Privacy Policy provides a factual description of what technical data VIDNEX processes when you browse vidnex.space, resolve a public media link, or use our browser-based image splitter, along with the third-party services and advertising technologies that may load on the site.",
     "sections": [
       {
@@ -102,17 +102,18 @@
         ]
       },
       {
-        "heading": "5. Browser Local Storage (localStorage)",
+        "heading": "5. Browser Local Storage (localStorage) and Cookie Consent",
         "paragraphs": [
-          "VIDNEX uses browser localStorage solely to remember functional interface settings on your device, which are never transmitted to our backend: vidnex_theme (Light or Dark mode preference), vidnex_lang (your manually chosen display language), and vidnex_lang_banner_dismissed (whether you dismissed the language suggestion banner). You can clear these entries at any time via your browser settings."
+          "VIDNEX uses browser localStorage to remember functional interface settings on your device, which are never transmitted to our backend: vidnex_theme (Light or Dark mode preference), vidnex_lang (your manually chosen display language), vidnex_lang_banner_dismissed (whether you dismissed the language suggestion banner), and vidnex_cookie_consent_v1 (a versioned key storing your cookie consent choices across essential, analytics, and advertising categories). You can clear these entries at any time via your browser settings.",
+          "On your first visit to a public page, a cookie consent banner lets you Accept all, Reject all, or Customize preferences across three categories: Essential (always active for core site operation and storing your preferences), Analytics (cookie-free aggregate visit measurement via the lightweight /api/visit beacon), and Advertising (enabling third-party ad partners). You can change or withdraw your consent at any time using the \"Cookies\" link in the footer. Neither the consent banner nor any ads are loaded on /admin or during static pre-rendering."
         ]
       },
       {
-        "heading": "6. Advertising Networks and Cookies (Adsterra and Google AdSense)",
+        "heading": "6. Cookies and Advertising Partners (Adsterra and Google AdSense)",
         "paragraphs": [
-          "To cover infrastructure costs and keep the utility free, VIDNEX may load third-party advertising networks on public pages (never on administrative pages or during static pre-rendering), deferred until user interaction or browser idle time:",
-          "Adsterra: When enabled in site configuration, VIDNEX loads Adsterra ad formats including isolated iframe display banners (728×90, 300×250, 320×50, and 160×600), a Native Banner container, and a desktop-only Social Bar (viewports >= 768px) delivered via the configured domain (bellnewyork.org). Adsterra and its advertising partners may set cookies or process device and browser signals (such as IP address, user-agent, viewport size, and referrer) to deliver, frequency-cap, and measure ads.",
-          "Google AdSense: The codebase also supports Google AdSense (pagead2.googlesyndication.com) when enabled and configured with an active publisher ID. When active, Google and third-party vendors use cookies to serve ads based on prior visits to this site or other websites. You can manage or opt out of personalized Google ads at adssettings.google.com and control or block third-party cookies directly in your browser settings."
+          "To cover infrastructure costs and keep VIDNEX free, we integrate third-party advertising partners on public pages (never on /admin or during static pre-rendering). No advertising script is loaded by default: ad units load only after you explicitly accept the \"Advertising\" category in the consent banner. Without consent or when rejected, zero ad scripts run and no empty ad containers are reserved (zero layout shift / CLS).",
+          "Adsterra: Only after you accept the \"Advertising\" category and when Adsterra is enabled in site configuration, VIDNEX loads deferred Adsterra formats including isolated iframe display banners (728×90, 300×250, 320×50, and 160×600), a Native Banner container, and a desktop-only Social Bar (viewports >= 768px) via the configured domain (bellnewyork.org). Adsterra and its advertising partners may set cookies or process device and browser signals (such as IP address, user-agent, viewport size, and referrer) to deliver, frequency-cap, and measure ads.",
+          "Google AdSense: The codebase also supports Google AdSense (pagead2.googlesyndication.com) strictly after you accept the \"Advertising\" category and when enabled with an active publisher ID. When active, Google and third-party vendors may use cookies to serve ads based on prior visits to this site or other websites. You can withdraw your consent at any time via the \"Cookies\" link in the footer, manage personalized Google ads at adssettings.google.com, or block third-party cookies directly in your browser settings."
         ]
       },
       {

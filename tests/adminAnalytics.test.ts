@@ -559,3 +559,136 @@ test('Multi-sheet Excel (.xlsx) export: 7 sheets, 30 full days, 720 hourly rows 
   }
 });
 
+test('Cookie consent: versioned localStorage persistence, default opt-out gating, 10-language copy, and legal Privacy coverage', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { SUPPORTED_LOCALES } = await import('../src/i18n/config.ts');
+  const {
+    COOKIE_CONSENT_STORAGE_KEY,
+    COOKIE_CONSENT_VERSION,
+    COOKIE_CONSENT_COPY,
+    parseCookieConsent,
+    readCookieConsent,
+    saveCookieConsent,
+    hasAdvertisingConsent,
+    hasAnalyticsConsent,
+    subscribeCookieConsent,
+    resetCookieConsentCacheForTests,
+  } = await import('../src/utils/cookieConsent.ts');
+
+  // 1. Versioned key & parser validation
+  assert.equal(COOKIE_CONSENT_STORAGE_KEY, 'vidnex_cookie_consent_v1');
+  assert.equal(COOKIE_CONSENT_VERSION, 1);
+  assert.equal(parseCookieConsent(null), null);
+  assert.equal(parseCookieConsent('not-json'), null);
+  assert.equal(
+    parseCookieConsent(JSON.stringify({ version: 99, essential: true, analytics: true, advertising: true })),
+    null
+  );
+  assert.equal(
+    parseCookieConsent(JSON.stringify({ version: 1, essential: true, analytics: 'yes', advertising: true })),
+    null
+  );
+
+  const parsed = parseCookieConsent(
+    JSON.stringify({
+      version: 1,
+      essential: true,
+      analytics: false,
+      advertising: true,
+      updatedAt: '2026-11-26T12:00:00.000Z',
+    })
+  );
+  assert.ok(parsed);
+  assert.equal(parsed?.essential, true);
+  assert.equal(parsed?.analytics, false);
+  assert.equal(parsed?.advertising, true);
+
+  // 2. Simulated browser window/localStorage lifecycle
+  const store = new Map<string, string>();
+  const mockLocalStorage = {
+    getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+    setItem: (k: string, v: string) => {
+      store.set(k, String(v));
+    },
+    removeItem: (k: string) => {
+      store.delete(k);
+    },
+  };
+  const originalWindow = (globalThis as any).window;
+  (globalThis as any).window = { localStorage: mockLocalStorage };
+  resetCookieConsentCacheForTests();
+
+  try {
+    // Default (no choice stored): advertising & analytics MUST be false (strict opt-in)
+    assert.equal(readCookieConsent(), null);
+    assert.equal(hasAdvertisingConsent(), false);
+    assert.equal(hasAnalyticsConsent(), false);
+
+    const events: Array<{ analytics: boolean; advertising: boolean } | null> = [];
+    const unsub = subscribeCookieConsent((c) => {
+      events.push(c ? { analytics: c.analytics, advertising: c.advertising } : null);
+    });
+
+    // Reject all
+    saveCookieConsent({ analytics: false, advertising: false });
+    assert.equal(hasAdvertisingConsent(), false);
+    assert.equal(hasAnalyticsConsent(), false);
+    assert.ok(store.has(COOKIE_CONSENT_STORAGE_KEY));
+
+    // Customize: analytics only -> ads remain blocked
+    saveCookieConsent({ analytics: true, advertising: false });
+    assert.equal(hasAnalyticsConsent(), true);
+    assert.equal(hasAdvertisingConsent(), false);
+
+    // Accept all -> both enabled
+    saveCookieConsent({ analytics: true, advertising: true });
+    assert.equal(hasAnalyticsConsent(), true);
+    assert.equal(hasAdvertisingConsent(), true);
+
+    // Revoke advertising -> immediately false
+    saveCookieConsent({ analytics: true, advertising: false });
+    assert.equal(hasAdvertisingConsent(), false);
+
+    unsub();
+    assert.equal(events.length, 4);
+  } finally {
+    if (originalWindow === undefined) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = originalWindow;
+    }
+    resetCookieConsentCacheForTests();
+  }
+
+  // 3. All 10 supported locales have complete cookie banner & modal translations
+  for (const locale of SUPPORTED_LOCALES) {
+    const copy = COOKIE_CONSENT_COPY[locale];
+    assert.ok(copy, `Missing COOKIE_CONSENT_COPY for ${locale}`);
+    assert.ok(copy.acceptAll.length > 0);
+    assert.ok(copy.rejectAll.length > 0);
+    assert.ok(copy.customize.length > 0);
+    assert.ok(copy.saveChoices.length > 0);
+    assert.ok(copy.footerLinkLabel.length > 0);
+    assert.ok(copy.categories.essential.title.length > 0);
+    assert.ok(copy.categories.analytics.title.length > 0);
+    assert.ok(copy.categories.advertising.title.length > 0);
+
+    // 4. All 10 legal Privacy JSON files document vidnex_cookie_consent_v1 & Adsterra
+    const legalPath = path.resolve(process.cwd(), 'src/i18n/legal', `${locale}.json`);
+    const legalData = JSON.parse(fs.readFileSync(legalPath, 'utf8'));
+    const privacyText = (legalData.privacy?.sections || [])
+      .flatMap((s: any) => [s.heading || '', ...(s.paragraphs || [])])
+      .join('\n');
+    assert.ok(
+      privacyText.includes('vidnex_cookie_consent_v1'),
+      `Privacy page for ${locale} must document vidnex_cookie_consent_v1`
+    );
+    assert.ok(
+      privacyText.includes('Adsterra'),
+      `Privacy page for ${locale} must describe Adsterra advertising partner`
+    );
+  }
+});
+
+

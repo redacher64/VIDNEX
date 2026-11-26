@@ -15,6 +15,7 @@ import { ToolsHubView } from './components/ToolsHubView.tsx';
 import { NotFoundView } from './components/NotFoundView.tsx';
 import { AdSlot } from './components/AdSlot.tsx';
 import { Footer } from './components/Footer.tsx';
+import { CookieConsentBanner } from './components/CookieConsentBanner.tsx';
 import {
   DetectedUrlInfo,
   PlatformId,
@@ -31,6 +32,11 @@ import {
   PublicConfig,
   subscribePublicConfig,
 } from './services/adsenseService.ts';
+import {
+  getCookieConsentSnapshot,
+  subscribeCookieConsent,
+  type CookieConsentState,
+} from './utils/cookieConsent.ts';
 import {
   DEFAULT_LOCALE,
   getLocalizedPagePath,
@@ -118,6 +124,9 @@ export function App({ initialPath }: AppProps = {}) {
   const [publicConfig, setPublicConfig] = useState<PublicConfig>(
     getPublicConfigSnapshot
   );
+  const [cookieConsent, setCookieConsent] = useState<CookieConsentState | null>(
+    () => (typeof window !== 'undefined' ? getCookieConsentSnapshot() : null)
+  );
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -179,9 +188,24 @@ export function App({ initialPath }: AppProps = {}) {
     });
   }, [isAdmin]);
 
-  // Lightweight cookie-free visit beacon (never fires on /admin or SSR/prerender)
   useEffect(() => {
-    if (isAdmin || initialPath || typeof window === 'undefined') return;
+    if (isAdmin || typeof window === 'undefined') return;
+    setCookieConsent(getCookieConsentSnapshot());
+    return subscribeCookieConsent((next) => {
+      setCookieConsent(next);
+    });
+  }, [isAdmin]);
+
+  // Lightweight cookie-free visit beacon (only when user consented to statistics; never fires on /admin or SSR/prerender)
+  useEffect(() => {
+    if (
+      isAdmin ||
+      initialPath ||
+      typeof window === 'undefined' ||
+      !cookieConsent?.analytics
+    ) {
+      return;
+    }
     const pathname = window.location.pathname || '/';
     if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/')) {
       return;
@@ -212,12 +236,18 @@ export function App({ initialPath }: AppProps = {}) {
     } catch {
       // Never block or degrade UX
     }
-  }, [isAdmin, initialPath]);
+  }, [isAdmin, initialPath, cookieConsent?.analytics]);
 
   useEffect(() => {
-    if (isAdmin || !publicConfig.ads_adsterra_enabled) return;
+    if (
+      isAdmin ||
+      !publicConfig.ads_adsterra_enabled ||
+      !cookieConsent?.advertising
+    ) {
+      return;
+    }
     return ensureAdsterraSocialBarLoaded();
-  }, [isAdmin, publicConfig.ads_adsterra_enabled]);
+  }, [isAdmin, publicConfig.ads_adsterra_enabled, cookieConsent?.advertising]);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -494,14 +524,16 @@ export function App({ initialPath }: AppProps = {}) {
         </div>
       )}
 
-      {/* Client-only Language Suggestion Banner (never rendered during static pre-rendering) */}
-      <LanguageSuggestionBanner
-        currentLocale={language}
-        pageKey={bannerPageKey}
-        activePageKey={pageKey}
-        blogSlug={blogSlug}
-        onSelectLocale={handleSelectLanguage}
-      />
+      {/* Client-only Language Suggestion Banner (shown after cookie consent to avoid bottom-bar overlap) */}
+      {cookieConsent !== null && (
+        <LanguageSuggestionBanner
+          currentLocale={language}
+          pageKey={bannerPageKey}
+          activePageKey={pageKey}
+          blogSlug={blogSlug}
+          onSelectLocale={handleSelectLanguage}
+        />
+      )}
 
       <Header
         activePageKey={pageKey}
@@ -607,6 +639,13 @@ export function App({ initialPath }: AppProps = {}) {
         language={language}
         onSelectLanguage={handleSelectLanguage}
       />
+
+      {!isAdmin && !initialPath && (
+        <CookieConsentBanner
+          language={language}
+          onNavigatePage={handleNavigatePage}
+        />
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import {
   subscribePublicConfig,
 } from '../services/adsenseService';
 import { LanguageCode } from '../i18n/translations';
+import { subscribeCookieConsent } from '../utils/cookieConsent.ts';
 
 export type AdSlotFormat =
   | 'leaderboard'
@@ -79,12 +80,17 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   );
 
   useEffect(() => {
-    setAdsEnabled(isAdSenseEnabled());
-    setAdsterraEnabled(isAdsterraEnabled());
-    return subscribePublicConfig(() => {
+    const syncAdState = () => {
       setAdsEnabled(isAdSenseEnabled());
       setAdsterraEnabled(isAdsterraEnabled());
-    });
+    };
+    syncAdState();
+    const unsubConfig = subscribePublicConfig(syncAdState);
+    const unsubConsent = subscribeCookieConsent(syncAdState);
+    return () => {
+      unsubConfig();
+      unsubConsent();
+    };
   }, []);
 
   useEffect(() => {
@@ -109,6 +115,7 @@ export const AdSlot: React.FC<AdSlotProps> = ({
 
   useEffect(() => {
     if (!isBrowser || !adsterraEnabled || isAdminRoutePath()) {
+      setDeferredReady(false);
       return;
     }
     return onDeferredAdReady(() => {

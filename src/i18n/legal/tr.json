@@ -69,7 +69,7 @@
     "ogImageAlt": "VIDNEX Gizlilik Politikası — Teknik şeffaflık ve veri koruma",
     "h1": "Gizlilik Politikası",
     "breadcrumbLabel": "Gizlilik",
-    "updatedAt": "21 Kasım 2026",
+    "updatedAt": "26 Kasım 2026",
     "intro": "Bu Gizlilik Politikası, VIDNEX'i ziyaret ettiğinizde hangi teknik verilerin işlendiğini, bu verilerin hangi amaçla ve ne kadar süreyle tutulduğunu, hangi altyapı ve reklam sağlayıcılarının devreye girdiğini ve sahip olduğunuz hakları açıklar.",
     "sections": [
       {
@@ -112,17 +112,18 @@
         ]
       },
       {
-        "heading": "6. Tarayıcı Yerel Depolaması (localStorage)",
+        "heading": "6. Tarayıcı Yerel Depolaması (localStorage) ve Çerez Onayı",
         "paragraphs": [
-          "VIDNEX kendi izleme veya oturum çerezlerini oluşturmaz. Arayüz tercihlerinizi sunucuya göndermeden yalnızca tarayıcınızda saklamak için localStorage üzerinde yalnızca üç teknik anahtar kullanırız: vidnex_theme (açık veya koyu tema), vidnex_lang (seçilen dil) ve vidnex_lang_banner_dismissed (dil öneri çubuğunun kapatılması). Bu kayıtları tarayıcı ayarlarınızdan dilediğiniz zaman silebilirsiniz."
+          "VIDNEX kendi izleme veya oturum çerezlerini oluşturmaz. Arayüz tercihlerinizi sunucuya göndermeden yalnızca tarayıcınızda saklamak için localStorage üzerinde teknik anahtarlar kullanırız: vidnex_theme (açık veya koyu tema), vidnex_lang (seçilen dil), vidnex_lang_banner_dismissed (dil öneri çubuğunun kapatılması) ve vidnex_cookie_consent_v1 (zorunlu, istatistik ve reklam kategorileri için çerez tercihlerinizi saklayan sürümlü anahtar). Bu kayıtları tarayıcı ayarlarınızdan dilediğiniz zaman silebilirsiniz.",
+          "Herkese açık bir sayfayı ilk ziyaretinizde çerez onay çubuğu Tümünü kabul et, Tümünü reddet veya Özelleştir seçeneklerini üç kategori üzerinden sunar: Zorunlu (temel işleyiş için her zaman aktif), İstatistikler (/api/visit üzerinden çerezsiz toplu ziyaret ölçümü) ve Reklam (üçüncü taraf reklam iş ortaklarının yüklenmesi). Onayınızı dilediğiniz zaman sayfa altındaki «Çerezler» bağlantısından değiştirebilir veya geri çekebilirsiniz. /admin panelinde ve statik ön oluşturmada hiçbir çerez çubuğu veya reklam yüklenmez."
         ]
       },
       {
-        "heading": "7. Altyapı, Ölçüm ve Üçüncü Taraf Reklam Çerezleri",
+        "heading": "7. Altyapı, Ölçüm ve Reklam İş Ortakları (Adsterra ve Google AdSense)",
         "paragraphs": [
           "Barındırma ve kenar ağı (Cloudflare): Site ve API uç noktaları Cloudflare Workers, Cloudflare Static Assets ve Cloudflare D1 üzerinde çalışır. Cloudflare, DDoS saldırılarını engellemek, içerik dağıtmak ve toplulaştırılmış trafik istatistikleri (ülke, tarayıcı ailesi, durum kodları, bant genişliği) üretmek için ağ düzeyinde teknik bağlantı üst verilerini işler. Bölgede etkinleştirildiğinde Cloudflare Web Analytics, izleme çerezi kullanmadan performans ölçümü yapar.",
           "Üçüncü taraf herkese açık çözümleyiciler: Belirli herkese açık TikTok veya Instagram bağlantıları için sunucu, ziyaretçi çerezi veya hesap verisi olmaksızın yalnızca herkese açık URL'yi uyumlu bir teknik çözümleyiciye iletebilir.",
-          "Üçüncü taraf reklam ağları (Adsterra ve Google AdSense): VIDNEX'i ücretsiz sunabilmek için site, Adsterra tarafından sağlanan reklam alanlarını (yalıtılmış iframe banner'ları, Native Banner ve yalnızca 768 px ve üzeri masaüstü cihazlarda kullanıcı etkileşiminden sonra yüklenen Social Bar) ve yayıncı kimliği ile etkinleştirildiğinde Google AdSense'i (pagead2.googlesyndication.com) yükler. Bu reklam sağlayıcıları, gösterim sıklığını sınırlamak, reklam sahtekarlığını önlemek veya kendi gizlilik politikaları uyarınca reklam sunmak için çerez ya da teknik tanımlayıcı kullanabilir. Google reklam tercihlerinizi adssettings.google.com adresinden yönetebilir veya tarayıcınızdan üçüncü taraf çerezlerini engelleyebilirsiniz."
+          "Reklam iş ortakları (Adsterra ve Google AdSense): VIDNEX'i ücretsiz sunabilmek için site, Adsterra (bellnewyork.org: 728×90, 300×250, 320×50 ve 160×600 yalıtılmış iframe banner'ları, Native Banner ve yalnızca 768 px üzeri masaüstünde Social Bar, gecikmeli yükleme) ve yayıncı kimliği ile etkinleştirildiğinde Google AdSense (pagead2.googlesyndication.com) entegrasyonlarını içerir. «Reklam» kategorisine açık onayınız olmadan hiçbir reklam betiği yüklenmez ve boş reklam alanı ayrılmaz (CLS = 0). Onay verdiğinizde bu iş ortakları kendi gizlilik politikaları uyarınca çerez veya teknik sinyaller kullanabilir. Onayınızı istediğiniz zaman alt bilgideki «Çerezler» bağlantısından geri alabilir veya Google tercihlerinizi adssettings.google.com adresinden yönetebilirsiniz."
         ]
       },
       {

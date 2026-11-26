@@ -69,7 +69,7 @@
     "ogImageAlt": "Kebijakan Privasi VIDNEX — Transparansi teknis dan pelindungan data",
     "h1": "Kebijakan Privasi",
     "breadcrumbLabel": "Privasi",
-    "updatedAt": "21 November 2026",
+    "updatedAt": "26 November 2026",
     "intro": "Kebijakan Privasi ini menjelaskan secara rinci data teknis apa yang diproses saat Anda mengakses VIDNEX, tujuan pemrosesannya, jangka waktu penyimpanannya, penyedia infrastruktur dan iklan yang terlibat, serta hak yang Anda miliki.",
     "sections": [
       {
@@ -112,17 +112,18 @@
         ]
       },
       {
-        "heading": "6. Penyimpanan Lokal Browser (localStorage)",
+        "heading": "6. Penyimpanan Lokal Browser (localStorage) dan Persetujuan Cookie",
         "paragraphs": [
-          "VIDNEX tidak menetapkan cookie pelacakan maupun cookie sesi milik sendiri. Untuk mengingat preferensi tampilan tanpa mengirimkannya ke server, kami hanya menyimpan tiga kunci teknis di localStorage browser Anda: vidnex_theme (tema terang atau gelap), vidnex_lang (bahasa pilihan), dan vidnex_lang_banner_dismissed (penutupan bilah saran bahasa). Anda dapat menghapus ketiga kunci ini kapan saja melalui pengaturan browser."
+          "VIDNEX tidak menetapkan cookie pelacakan maupun cookie sesi milik sendiri. Untuk mengingat preferensi tampilan secara lokal tanpa mengirimkannya ke server, kami menyimpan kunci teknis di localStorage browser Anda: vidnex_theme (tema terang atau gelap), vidnex_lang (bahasa pilihan), vidnex_lang_banner_dismissed (penutupan bilah saran bahasa), dan vidnex_cookie_consent_v1 (kunci berversi yang menyimpan pilihan persetujuan cookie Anda untuk kategori esensial, statistik, dan iklan). Anda dapat menghapus kunci ini kapan saja melalui pengaturan browser.",
+          "Pada kunjungan pertama ke halaman publik, spanduk persetujuan cookie memungkinkan Anda memilih Terima semua, Tolak semua, atau Sesuaikan untuk tiga kategori: Esensial (selalu aktif untuk fungsi dasar situs), Statistik (pengukuran kunjungan agregat tanpa cookie melalui /api/visit), dan Iklan (memuat mitra periklanan pihak ketiga). Anda dapat mengubah atau mencabut persetujuan kapan saja melalui tautan «Cookie» di footer. Tidak ada spanduk maupun iklan di /admin atau saat pra-render statis."
         ]
       },
       {
-        "heading": "7. Infrastruktur, Pengukuran, dan Cookie Iklan Pihak Ketiga",
+        "heading": "7. Infrastruktur, Pengukuran, dan Mitra Iklan (Adsterra dan Google AdSense)",
         "paragraphs": [
           "Hosting dan jaringan edge (Cloudflare): situs beserta titik akhir API berjalan di Cloudflare Workers, Cloudflare Static Assets, dan Cloudflare D1. Cloudflare memproses metadata koneksi teknis di tepi jaringan untuk mitigasi DDoS, distribusi konten, dan statistik lalu lintas agregat (negara, keluarga browser, kode status, dan lebar pita). Apabila Cloudflare Web Analytics diaktifkan pada zona, pengukuran kinerja dilakukan tanpa cookie pelacakan.",
           "Layanan penyelesaian publik pihak ketiga: untuk sebagian tautan publik TikTok atau Instagram, server dapat meneruskan hanya URL publik ke layanan penyelesaian teknis yang kompatibel tanpa cookie maupun data akun pengunjung.",
-          "Jaringan iklan pihak ketiga (Adsterra dan Google AdSense): agar VIDNEX tetap gratis tanpa langganan, situs menampilkan ruang iklan dari Adsterra (banner iframe terisolasi, Native Banner, serta Social Bar khusus perangkat desktop mulai 768 px yang dimuat tertunda setelah interaksi pengguna) dan, apabila diaktifkan dengan ID penayang, Google AdSense (pagead2.googlesyndication.com). Penyedia iklan tersebut dapat menggunakan cookie atau pengenal perangkat mereka sendiri untuk membatasi frekuensi iklan, mencegah kecurangan iklan, atau menayangkan iklan sesuai kebijakan privasi masing-masing. Anda dapat mengatur preferensi iklan Google melalui adssettings.google.com atau memblokir cookie pihak ketiga di browser Anda."
+          "Mitra periklanan (Adsterra dan Google AdSense): agar VIDNEX tetap gratis tanpa langganan, situs mengintegrasikan iklan dari Adsterra (bellnewyork.org: banner iframe terisolasi 728×90, 300×250, 320×50, dan 160×600, Native Banner, serta Social Bar khusus desktop >= 768 px yang dimuat tertunda) dan, apabila diaktifkan dengan ID penayang, Google AdSense (pagead2.googlesyndication.com). Tidak ada skrip iklan yang dimuat sebelum Anda menyetujui kategori «Iklan» secara eksplisit; tanpa persetujuan, tidak ada skrip iklan yang berjalan dan tidak ada ruang iklan kosong yang dipesan (CLS = 0). Setelah disetujui, mitra ini dapat menggunakan cookie atau sinyal teknis sesuai kebijakan privasi masing-masing. Anda dapat mencabut persetujuan kapan saja melalui tautan «Cookie» di footer atau mengatur iklan Google di adssettings.google.com."
         ]
       },
       {

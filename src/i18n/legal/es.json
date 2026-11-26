@@ -69,7 +69,7 @@
     "ogImageAlt": "Política de privacidad de VIDNEX — Transparencia técnica y protección de datos",
     "h1": "Política de privacidad",
     "breadcrumbLabel": "Privacidad",
-    "updatedAt": "21 de noviembre de 2026",
+    "updatedAt": "26 de noviembre de 2026",
     "intro": "Esta Política de privacidad describe con precisión qué datos técnicos se procesan cuando visitas VIDNEX, con qué finalidad, durante cuánto tiempo se conservan, qué servicios de infraestructura y publicidad intervienen y cómo puedes ejercer tus derechos.",
     "sections": [
       {
@@ -112,17 +112,18 @@
         ]
       },
       {
-        "heading": "6. Almacenamiento local del navegador (localStorage)",
+        "heading": "6. Almacenamiento local del navegador (localStorage) y consentimiento de cookies",
         "paragraphs": [
-          "VIDNEX no crea cookies propias de seguimiento ni de sesión de usuario. Para recordar tus preferencias de interfaz sin enviarlas al servidor, utilizamos exclusivamente tres claves técnicas en localStorage dentro de tu navegador: vidnex_theme (modo claro u oscuro), vidnex_lang (idioma seleccionado) y vidnex_lang_banner_dismissed (cierre del aviso de sugerencia de idioma). Puedes borrar estas claves en cualquier momento desde los ajustes de tu navegador."
+          "VIDNEX no crea cookies propias de seguimiento ni de sesión de usuario. Para recordar tus preferencias de interfaz localmente sin enviarlas al servidor, utilizamos claves técnicas en localStorage dentro de tu navegador: vidnex_theme (modo claro u oscuro), vidnex_lang (idioma seleccionado), vidnex_lang_banner_dismissed (cierre del aviso de sugerencia de idioma) y vidnex_cookie_consent_v1 (clave versionada que guarda tus preferencias de consentimiento por categoría: esenciales, estadísticas y publicidad). Puedes borrar estas claves en cualquier momento desde los ajustes de tu navegador.",
+          "En tu primera visita a una página pública, un banner de cookies te permite Aceptar todo, Rechazar todo o Personalizar tus opciones entre tres categorías: Esenciales (siempre activas para el funcionamiento del sitio), Estadísticas (medición agregada sin cookies mediante la baliza /api/visit) y Publicidad (carga de socios publicitarios externos). Puedes modificar o retirar tu consentimiento en cualquier momento desde el enlace «Cookies» del pie de página. No se muestra ningún banner ni anuncio en /admin ni en el prerender estático."
         ]
       },
       {
-        "heading": "7. Infraestructura, medición y cookies publicitarias de terceros",
+        "heading": "7. Infraestructura, medición y socios publicitarios (Adsterra y Google AdSense)",
         "paragraphs": [
           "Alojamiento y borde de red (Cloudflare): el sitio y sus funciones API se ejecutan en Cloudflare Workers, Cloudflare Static Assets y Cloudflare D1. Cloudflare procesa metadatos técnicos de conexión a nivel de red para mitigar ataques DDoS, distribuir contenido y elaborar estadísticas agregadas de tráfico (país, familia de navegador, códigos de estado y ancho de banda). Cuando Cloudflare Web Analytics está activo en la zona, mide el rendimiento web sin cookies de seguimiento.",
           "Servicios técnicos de resolución pública: para resolver ciertos enlaces públicos de TikTok o Instagram, el servidor puede reenviar únicamente la URL pública introducida a un intermediario técnico compatible, sin cookies ni datos de cuenta del visitante.",
-          "Publicidad de terceros (Adsterra y Google AdSense): para mantener VIDNEX gratuito sin suscripciones, la interfaz carga espacios publicitarios gestionados por Adsterra (banners en iframe aislado, Native Banner y Social Bar en escritorio a partir de 768 px, diferidos tras la interacción del usuario) y, cuando está habilitado mediante su identificador de editor, Google AdSense (pagead2.googlesyndication.com). Estas redes publicitarias pueden instalar sus propias cookies o identificadores de dispositivo para limitar la frecuencia de anuncios, combatir el fraude publicitario o personalizar anuncios conforme a sus propias políticas de privacidad. Puedes gestionar las preferencias de Google en adssettings.google.com o bloquear cookies de terceros desde tu navegador."
+          "Socios publicitarios (Adsterra y Google AdSense): para mantener VIDNEX gratuito sin suscripciones, la interfaz integra espacios publicitarios de Adsterra (bellnewyork.org: banners en iframe aislado 728×90, 300×250, 320×50 y 160×600, Native Banner y Social Bar solo en escritorio >= 768 px, cargados de forma diferida) y, cuando está habilitado con identificador de editor, Google AdSense (pagead2.googlesyndication.com). Ningún script publicitario se carga sin tu consentimiento explícito para la categoría «Publicidad»; si rechazas o no has elegido, no se ejecuta ningún script ni se reserva espacio vacío (CLS = 0). Si aceptas, estos socios pueden instalar sus propias cookies o leer señales técnicas del navegador conforme a sus políticas de privacidad. Puedes retirar tu consentimiento en cualquier momento desde «Cookies» en el pie de página o gestionar Google en adssettings.google.com."
         ]
       },
       {

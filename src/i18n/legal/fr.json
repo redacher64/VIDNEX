@@ -68,7 +68,7 @@
     "ogImageAlt": "Politique de confidentialité et gestion des cookies sur VIDNEX",
     "h1": "Politique de confidentialité",
     "breadcrumbLabel": "Confidentialité",
-    "updatedAt": "21 novembre 2026",
+    "updatedAt": "26 novembre 2026",
     "intro": "La présente politique décrit de manière factuelle les données techniques traitées lorsque vous consultez VIDNEX, utilisez le résolveur de liens publics ou l'outil local de découpe d'images, ainsi que les traceurs tiers susceptibles d'être chargés. Elle vise une transparence complète, sans promesse exagérée.",
     "sections": [
       {
@@ -102,17 +102,18 @@
         ]
       },
       {
-        "heading": "5. Stockage local du navigateur (localStorage)",
+        "heading": "5. Stockage local du navigateur (localStorage) et consentement cookies",
         "paragraphs": [
-          "VIDNEX utilise le stockage local de votre navigateur (localStorage) exclusivement pour mémoriser des préférences d'interface strictement fonctionnelles, qui restent sur votre appareil et ne sont pas envoyées à nos serveurs : vidnex_theme (mémorisation du thème clair ou sombre), vidnex_lang (langue d'affichage sélectionnée manuellement) et vidnex_lang_banner_dismissed (mémorisation de la fermeture du bandeau suggérant la langue du navigateur). Vous pouvez effacer ces clés à tout moment depuis les paramètres de votre navigateur."
+          "VIDNEX utilise le stockage local de votre navigateur (localStorage) pour mémoriser des préférences d'interface strictement fonctionnelles, qui restent sur votre appareil et ne sont pas envoyées à nos serveurs : vidnex_theme (mémorisation du thème clair ou sombre), vidnex_lang (langue d'affichage sélectionnée manuellement), vidnex_lang_banner_dismissed (mémorisation de la fermeture du bandeau suggérant la langue du navigateur) et vidnex_cookie_consent_v1 (clé versionnée conservant vos choix de consentement par catégorie : essentiels, statistiques et publicité). Vous pouvez effacer ces clés à tout moment depuis les paramètres de votre navigateur.",
+          "Lors de votre première visite sur une page publique, un bandeau de consentement vous permet de Tout accepter, Tout refuser ou Personnaliser vos préférences entre trois catégories : Essentiels (toujours actifs pour le fonctionnement technique et la mémorisation de vos préférences), Statistiques (mesure d'audience agrégée sans cookie via la balise légère /api/visit) et Publicité (activation des partenaires publicitaires tiers). Vous pouvez modifier ou retirer votre consentement à tout moment en cliquant sur le lien « Cookies » situé dans le pied de page. Aucun bandeau ni aucune publicité n'est chargé sur /admin ni dans le prérendu statique."
         ]
       },
       {
-        "heading": "6. Cookies et technologies publicitaires (Adsterra et Google AdSense)",
+        "heading": "6. Cookies et partenaires publicitaires (Adsterra et Google AdSense)",
         "paragraphs": [
-          "Pour financer l'infrastructure technique et maintenir l'accès gratuit aux outils, VIDNEX peut charger des régies publicitaires tierces sur les pages publiques (hors interface d'administration et hors prérendu statique), de manière différée après le premier chargement ou la première interaction :",
-          "Adsterra : lorsque l'affichage Adsterra est activé dans la configuration du site, des unités publicitaires (bannières display en iframe isolée aux formats 728×90, 300×250, 320×50 ou 160×600, bloc natif et Social Bar uniquement sur écran de bureau >= 768 px) sont chargées via le domaine de diffusion configuré (bellnewyork.org). Adsterra et ses partenaires publicitaires peuvent déposer des cookies ou lire des signaux techniques du navigateur (adresse IP, type d'appareil, taille d'écran, référent) afin de diffuser, plafonner et mesurer les annonces.",
-          "Google AdSense : le code du site prend également en charge Google AdSense (pagead2.googlesyndication.com) lorsque cette régie est activée et configurée avec un identifiant éditeur. Lorsque Google AdSense est actif, Google et ses fournisseurs tiers utilisent des cookies pour diffuser des annonces en fonction de vos visites antérieures sur ce site ou sur d'autres sites web. Vous pouvez gérer ou désactiver la publicité personnalisée de Google sur adssettings.google.com, ainsi que limiter ou supprimer les cookies tiers dans les réglages de votre navigateur."
+          "Pour financer l'infrastructure technique et maintenir l'accès gratuit aux outils, VIDNEX intègre des partenaires publicitaires tiers sur les pages publiques (hors interface d'administration et hors prérendu statique). Aucun script publicitaire n'est chargé par défaut : les unités publicitaires ne s'activent que si vous avez explicitement accepté la catégorie « Publicité » dans le bandeau de consentement. En l'absence de consentement ou en cas de refus, aucun script publicitaire n'est chargé et aucun espace publicitaire vide n'est réservé (aucun décalage de mise en page / CLS).",
+          "Adsterra : uniquement après acceptation de la catégorie « Publicité » et lorsque l'affichage Adsterra est activé dans la configuration du site, des unités publicitaires (bannières display en iframe isolée aux formats 728×90, 300×250, 320×50 ou 160×600, bloc natif et Social Bar uniquement sur écran de bureau >= 768 px) sont chargées de manière différée via le domaine de diffusion configuré (bellnewyork.org). Adsterra et ses partenaires publicitaires peuvent déposer des cookies ou lire des signaux techniques du navigateur (adresse IP, type d'appareil, taille d'écran, référent) afin de diffuser, plafonner et mesurer les annonces.",
+          "Google AdSense : le code du site prend également en charge Google AdSense (pagead2.googlesyndication.com) uniquement après acceptation de la catégorie « Publicité » et lorsque cette régie est activée avec un identifiant éditeur. Google et ses fournisseurs tiers peuvent alors utiliser des cookies pour diffuser des annonces en fonction de vos visites antérieures sur ce site ou sur d'autres sites web. Vous pouvez retirer votre consentement à tout moment via le lien « Cookies » du pied de page, gérer la publicité personnalisée Google sur adssettings.google.com, ou supprimer les cookies tiers dans les réglages de votre navigateur."
         ]
       },
       {

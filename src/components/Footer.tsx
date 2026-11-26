@@ -23,6 +23,10 @@ import { getLocaleBundleSync } from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { getVideoToMp3Content } from '../utils/videoToMp3Logic.ts';
 import { getToolsHubContent } from '../data/toolsRegistry.ts';
+import {
+  getCookieConsentCopy,
+  openCookiePreferences,
+} from '../utils/cookieConsent.ts';
 import { PlatformIcon, VidnexLogoMark } from './icons/PlatformIcons.tsx';
 
 interface FooterProps {
@@ -253,6 +257,16 @@ export const Footer: React.FC<FooterProps> = ({
                   </li>
                 );
               })}
+              <li>
+                <button
+                  type="button"
+                  data-testid="footer-cookies-btn"
+                  onClick={() => openCookiePreferences()}
+                  className="min-h-[40px] inline-flex items-center py-1 transition-colors text-[#6c4e40] dark:text-orange-200/80 hover:text-orange-600 dark:hover:text-amber-400 font-medium cursor-pointer"
+                >
+                  {getCookieConsentCopy(language).footerLinkLabel}
+                </button>
+              </li>
             </ul>
           </div>
 

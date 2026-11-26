@@ -880,6 +880,9 @@ export function createMemoryD1Database(): D1Database {
         let filtered = [...requestLogs];
         if (lower.includes("status = 'error'")) {
           filtered = filtered.filter((r) => r.status === 'error');
+        } else if (lower.includes('status = ?')) {
+          const st = String(filterArgs[idx++] || '').toLowerCase();
+          filtered = filtered.filter((r) => r.status.toLowerCase() === st);
         }
         if (lower.includes('ts >= ?')) {
           const since = Number(filterArgs[idx++] || 0);

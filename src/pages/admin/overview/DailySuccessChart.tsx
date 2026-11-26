@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { WidgetDailyBucket } from '../dashboardWidgetLogic';
 import {
   buildDailyChartSeries,
+  computeNiceYAxis,
   formatNumberFr,
   formatSafePercent,
   type DailyChartPoint,
@@ -10,32 +11,31 @@ import {
 export interface DailySuccessChartProps {
   daily: readonly WidgetDailyBucket[] | undefined;
   range: '7d' | '30d';
-  onChangeRange: (next: '7d' | '30d') => void;
 }
 
 export const DailySuccessChart: React.FC<DailySuccessChartProps> = ({
   daily,
   range,
-  onChangeRange,
 }) => {
   const [hovered, setHovered] = useState<DailyChartPoint | null>(null);
 
   const series = useMemo(() => buildDailyChartSeries(daily, range), [daily, range]);
   const { points, maxTotal, totalCalls } = series;
 
+  const yAxis = useMemo(() => computeNiceYAxis(maxTotal), [maxTotal]);
+  const yScaleMax = yAxis.max;
+  const yTicks = yAxis.ticks;
+
   const svgWidth = 640;
   const svgHeight = 200;
   const padTop = 16;
   const padBottom = 26;
-  const padLeft = 36;
+  const padLeft = Math.max(36, String(yScaleMax).length * 7 + 14);
   const padRight = 10;
   const plotWidth = svgWidth - padLeft - padRight;
   const plotHeight = svgHeight - padTop - padBottom;
-  const yScaleMax = Math.max(1, maxTotal);
   const slotWidth = plotWidth / Math.max(1, points.length);
   const barWidth = Math.max(6, Math.min(28, slotWidth * 0.62));
-
-  const yTicks = [0, Math.round(yScaleMax / 2), yScaleMax];
 
   return (
     <section
@@ -45,7 +45,7 @@ export const DailySuccessChart: React.FC<DailySuccessChartProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-sm font-bold text-admin-text">
-            Succès / Échecs par jour
+            Succès / Échecs par jour ({range === '7d' ? '7j' : '30j'})
           </h2>
           <p className="text-xs text-admin-text-muted mt-0.5">
             {hovered ? (
@@ -62,44 +62,15 @@ export const DailySuccessChart: React.FC<DailySuccessChartProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-3 text-xs text-admin-text-secondary">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
-              Succès
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-xs bg-red-600 dark:bg-red-500" />
-              Échecs
-            </span>
-          </div>
-
-          <div
-            role="group"
-            aria-label="Fenêtre du graphique"
-            className="inline-flex items-center rounded-md border border-admin-border bg-admin-muted p-0.5"
-          >
-            {(
-              [
-                { id: '7d', label: '7j' },
-                { id: '30d', label: '30j' },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                aria-pressed={range === opt.id}
-                onClick={() => onChangeRange(opt.id)}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
-                  range === opt.id
-                    ? 'bg-admin-accent text-white'
-                    : 'text-admin-text-secondary hover:text-admin-text'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-3 text-xs text-admin-text-secondary">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
+            Succès
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-xs bg-red-600 dark:bg-red-500" />
+            Échecs
+          </span>
         </div>
       </div>
 

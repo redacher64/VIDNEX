@@ -77,7 +77,7 @@ export const OverviewKpiRow: React.FC<OverviewKpiRowProps> = ({
       <button
         type="button"
         onClick={() => onNavigate({ tab: 'extractions', subTab: 'plateformes' })}
-        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-admin-accent/40"
+        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/50"
       >
         <div className="flex items-center justify-between gap-2 text-xs font-medium text-admin-text-secondary">
           <span>Extractions</span>
@@ -113,7 +113,7 @@ export const OverviewKpiRow: React.FC<OverviewKpiRowProps> = ({
       <button
         type="button"
         onClick={() => onNavigate({ tab: 'extractions', subTab: 'entonnoir' })}
-        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-admin-accent/40"
+        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/50"
       >
         <div className="flex items-center justify-between gap-2 text-xs font-medium text-admin-text-secondary">
           <span>Taux de succès</span>
@@ -151,8 +151,8 @@ export const OverviewKpiRow: React.FC<OverviewKpiRowProps> = ({
       {/* 3. Visiteurs humains */}
       <button
         type="button"
-        onClick={() => onNavigate({ tab: 'visitors' })}
-        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-admin-accent/40"
+        onClick={() => onNavigate({ tab: 'visitors', period })}
+        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/50"
       >
         <div className="flex items-center justify-between gap-2 text-xs font-medium text-admin-text-secondary">
           <span>Visiteurs humains</span>
@@ -176,7 +176,7 @@ export const OverviewKpiRow: React.FC<OverviewKpiRowProps> = ({
       <button
         type="button"
         onClick={() => onNavigate({ tab: 'extractions', subTab: 'erreurs' })}
-        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-admin-accent/40"
+        className="group text-left bg-admin-surface border border-admin-border hover:border-admin-border-strong rounded-lg p-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/50"
       >
         <div className="flex items-center justify-between gap-2 text-xs font-medium text-admin-text-secondary">
           <span>Erreurs</span>

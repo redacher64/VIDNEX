@@ -13,6 +13,8 @@ import {
 } from '../functions/_lib/visitAnalytics.ts';
 import { onRequestPost as visitPost } from '../functions/api/visit.ts';
 import { onRequestGet as statsGet } from '../functions/api/admin/stats.ts';
+import { onRequestGet as activityGet } from '../functions/api/admin/activity.ts';
+import { onRequestPost as healthPost } from '../functions/api/admin/health.ts';
 import { onRequestPost as loginPost } from '../functions/api/admin/login.ts';
 import {
   WORLD_COUNTRIES_GEOJSON,
@@ -33,8 +35,10 @@ import {
   sortPlatformTableRows,
   buildActionRequiredItems,
   buildDailyChartSeries,
+  computeNiceYAxis,
   extractDynamicErrorCodes,
   getVisibleErrorLogColumns,
+  rankD1HumanCountries,
 } from '../src/pages/admin/adminMetricsLogic.ts';
 import {
   isTabAuthorizedForUser,
@@ -902,6 +906,174 @@ test('blogAdminLogic: Extractions RBAC permissions & legacy tab normalization', 
   assert.deepEqual(normalizeLegacyAdminTab('health'), { tab: 'extractions', subTab: 'plateformes' });
   assert.deepEqual(normalizeLegacyAdminTab('activity'), { tab: 'extractions', subTab: 'erreurs' });
   assert.deepEqual(normalizeLegacyAdminTab('dashboard'), { tab: 'dashboard' });
+});
+
+test('adminMetricsLogic: computeNiceYAxis returns clean round integer graduations', () => {
+  assert.deepEqual(computeNiceYAxis(0), { max: 10, ticks: [0, 5, 10] });
+  assert.deepEqual(computeNiceYAxis(2), { max: 2, ticks: [0, 1, 2] });
+  assert.deepEqual(computeNiceYAxis(7), { max: 10, ticks: [0, 5, 10] });
+  assert.deepEqual(computeNiceYAxis(13), { max: 20, ticks: [0, 10, 20] });
+  assert.deepEqual(computeNiceYAxis(18), { max: 20, ticks: [0, 10, 20] });
+  assert.deepEqual(computeNiceYAxis(37), { max: 40, ticks: [0, 10, 20, 30, 40] });
+  assert.deepEqual(computeNiceYAxis(125), { max: 150, ticks: [0, 50, 100, 150] });
+});
+
+test('admin activity?status=error&days=30 aligns 1:1 with stats 30d error breakdown and excludes legacy success/expired rows', async () => {
+  const db = createMemoryD1Database();
+  const env: any = {
+    DB: db,
+    ADMIN_PASSWORD: 'test-admin-password',
+    SESSION_SECRET: 'test-session-secret',
+  };
+
+  const loginRes = await loginPost({
+    request: new Request('https://vidnex.pro/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://vidnex.pro',
+      },
+      body: JSON.stringify({ login: 'admin', password: 'test-admin-password' }),
+    }),
+    env,
+  } as any);
+  assert.equal(loginRes.status, 200);
+  const cookie = (loginRes.headers.get('Set-Cookie') || '').split(';')[0];
+  assert.ok(cookie);
+
+  const nowMs = Date.now();
+  const oldMs = nowMs - 40 * 86_400_000;
+  const insertSql = `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn, error_message, source_domain, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  await db
+    .prepare(insertSql)
+    .bind(nowMs - 60_000, 'tiktok', 'error', 'BLOCKED_BY_PLATFORM', 120, 'abc123', 'direct', 403, 'video', 'extractTikTok', 'HTTP 403', 'www.tiktok.com', 'FR')
+    .run();
+  await db
+    .prepare(insertSql)
+    .bind(nowMs - 120_000, 'instagram_profile', 'error', 'NOT_FOUND', 90, 'def456', 'direct', 404, 'profile', 'extractInstagram', 'HTTP 404', 'www.instagram.com', 'MA')
+    .run();
+  await db
+    .prepare(insertSql)
+    .bind(nowMs - 180_000, 'tiktok', 'success', null, 80, 'ghi789', 'direct', 200, 'video', 'extractTikTok', null, 'www.tiktok.com', 'FR')
+    .run();
+  await db
+    .prepare(insertSql)
+    .bind(oldMs, 'facebook', 'error', 'TIMEOUT', 5000, 'jkl012', 'direct', 504, 'video', 'extractFacebook', 'Timeout', 'www.facebook.com', 'US')
+    .run();
+
+  const statsRes = await statsGet({
+    request: new Request('https://vidnex.pro/api/admin/stats', {
+      headers: { Cookie: cookie },
+    }),
+    env,
+  } as any);
+  const statsJson: any = await statsRes.json();
+  assert.equal(statsJson.ok, true);
+  const breakdownTotal = (statsJson.errorsByPlatform?.['30d'] || []).reduce(
+    (acc: number, row: any) => acc + Number(row.count || 0),
+    0
+  );
+  assert.equal(breakdownTotal, 2);
+
+  const actFilteredRes = await activityGet({
+    request: new Request('https://vidnex.pro/api/admin/activity?page=1&limit=20&status=error&days=30', {
+      headers: { Cookie: cookie },
+    }),
+    env,
+  } as any);
+  const actFilteredJson: any = await actFilteredRes.json();
+  assert.equal(actFilteredJson.ok, true);
+  assert.equal(actFilteredJson.total, breakdownTotal);
+  assert.equal(actFilteredJson.items.length, 2);
+  assert.ok(actFilteredJson.items.every((row: any) => row.status === 'error'));
+});
+
+test('admin health manual test_engine updates engine_status without polluting daily_metrics or request_log', async () => {
+  const db = createMemoryD1Database();
+  const env: any = {
+    DB: db,
+    ADMIN_PASSWORD: 'test-admin-password',
+    SESSION_SECRET: 'test-session-secret',
+  };
+
+  const loginRes = await loginPost({
+    request: new Request('https://vidnex.pro/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://vidnex.pro',
+      },
+      body: JSON.stringify({ login: 'admin', password: 'test-admin-password' }),
+    }),
+    env,
+  } as any);
+  assert.equal(loginRes.status, 200);
+  const cookie = (loginRes.headers.get('Set-Cookie') || '').split(';')[0];
+
+  const testRes = await healthPost({
+    request: new Request('https://vidnex.pro/api/admin/health', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://vidnex.pro',
+        Cookie: cookie,
+      },
+      body: JSON.stringify({
+        action: 'test_engine',
+        platform: 'tiktok',
+        url: 'https://example.invalid/not-a-tiktok-video',
+      }),
+    }),
+    env,
+  } as any);
+  assert.equal(testRes.status, 200);
+  const testJson: any = await testRes.json();
+  assert.equal(testJson.testOk, false);
+  assert.equal(testJson.errorCode, 'UNSUPPORTED_URL');
+
+  const engineRow: any = await db
+    .prepare('SELECT platform, last_test_ok, last_test_ts FROM engine_status WHERE platform = ?')
+    .bind('tiktok')
+    .first();
+  assert.ok(engineRow);
+  assert.equal(engineRow.last_test_ok, 0);
+  assert.ok(Number(engineRow.last_test_ts) > 0);
+
+  // Verify zero pollution in both activity (request_log) and stats (daily_metrics)
+  const actRes = await activityGet({
+    request: new Request('https://vidnex.pro/api/admin/activity?page=1&limit=20', {
+      headers: { Cookie: cookie },
+    }),
+    env,
+  } as any);
+  const actJson: any = await actRes.json();
+  assert.equal(actJson.total, 0);
+
+  const statsRes = await statsGet({
+    request: new Request('https://vidnex.pro/api/admin/stats', {
+      headers: { Cookie: cookie },
+    }),
+    env,
+  } as any);
+  const statsJson: any = await statsRes.json();
+  assert.equal(statsJson.funnel.extract_started, 0);
+  assert.equal(statsJson.funnel.extract_error, 0);
+});
+
+test('adminMetricsLogic: rankD1HumanCountries strictly ranks human visits identically for Overview and Audience', () => {
+  const ranked = rankD1HumanCountries([
+    { countryCode: 'us', humanVisits: 0 },
+    { countryCode: 'ma', humanVisits: 10 },
+    { countryCode: 'fr', humanVisits: 30 },
+    { countryCode: 'de', humanVisits: 10 },
+  ]);
+  assert.deepEqual(ranked, [
+    { countryCode: 'FR', humanVisits: 30, percentage: 60 },
+    { countryCode: 'DE', humanVisits: 10, percentage: 20 },
+    { countryCode: 'MA', humanVisits: 10, percentage: 20 },
+  ]);
+  assert.deepEqual(rankD1HumanCountries([]), []);
 });
 
 

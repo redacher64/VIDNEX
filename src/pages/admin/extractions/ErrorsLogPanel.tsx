@@ -63,6 +63,8 @@ export const ErrorsLogPanel: React.FC<ErrorsLogPanelProps> = ({
         const params = new URLSearchParams({
           page: String(targetPage),
           limit: '20',
+          status: 'error',
+          days: '30',
         });
         if (targetPlatform) params.set('platform', targetPlatform);
         if (targetCode) params.set('error_code', targetCode);
@@ -109,23 +111,23 @@ export const ErrorsLogPanel: React.FC<ErrorsLogPanelProps> = ({
 
   const visibleCols = useMemo(() => getVisibleErrorLogColumns(items), [items]);
 
-  // Build clickable 30j error breakdown rows
-  const breakdownRows = useMemo(() => {
+  // Build clickable 30j error breakdown rows (top 12 displayed, denominator sums all 30j rows)
+  const allBreakdownRows = useMemo(() => {
     if (errorsByPlatform30d.length > 0) {
-      return [...errorsByPlatform30d]
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 12);
+      return [...errorsByPlatform30d].sort((a, b) => b.count - a.count);
     }
-    return statsErrors.slice(0, 12).map((e) => ({
+    return statsErrors.map((e) => ({
       error_code: e.code,
       platform: '',
       count: e.count,
     }));
   }, [errorsByPlatform30d, statsErrors]);
 
+  const breakdownRows = useMemo(() => allBreakdownRows.slice(0, 12), [allBreakdownRows]);
+
   const totalBreakdownErrors = useMemo(
-    () => breakdownRows.reduce((acc, r) => acc + Math.max(0, Number(r.count || 0)), 0),
-    [breakdownRows]
+    () => allBreakdownRows.reduce((acc, r) => acc + Math.max(0, Number(r.count || 0)), 0),
+    [allBreakdownRows]
   );
 
   const handleClickBreakdown = (code: string, platform: string) => {
@@ -183,10 +185,10 @@ export const ErrorsLogPanel: React.FC<ErrorsLogPanelProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="font-display text-sm font-bold text-admin-text">
-              Répartition des erreurs (30j)
+              Répartition des erreurs (30j · {formatNumberFr(totalBreakdownErrors)})
             </h2>
             <p className="text-xs text-admin-text-muted">
-              Cliquez sur une erreur pour filtrer le journal ci-dessous
+              Journal détaillé request_log (erreurs 30j UTC) · cliquez sur une erreur pour filtrer
             </p>
           </div>
           {(errorCodeFilter || platformFilter) && (
@@ -259,10 +261,10 @@ export const ErrorsLogPanel: React.FC<ErrorsLogPanelProps> = ({
           <div className="px-4 py-3 border-b border-admin-border flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h2 className="font-display text-sm font-bold text-admin-text">
-                Journal des erreurs ({formatNumberFr(total)})
+                Journal des erreurs (30j · {formatNumberFr(total)})
               </h2>
               <p className="text-xs text-admin-text-muted">
-                Colonnes vides masquées automatiquement · aucune URL stockée
+                request_log (erreurs 30j UTC) · tests manuels « Tester » exclus · aucune URL stockée
               </p>
             </div>
 
@@ -313,7 +315,14 @@ export const ErrorsLogPanel: React.FC<ErrorsLogPanelProps> = ({
                   <th className="py-2.5 px-2.5">Date</th>
                   <th className="py-2.5 px-2.5">Plateforme</th>
                   <th className="py-2.5 px-2.5">Code erreur</th>
-                  {visibleCols.httpStatus && <th className="py-2.5 px-2">HTTP</th>}
+                  {visibleCols.httpStatus && (
+                    <th
+                      className="py-2.5 px-2 whitespace-nowrap"
+                      title="Statut HTTP renvoyé par la source ou l'API"
+                    >
+                      Code HTTP
+                    </th>
+                  )}
                   {visibleCols.contentKind && <th className="py-2.5 px-2">Type</th>}
                   {hasEngineColumn && <th className="py-2.5 px-2.5">Moteur</th>}
                   {visibleCols.sourceDomain && <th className="py-2.5 px-2.5">Domaine</th>}

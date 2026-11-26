@@ -1,5 +1,6 @@
 import { type AdminEnv, getDb } from '../../_lib/db.ts';
 import { requirePermission } from '../../_lib/auth.ts';
+import { formatUtcDay } from '../../_lib/logger.ts';
 
 export interface PagesContext {
   request: Request;
@@ -18,6 +19,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
   const limit = Math.min(100, Math.max(5, parseInt(url.searchParams.get('limit') || '25', 10) || 25));
   const offset = (page - 1) * limit;
   const platformFilter = (url.searchParams.get('platform') || '').trim().toLowerCase();
+  const statusFilter = (url.searchParams.get('status') || '').trim().toLowerCase();
+  const daysParam = parseInt(url.searchParams.get('days') || '0', 10) || 0;
   const errorCodeFilter = (
     url.searchParams.get('error_code') ||
     url.searchParams.get('errorCode') ||
@@ -38,6 +41,8 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         filters: {
           platform: platformFilter || null,
           error_code: errorCodeFilter || null,
+          status: statusFilter || null,
+          days: daysParam > 0 ? daysParam : null,
         },
         contactMessagesSupported: false,
       }),
@@ -51,6 +56,20 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
   try {
     const whereClauses: string[] = [];
     const filterBindings: unknown[] = [];
+
+    if (statusFilter === 'error' || statusFilter === 'success') {
+      whereClauses.push('status = ?');
+      filterBindings.push(statusFilter);
+    }
+
+    if (daysParam > 0 && daysParam <= 90) {
+      const cutoffDay = formatUtcDay(Date.now() - (daysParam - 1) * 86_400_000);
+      const cutoffMs = Date.parse(`${cutoffDay}T00:00:00.000Z`);
+      if (Number.isFinite(cutoffMs)) {
+        whereClauses.push('ts >= ?');
+        filterBindings.push(cutoffMs);
+      }
+    }
 
     if (platformFilter) {
       if (platformFilter === 'instagram') {

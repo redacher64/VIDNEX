@@ -6,18 +6,28 @@ import {
   formatBytesFr,
   formatNumberFr,
   formatSafePercent,
+  type AudienceGeoSource,
 } from '../adminMetricsLogic';
 
 export interface AudienceGeoSectionProps {
   countries: readonly CountryVisitorsRow[];
   periodLabel: string;
   sourceLabel: string;
+  geoSource: AudienceGeoSource;
+  onChangeGeoSource: (next: AudienceGeoSource) => void;
 }
+
+const GEO_SOURCE_OPTIONS: ReadonlyArray<{ id: AudienceGeoSource; label: string }> = [
+  { id: 'd1_humans', label: 'Humains (D1)' },
+  { id: 'cf_raw', label: 'Trafic brut (CF)' },
+];
 
 export const AudienceGeoSection: React.FC<AudienceGeoSectionProps> = ({
   countries,
   periodLabel,
   sourceLabel,
+  geoSource,
+  onChangeGeoSource,
 }) => {
   const [showAll, setShowAll] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
@@ -55,16 +65,43 @@ export const AudienceGeoSection: React.FC<AudienceGeoSectionProps> = ({
       aria-label="Répartition géographique"
       className="bg-admin-surface border border-admin-border rounded-lg p-4 sm:p-5 space-y-4"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-sm font-bold text-admin-text">
             Géographie ({periodLabel})
           </h2>
           <p className="text-xs text-admin-text-muted">{sourceLabel}</p>
         </div>
-        <span className="text-xs font-mono text-admin-text-secondary tabular-nums">
-          {formatNumberFr(sortedCountries.length)} pays actifs
-        </span>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div
+            role="group"
+            aria-label="Source de la répartition géographique"
+            className="inline-flex items-center rounded-md border border-admin-border bg-admin-muted p-0.5"
+          >
+            {GEO_SOURCE_OPTIONS.map((opt) => {
+              const active = geoSource === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChangeGeoSource(opt.id)}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                    active
+                      ? 'bg-admin-accent text-white'
+                      : 'text-admin-text-secondary hover:text-admin-text'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs font-mono text-admin-text-secondary tabular-nums whitespace-nowrap">
+            {formatNumberFr(sortedCountries.length)} pays actifs
+          </span>
+        </div>
       </div>
 
       {/* Compact 2-column layout: Map left (max ~280px) + Top 10 countries right */}
@@ -80,31 +117,41 @@ export const AudienceGeoSection: React.FC<AudienceGeoSectionProps> = ({
 
         <div className="md:col-span-5 space-y-2">
           <div className="flex items-center justify-between text-xs font-semibold text-admin-text-secondary pb-1 border-b border-admin-border">
-            <span>Top 10 pays</span>
+            <span>
+              {geoSource === 'd1_humans' ? 'Top 10 pays (humains)' : 'Top 10 pays (brut CF)'}
+            </span>
             <span>Volume / Part</span>
           </div>
 
           {top10.length === 0 ? (
             <p className="text-xs text-admin-text-muted py-8 text-center">
-              Aucune donnée géographique sur cette période.
+              {geoSource === 'd1_humans'
+                ? 'Aucune visite humaine D1 sur cette période.'
+                : 'Aucune donnée Cloudflare brute sur cette période.'}
             </p>
           ) : (
             <ul className="space-y-2">
               {top10.map((row) => {
+                const code = (row.countryCode || 'XX').toUpperCase();
+                const displayName =
+                  !row.countryName || row.countryName.toUpperCase() === code
+                    ? code === 'XX'
+                      ? 'Inconnu'
+                      : code
+                    : row.countryName;
                 const barWidth =
                   maxTopRequests > 0
                     ? Math.max(4, Math.round((row.requests / maxTopRequests) * 100))
                     : 0;
                 return (
-                  <li key={row.countryCode} className="space-y-1 text-xs">
+                  <li key={code} className="space-y-1 text-xs">
                     <div className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-2 min-w-0">
-                        <span aria-hidden="true">{row.flag}</span>
-                        <span className="font-medium text-admin-text truncate">
-                          {row.countryName}
+                        <span className="inline-flex items-center justify-center w-6 h-4 rounded bg-admin-muted border border-admin-border font-mono text-[10px] font-semibold text-admin-text-secondary shrink-0">
+                          {code}
                         </span>
-                        <span className="font-mono text-[11px] text-admin-text-muted">
-                          {row.countryCode}
+                        <span className="font-medium text-admin-text truncate">
+                          {displayName}
                         </span>
                       </span>
                       <span className="font-mono tabular-nums shrink-0 text-admin-text">
@@ -181,19 +228,26 @@ export const AudienceGeoSection: React.FC<AudienceGeoSectionProps> = ({
                         </td>
                       </tr>
                     ) : (
-                      filteredAll.map((row, idx) => (
-                        <tr key={row.countryCode} className="hover:bg-admin-hover/40">
+                      filteredAll.map((row, idx) => {
+                        const code = (row.countryCode || 'XX').toUpperCase();
+                        const displayName =
+                          !row.countryName || row.countryName.toUpperCase() === code
+                            ? code === 'XX'
+                              ? 'Inconnu'
+                              : code
+                            : row.countryName;
+                        return (
+                        <tr key={code} className="hover:bg-admin-hover/40">
                           <td className="py-2 pl-3 pr-2 font-mono text-admin-text-muted tabular-nums">
                             {idx + 1}
                           </td>
                           <td className="py-2 px-3">
                             <span className="inline-flex items-center gap-2">
-                              <span aria-hidden="true">{row.flag}</span>
-                              <span className="font-medium text-admin-text">
-                                {row.countryName}
+                              <span className="inline-flex items-center justify-center w-6 h-4 rounded bg-admin-muted border border-admin-border font-mono text-[10px] font-semibold text-admin-text-secondary shrink-0">
+                                {code}
                               </span>
-                              <span className="font-mono text-[11px] text-admin-text-muted">
-                                {row.countryCode}
+                              <span className="font-medium text-admin-text">
+                                {displayName}
                               </span>
                             </span>
                           </td>
@@ -207,7 +261,8 @@ export const AudienceGeoSection: React.FC<AudienceGeoSectionProps> = ({
                             {formatSafePercent(row.requests, totalRequests)}
                           </td>
                         </tr>
-                      ))
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

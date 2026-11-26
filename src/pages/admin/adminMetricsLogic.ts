@@ -16,11 +16,14 @@ export type AdminOverviewPeriod = 'today' | '7d' | '30d';
 export type ExtractionsSubTab = 'plateformes' | 'erreurs' | 'entonnoir';
 export type PlatformCombinedStatus = 'ok' | 'degraded' | 'critical' | 'idle';
 
+export type AudienceGeoSource = 'd1_humans' | 'cf_raw';
+
 export interface AdminNavigationTarget {
   tab: 'dashboard' | 'extractions' | 'visitors' | 'blog' | 'controls' | 'users' | 'account';
   subTab?: ExtractionsSubTab;
   platform?: string;
   errorCode?: string;
+  period?: AdminOverviewPeriod;
 }
 
 export interface AdminEngineStatusRow {
@@ -540,6 +543,59 @@ export function buildDailyChartSeries(
 }
 
 /**
+ * Computes round, human-readable Y-axis ticks (e.g. 0/10/20, 0/5/10, 0/20/40, 0/50/100).
+ */
+export function computeNiceYAxis(maxValue: number): {
+  max: number;
+  ticks: number[];
+} {
+  const safeMax = Math.max(0, Number.isFinite(maxValue) ? maxValue : 0);
+  if (safeMax === 0) {
+    return { max: 10, ticks: [0, 5, 10] };
+  }
+
+  // Target 2 to 4 clean intervals with nice step sizes (1, 2, 5, 10 * 10^n)
+  const rawStep = safeMax / 2;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(Math.max(1, rawStep))));
+  const candidates = [1, 2, 2.5, 5, 10].map((m) => m * magnitude);
+
+  let chosenStep = candidates[candidates.length - 1];
+  for (const step of candidates) {
+    if (step < 1) continue;
+    if (!Number.isInteger(step)) continue;
+    const intervals = Math.ceil(safeMax / step);
+    if (intervals >= 2 && intervals <= 4) {
+      chosenStep = step;
+      break;
+    }
+  }
+
+  // Fallback for very small values (1..4) -> 0/2/4 or 0/1/2
+  if (safeMax <= 2) {
+    return { max: 2, ticks: [0, 1, 2] };
+  }
+  if (safeMax <= 4) {
+    return { max: 4, ticks: [0, 2, 4] };
+  }
+  if (safeMax <= 10) {
+    return { max: 10, ticks: [0, 5, 10] };
+  }
+  if (safeMax <= 20) {
+    return { max: 20, ticks: [0, 10, 20] };
+  }
+
+  const niceMax = Math.ceil(safeMax / chosenStep) * chosenStep;
+  const ticks: number[] = [];
+  for (let v = 0; v <= niceMax; v += chosenStep) {
+    ticks.push(v);
+  }
+  if (ticks[ticks.length - 1] !== niceMax) {
+    ticks.push(niceMax);
+  }
+  return { max: niceMax, ticks };
+}
+
+/**
  * Extracts dynamic error codes strictly from real observed D1 data (never hardcoded).
  */
 export function extractDynamicErrorCodes(params: {
@@ -613,4 +669,37 @@ export function getVisibleErrorLogColumns(
     duration: rows.some((r) => r.duration_ms !== null && r.duration_ms !== undefined),
     ip: rows.some((r) => isNonEmptyCell(r.ip_hash_short) || isNonEmptyCell(r.ip_hash)),
   };
+}
+
+export interface RankedHumanCountryItem {
+  countryCode: string;
+  humanVisits: number;
+  percentage: number;
+}
+
+/**
+ * Shared D1 human-visits country ranking used by both Vue d'ensemble ("Top 5 pays (humains)")
+ * and Audience > Géographie ("Humains (D1)") so both views always show the exact same order and shares.
+ */
+export function rankD1HumanCountries(
+  countries:
+    | ReadonlyArray<{ countryCode?: string | null; humanVisits?: number | null }>
+    | null
+    | undefined
+): RankedHumanCountryItem[] {
+  if (!Array.isArray(countries) || countries.length === 0) return [];
+  const filtered = countries
+    .map((c) => ({
+      countryCode: String(c.countryCode || 'XX').trim().toUpperCase() || 'XX',
+      humanVisits: Math.max(0, Number(c.humanVisits || 0)),
+    }))
+    .filter((c) => c.humanVisits > 0)
+    .sort((a, b) => b.humanVisits - a.humanVisits || a.countryCode.localeCompare(b.countryCode));
+
+  const total = filtered.reduce((acc, c) => acc + c.humanVisits, 0);
+  return filtered.map((c) => ({
+    countryCode: c.countryCode,
+    humanVisits: c.humanVisits,
+    percentage: total > 0 ? Math.round(((c.humanVisits / total) * 100) * 10) / 10 : 0,
+  }));
 }

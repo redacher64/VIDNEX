@@ -43,7 +43,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     Partial<Record<AdminPlatformKey, AdminEngineStatusRow>>
   >({});
   const [period, setPeriod] = useState<AdminOverviewPeriod>('7d');
-  const [chartRange, setChartRange] = useState<'7d' | '30d'>('7d');
   const [loading, setLoading] = useState<boolean>(true);
   const [exporting, setExporting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +148,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
   }, [period, summary]);
 
+  const chartRange: '7d' | '30d' = period === '30d' ? '30d' : '7d';
+  const periodLabel =
+    period === 'today' ? "Aujourd'hui" : period === '7d' ? '7j' : '30j';
+
   const geoPeriod = data?.geo?.periods?.[period];
   const humanVisits = Math.max(0, Number(geoPeriod?.humanVisits || 0));
   const botVisits = Math.max(0, Number(geoPeriod?.botVisits || 0));
@@ -196,11 +199,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         exportDisabled={!data || loading}
         periodOptions={OVERVIEW_PERIOD_OPTIONS}
         selectedPeriod={period}
-        onSelectPeriod={(next) => {
-          setPeriod(next);
-          if (next === '30d') setChartRange('30d');
-          else if (next === '7d') setChartRange('7d');
-        }}
+        onSelectPeriod={setPeriod}
         periodAriaLabel="Période de la vue d'ensemble"
       />
 
@@ -227,25 +226,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onNavigate={handleNavigate}
       />
 
-      {/* Daily chart (7j/30j) + Automatic "À traiter" panel */}
+      {/* Daily chart (follows page period) + Automatic "À traiter (30j)" panel */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div className="md:col-span-8">
-          <DailySuccessChart
-            daily={data?.daily}
-            range={chartRange}
-            onChangeRange={setChartRange}
-          />
+          <DailySuccessChart daily={data?.daily} range={chartRange} />
         </div>
         <div className="md:col-span-4">
           <ActionRequiredPanel items={actionItems} onNavigate={handleNavigate} />
         </div>
       </div>
 
-      {/* 3 Mini-lists: Top plateformes, Top 5 pays, Sources de trafic */}
+      {/* 3 Mini-lists: Top plateformes (30j), Top 5 pays (humains), Sources de trafic */}
       <OverviewMiniLists
         platforms={platformRows}
         countries={miniCountries}
         sources={miniSources}
+        period={period}
+        periodLabel={periodLabel}
         onNavigate={handleNavigate}
       />
     </div>

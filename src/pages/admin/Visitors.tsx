@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from './AdminIcons';
 import { AdminPageHeader } from './AdminPageHeader';
-import type { AdminStatsData } from './adminMetricsLogic';
+import type { AdminStatsData, AudienceGeoSource } from './adminMetricsLogic';
+import { rankD1HumanCountries } from './adminMetricsLogic';
+import { getCountryNameFr } from './worldCountriesGeo';
 import { isoToEmojiFlag } from './worldMapLogic';
 import { AudienceSummarySection } from './audience/AudienceSummarySection';
 import { AudienceGeoSection } from './audience/AudienceGeoSection';
@@ -116,14 +118,23 @@ const AUDIENCE_PERIOD_OPTIONS = [
   { id: '30d', label: '30j' },
 ] as const;
 
-export const Visitors: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<VisitorsPeriodKey>('7d');
+export interface VisitorsProps {
+  initialPeriod?: VisitorsPeriodKey;
+}
+
+export const Visitors: React.FC<VisitorsProps> = ({ initialPeriod = '7d' }) => {
+  const [selectedPeriod, setSelectedPeriod] = useState<VisitorsPeriodKey>(initialPeriod);
+  const [geoSource, setGeoSource] = useState<AudienceGeoSource>('d1_humans');
   const [cfData, setCfData] = useState<VisitorsApiResponse | null>(null);
   const [d1Data, setD1Data] = useState<AdminStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetchedAt, setFetchedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    setSelectedPeriod(initialPeriod);
+  }, [initialPeriod]);
 
   const loadAudience = useCallback(async () => {
     setLoading(true);
@@ -229,66 +240,53 @@ export const Visitors: React.FC = () => {
     wallTimeP50Ms: 0,
   };
 
-  const { effectiveGeoCountries, geoSourceLabel } = useMemo(() => {
-    const cfCountries = activeCfSummary.countries || [];
-    if (cfCountries.length > 0 && cfData?.sourceScope !== 'd1-fallback') {
-      return {
-        effectiveGeoCountries: cfCountries,
-        geoSourceLabel: 'Source : Trafic brut Cloudflare (bots inclus)',
-      };
+  const d1HumanCountries = useMemo<CountryVisitorsRow[]>(() => {
+    const ranked = rankD1HumanCountries(activeD1Geo?.countries);
+    if (ranked.length === 0) return [];
+
+    let regionDisplay: Intl.DisplayNames | null = null;
+    try {
+      regionDisplay = new Intl.DisplayNames(['fr'], { type: 'region' });
+    } catch {
+      regionDisplay = null;
     }
 
-    const d1CountriesRaw = activeD1Geo?.countries || [];
-    if (d1CountriesRaw.length > 0) {
-      let regionDisplay: Intl.DisplayNames | null = null;
-      try {
-        regionDisplay = new Intl.DisplayNames(['fr'], { type: 'region' });
-      } catch {
-        regionDisplay = null;
+    return ranked.map((c) => {
+      const code = c.countryCode;
+      let countryName = getCountryNameFr(code);
+      if ((!countryName || countryName.toUpperCase() === code) && regionDisplay && /^[A-Z]{2}$/.test(code)) {
+        try {
+          countryName = regionDisplay.of(code) || code;
+        } catch {
+          countryName = code;
+        }
       }
-
-      const totalVol = d1CountriesRaw.reduce(
-        (acc, c) => acc + Math.max(0, Number(c.humanVisits || c.extractions || 0)),
-        0
-      );
-
-      const mapped: CountryVisitorsRow[] = d1CountriesRaw
-        .map((c) => {
-          const code = String(c.countryCode || '').trim().toUpperCase();
-          const volume = Math.max(0, Number(c.humanVisits || c.extractions || 0));
-          let countryName = code;
-          if (regionDisplay && /^[A-Z]{2}$/.test(code)) {
-            try {
-              countryName = regionDisplay.of(code) || code;
-            } catch {
-              countryName = code;
-            }
-          }
-          return {
-            countryCode: code,
-            countryName,
-            flag: isoToEmojiFlag(code),
-            requests: volume,
-            bytes: 0,
-            percentage: totalVol > 0 ? Math.round(((volume / totalVol) * 100) * 10) / 10 : 0,
-          };
-        })
-        .filter((c) => c.requests > 0);
-
+      if (!countryName || countryName.toUpperCase() === code) {
+        countryName = code === 'XX' ? 'Inconnu' : code;
+      }
       return {
-        effectiveGeoCountries: mapped,
-        geoSourceLabel: 'Source : Humains vérifiés (D1)',
+        countryCode: code,
+        countryName,
+        flag: isoToEmojiFlag(code),
+        requests: c.humanVisits,
+        bytes: 0,
+        percentage: c.percentage,
       };
-    }
+    });
+  }, [activeD1Geo?.countries]);
 
-    return {
-      effectiveGeoCountries: cfCountries,
-      geoSourceLabel:
-        cfData?.sourceScope === 'd1-fallback'
-          ? 'Source : Humains vérifiés (D1)'
-          : 'Source : Trafic brut Cloudflare (bots inclus)',
-    };
-  }, [activeCfSummary.countries, cfData?.sourceScope, activeD1Geo?.countries]);
+  const cfRawCountries = useMemo<CountryVisitorsRow[]>(() => {
+    if (cfData?.sourceScope === 'd1-fallback') return [];
+    return activeCfSummary.countries || [];
+  }, [activeCfSummary.countries, cfData?.sourceScope]);
+
+  const effectiveGeoCountries =
+    geoSource === 'd1_humans' ? d1HumanCountries : cfRawCountries;
+
+  const geoSourceLabel =
+    geoSource === 'd1_humans'
+      ? 'Source : Visiteurs humains vérifiés (D1) · même classement que la Vue d’ensemble'
+      : 'Source : Trafic brut Cloudflare Edge (bots inclus)';
 
   return (
     <div className="space-y-5">
@@ -341,6 +339,8 @@ export const Visitors: React.FC = () => {
         countries={effectiveGeoCountries}
         periodLabel={periodLabel}
         sourceLabel={geoSourceLabel}
+        geoSource={geoSource}
+        onChangeGeoSource={setGeoSource}
       />
 
       {/* 3. Traffic sources + Top entry pages (D1) */}

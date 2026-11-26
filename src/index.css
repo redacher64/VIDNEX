@@ -108,3 +108,14 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Admin shell: focus rings strictly on :focus-visible (never on mouse clicks) */
+.admin-shell :focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+.admin-shell :focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+

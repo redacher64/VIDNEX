@@ -1,10 +1,12 @@
 import React from 'react';
 import { ArrowRight } from '../AdminIcons';
-import { getCountryFlag, getCountryNameFr } from '../worldCountriesGeo';
+import { getCountryNameFr } from '../worldCountriesGeo';
 import {
   formatNumberFr,
   formatSafePercent,
+  rankD1HumanCountries,
   type AdminNavigationTarget,
+  type AdminOverviewPeriod,
   type PlatformTableRow,
 } from '../adminMetricsLogic';
 
@@ -24,6 +26,8 @@ export interface OverviewMiniListsProps {
   platforms: readonly PlatformTableRow[];
   countries: readonly OverviewCountryItem[];
   sources: readonly OverviewSourceItem[];
+  period?: AdminOverviewPeriod;
+  periodLabel?: string;
   onNavigate: (target: AdminNavigationTarget) => void;
 }
 
@@ -31,16 +35,17 @@ export const OverviewMiniLists: React.FC<OverviewMiniListsProps> = ({
   platforms,
   countries,
   sources,
+  period,
+  periodLabel,
   onNavigate,
 }) => {
   const topPlatforms = [...platforms]
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
-  const topCountries = [...countries]
-    .sort((a, b) => (b.humanVisits || b.extractions) - (a.humanVisits || a.extractions))
-    .slice(0, 5);
-  const totalCountriesVol = countries.reduce(
-    (acc, c) => acc + Math.max(0, c.humanVisits || c.extractions),
+  const rankedHumanCountries = rankD1HumanCountries(countries);
+  const topCountries = rankedHumanCountries.slice(0, 5);
+  const totalCountriesVol = rankedHumanCountries.reduce(
+    (acc, c) => acc + c.humanVisits,
     0
   );
   const totalSourcesVol = sources.reduce((acc, s) => acc + Math.max(0, s.visits), 0);
@@ -50,11 +55,11 @@ export const OverviewMiniLists: React.FC<OverviewMiniListsProps> = ({
       aria-label="Synthèse rapide par axe"
       className="grid grid-cols-1 md:grid-cols-3 gap-4"
     >
-      {/* 1. Top plateformes */}
+      {/* 1. Top plateformes (30j) */}
       <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-display text-sm font-bold text-admin-text">
-            Top plateformes
+            Top plateformes <span className="font-normal text-admin-text-muted">(30j)</span>
           </h2>
           <button
             type="button"
@@ -99,15 +104,18 @@ export const OverviewMiniLists: React.FC<OverviewMiniListsProps> = ({
         )}
       </div>
 
-      {/* 2. Top 5 pays */}
+      {/* 2. Top 5 pays (humains) */}
       <div className="bg-admin-surface border border-admin-border rounded-lg p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-display text-sm font-bold text-admin-text">
-            Top 5 pays
+            Top 5 pays (humains)
+            {periodLabel && (
+              <span className="font-normal text-admin-text-muted"> · {periodLabel}</span>
+            )}
           </h2>
           <button
             type="button"
-            onClick={() => onNavigate({ tab: 'visitors' })}
+            onClick={() => onNavigate({ tab: 'visitors', period })}
             className="text-xs font-semibold text-admin-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
           >
             <span>Audience</span>
@@ -117,24 +125,33 @@ export const OverviewMiniLists: React.FC<OverviewMiniListsProps> = ({
 
         {topCountries.length === 0 ? (
           <p className="text-xs text-admin-text-muted py-4 text-center">
-            Aucune donnée géographique sur la période.
+            Aucune visite humaine enregistrée sur la période.
           </p>
         ) : (
           <ul className="divide-y divide-admin-border/60">
             {topCountries.map((c) => {
-              const code = (c.countryCode || 'XX').toUpperCase();
-              const vol = Math.max(0, c.humanVisits || c.extractions);
+              const code = c.countryCode;
+              const resolvedName = getCountryNameFr(code);
+              const displayName =
+                !resolvedName || resolvedName.toUpperCase() === code
+                  ? code === 'XX'
+                    ? 'Inconnu'
+                    : code
+                  : resolvedName;
+              const vol = c.humanVisits;
               return (
                 <li key={code}>
                   <button
                     type="button"
-                    onClick={() => onNavigate({ tab: 'visitors' })}
+                    onClick={() => onNavigate({ tab: 'visitors', period })}
                     className="w-full py-2 flex items-center justify-between gap-2 text-xs hover:bg-admin-hover/50 rounded px-1 -mx-1 transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-2 min-w-0">
-                      <span aria-hidden="true">{getCountryFlag(code)}</span>
+                      <span className="inline-flex items-center justify-center w-6 h-4 rounded bg-admin-muted border border-admin-border font-mono text-[10px] font-semibold text-admin-text-secondary shrink-0">
+                        {code}
+                      </span>
                       <span className="font-medium text-admin-text truncate">
-                        {getCountryNameFr(code)}
+                        {displayName}
                       </span>
                     </span>
                     <span className="font-mono tabular-nums text-admin-text-secondary shrink-0">
@@ -156,10 +173,13 @@ export const OverviewMiniLists: React.FC<OverviewMiniListsProps> = ({
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-display text-sm font-bold text-admin-text">
             Sources de trafic
+            {periodLabel && (
+              <span className="font-normal text-admin-text-muted"> · {periodLabel}</span>
+            )}
           </h2>
           <button
             type="button"
-            onClick={() => onNavigate({ tab: 'visitors' })}
+            onClick={() => onNavigate({ tab: 'visitors', period })}
             className="text-xs font-semibold text-admin-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
           >
             <span>Détail</span>

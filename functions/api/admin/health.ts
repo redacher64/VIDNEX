@@ -1,4 +1,4 @@
-import { type AdminEnv, getDb, getRawClientIp, hashIpAddress } from '../../_lib/db.ts';
+import { type AdminEnv, getDb } from '../../_lib/db.ts';
 import { requirePermission, verifyCsrfAndJson } from '../../_lib/auth.ts';
 import { detectUrl } from '../../_lib/detect.ts';
 import { extractTikTok } from '../../_lib/tiktok.ts';
@@ -7,7 +7,7 @@ import { extractX, resolveTcoShortLink } from '../../_lib/x.ts';
 import { extractFacebook, resolveFacebookRedirect } from '../../_lib/facebook.ts';
 import { extractLinkedIn } from '../../_lib/linkedin.ts';
 import { getSystemSettings, updateSystemSettings } from '../../_lib/settings.ts';
-import { logExtractionEvent, recordEngineHealthTest } from '../../_lib/logger.ts';
+import { recordEngineHealthTest } from '../../_lib/logger.ts';
 import { getStoriesAdminStatusSnapshot } from '../../_lib/instagramStories.ts';
 
 export interface PagesContext {
@@ -403,20 +403,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   const testOk = Boolean(result.ok && !result.error);
   const errorCode = testOk ? null : result.error?.code || 'BLOCKED_BY_PLATFORM';
 
+  // Enregistre uniquement dans engine_status (ne pollue ni daily_metrics ni request_log)
   await recordEngineHealthTest(env, platform, testOk, errorCode);
-
-  const rawIp = getRawClientIp(request);
-  const ipHash = await hashIpAddress(rawIp, env.IP_HASH_SALT);
-  await logExtractionEvent(env, {
-    platform,
-    status: testOk ? 'success' : 'error',
-    errorCode,
-    durationMs,
-    ipHash,
-    stage: result.stage ?? null,
-    engineStage: result.engineStage || result.stage || null,
-    httpStatus: result.httpStatus ?? null,
-  });
 
   return new Response(
     JSON.stringify({

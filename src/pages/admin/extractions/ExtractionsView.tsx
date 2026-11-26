@@ -182,13 +182,20 @@ export const ExtractionsView: React.FC<ExtractionsViewProps> = ({
               role="tab"
               aria-selected={active}
               onClick={() => onSelectSubTab(subTab)}
-              className={`px-3.5 py-2 text-xs font-display font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer -mb-px ${
+              className={`relative px-3.5 py-2.5 text-xs font-display font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                 active
-                  ? 'border-admin-accent text-admin-text'
-                  : 'border-transparent text-admin-text-secondary hover:text-admin-text'
+                  ? 'text-orange-700 dark:text-orange-400'
+                  : 'text-admin-text-secondary hover:text-admin-text'
               }`}
             >
-              {SUB_TAB_LABELS[subTab]}
+              <span>{SUB_TAB_LABELS[subTab]}</span>
+              {active && (
+                <span
+                  aria-hidden="true"
+                  data-testid="extractions-subtab-indicator"
+                  className="absolute inset-x-0 bottom-0 h-[2.5px] rounded-t-full bg-orange-600 dark:bg-orange-400"
+                />
+              )}
             </button>
           );
         })}

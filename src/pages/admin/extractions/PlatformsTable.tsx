@@ -381,33 +381,38 @@ export const PlatformsTable: React.FC<PlatformsTableProps> = ({
                           </div>
 
                           {!readOnly && (
-                            <div className="flex flex-col md:flex-row gap-2">
-                              <input
-                                type="url"
-                                aria-label={`URL de test ${row.label}`}
-                                value={getUrlForPlatform(row)}
-                                onChange={(e) =>
-                                  setUrlDrafts((prev) => ({
-                                    ...prev,
-                                    [row.key]: e.target.value,
-                                  }))
-                                }
-                                placeholder={`Collez une URL publique ${row.label}…`}
-                                className="flex-1 px-3 py-2 rounded-md bg-admin-surface border border-admin-border-strong text-xs font-mono text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
-                              />
-                              <button
-                                type="button"
-                                disabled={testingPlatform === row.key}
-                                onClick={() => handleTestEngine(row)}
-                                className="px-4 py-2 rounded-md bg-admin-accent hover:opacity-90 disabled:opacity-50 text-white font-display font-semibold text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                              >
-                                <Play className="w-3.5 h-3.5" />
-                                <span>
-                                  {testingPlatform === row.key
-                                    ? 'Test en cours…'
-                                    : 'Tester maintenant'}
-                                </span>
-                              </button>
+                            <div className="space-y-1.5">
+                              <div className="flex flex-col md:flex-row gap-2">
+                                <input
+                                  type="url"
+                                  aria-label={`URL de test ${row.label}`}
+                                  value={getUrlForPlatform(row)}
+                                  onChange={(e) =>
+                                    setUrlDrafts((prev) => ({
+                                      ...prev,
+                                      [row.key]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={`Collez une URL publique ${row.label}…`}
+                                  className="flex-1 px-3 py-2 rounded-md bg-admin-surface border border-admin-border-strong text-xs font-mono text-admin-text placeholder-admin-text-muted focus:outline-none focus:border-admin-accent"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={testingPlatform === row.key}
+                                  onClick={() => handleTestEngine(row)}
+                                  className="px-4 py-2 rounded-md bg-admin-accent hover:opacity-90 disabled:opacity-50 text-white font-display font-semibold text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                                >
+                                  <Play className="w-3.5 h-3.5" />
+                                  <span>
+                                    {testingPlatform === row.key
+                                      ? 'Test en cours…'
+                                      : 'Tester maintenant'}
+                                  </span>
+                                </button>
+                              </div>
+                              <p className="text-[11px] text-admin-text-muted">
+                                Test diagnostic uniquement — n’est pas comptabilisé dans les statistiques ni dans le journal d’erreurs.
+                              </p>
                             </div>
                           )}
 
@@ -435,6 +440,9 @@ export const PlatformsTable: React.FC<PlatformsTableProps> = ({
               })}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-2 border-t border-admin-border bg-admin-muted/30 text-[11px] text-admin-text-muted">
+          Volumes &amp; échecs : compteurs agrégés <span className="font-mono">daily_metrics</span> (30j UTC) · Top erreur : journal détaillé <span className="font-mono">request_log</span> (30j UTC).
         </div>
       </div>
 

@@ -141,7 +141,7 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
                   setSelectedCode(shape.code);
                   onSelectCountry?.(shape.code);
                 }}
-                className="cursor-pointer transition-colors duration-150"
+                className="cursor-pointer transition-colors duration-150 focus:outline-none"
               >
                 <title>{`${shape.nameFr} (${shape.code}) : ${formatNum(val)}`}</title>
               </path>
@@ -163,9 +163,10 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
             className="pointer-events-none absolute z-20 min-w-[170px] rounded-lg border border-[#d6c8ba] bg-[#1c140f]/95 text-[#fffaf5] px-3 py-2 shadow-lg text-xs space-y-1"
           >
             <div className="flex items-center gap-1.5 font-display font-bold">
-              <span>{hovered.flag}</span>
+              <span className="inline-flex items-center justify-center px-1.5 h-4 rounded bg-white/10 font-mono text-[10px] font-semibold text-[#f3d4b8]">
+                {hovered.code}
+              </span>
               <span>{hovered.nameFr}</span>
-              <span className="font-mono text-[11px] text-[#d6b79c]">({hovered.code})</span>
             </div>
             <div className="flex items-center justify-between font-mono text-[11px] text-[#f3e4d7]">
               <span className="text-[#c8a98e] font-sans">Volume :</span>
@@ -235,10 +236,15 @@ export const WorldMapVisualization: React.FC<WorldMapVisualizationProps> = ({
               <div key={pt.countryCode} className="space-y-1 text-xs">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base leading-none">{pt.flag}</span>
-                    <span className="font-semibold text-admin-text truncate">{pt.countryName}</span>
-                    <span className="font-mono text-admin-text-muted text-[11px]">
+                    <span className="inline-flex items-center justify-center w-6 h-4 rounded bg-admin-muted border border-admin-border font-mono text-[10px] font-semibold text-admin-text-secondary shrink-0">
                       {pt.countryCode}
+                    </span>
+                    <span className="font-semibold text-admin-text truncate">
+                      {pt.countryName && pt.countryName.toUpperCase() !== pt.countryCode
+                        ? pt.countryName
+                        : pt.countryCode === 'XX'
+                        ? 'Inconnu'
+                        : pt.countryCode}
                     </span>
                   </div>
                   <span className="font-mono tabular-nums font-semibold text-admin-text">

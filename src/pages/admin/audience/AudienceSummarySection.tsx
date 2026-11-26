@@ -67,7 +67,7 @@ export const AudienceSummarySection: React.FC<AudienceSummarySectionProps> = ({
 
           <div className="bg-admin-surface border border-admin-border rounded-lg p-4">
             <span className="text-xs font-medium text-admin-text-secondary block">
-              Part humaine
+              Part humaine (visites balisées)
             </span>
             <span className="font-mono text-2xl font-bold text-admin-text tabular-nums mt-1 block">
               {formatSafePercent(d1HumanVisits, totalD1Visits)}

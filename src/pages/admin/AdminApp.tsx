@@ -18,7 +18,7 @@ import { VidnexLogoMark } from '../../components/icons/PlatformIcons';
 import { Login, type AdminUserProfile } from './Login';
 import { Dashboard } from './Dashboard';
 import { ExtractionsView } from './extractions/ExtractionsView';
-import { Visitors } from './Visitors';
+import { Visitors, type VisitorsPeriodKey } from './Visitors';
 import { Controls } from './Controls';
 import { Blog } from './Blog';
 import {
@@ -103,6 +103,7 @@ export const AdminApp: React.FC = () => {
     platform: string;
     errorCode: string;
   }>({ platform: '', errorCode: '' });
+  const [visitorsPeriod, setVisitorsPeriod] = useState<VisitorsPeriodKey>('7d');
 
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement | null>(null);
@@ -308,6 +309,11 @@ export const AdminApp: React.FC = () => {
       handleSelectTab('extractions', desiredSub);
       return;
     }
+    if (target.tab === 'visitors' && target.period) {
+      const mappedPeriod: VisitorsPeriodKey =
+        target.period === 'today' ? '24h' : target.period;
+      setVisitorsPeriod(mappedPeriod);
+    }
     handleSelectTab(target.tab);
   };
 
@@ -410,7 +416,7 @@ export const AdminApp: React.FC = () => {
   const userInitials = getUserInitials(user);
 
   return (
-    <div className="min-h-screen bg-admin-bg text-admin-text flex flex-col transition-colors duration-150">
+    <div className="admin-shell min-h-screen bg-admin-bg text-admin-text flex flex-col transition-colors duration-150">
       {/* Top Bar */}
       <header className="border-b border-admin-border bg-admin-surface/95 sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4">
@@ -612,7 +618,9 @@ export const AdminApp: React.FC = () => {
               />
             )}
 
-            {activeTab === 'visitors' && user.isOwner && <Visitors />}
+            {activeTab === 'visitors' && user.isOwner && (
+              <Visitors initialPeriod={visitorsPeriod} />
+            )}
             {activeTab === 'blog' && <Blog user={user} />}
             {activeTab === 'controls' && user.isOwner && <Controls />}
             {activeTab === 'users' && user.isOwner && <Users />}

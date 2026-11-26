@@ -32,7 +32,17 @@ export const FunnelSection: React.FC<FunnelSectionProps> = ({
 
   const heatmapSeries = useMemo(() => buildDailyChartSeries(daily, '30d'), [daily]);
 
-  const steps = [
+  const maxDownloadVol = Math.max(1, funnel.download_started, funnel.download_success);
+
+  const steps: Array<{
+    index: string;
+    label: string;
+    key: string;
+    value: number;
+    rateLabel: string | null;
+    barPct: number;
+    accent: string;
+  }> = [
     {
       index: '1',
       label: 'Extractions démarrées',
@@ -56,25 +66,25 @@ export const FunnelSection: React.FC<FunnelSectionProps> = ({
     },
     {
       index: '3',
-      label: 'Téléchargements lancés',
+      label: 'Fichiers téléchargés',
       key: 'download_started',
       value: funnel.download_started,
-      rateLabel: formatSafePercent(funnel.download_started, funnel.extract_success),
+      rateLabel: null,
       barPct:
-        funnel.extract_started > 0
-          ? Math.min(100, Math.round((funnel.download_started / funnel.extract_started) * 100))
+        funnel.download_started > 0
+          ? Math.min(100, Math.round((funnel.download_started / maxDownloadVol) * 100))
           : 0,
       accent: 'text-admin-text',
     },
     {
       index: '4',
-      label: 'Téléchargements terminés',
+      label: 'Fichiers terminés',
       key: 'download_success',
       value: funnel.download_success,
-      rateLabel: formatSafePercent(funnel.download_success, funnel.download_started),
+      rateLabel: null,
       barPct:
-        funnel.extract_started > 0
-          ? Math.min(100, Math.round((funnel.download_success / funnel.extract_started) * 100))
+        funnel.download_success > 0
+          ? Math.min(100, Math.round((funnel.download_success / maxDownloadVol) * 100))
           : 0,
       accent: 'text-emerald-700 dark:text-emerald-400',
     },
@@ -90,15 +100,20 @@ export const FunnelSection: React.FC<FunnelSectionProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="font-display text-sm font-bold text-admin-text">
-              Entonnoir Extraction → Téléchargement (30j)
+              Entonnoir Extraction → Fichiers (30j)
             </h2>
             <p className="text-xs text-admin-text-muted">
-              Taux calculés étape par étape (affichés « — » si le dénominateur est nul)
+              Compteurs agrégés daily_metrics (30j UTC) · étapes 3 et 4 en volume brut de fichiers (carrousels inclus)
             </p>
           </div>
-          <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded border border-admin-border bg-admin-muted text-admin-text tabular-nums">
-            Conversion globale : {formatSafePercent(funnel.extract_success, funnel.extract_started)}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded border border-admin-border bg-admin-muted text-admin-text tabular-nums">
+              Conversion extraction : {formatSafePercent(funnel.extract_success, funnel.extract_started)}
+            </span>
+            <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded border border-admin-border bg-admin-muted text-admin-text-secondary tabular-nums">
+              Échecs agrégés : {formatNumberFr(funnel.extract_error)}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -111,9 +126,11 @@ export const FunnelSection: React.FC<FunnelSectionProps> = ({
                 <span className="font-medium truncate">
                   {step.index}. {step.label}
                 </span>
-                <span className="font-mono font-semibold text-admin-text-muted tabular-nums shrink-0">
-                  {step.rateLabel}
-                </span>
+                {step.rateLabel !== null && (
+                  <span className="font-mono font-semibold text-admin-text-muted tabular-nums shrink-0">
+                    {step.rateLabel}
+                  </span>
+                )}
               </div>
               <div className={`font-mono text-2xl font-bold tabular-nums ${step.accent}`}>
                 {formatNumberFr(step.value)}

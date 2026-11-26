@@ -12,6 +12,10 @@
  */
 
 import { type AdminEnv, getDb } from './db.ts';
+import {
+  extractSafeDomain,
+  sanitizeShortErrorMessage,
+} from './visitAnalytics.ts';
 
 export const LOG_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 export const ALERT_CONSECUTIVE_FAILURES_THRESHOLD = 5;
@@ -37,12 +41,17 @@ export type DailyMetricEvent =
   | 'selection_download'
   | 'story_opened'
   | 'story_list_opened'
-  | 'story_download';
+  | 'story_download'
+  | `extract_success_h${string}`
+  | `extract_error_h${string}`;
 
 export interface ExtractionLogEvent {
   platform: MetricPlatform;
   status: 'success' | 'error';
   errorCode?: string | null;
+  errorMessage?: string | null;
+  sourceDomain?: string | null;
+  country?: string | null;
   durationMs: number;
   ipHash?: string;
   stage?: 'direct' | 'tiers' | null;
@@ -206,6 +215,16 @@ export async function purgeOldLogs(
       .bind(cutoffDay)
       .run();
     await db
+      .prepare('DELETE FROM daily_country_metrics WHERE day < ?')
+      .bind(cutoffDay)
+      .run()
+      .catch(() => {});
+    await db
+      .prepare('DELETE FROM page_visits WHERE day < ?')
+      .bind(cutoffDay)
+      .run()
+      .catch(() => {});
+    await db
       .prepare('DELETE FROM rate_limits WHERE window < ?')
       .bind(minWindow)
       .run();
@@ -253,16 +272,24 @@ export async function logExtractionEvent(
       : null;
   const contentKind = sanitizeStageLabel(event.contentKind);
   const engineFn = sanitizeStageLabel(event.engineFn);
+  const errorMessage =
+    event.status === 'error'
+      ? sanitizeShortErrorMessage(event.errorMessage)
+      : null;
+  const sourceDomain = extractSafeDomain(event.sourceDomain);
+  const rawCountry = String(event.country || '').trim().toUpperCase();
+  const country = /^[A-Z]{2}$/.test(rawCountry) && rawCountry !== 'T1' ? rawCountry : 'XX';
   const truncatedIpHash = event.ipHash
     ? String(event.ipHash).trim().slice(0, 12)
     : '';
 
   try {
-    // 1. Compteurs journaliers agrégés (1 écriture multi-lignes D1)
+    // 1. Compteurs journaliers + horaires agrégés (1 seule écriture multi-lignes D1)
+    const utcHourStr = String(new Date(ts).getUTCHours()).padStart(2, '0');
     const metricEvents: DailyMetricEvent[] =
       event.status === 'success'
-        ? ['extract_started', 'extract_success']
-        : ['extract_started', 'extract_error'];
+        ? ['extract_started', 'extract_success', `extract_success_h${utcHourStr}`]
+        : ['extract_started', 'extract_error', `extract_error_h${utcHourStr}`];
 
     if (
       event.status === 'success' &&
@@ -280,13 +307,36 @@ export async function logExtractionEvent(
 
     await incrementDailyMetrics(env, event.platform, metricEvents, ts);
 
-    // 2. Journal détaillé UNIQUEMENT en cas d'erreur (IP hachée tronquée 12 hex, content_kind, engine_fn, sans URL)
+    // 1B. Compteurs journaliers d'extractions par pays (source unique D1 pour la carte)
+    if (event.country) {
+      const day = formatUtcDay(ts);
+      await db
+        .prepare(
+          `INSERT INTO daily_country_metrics (day, country, extract_started, extract_success, extract_error)
+           VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT(day, country) DO UPDATE SET
+             extract_started = daily_country_metrics.extract_started + excluded.extract_started,
+             extract_success = daily_country_metrics.extract_success + excluded.extract_success,
+             extract_error = daily_country_metrics.extract_error + excluded.extract_error`
+        )
+        .bind(
+          day,
+          country,
+          1,
+          event.status === 'success' ? 1 : 0,
+          event.status === 'error' ? 1 : 0
+        )
+        .run()
+        .catch(() => {});
+    }
+
+    // 2. Journal détaillé UNIQUEMENT en cas d'erreur (date, plateforme, error_code, http_status, message court, domaine du lien)
     if (event.status === 'error') {
       try {
         await db
           .prepare(
-            `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn, error_message, source_domain, country)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           )
           .bind(
             ts,
@@ -298,15 +348,18 @@ export async function logExtractionEvent(
             engineStage,
             httpStatus,
             contentKind,
-            engineFn
+            engineFn,
+            errorMessage,
+            sourceDomain,
+            country
           )
           .run();
       } catch {
         try {
           await db
             .prepare(
-              `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+              `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             )
             .bind(
               ts,
@@ -316,17 +369,38 @@ export async function logExtractionEvent(
               durationMs,
               truncatedIpHash,
               engineStage,
-              httpStatus
+              httpStatus,
+              contentKind,
+              engineFn
             )
             .run();
         } catch {
-          await db
-            .prepare(
-              `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
-               VALUES (?, ?, ?, ?, ?, ?)`
-            )
-            .bind(ts, event.platform, 'error', errorCode, durationMs, truncatedIpHash)
-            .run();
+          try {
+            await db
+              .prepare(
+                `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+              )
+              .bind(
+                ts,
+                event.platform,
+                'error',
+                errorCode,
+                durationMs,
+                truncatedIpHash,
+                engineStage,
+                httpStatus
+              )
+              .run();
+          } catch {
+            await db
+              .prepare(
+                `INSERT INTO request_log (ts, platform, status, error_code, duration_ms, ip_hash)
+                 VALUES (?, ?, ?, ?, ?, ?)`
+              )
+              .bind(ts, event.platform, 'error', errorCode, durationMs, truncatedIpHash)
+              .run();
+          }
         }
       }
     }

@@ -9,6 +9,14 @@ export interface WidgetDailyBucket {
   selection_download?: number;
 }
 
+export interface WidgetHourlyBucket {
+  day: string;
+  hour: number;
+  total: number;
+  success: number;
+  error: number;
+}
+
 export interface WidgetPlatformStats {
   total: number;
   success: number;
@@ -32,6 +40,23 @@ export interface WidgetPlatformStats {
   };
 }
 
+export interface ErrorByPlatformEntry {
+  error_code: string;
+  platform: string;
+  count: number;
+}
+
+export interface RecentFailureEntry {
+  id: number;
+  ts: number;
+  platform: string;
+  error_code: string;
+  http_status: number | null;
+  error_message: string | null;
+  source_domain: string | null;
+  country: string | null;
+}
+
 export interface WidgetStatsInput {
   ok?: boolean;
   dbConnected?: boolean;
@@ -49,12 +74,65 @@ export interface WidgetStatsInput {
     selection_started?: number;
     selection_download?: number;
     extractSuccessRate: number;
+    globalConversionRate?: number;
     downloadConversionRate: number;
     downloadCompletionRate: number;
   };
   platforms?: Record<string, WidgetPlatformStats | undefined>;
   errors?: Array<{ code: string; count: number }>;
+  errorsByPlatform?: {
+    today?: ErrorByPlatformEntry[];
+    '7d'?: ErrorByPlatformEntry[];
+    '30d'?: ErrorByPlatformEntry[];
+  };
+  recentFailures?: RecentFailureEntry[];
   daily?: WidgetDailyBucket[];
+  hourly?: WidgetHourlyBucket[];
+  geo?: {
+    periods?: Partial<
+      Record<
+        'today' | '7d' | '30d',
+        {
+          period?: 'today' | '7d' | '30d';
+          humanVisits?: number;
+          botVisits?: number;
+          totalVisits?: number;
+          totalExtractions?: number;
+          totalExtractSuccess?: number;
+          totalExtractError?: number;
+          globalSuccessRate?: number;
+          countries?: Array<{
+            countryCode: string;
+            humanVisits?: number;
+            botVisits?: number;
+            extractions?: number;
+            extractSuccess?: number;
+            extractError?: number;
+            successRate?: number | null;
+            sharePct?: number;
+          }>;
+          sources?: {
+            categories?: Array<{
+              category: 'search' | 'direct' | 'social' | 'other';
+              label: string;
+              visits: number;
+              sharePct: number;
+            }>;
+            topReferrerHosts?: Array<{
+              host: string;
+              category: 'search' | 'direct' | 'social' | 'other';
+              visits: number;
+            }>;
+            topEntryPages?: Array<{
+              page: string;
+              visits: number;
+              sharePct: number;
+            }>;
+          };
+        }
+      >
+    >;
+  };
 }
 
 export interface PlatformSuccessSummary {

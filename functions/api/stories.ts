@@ -36,6 +36,7 @@ import {
   listStoriesWithProviders,
   normalizeInstagramStoryUsername,
 } from '../_lib/instagramStories.ts';
+import { extractRequestCountry } from '../_lib/visitAnalytics.ts';
 
 export interface PagesContext {
   request: Request;
@@ -121,6 +122,7 @@ async function handleListStories(
   const startedAt = Date.now();
   const rawIp = getRawClientIp(request);
   const ipHash = await hashIpAddress(rawIp, env.IP_HASH_SALT);
+  const requestCountry = extractRequestCountry(request);
   const settings = await getSystemSettings(env);
 
   if (settings.maintenance) {
@@ -146,6 +148,9 @@ async function handleListStories(
         platform: 'instagram',
         status: 'error',
         errorCode: 'STORIES_UNAVAILABLE',
+        errorMessage: STORIES_UNAVAILABLE_MESSAGE,
+        sourceDomain: 'www.instagram.com',
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'feature_disabled',
@@ -188,12 +193,16 @@ async function handleListStories(
   const canonicalAccountUrl = `https://www.instagram.com/stories/${username}/`;
   const blocked = await isRequestBlocked(env, ipHash, canonicalAccountUrl);
   if (blocked) {
+    const blockedMsg = 'Cette requête ou ressource a été restreinte par l’administrateur.';
     scheduleAsync(
       ctx,
       logExtractionEvent(env, {
         platform: 'instagram',
         status: 'error',
         errorCode: 'BLOCKED',
+        errorMessage: blockedMsg,
+        sourceDomain: 'www.instagram.com',
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'blocklist',
@@ -202,11 +211,7 @@ async function handleListStories(
         engineFn: 'instagram.story',
       })
     );
-    return createErrorResponse(
-      'BLOCKED',
-      'Cette requête ou ressource a été restreinte par l’administrateur.',
-      403
-    );
+    return createErrorResponse('BLOCKED', blockedMsg, 403);
   }
 
   // 1. Limite horaire par IP hachée (5 / heure par défaut, réglable en admin)
@@ -216,12 +221,16 @@ async function handleListStories(
     settings.stories_list_rate_limit_per_hour
   );
   if (!ipRate.allowed) {
+    const rateMsg = `Limite atteinte (${settings.stories_list_rate_limit_per_hour} listes de stories par heure). Veuillez réessayer plus tard.`;
     scheduleAsync(
       ctx,
       logExtractionEvent(env, {
         platform: 'instagram',
         status: 'error',
         errorCode: 'STORY_RATE_LIMITED',
+        errorMessage: rateMsg,
+        sourceDomain: 'www.instagram.com',
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'rate_limit_ip',
@@ -230,12 +239,9 @@ async function handleListStories(
         engineFn: 'instagram.story',
       })
     );
-    return createErrorResponse(
-      'STORY_RATE_LIMITED',
-      `Limite atteinte (${settings.stories_list_rate_limit_per_hour} listes de stories par heure). Veuillez réessayer plus tard.`,
-      429,
-      { 'Retry-After': String(ipRate.retryAfterSec) }
-    );
+    return createErrorResponse('STORY_RATE_LIMITED', rateMsg, 429, {
+      'Retry-After': String(ipRate.retryAfterSec),
+    });
   }
 
   // 2. Plafond global horaire (uniquement sur cache miss afin de préserver le budget fournisseur)
@@ -248,12 +254,17 @@ async function handleListStories(
       settings.stories_global_hourly_cap
     );
     if (!globalRate.allowed) {
+      const globalMsg =
+        'Le plafond horaire global de consultation des stories est temporairement atteint. Veuillez réessayer dans une heure.';
       scheduleAsync(
         ctx,
         logExtractionEvent(env, {
           platform: 'instagram',
           status: 'error',
           errorCode: 'STORY_RATE_LIMITED',
+          errorMessage: globalMsg,
+          sourceDomain: 'www.instagram.com',
+          country: requestCountry,
           durationMs: Date.now() - startedAt,
           ipHash,
           engineStage: 'rate_limit_global',
@@ -262,12 +273,9 @@ async function handleListStories(
           engineFn: 'instagram.story',
         })
       );
-      return createErrorResponse(
-        'STORY_RATE_LIMITED',
-        'Le plafond horaire global de consultation des stories est temporairement atteint. Veuillez réessayer dans une heure.',
-        429,
-        { 'Retry-After': String(globalRate.retryAfterSec) }
-      );
+      return createErrorResponse('STORY_RATE_LIMITED', globalMsg, 429, {
+        'Retry-After': String(globalRate.retryAfterSec),
+      });
     }
   }
 
@@ -285,6 +293,9 @@ async function handleListStories(
           platform: 'instagram',
           status: 'error',
           errorCode: attempt.errorCode || 'BLOCKED_BY_PLATFORM',
+          errorMessage: outcome.message || getStoryErrorDefaultMessage(attempt.errorCode || 'STORIES_UNAVAILABLE'),
+          sourceDomain: 'www.instagram.com',
+          country: requestCountry,
           durationMs: attempt.durationMs,
           ipHash,
           engineStage: attempt.provider,
@@ -299,6 +310,7 @@ async function handleListStories(
   if (!outcome.ok) {
     const errCode = outcome.errorCode || 'STORIES_UNAVAILABLE';
     const httpStatus = mapErrorCodeToHttpStatus(errCode);
+    const errMsg = outcome.message || getStoryErrorDefaultMessage(errCode);
     if (outcome.attempts.length === 0) {
       scheduleAsync(
         ctx,
@@ -306,6 +318,9 @@ async function handleListStories(
           platform: 'instagram',
           status: 'error',
           errorCode: errCode,
+          errorMessage: errMsg,
+          sourceDomain: 'www.instagram.com',
+          country: requestCountry,
           durationMs: Date.now() - startedAt,
           ipHash,
           engineStage: outcome.provider || 'no_provider',
@@ -315,11 +330,7 @@ async function handleListStories(
         })
       );
     }
-    return createErrorResponse(
-      errCode,
-      outcome.message || getStoryErrorDefaultMessage(errCode),
-      httpStatus
-    );
+    return createErrorResponse(errCode, errMsg, httpStatus);
   }
 
   // 4. Compteurs agrégés `story_list_opened` et `selection_started`

@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit && tsc --noEmit -p tsconfig.backend.json",
     "lint:backend": "tsc --noEmit -p tsconfig.backend.json",
-    "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts tests/linkedin.test.ts tests/stories.test.ts tests/videoToMp3.test.ts",
+    "test": "node --experimental-strip-types --test src/utils/urlDetector.test.ts tests/linkedin.test.ts tests/stories.test.ts tests/videoToMp3.test.ts tests/adminAnalytics.test.ts",
     "indexnow": "node --experimental-strip-types scripts/indexnow.mjs"
   },
   "dependencies": {
@@ -19,7 +19,8 @@
     "jszip": "^3.10.2",
     "lamejs": "^1.2.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

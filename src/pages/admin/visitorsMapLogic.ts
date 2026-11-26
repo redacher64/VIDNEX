@@ -1,322 +1,86 @@
+import { getCountryFlag, getCountryNameFr } from './worldCountriesGeo.ts';
+
 export type VisitorsMapPeriod = 'today' | '7d' | '30d';
 
-export type WorldRegionId =
-  | 'europe'
-  | 'mena_africa'
-  | 'north_america'
-  | 'latin_america'
-  | 'asia_pacific';
-
-export type ActivityHeatTier = 'hot' | 'high' | 'medium' | 'low';
+export type ReferrerCategoryKey = 'search' | 'direct' | 'social' | 'other';
 
 export interface D1VisitorOriginRecord {
   countryCode: string;
   countryName: string;
   flag: string;
-  regionId: WorldRegionId;
-  lat: number;
-  lon: number;
-  svgX: number;
-  svgY: number;
   visitors: number;
+  botVisits: number;
   extractions: number;
-  successRate: number;
-  topPlatform: 'TikTok' | 'Instagram' | 'X (Twitter)' | 'Facebook' | 'LinkedIn';
+  extractSuccess: number;
+  extractError: number;
+  successRate: number | null;
   sharePct: number;
-  heatTier: ActivityHeatTier;
 }
 
-export interface WorldRegionActivity {
-  regionId: WorldRegionId;
-  name: string;
-  shortName: string;
-  visitors: number;
-  extractions: number;
+export interface VisitorSourceCategorySummary {
+  category: ReferrerCategoryKey;
+  label: string;
+  visits: number;
   sharePct: number;
-  avgSuccessRate: number;
-  countryCount: number;
-  topCountry: string;
-  topCountryFlag: string;
-  rank: number;
-  isTopRegion: boolean;
-  heatTier: ActivityHeatTier;
-  centroidX: number;
-  centroidY: number;
+}
+
+export interface TopReferrerHostSummary {
+  host: string;
+  category: ReferrerCategoryKey;
+  visits: number;
+}
+
+export interface TopEntryPageSummary {
+  page: string;
+  visits: number;
+  sharePct: number;
 }
 
 export interface VisitorsMapSummary {
   period: VisitorsMapPeriod;
-  source: 'd1-scaled-mock' | 'd1-default-mock';
+  source: 'd1';
+  humanVisits: number;
+  botVisits: number;
+  totalVisits: number;
   totalVisitors: number;
   totalExtractions: number;
+  totalExtractSuccess: number;
+  totalExtractError: number;
   globalSuccessRate: number;
-  mostActiveRegion: WorldRegionActivity;
-  mostActiveCountry: D1VisitorOriginRecord;
-  regions: WorldRegionActivity[];
+  maxCountryVisitors: number;
+  mostActiveCountry: D1VisitorOriginRecord | null;
   countries: D1VisitorOriginRecord[];
+  sources: {
+    categories: VisitorSourceCategorySummary[];
+    topReferrerHosts: TopReferrerHostSummary[];
+    topEntryPages: TopEntryPageSummary[];
+  };
 }
 
-interface BaseMockOriginSeed {
-  countryCode: string;
-  countryName: string;
-  flag: string;
-  regionId: WorldRegionId;
-  lat: number;
-  lon: number;
-  baseVisitors30d: number;
-  baseExtractions30d: number;
-  successRate: number;
-  topPlatform: 'TikTok' | 'Instagram' | 'X (Twitter)' | 'Facebook' | 'LinkedIn';
-}
-
-export const WORLD_REGION_METADATA: Record<
-  WorldRegionId,
-  { name: string; shortName: string; centroidX: number; centroidY: number }
-> = {
-  europe: {
-    name: 'Europe (Ouest & Centrale)',
-    shortName: 'Europe',
-    centroidX: 522,
-    centroidY: 118,
-  },
-  mena_africa: {
-    name: 'Afrique & Moyen-Orient (MENA)',
-    shortName: 'Afrique & MENA',
-    centroidX: 535,
-    centroidY: 235,
-  },
-  north_america: {
-    name: 'Amérique du Nord',
-    shortName: 'Amérique du Nord',
-    centroidX: 215,
-    centroidY: 132,
-  },
-  latin_america: {
-    name: 'Amérique Latine & Caraïbes',
-    shortName: 'Amérique Latine',
-    centroidX: 315,
-    centroidY: 342,
-  },
-  asia_pacific: {
-    name: 'Asie-Pacifique & Eurasie',
-    shortName: 'Asie-Pacifique',
-    centroidX: 785,
-    centroidY: 210,
-  },
-};
-
-export const D1_MOCK_ORIGIN_SEEDS: BaseMockOriginSeed[] = [
-  {
-    countryCode: 'FR',
-    countryName: 'France',
-    flag: '🇫🇷',
-    regionId: 'europe',
-    lat: 46.6,
-    lon: 2.2,
-    baseVisitors30d: 4820,
-    baseExtractions30d: 9150,
-    successRate: 96.4,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'MA',
-    countryName: 'Maroc',
-    flag: '🇲🇦',
-    regionId: 'mena_africa',
-    lat: 31.8,
-    lon: -7.1,
-    baseVisitors30d: 2640,
-    baseExtractions30d: 5120,
-    successRate: 95.1,
-    topPlatform: 'Instagram',
-  },
-  {
-    countryCode: 'US',
-    countryName: 'États-Unis',
-    flag: '🇺🇸',
-    regionId: 'north_america',
-    lat: 38.0,
-    lon: -97.0,
-    baseVisitors30d: 2390,
-    baseExtractions30d: 4480,
-    successRate: 94.8,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'DZ',
-    countryName: 'Algérie',
-    flag: '🇩🇿',
-    regionId: 'mena_africa',
-    lat: 28.0,
-    lon: 1.7,
-    baseVisitors30d: 1740,
-    baseExtractions30d: 3310,
-    successRate: 93.9,
-    topPlatform: 'Facebook',
-  },
-  {
-    countryCode: 'ES',
-    countryName: 'Espagne',
-    flag: '🇪🇸',
-    regionId: 'europe',
-    lat: 40.4,
-    lon: -3.7,
-    baseVisitors30d: 1580,
-    baseExtractions30d: 2890,
-    successRate: 95.7,
-    topPlatform: 'Instagram',
-  },
-  {
-    countryCode: 'BR',
-    countryName: 'Brésil',
-    flag: '🇧🇷',
-    regionId: 'latin_america',
-    lat: -14.2,
-    lon: -51.9,
-    baseVisitors30d: 1490,
-    baseExtractions30d: 2760,
-    successRate: 94.2,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'DE',
-    countryName: 'Allemagne',
-    flag: '🇩🇪',
-    regionId: 'europe',
-    lat: 51.2,
-    lon: 10.4,
-    baseVisitors30d: 1320,
-    baseExtractions30d: 2410,
-    successRate: 96.1,
-    topPlatform: 'X (Twitter)',
-  },
-  {
-    countryCode: 'CA',
-    countryName: 'Canada',
-    flag: '🇨🇦',
-    regionId: 'north_america',
-    lat: 54.0,
-    lon: -105.0,
-    baseVisitors30d: 1180,
-    baseExtractions30d: 2190,
-    successRate: 95.8,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'BE',
-    countryName: 'Belgique',
-    flag: '🇧🇪',
-    regionId: 'europe',
-    lat: 50.8,
-    lon: 4.4,
-    baseVisitors30d: 980,
-    baseExtractions30d: 1840,
-    successRate: 96.6,
-    topPlatform: 'Instagram',
-  },
-  {
-    countryCode: 'TN',
-    countryName: 'Tunisie',
-    flag: '🇹🇳',
-    regionId: 'mena_africa',
-    lat: 33.9,
-    lon: 9.5,
-    baseVisitors30d: 890,
-    baseExtractions30d: 1670,
-    successRate: 94.4,
-    topPlatform: 'Facebook',
-  },
-  {
-    countryCode: 'TR',
-    countryName: 'Turquie',
-    flag: '🇹🇷',
-    regionId: 'mena_africa',
-    lat: 38.9,
-    lon: 35.2,
-    baseVisitors30d: 840,
-    baseExtractions30d: 1520,
-    successRate: 92.8,
-    topPlatform: 'Instagram',
-  },
-  {
-    countryCode: 'ID',
-    countryName: 'Indonésie',
-    flag: '🇮🇩',
-    regionId: 'asia_pacific',
-    lat: -0.8,
-    lon: 113.9,
-    baseVisitors30d: 790,
-    baseExtractions30d: 1480,
-    successRate: 93.5,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'MX',
-    countryName: 'Mexique',
-    flag: '🇲🇽',
-    regionId: 'latin_america',
-    lat: 23.6,
-    lon: -102.5,
-    baseVisitors30d: 720,
-    baseExtractions30d: 1310,
-    successRate: 94.0,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'SN',
-    countryName: 'Sénégal',
-    flag: '🇸🇳',
-    regionId: 'mena_africa',
-    lat: 14.5,
-    lon: -14.5,
-    baseVisitors30d: 640,
-    baseExtractions30d: 1190,
-    successRate: 94.7,
-    topPlatform: 'TikTok',
-  },
-  {
-    countryCode: 'SA',
-    countryName: 'Arabie saoudite',
-    flag: '🇸🇦',
-    regionId: 'mena_africa',
-    lat: 23.9,
-    lon: 45.1,
-    baseVisitors30d: 590,
-    baseExtractions30d: 1080,
-    successRate: 93.2,
-    topPlatform: 'X (Twitter)',
-  },
-  {
-    countryCode: 'JP',
-    countryName: 'Japon',
-    flag: '🇯🇵',
-    regionId: 'asia_pacific',
-    lat: 36.2,
-    lon: 138.2,
-    baseVisitors30d: 510,
-    baseExtractions30d: 940,
-    successRate: 95.3,
-    topPlatform: 'X (Twitter)',
-  },
-];
-
-function roundOneDecimal(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
-export function projectOriginToSvg(lat: number, lon: number): { svgX: number; svgY: number } {
-  const clampedLon = Math.max(-180, Math.min(180, lon));
-  const clampedLat = Math.max(-60, Math.min(75, lat));
-  const svgX = roundOneDecimal(((clampedLon + 180) / 360) * 1000);
-  const svgY = roundOneDecimal(((75 - clampedLat) / 135) * 500);
-  return { svgX, svgY };
-}
-
-function resolveHeatTier(sharePct: number, rank: number): ActivityHeatTier {
-  if (rank === 1 || sharePct >= 25) return 'hot';
-  if (rank <= 2 || sharePct >= 14) return 'high';
-  if (sharePct >= 6) return 'medium';
-  return 'low';
+export interface D1GeoPeriodInput {
+  period?: VisitorsMapPeriod;
+  humanVisits?: number;
+  botVisits?: number;
+  totalVisits?: number;
+  totalExtractions?: number;
+  totalExtractSuccess?: number;
+  totalExtractError?: number;
+  globalSuccessRate?: number;
+  countries?: Array<{
+    countryCode: string;
+    humanVisits?: number;
+    botVisits?: number;
+    extractions?: number;
+    extractSuccess?: number;
+    extractError?: number;
+    successRate?: number | null;
+    sharePct?: number;
+  }>;
+  sources?: {
+    categories?: VisitorSourceCategorySummary[];
+    topReferrerHosts?: TopReferrerHostSummary[];
+    topEntryPages?: TopEntryPageSummary[];
+  };
 }
 
 export interface D1StatsSeedInput {
@@ -326,143 +90,190 @@ export interface D1StatsSeedInput {
     last30d?: number;
   };
   funnel?: {
+    extract_started?: number;
+    extract_success?: number;
+    extract_error?: number;
     extractSuccessRate?: number;
+    globalConversionRate?: number;
+  };
+  geo?: {
+    periods?: Partial<Record<VisitorsMapPeriod, D1GeoPeriodInput>>;
   };
 }
 
+const DEFAULT_SOURCE_CATEGORIES: VisitorSourceCategorySummary[] = [
+  { category: 'search', label: 'Recherche', visits: 0, sharePct: 0 },
+  { category: 'direct', label: 'Direct', visits: 0, sharePct: 0 },
+  { category: 'social', label: 'Réseaux sociaux', visits: 0, sharePct: 0 },
+  { category: 'other', label: 'Autres sites', visits: 0, sharePct: 0 },
+];
+
 /**
- * Builds the D1 visitor origin & regional activity dataset for the SVG World Map.
- * Uses D1 database counts when available to scale the mock regional distribution,
- * or falls back to the baseline D1 mock dataset so the map always highlights active regions.
+ * Single-hue sequential choropleth ramp (light → dark orange/terracotta).
+ * Index 0 is unvisited land; indices 1..5 darken progressively as visitor count rises.
+ */
+export const CHOROPLETH_COLORS = [
+  '#e7e0d8', // 0 visiteur
+  '#fed7aa', // palier 1 (faible)
+  '#fdba74', // palier 2
+  '#fb923c', // palier 3
+  '#ea580c', // palier 4
+  '#9a3412', // palier 5 (maximum, le plus foncé)
+] as const;
+
+export function getChoroplethLevel(value: number, maxValue: number): 0 | 1 | 2 | 3 | 4 | 5 {
+  const v = Math.max(0, Number(value) || 0);
+  if (v <= 0 || maxValue <= 0) return 0;
+  const ratio = Math.min(1, v / maxValue);
+  if (ratio <= 0.15) return 1;
+  if (ratio <= 0.35) return 2;
+  if (ratio <= 0.6) return 3;
+  if (ratio <= 0.85) return 4;
+  return 5;
+}
+
+export function getChoroplethFill(value: number, maxValue: number): string {
+  const level = getChoroplethLevel(value, maxValue);
+  return CHOROPLETH_COLORS[level];
+}
+
+function roundOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+/**
+ * Builds the world map & visitor sources summary strictly from real D1 data.
+ * Never fabricates, estimates, or scales mock countries.
  */
 export function buildD1VisitorsMapSummary(
   period: VisitorsMapPeriod = '30d',
   d1Stats?: D1StatsSeedInput | null
 ): VisitorsMapSummary {
-  const periodFactor = period === 'today' ? 0.045 : period === '7d' ? 0.28 : 1;
+  const periodData = d1Stats?.geo?.periods?.[period];
 
-  const baseSumExtractions = D1_MOCK_ORIGIN_SEEDS.reduce(
-    (acc, s) => acc + Math.max(1, Math.round(s.baseExtractions30d * periodFactor)),
-    0
-  );
+  const humanVisits = Math.max(0, Number(periodData?.humanVisits) || 0);
+  const botVisits = Math.max(0, Number(periodData?.botVisits) || 0);
+  const totalVisits = humanVisits + botVisits;
 
-  const d1PeriodCount =
+  const fallbackExtractions =
     period === 'today'
-      ? Number(d1Stats?.counts?.today || 0)
+      ? Math.max(0, Number(d1Stats?.counts?.today) || 0)
       : period === '7d'
-      ? Number(d1Stats?.counts?.last7d || 0)
-      : Number(d1Stats?.counts?.last30d || 0);
+      ? Math.max(0, Number(d1Stats?.counts?.last7d) || 0)
+      : Math.max(0, Number(d1Stats?.counts?.last30d) || 0);
 
-  const hasD1Scale = d1PeriodCount > 0;
-  const scaleMultiplier = hasD1Scale
-    ? Math.max(0.25, d1PeriodCount / Math.max(1, baseSumExtractions))
-    : 1;
+  const totalExtractions =
+    typeof periodData?.totalExtractions === 'number'
+      ? Math.max(0, periodData.totalExtractions)
+      : fallbackExtractions;
 
-  const rawCountries = D1_MOCK_ORIGIN_SEEDS.map((seed) => {
-    const scaledExtractions = Math.max(
-      1,
-      Math.round(seed.baseExtractions30d * periodFactor * scaleMultiplier)
-    );
-    const scaledVisitors = Math.max(
-      1,
-      Math.round(seed.baseVisitors30d * periodFactor * scaleMultiplier)
-    );
-    const { svgX, svgY } = projectOriginToSvg(seed.lat, seed.lon);
-    return {
-      ...seed,
-      svgX,
-      svgY,
-      visitors: scaledVisitors,
-      extractions: scaledExtractions,
-    };
-  }).sort((a, b) => b.visitors - a.visitors);
+  const totalExtractSuccess = Math.max(0, Number(periodData?.totalExtractSuccess) || 0);
+  const totalExtractError = Math.max(0, Number(periodData?.totalExtractError) || 0);
 
-  const totalVisitors = rawCountries.reduce((acc, c) => acc + c.visitors, 0);
-  const totalExtractions = rawCountries.reduce((acc, c) => acc + c.extractions, 0);
+  const globalSuccessRate =
+    typeof periodData?.globalSuccessRate === 'number'
+      ? roundOneDecimal(periodData.globalSuccessRate)
+      : totalExtractions > 0
+      ? roundOneDecimal((totalExtractSuccess / totalExtractions) * 100)
+      : 0;
 
-  const countries: D1VisitorOriginRecord[] = rawCountries.map((c, idx) => {
-    const sharePct =
-      totalVisitors > 0 ? roundOneDecimal((c.visitors / totalVisitors) * 100) : 0;
-    return {
-      countryCode: c.countryCode,
-      countryName: c.countryName,
-      flag: c.flag,
-      regionId: c.regionId,
-      lat: c.lat,
-      lon: c.lon,
-      svgX: c.svgX,
-      svgY: c.svgY,
-      visitors: c.visitors,
-      extractions: c.extractions,
-      successRate: c.successRate,
-      topPlatform: c.topPlatform,
-      sharePct,
-      heatTier: resolveHeatTier(sharePct, idx + 1),
-    };
-  });
+  const rawCountries = Array.isArray(periodData?.countries) ? periodData!.countries : [];
 
-  const regionIds = Object.keys(WORLD_REGION_METADATA) as WorldRegionId[];
-  const unrankedRegions = regionIds
-    .map((regionId) => {
-      const meta = WORLD_REGION_METADATA[regionId];
-      const memberCountries = countries.filter((c) => c.regionId === regionId);
-      const visitors = memberCountries.reduce((acc, c) => acc + c.visitors, 0);
-      const extractions = memberCountries.reduce((acc, c) => acc + c.extractions, 0);
-      const weightedSuccess = memberCountries.reduce(
-        (acc, c) => acc + c.successRate * c.extractions,
-        0
-      );
-      const avgSuccessRate =
-        extractions > 0 ? roundOneDecimal(weightedSuccess / extractions) : 95;
-      const topMember = memberCountries[0];
+  const countries: D1VisitorOriginRecord[] = rawCountries
+    .map((row) => {
+      const code = (row.countryCode || 'XX').trim().toUpperCase();
+      const visitors = Math.max(0, Number(row.humanVisits) || 0);
+      const bots = Math.max(0, Number(row.botVisits) || 0);
+      const extractions = Math.max(0, Number(row.extractions) || 0);
+      const extractSuccess = Math.max(0, Number(row.extractSuccess) || 0);
+      const extractError = Math.max(0, Number(row.extractError) || 0);
+      const successRate =
+        row.successRate !== undefined && row.successRate !== null
+          ? roundOneDecimal(Number(row.successRate))
+          : extractions > 0
+          ? roundOneDecimal((extractSuccess / extractions) * 100)
+          : null;
+
+      const shareDenom = humanVisits > 0 ? humanVisits : totalExtractions;
+      const shareNum = humanVisits > 0 ? visitors : extractions;
       const sharePct =
-        totalVisitors > 0 ? roundOneDecimal((visitors / totalVisitors) * 100) : 0;
+        typeof row.sharePct === 'number'
+          ? roundOneDecimal(row.sharePct)
+          : shareDenom > 0
+          ? roundOneDecimal((shareNum / shareDenom) * 100)
+          : 0;
 
       return {
-        regionId,
-        name: meta.name,
-        shortName: meta.shortName,
+        countryCode: code,
+        countryName: getCountryNameFr(code),
+        flag: getCountryFlag(code),
         visitors,
+        botVisits: bots,
         extractions,
+        extractSuccess,
+        extractError,
+        successRate,
         sharePct,
-        avgSuccessRate,
-        countryCount: memberCountries.length,
-        topCountry: topMember?.countryName || '—',
-        topCountryFlag: topMember?.flag || '🌐',
-        centroidX: meta.centroidX,
-        centroidY: meta.centroidY,
       };
     })
-    .sort((a, b) => b.visitors - a.visitors);
+    .filter((c) => c.visitors > 0 || c.extractions > 0)
+    .sort(
+      (a, b) =>
+        b.visitors - a.visitors ||
+        b.extractions - a.extractions ||
+        a.countryCode.localeCompare(b.countryCode)
+    );
 
-  const regions: WorldRegionActivity[] = unrankedRegions.map((reg, index) => ({
-    ...reg,
-    rank: index + 1,
-    isTopRegion: index === 0,
-    heatTier: resolveHeatTier(reg.sharePct, index + 1),
-  }));
-
-  const weightedGlobalSuccess = countries.reduce(
-    (acc, c) => acc + c.successRate * c.extractions,
+  const maxCountryVisitors = countries.reduce(
+    (max, c) => Math.max(max, c.visitors),
     0
   );
-  const globalSuccessRate =
-    typeof d1Stats?.funnel?.extractSuccessRate === 'number' &&
-    d1Stats.funnel.extractSuccessRate > 0
-      ? roundOneDecimal(d1Stats.funnel.extractSuccessRate)
-      : totalExtractions > 0
-      ? roundOneDecimal(weightedGlobalSuccess / totalExtractions)
-      : 95.2;
+
+  const categories =
+    Array.isArray(periodData?.sources?.categories) &&
+    periodData!.sources!.categories.length === 4
+      ? periodData!.sources!.categories.map((cat) => ({
+          category: cat.category,
+          label: cat.label,
+          visits: Math.max(0, Number(cat.visits) || 0),
+          sharePct: roundOneDecimal(Number(cat.sharePct) || 0),
+        }))
+      : DEFAULT_SOURCE_CATEGORIES.map((c) => ({ ...c }));
+
+  const topReferrerHosts = Array.isArray(periodData?.sources?.topReferrerHosts)
+    ? periodData!.sources!.topReferrerHosts.slice(0, 8).map((h) => ({
+        host: String(h.host || ''),
+        category: h.category,
+        visits: Math.max(0, Number(h.visits) || 0),
+      }))
+    : [];
+
+  const topEntryPages = Array.isArray(periodData?.sources?.topEntryPages)
+    ? periodData!.sources!.topEntryPages.slice(0, 10).map((p) => ({
+        page: String(p.page || '/'),
+        visits: Math.max(0, Number(p.visits) || 0),
+        sharePct: roundOneDecimal(Number(p.sharePct) || 0),
+      }))
+    : [];
 
   return {
     period,
-    source: hasD1Scale ? 'd1-scaled-mock' : 'd1-default-mock',
-    totalVisitors,
+    source: 'd1',
+    humanVisits,
+    botVisits,
+    totalVisits,
+    totalVisitors: humanVisits,
     totalExtractions,
+    totalExtractSuccess,
+    totalExtractError,
     globalSuccessRate,
-    mostActiveRegion: regions[0],
-    mostActiveCountry: countries[0],
-    regions,
+    maxCountryVisitors,
+    mostActiveCountry: countries[0] || null,
     countries,
+    sources: {
+      categories,
+      topReferrerHosts,
+      topEntryPages,
+    },
   };
 }

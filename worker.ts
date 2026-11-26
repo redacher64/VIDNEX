@@ -15,6 +15,10 @@ import {
 } from './functions/api/stories.ts';
 import { onRequestGet as publicConfigGet } from './functions/api/public-config.ts';
 import {
+  onRequestPost as visitPost,
+  onRequestOptions as visitOptions,
+} from './functions/api/visit.ts';
+import {
   onRequestGet as adminLoginGet,
   onRequestPost as adminLoginPost,
 } from './functions/api/admin/login.ts';
@@ -107,6 +111,12 @@ async function routeInner(
     if (request.method === 'GET') {
       return publicConfigGet({ request, env });
     }
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/visit') {
+    if (request.method === 'OPTIONS') return visitOptions();
+    if (request.method === 'POST') return visitPost({ request, env, ctx });
     return new Response('Method Not Allowed', { status: 405 });
   }
 

@@ -1668,30 +1668,80 @@ test('worldMapLogic: projects lat/lon coordinates to SVG, aggregates regional co
   assert.equal(ext.top3ConcentrationPct, 90);
 });
 
-test('VisitorsMap buildD1VisitorsMapSummary: builds D1 mock visitor origins, ranks most active regions, and assigns heat tiers', async () => {
-  const { buildD1VisitorsMapSummary } = await import(
+test('VisitorsMap buildD1VisitorsMapSummary: uses strictly real D1 data with zero mock fallbacks and single-color choropleth levels', async () => {
+  const { buildD1VisitorsMapSummary, getChoroplethLevel, getChoroplethFill, CHOROPLETH_COLORS } = await import(
     '../src/pages/admin/visitorsMapLogic.ts'
   );
 
-  const default30d = buildD1VisitorsMapSummary('30d', null);
-  assert.equal(default30d.source, 'd1-default-mock');
-  assert.ok(default30d.totalVisitors > 0);
-  assert.ok(default30d.totalExtractions > 0);
-  assert.equal(default30d.regions.length, 5);
-  assert.equal(default30d.mostActiveRegion.rank, 1);
-  assert.equal(default30d.mostActiveRegion.isTopRegion, true);
-  assert.equal(default30d.mostActiveRegion.heatTier, 'hot');
-  assert.equal(default30d.mostActiveCountry.countryCode, 'FR');
-  assert.equal(default30d.mostActiveCountry.heatTier, 'hot');
+  const empty30d = buildD1VisitorsMapSummary('30d', null);
+  assert.equal(empty30d.source, 'd1');
+  assert.equal(empty30d.humanVisits, 0);
+  assert.equal(empty30d.botVisits, 0);
+  assert.equal(empty30d.totalExtractions, 0);
+  assert.equal(empty30d.countries.length, 0);
+  assert.equal(empty30d.mostActiveCountry, null);
 
-  // Verify scaling with D1 stats counts
-  const scaled7d = buildD1VisitorsMapSummary('7d', {
-    counts: { today: 200, last7d: 5000, last30d: 20000 },
-    funnel: { extractSuccessRate: 97.2 },
+  const populated7d = buildD1VisitorsMapSummary('7d', {
+    counts: { today: 5, last7d: 20, last30d: 118 },
+    geo: {
+      periods: {
+        '7d': {
+          period: '7d',
+          humanVisits: 45,
+          botVisits: 12,
+          totalVisits: 57,
+          totalExtractions: 20,
+          totalExtractSuccess: 15,
+          totalExtractError: 5,
+          globalSuccessRate: 75,
+          countries: [
+            {
+              countryCode: 'FR',
+              humanVisits: 30,
+              botVisits: 4,
+              extractions: 14,
+              extractSuccess: 11,
+              extractError: 3,
+              successRate: 78.6,
+              sharePct: 66.7,
+            },
+            {
+              countryCode: 'MA',
+              humanVisits: 15,
+              botVisits: 2,
+              extractions: 6,
+              extractSuccess: 4,
+              extractError: 2,
+              successRate: 66.7,
+              sharePct: 33.3,
+            },
+          ],
+          sources: {
+            categories: [
+              { category: 'search', label: 'Recherche', visits: 25, sharePct: 55.6 },
+              { category: 'direct', label: 'Direct', visits: 10, sharePct: 22.2 },
+              { category: 'social', label: 'Réseaux sociaux', visits: 7, sharePct: 15.6 },
+              { category: 'other', label: 'Autres sites', visits: 3, sharePct: 6.7 },
+            ],
+            topReferrerHosts: [{ host: 'google.com', category: 'search', visits: 25 }],
+            topEntryPages: [{ page: '/', visits: 20, sharePct: 44.4 }],
+          },
+        },
+      },
+    },
   });
-  assert.equal(scaled7d.source, 'd1-scaled-mock');
-  assert.equal(scaled7d.globalSuccessRate, 97.2);
-  assert.ok(scaled7d.regions[0].visitors >= scaled7d.regions[1].visitors);
+
+  assert.equal(populated7d.source, 'd1');
+  assert.equal(populated7d.humanVisits, 45);
+  assert.equal(populated7d.botVisits, 12);
+  assert.equal(populated7d.totalExtractions, 20);
+  assert.equal(populated7d.globalSuccessRate, 75);
+  assert.equal(populated7d.mostActiveCountry?.countryCode, 'FR');
+  assert.equal(populated7d.countries.length, 2);
+  assert.equal(getChoroplethLevel(0, 30), 0);
+  assert.equal(getChoroplethLevel(30, 30), 5);
+  assert.equal(getChoroplethFill(0, 30), CHOROPLETH_COLORS[0]);
+  assert.equal(getChoroplethFill(30, 30), CHOROPLETH_COLORS[5]);
 });
 
 test('LinkedIn direct flow: metadata priority (og:image -> twitter:image -> JSON-LD), magic-byte image validation, LOGIN_WALL without fallback candidates, structured anonymized failure logs, and error-code retry button visibility', async () => {

@@ -95,9 +95,16 @@ const migratedEngineColumnsDbs = new WeakSet<object>();
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
   `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('allow_third_party', 'true'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('feature_stories', 'false'), ('stories_provider_order', 'session,relay,paid'), ('stories_list_rate_limit_per_hour', '5'), ('stories_global_hourly_cap', '200'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('ads_adsterra_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
-  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER, content_kind TEXT, engine_fn TEXT)`,
+  `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER, content_kind TEXT, engine_fn TEXT, error_message TEXT, source_domain TEXT, country TEXT)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
+  `CREATE INDEX IF NOT EXISTS idx_request_log_status_ts ON request_log(status, ts DESC)`,
   `CREATE TABLE IF NOT EXISTS daily_metrics (day TEXT NOT NULL, platform TEXT NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, platform, event))`,
+  `CREATE TABLE IF NOT EXISTS daily_country_metrics (day TEXT NOT NULL, country TEXT NOT NULL, extract_started INTEGER NOT NULL DEFAULT 0, extract_success INTEGER NOT NULL DEFAULT 0, extract_error INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, country))`,
+  `CREATE INDEX IF NOT EXISTS idx_daily_country_metrics_day ON daily_country_metrics(day)`,
+  `CREATE TABLE IF NOT EXISTS page_visits (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, country TEXT NOT NULL DEFAULT 'XX', referrer_host TEXT, referrer_category TEXT NOT NULL DEFAULT 'direct', entry_page TEXT NOT NULL DEFAULT '/', is_bot INTEGER NOT NULL DEFAULT 0)`,
+  `CREATE INDEX IF NOT EXISTS idx_page_visits_ts ON page_visits(ts DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_page_visits_day_bot ON page_visits(day, is_bot)`,
+  `CREATE INDEX IF NOT EXISTS idx_page_visits_day_country ON page_visits(day, country)`,
   `CREATE TABLE IF NOT EXISTS engine_status (platform TEXT PRIMARY KEY, last_success_ts INTEGER, last_test_ts INTEGER, last_test_ok INTEGER, last_error_code TEXT, consecutive_failures INTEGER NOT NULL DEFAULT 0, alert_sent INTEGER NOT NULL DEFAULT 0)`,
   `INSERT OR IGNORE INTO engine_status (platform, last_success_ts, last_test_ts, last_test_ok, last_error_code, consecutive_failures, alert_sent) VALUES ('tiktok', NULL, NULL, NULL, NULL, 0, 0), ('instagram', NULL, NULL, NULL, NULL, 0, 0), ('instagram_profile', NULL, NULL, NULL, NULL, 0, 0), ('x', NULL, NULL, NULL, NULL, 0, 0), ('facebook', NULL, NULL, NULL, NULL, 0, 0), ('linkedin', NULL, NULL, NULL, NULL, 0, 0)`,
   `CREATE TABLE IF NOT EXISTS blocklist (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, value TEXT NOT NULL, created_ts INTEGER NOT NULL, UNIQUE(type, value))`,
@@ -153,6 +160,9 @@ export async function ensureD1Schema(rawDb?: D1Database | null): Promise<void> {
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN content_kind TEXT').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_fn TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN error_message TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN source_domain TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN country TEXT').run().catch(() => {});
       migratedColumnsDbs.add(rawDb);
     } catch {
       // Ignorer
@@ -176,7 +186,10 @@ async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boo
     msg.includes('no such column: engine_stage') ||
     msg.includes('no such column: http_status') ||
     msg.includes('no such column: content_kind') ||
-    msg.includes('no such column: engine_fn')
+    msg.includes('no such column: engine_fn') ||
+    msg.includes('no such column: error_message') ||
+    msg.includes('no such column: source_domain') ||
+    msg.includes('no such column: country')
   ) {
     if (migratedColumnsDbs.has(rawDb)) return false;
     try {
@@ -184,6 +197,9 @@ async function ensureSchemaOnError(rawDb: D1Database, err: unknown): Promise<boo
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN http_status INTEGER').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN content_kind TEXT').run().catch(() => {});
       await rawDb.prepare('ALTER TABLE request_log ADD COLUMN engine_fn TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN error_message TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN source_domain TEXT').run().catch(() => {});
+      await rawDb.prepare('ALTER TABLE request_log ADD COLUMN country TEXT').run().catch(() => {});
       migratedColumnsDbs.add(rawDb);
       return true;
     } catch {
@@ -328,6 +344,9 @@ export function createMemoryD1Database(): D1Database {
     http_status: number | null;
     content_kind?: string | null;
     engine_fn?: string | null;
+    error_message?: string | null;
+    source_domain?: string | null;
+    country?: string | null;
   }
 
   interface DailyMetricRow {
@@ -335,6 +354,25 @@ export function createMemoryD1Database(): D1Database {
     platform: string;
     event: string;
     count: number;
+  }
+
+  interface DailyCountryMetricRow {
+    day: string;
+    country: string;
+    extract_started: number;
+    extract_success: number;
+    extract_error: number;
+  }
+
+  interface PageVisitRow {
+    id: number;
+    ts: number;
+    day: string;
+    country: string;
+    referrer_host: string | null;
+    referrer_category: string;
+    entry_page: string;
+    is_bot: number;
   }
 
   interface EngineStatusRow {
@@ -457,6 +495,7 @@ export function createMemoryD1Database(): D1Database {
   }
 
   let logSeq = 1;
+  let visitSeq = 1;
   let blockSeq = 1;
   let userSeq = 1;
   let auditSeq = 1;
@@ -466,6 +505,8 @@ export function createMemoryD1Database(): D1Database {
   let writeCount = 0;
   let requestLogs: RequestLogRow[] = [];
   const dailyMetrics = new Map<string, DailyMetricRow>();
+  const dailyCountryMetrics = new Map<string, DailyCountryMetricRow>();
+  let pageVisits: PageVisitRow[] = [];
   const engineStatus = new Map<string, EngineStatusRow>([
     [
       'tiktok',
@@ -774,6 +815,18 @@ export function createMemoryD1Database(): D1Database {
           boundValues[9] !== undefined && boundValues[9] !== null
             ? String(boundValues[9])
             : null;
+        const error_message =
+          boundValues[10] !== undefined && boundValues[10] !== null
+            ? String(boundValues[10])
+            : null;
+        const source_domain =
+          boundValues[11] !== undefined && boundValues[11] !== null
+            ? String(boundValues[11])
+            : null;
+        const country =
+          boundValues[12] !== undefined && boundValues[12] !== null
+            ? String(boundValues[12])
+            : null;
         requestLogs.push({
           id: logSeq++,
           ts,
@@ -786,6 +839,9 @@ export function createMemoryD1Database(): D1Database {
           http_status,
           content_kind,
           engine_fn,
+          error_message,
+          source_domain,
+          country,
         });
         return [];
       }
@@ -794,11 +850,38 @@ export function createMemoryD1Database(): D1Database {
         requestLogs = requestLogs.filter((r) => r.ts >= cutoff);
         return [];
       }
+      // Grouped errors by error_code & platform
+      if (
+        lower.includes('from request_log') &&
+        lower.includes('group by error_code, platform')
+      ) {
+        const since = lower.includes('ts >= ?') ? Number(boundValues[0] || 0) : 0;
+        const counts = new Map<string, { error_code: string; platform: string; count: number }>();
+        for (const r of requestLogs) {
+          if (r.ts < since) continue;
+          if (lower.includes("status = 'error'") && r.status !== 'error') continue;
+          const ec = r.error_code || 'UNKNOWN_ERROR';
+          const plat = r.platform || 'unknown';
+          const key = `${ec}::${plat}`;
+          const prev = counts.get(key);
+          if (prev) {
+            prev.count += 1;
+          } else {
+            counts.set(key, { error_code: ec, platform: plat, count: 1 });
+          }
+        }
+        return Array.from(counts.values()).sort(
+          (a, b) => b.count - a.count || a.error_code.localeCompare(b.error_code)
+        );
+      }
       const filterRequestLogs = (bound: unknown[], hasLimitOffset: boolean): RequestLogRow[] => {
         const filterArgs = hasLimitOffset ? bound.slice(0, -2) : bound;
         let idx = 0;
         let filtered = [...requestLogs];
-        if (lower.includes('where ts >=')) {
+        if (lower.includes("status = 'error'")) {
+          filtered = filtered.filter((r) => r.status === 'error');
+        }
+        if (lower.includes('ts >= ?')) {
           const since = Number(filterArgs[idx++] || 0);
           filtered = filtered.filter((r) => r.ts >= since);
         }
@@ -823,21 +906,124 @@ export function createMemoryD1Database(): D1Database {
         return [{ total: filtered.length }];
       }
       if (
-        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash from request_log') ||
-        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status from request_log') ||
-        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn from request_log')
+        lower.startsWith('select id, ts, platform, status, error_code, duration_ms, ip_hash') &&
+        lower.includes('from request_log')
       ) {
-        const limit = Number(boundValues[boundValues.length - 2] || 25);
-        const offset = Number(boundValues[boundValues.length - 1] || 0);
-        const filtered = filterRequestLogs(boundValues, true);
+        const hasOffset = lower.includes('offset ?');
+        const limit = hasOffset
+          ? Number(boundValues[boundValues.length - 2] || 25)
+          : lower.includes('limit ?')
+          ? Number(boundValues[boundValues.length - 1] || 20)
+          : 25;
+        const offset = hasOffset ? Number(boundValues[boundValues.length - 1] || 0) : 0;
+        const filterBound = hasOffset
+          ? boundValues.slice(0, -2)
+          : lower.includes('limit ?')
+          ? boundValues.slice(0, -1)
+          : boundValues;
+        const filtered = filterRequestLogs(filterBound, false);
         const sorted = filtered.sort((a, b) => b.ts - a.ts || b.id - a.id);
         return sorted.slice(offset, offset + limit);
+      }
+      if (
+        lower.startsWith('select id, ts, platform, error_code, http_status, error_message, source_domain, country from request_log')
+      ) {
+        const hasLimitParam = lower.includes('limit ?');
+        const limit = hasLimitParam ? Number(boundValues[boundValues.length - 1] || 20) : 20;
+        const filterBound = hasLimitParam ? boundValues.slice(0, -1) : boundValues;
+        const filtered = filterRequestLogs(filterBound, false);
+        return filtered
+          .sort((a, b) => b.ts - a.ts || b.id - a.id)
+          .slice(0, limit)
+          .map((r) => ({
+            id: r.id,
+            ts: r.ts,
+            platform: r.platform,
+            error_code: r.error_code,
+            http_status: r.http_status ?? null,
+            error_message: r.error_message ?? null,
+            source_domain: r.source_domain ?? null,
+            country: r.country ?? null,
+          }));
       }
       if (lower.startsWith('select ts, platform, status, error_code, duration_ms from request_log where ts >=')) {
         const since = Number(boundValues[0] || 0);
         return requestLogs
           .filter((r) => r.ts >= since)
           .sort((a, b) => a.ts - b.ts);
+      }
+
+      // 7B. DAILY_COUNTRY_METRICS
+      if (lower.startsWith('insert into daily_country_metrics')) {
+        const day = String(boundValues[0] || '');
+        const country = String(boundValues[1] || 'XX').toUpperCase();
+        const started = Number(boundValues[2] || 0);
+        const success = Number(boundValues[3] || 0);
+        const err = Number(boundValues[4] || 0);
+        const key = `${day}:${country}`;
+        const existing = dailyCountryMetrics.get(key);
+        dailyCountryMetrics.set(key, {
+          day,
+          country,
+          extract_started: (existing?.extract_started ?? 0) + started,
+          extract_success: (existing?.extract_success ?? 0) + success,
+          extract_error: (existing?.extract_error ?? 0) + err,
+        });
+        return [];
+      }
+      if (lower.startsWith('delete from daily_country_metrics where day <')) {
+        const cutoffDay = String(boundValues[0] || '');
+        for (const [k, v] of dailyCountryMetrics.entries()) {
+          if (v.day < cutoffDay) dailyCountryMetrics.delete(k);
+        }
+        return [];
+      }
+      if (lower.includes('from daily_country_metrics')) {
+        const minDay = lower.includes('where day >=') ? String(boundValues[0] || '') : '';
+        return Array.from(dailyCountryMetrics.values())
+          .filter((r) => (!minDay ? true : r.day >= minDay))
+          .sort((a, b) => a.day.localeCompare(b.day));
+      }
+
+      // 7C. PAGE_VISITS
+      if (lower.startsWith('insert into page_visits')) {
+        const ts = Number(boundValues[0] || Date.now());
+        const day = String(boundValues[1] || '');
+        const country = String(boundValues[2] || 'XX').toUpperCase();
+        const referrer_host =
+          boundValues[3] !== undefined && boundValues[3] !== null
+            ? String(boundValues[3])
+            : null;
+        const referrer_category = String(boundValues[4] || 'direct');
+        const entry_page = String(boundValues[5] || '/');
+        const is_bot = Number(boundValues[6] || 0) ? 1 : 0;
+        pageVisits.push({
+          id: visitSeq++,
+          ts,
+          day,
+          country,
+          referrer_host,
+          referrer_category,
+          entry_page,
+          is_bot,
+        });
+        return [];
+      }
+      if (lower.startsWith('delete from page_visits where day <') || lower.startsWith('delete from page_visits where ts <')) {
+        if (lower.includes('where day <')) {
+          const cutoffDay = String(boundValues[0] || '');
+          pageVisits = pageVisits.filter((v) => v.day >= cutoffDay);
+        } else {
+          const cutoffTs = Number(boundValues[0] || 0);
+          pageVisits = pageVisits.filter((v) => v.ts >= cutoffTs);
+        }
+        return [];
+      }
+      if (lower.includes('from page_visits')) {
+        const minDay = lower.includes('where day >=') ? String(boundValues[0] || '') : '';
+        return pageVisits
+          .filter((v) => (!minDay ? true : v.day >= minDay))
+          .map((v) => ({ ...v }));
       }
 
       // 8. USERS

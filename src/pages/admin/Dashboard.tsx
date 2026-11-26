@@ -27,22 +27,28 @@ export interface DashboardWidgetProps {
   onRefresh?: () => void;
 }
 
-const D1_DEFAULT_LANGUAGE_GEO_WEIGHTS: Array<{
-  code: string;
-  name: string;
-  weight: number;
-}> = [
-  { code: 'FR', name: 'France', weight: 0.28 },
-  { code: 'US', name: 'États-Unis', weight: 0.16 },
-  { code: 'MA', name: 'Maroc', weight: 0.12 },
-  { code: 'ES', name: 'Espagne', weight: 0.09 },
-  { code: 'BR', name: 'Brésil', weight: 0.08 },
-  { code: 'DE', name: 'Allemagne', weight: 0.07 },
-  { code: 'DZ', name: 'Algérie', weight: 0.06 },
-  { code: 'CA', name: 'Canada', weight: 0.05 },
-  { code: 'TR', name: 'Turquie', weight: 0.05 },
-  { code: 'ID', name: 'Indonésie', weight: 0.04 },
-];
+const PLATFORM_DISPLAY_LABELS: Record<string, string> = {
+  tiktok: 'TikTok',
+  instagram: 'Instagram',
+  instagram_profile: 'Profil Instagram',
+  x: 'X (Twitter)',
+  twitter: 'X (Twitter)',
+  facebook: 'Facebook',
+  linkedin: 'LinkedIn',
+  unknown: 'Inconnue',
+};
+
+function formatPlatformLabel(platform: string): string {
+  const key = (platform || 'unknown').toLowerCase();
+  return PLATFORM_DISPLAY_LABELS[key] || platform || 'Inconnue';
+}
+
+function formatUtcTimestamp(ts: number): string {
+  if (!ts || !Number.isFinite(ts)) return '—';
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toISOString().replace('T', ' ').slice(0, 19);
+}
 
 export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
   data: externalData,
@@ -52,9 +58,9 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
   const [internalData, setInternalData] = useState<WidgetStatsInput | null>(null);
   const [internalLoading, setInternalLoading] = useState<boolean>(false);
   const [internalError, setInternalError] = useState<string | null>(null);
-  const [geoCountries, setGeoCountries] = useState<GeoInputCountryRow[] | null>(null);
-  const [period, setPeriod] = useState<'today' | '7d' | '30d'>('7d');
+  const [period, setPeriod] = useState<'today' | '7d' | '30d'>('today');
   const [viewMode, setViewMode] = useState<'both' | 'table' | 'chart' | 'map'>('both');
+  const [exportingExcel, setExportingExcel] = useState<boolean>(false);
 
   const isControlled = externalData !== undefined;
   const activeData = isControlled ? externalData : internalData;
@@ -84,29 +90,6 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
       fetchD1Stats();
     }
   }, [isControlled]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/admin/visitors', {
-      headers: { Accept: 'application/json' },
-      credentials: 'same-origin',
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json) => {
-        if (cancelled || !json?.ok || !json?.periods) return;
-        const pKey = period === 'today' ? '24h' : period;
-        const countries = json.periods[pKey]?.countries;
-        if (Array.isArray(countries) && countries.length > 0) {
-          setGeoCountries(countries);
-        }
-      })
-      .catch(() => {
-        // Optional geographic enrichment; silently falls back to D1 regional distribution
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [period]);
 
   const summary = computeDailyUsageSummary(activeData);
 
@@ -153,23 +136,30 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
           selectionsDownloaded: summary.last30d.selectionsDownloaded,
         };
 
+  // Strictly real D1 geographic data (zero synthetic or weighted fallback)
   const mapCountriesData: GeoInputCountryRow[] = useMemo(() => {
-    if (geoCountries && geoCountries.length > 0) {
-      return geoCountries;
+    const d1Countries = activeData?.geo?.periods?.[period]?.countries;
+    if (!Array.isArray(d1Countries) || d1Countries.length === 0) {
+      return [];
     }
-    const baseTotal = Math.max(selectedMetrics.total, summary.last30d.total, 100);
-    return D1_DEFAULT_LANGUAGE_GEO_WEIGHTS.map((item) => {
-      const reqs = Math.max(1, Math.round(baseTotal * item.weight));
-      return {
-        countryCode: item.code,
-        countryName: item.name,
-        requests: reqs,
-        percentage: Math.round(item.weight * 1000) / 10,
-        bytes: reqs * 420_000,
-        threats: 0,
-      };
-    });
-  }, [geoCountries, selectedMetrics.total, summary.last30d.total]);
+    return d1Countries.map((c) => ({
+      countryCode: c.countryCode,
+      requests: Math.max(0, Number(c.humanVisits) || Number(c.extractions) || 0),
+      percentage: Number(c.sharePct) || 0,
+      bytes: 0,
+      threats: 0,
+    }));
+  }, [activeData?.geo?.periods, period]);
+
+  const errorsByPlatformRows = useMemo(() => {
+    const byPeriod = activeData?.errorsByPlatform?.[period];
+    return Array.isArray(byPeriod) ? byPeriod : [];
+  }, [activeData?.errorsByPlatform, period]);
+
+  const errorsByPlatform30dCount = activeData?.errorsByPlatform?.['30d']?.length || 0;
+  const recentFailures = useMemo(() => {
+    return Array.isArray(activeData?.recentFailures) ? activeData!.recentFailures!.slice(0, 20) : [];
+  }, [activeData?.recentFailures]);
 
   const rateColorClass =
     selectedMetrics.successRate >= 85
@@ -194,20 +184,22 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
   const daily30Raw = Array.isArray(activeData?.daily) ? activeData!.daily : [];
   const max30Total = Math.max(1, ...daily30Raw.map((d) => d.total || 0));
 
-  const handleExportCsv = () => {
-    const csvContent = buildDailyUsageCsv(summary.last7d.days);
-    const blob = new Blob([`\uFEFF${csvContent}`], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const dateStamp = summary.today.day || new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.setAttribute('download', `vidnex-daily-api-usage-${dateStamp}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleExportExcel = async () => {
+    if (exportingExcel) return;
+    setExportingExcel(true);
+    setInternalError(null);
+    try {
+      const { downloadAdminStatsExcel } = await import('./excelExport');
+      await downloadAdminStatsExcel(activeData);
+    } catch (err) {
+      setInternalError(
+        err instanceof Error
+          ? `Erreur lors de l’export Excel : ${err.message}`
+          : 'Erreur lors de l’export Excel.'
+      );
+    } finally {
+      setExportingExcel(false);
+    }
   };
 
   return (
@@ -299,12 +291,12 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
 
           <button
             type="button"
-            onClick={handleExportCsv}
-            disabled={summary.last7d.days.length === 0}
-            title="Exporter les métriques quotidiennes au format CSV"
+            onClick={handleExportExcel}
+            disabled={isLoading || exportingExcel || !activeData}
+            title="Exporter toutes les statistiques D1 (30 jours) au format Excel (.xlsx)"
             className="px-3 py-1.5 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-xs font-semibold text-admin-text transition-colors cursor-pointer disabled:opacity-50"
           >
-            Export CSV
+            {exportingExcel ? 'Export…' : 'Export Excel'}
           </button>
 
           <button
@@ -458,15 +450,141 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
             <span>Vélocité horaire &amp; Top erreur</span>
             <Globe className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-mono text-lg font-bold text-admin-text tabular-nums">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+            <span className="font-mono text-lg font-bold text-admin-text tabular-nums shrink-0">
               {summary.today.hourlyVelocity} req/h
             </span>
-            <span className="text-xs font-mono text-admin-text-muted truncate">
+            <span className="text-xs font-mono text-red-800 dark:text-red-300 break-all">
               {summary.topErrors[0]
                 ? `${summary.topErrors[0].code} (${summary.topErrors[0].count})`
-                : '0 erreur critique'}
+                : '0 erreur enregistrée'}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance d'aujourd'hui : Tableau Erreurs (error_code × plateforme × nombre) + 20 derniers échecs */}
+      <div className="p-4 rounded-lg border border-admin-border space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0" />
+            <div>
+              <h4 className="font-display text-sm font-bold text-admin-text">
+                Performance d’aujourd’hui — Erreurs ({selectedMetrics.label})
+              </h4>
+              <p className="text-xs text-admin-text-muted">
+                Détail complet par code d’erreur et plateforme (<span className="font-mono">request_log</span> D1)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-mono text-admin-text-secondary">
+            <span>
+              {errorsByPlatformRows.reduce((acc, r) => acc + r.count, 0)} échec(s) sur la période
+            </span>
+            {period === 'today' && errorsByPlatformRows.length === 0 && errorsByPlatform30dCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setPeriod('30d')}
+                className="font-sans px-2 py-0.5 rounded-md border border-admin-border-strong hover:bg-admin-hover text-admin-accent font-semibold cursor-pointer"
+              >
+                Voir 30j
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Tableau Erreurs (error_code × plateforme × nombre) */}
+          <div className="space-y-2">
+            <h5 className="text-xs font-semibold text-admin-text-secondary">
+              Erreurs (error_code × plateforme × nombre)
+            </h5>
+            {errorsByPlatformRows.length === 0 ? (
+              <p className="text-xs text-admin-text-muted py-4 text-center border border-admin-border rounded-md">
+                Aucun échec enregistré sur cette période.
+              </p>
+            ) : (
+              <div className="overflow-x-auto border border-admin-border rounded-md">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-admin-border bg-admin-muted/40 text-admin-text-muted">
+                      <th className="py-2 px-3 font-semibold">Code erreur</th>
+                      <th className="py-2 px-3 font-semibold">Plateforme</th>
+                      <th className="py-2 px-3 text-right font-semibold">Nombre</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border/60">
+                    {errorsByPlatformRows.map((row) => (
+                      <tr
+                        key={`${row.error_code}::${row.platform}`}
+                        className="hover:bg-admin-hover/40"
+                      >
+                        <td className="py-2 px-3 font-mono font-semibold text-red-800 dark:text-red-300 whitespace-nowrap">
+                          {row.error_code}
+                        </td>
+                        <td className="py-2 px-3 text-admin-text whitespace-nowrap">
+                          {formatPlatformLabel(row.platform)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-admin-text tabular-nums">
+                          {row.count}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Liste des 20 derniers échecs */}
+          <div className="space-y-2">
+            <h5 className="text-xs font-semibold text-admin-text-secondary">
+              20 derniers échecs enregistrés
+            </h5>
+            {recentFailures.length === 0 ? (
+              <p className="text-xs text-admin-text-muted py-4 text-center border border-admin-border rounded-md">
+                Aucun échec récent dans D1.
+              </p>
+            ) : (
+              <div className="overflow-x-auto max-h-72 overflow-y-auto border border-admin-border rounded-md">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="sticky top-0 bg-admin-surface border-b border-admin-border text-admin-text-muted">
+                    <tr>
+                      <th className="py-2 px-2 font-semibold whitespace-nowrap">Date (UTC)</th>
+                      <th className="py-2 px-2 font-semibold whitespace-nowrap">Plateforme</th>
+                      <th className="py-2 px-2 font-semibold whitespace-nowrap">Code erreur</th>
+                      <th className="py-2 px-2 font-semibold whitespace-nowrap">HTTP</th>
+                      <th className="py-2 px-2 font-semibold whitespace-nowrap">Domaine</th>
+                      <th className="py-2 px-2 font-semibold">Message</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border/60">
+                    {recentFailures.map((fail) => (
+                      <tr key={fail.id || `${fail.ts}-${fail.error_code}`} className="hover:bg-admin-hover/40 align-top">
+                        <td className="py-1.5 px-2 font-mono text-[11px] text-admin-text-muted whitespace-nowrap tabular-nums">
+                          {formatUtcTimestamp(fail.ts)}
+                        </td>
+                        <td className="py-1.5 px-2 text-admin-text whitespace-nowrap">
+                          {formatPlatformLabel(fail.platform)}
+                        </td>
+                        <td className="py-1.5 px-2 font-mono font-semibold text-red-800 dark:text-red-300 whitespace-nowrap">
+                          {fail.error_code}
+                        </td>
+                        <td className="py-1.5 px-2 font-mono text-admin-text-secondary whitespace-nowrap tabular-nums">
+                          {fail.http_status ?? '—'}
+                        </td>
+                        <td className="py-1.5 px-2 font-mono text-[11px] text-admin-text-secondary whitespace-nowrap">
+                          {fail.source_domain || '—'}
+                        </td>
+                        <td className="py-1.5 px-2 text-admin-text-muted min-w-[160px] break-words">
+                          {fail.error_message || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -475,7 +593,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
       {viewMode === 'map' && (
         <WorldMapVisualization
           countries={mapCountriesData}
-          periodLabel={period === 'today' ? '24h' : period}
+          periodLabel={period === 'today' ? 'Aujourd’hui' : period}
           variant="admin"
         />
       )}
@@ -499,11 +617,12 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                   </span>
                   <button
                     type="button"
-                    onClick={handleExportCsv}
-                    disabled={summary.last7d.days.length === 0}
+                    onClick={handleExportExcel}
+                    disabled={isLoading || exportingExcel || !activeData}
+                    title="Exporter toutes les statistiques D1 (30 jours) au format Excel (.xlsx)"
                     className="px-2.5 py-1 rounded-md hover:bg-admin-hover border border-admin-border-strong text-xs font-semibold text-admin-accent transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    Export CSV
+                    {exportingExcel ? 'Export…' : 'Export Excel'}
                   </button>
                 </div>
               </div>
@@ -765,6 +884,7 @@ interface FunnelStats {
   download_started: number;
   download_success: number;
   extractSuccessRate: number;
+  globalConversionRate?: number;
   downloadConversionRate: number;
   downloadCompletionRate: number;
 }
@@ -783,7 +903,7 @@ interface EngineHealthSummary {
   last_error_code: string | null;
 }
 
-interface StatsResponse {
+interface StatsResponse extends WidgetStatsInput {
   ok: boolean;
   dbConnected: boolean;
   counts: {
@@ -1026,8 +1146,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
               Suivi agrégé sans identifiant : <span className="font-mono">extract_started → extract_success → download_started → download_success</span>
             </p>
           </div>
-          <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 px-2.5 py-1 rounded-md tabular-nums">
-            Conversion globale : <span className="font-mono">{funnel.downloadConversionRate}%</span>
+          <span
+            title="extract_success / extract_started"
+            className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/60 px-2.5 py-1 rounded-md tabular-nums"
+          >
+            Conversion globale (succès/démarrées) :{' '}
+            <span className="font-mono">
+              {funnel.globalConversionRate ?? funnel.extractSuccessRate}%
+            </span>
           </span>
         </div>
 
@@ -1374,9 +1500,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigateTab }) => {
                 totalErrors > 0 ? Math.round((errItem.count / totalErrors) * 1000) / 10 : 0;
               return (
                 <div key={errItem.code} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-admin-text font-semibold">{errItem.code}</span>
-                    <span className="text-admin-text-secondary tabular-nums">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <span className="text-admin-text font-semibold break-all">{errItem.code}</span>
+                    <span className="text-admin-text-secondary tabular-nums shrink-0">
                       {errItem.count} ({pct}%)
                     </span>
                   </div>

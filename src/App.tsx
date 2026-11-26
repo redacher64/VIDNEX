@@ -179,6 +179,41 @@ export function App({ initialPath }: AppProps = {}) {
     });
   }, [isAdmin]);
 
+  // Lightweight cookie-free visit beacon (never fires on /admin or SSR/prerender)
+  useEffect(() => {
+    if (isAdmin || initialPath || typeof window === 'undefined') return;
+    const pathname = window.location.pathname || '/';
+    if (pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/')) {
+      return;
+    }
+    const win = window as Window & { __vidnexVisitSent?: boolean };
+    if (win.__vidnexVisitSent) return;
+    win.__vidnexVisitSent = true;
+
+    const payload = JSON.stringify({
+      path: pathname,
+      referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+    });
+
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([payload], { type: 'application/json' });
+        if (navigator.sendBeacon('/api/visit', blob)) {
+          return;
+        }
+      }
+      fetch('/api/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+        credentials: 'omit',
+      }).catch(() => {});
+    } catch {
+      // Never block or degrade UX
+    }
+  }, [isAdmin, initialPath]);
+
   useEffect(() => {
     if (isAdmin || !publicConfig.ads_adsterra_enabled) return;
     return ensureAdsterraSocialBarLoaded();

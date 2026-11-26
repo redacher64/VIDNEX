@@ -1,722 +1,588 @@
 import React, { useMemo, useState } from 'react';
 import {
   Globe,
-  TrendingUp,
   Users,
   BarChart3,
   CheckCircle2,
+  ShieldCheck,
 } from './AdminIcons';
 import {
   buildD1VisitorsMapSummary,
+  CHOROPLETH_COLORS,
+  getChoroplethFill,
   type VisitorsMapPeriod,
-  type WorldRegionId,
   type D1StatsSeedInput,
-  type ActivityHeatTier,
+  type D1VisitorOriginRecord,
 } from './visitorsMapLogic';
+import {
+  WORLD_COUNTRY_SHAPES,
+  getCountryFlag,
+  getCountryNameFr,
+} from './worldCountriesGeo';
 
 export {
   buildD1VisitorsMapSummary,
   type VisitorsMapPeriod,
-  type WorldRegionId,
   type D1StatsSeedInput,
-  type ActivityHeatTier,
 };
 
 export interface VisitorsMapProps {
   d1Stats?: D1StatsSeedInput | null;
   initialPeriod?: VisitorsMapPeriod;
+  period?: VisitorsMapPeriod;
+  onPeriodChange?: (period: VisitorsMapPeriod) => void;
 }
 
-const REGION_SVG_SHAPES: Array<{
-  id: string;
-  regionId: WorldRegionId;
-  label: string;
-  d: string;
-}> = [
-  {
-    id: 'region-north-america',
-    regionId: 'north_america',
-    label: 'Amérique du Nord',
-    d: 'M 65,65 L 185,55 L 295,62 L 338,110 L 308,165 L 265,212 L 222,222 L 178,195 L 135,148 L 78,115 Z',
-  },
-  {
-    id: 'region-greenland',
-    regionId: 'north_america',
-    label: 'Groenland',
-    d: 'M 335,32 L 420,28 L 435,68 L 385,95 L 340,78 Z',
-  },
-  {
-    id: 'region-latin-america',
-    regionId: 'latin_america',
-    label: 'Amérique Latine',
-    d: 'M 225,225 L 265,215 L 325,265 L 378,312 L 365,382 L 320,455 L 288,468 L 278,395 L 245,310 Z',
-  },
-  {
-    id: 'region-europe',
-    regionId: 'europe',
-    label: 'Europe',
-    d: 'M 465,68 L 545,55 L 625,62 L 642,135 L 585,165 L 542,175 L 495,172 L 468,148 L 458,108 Z',
-  },
-  {
-    id: 'region-mena-africa',
-    regionId: 'mena_africa',
-    label: 'Afrique & Moyen-Orient',
-    d: 'M 458,182 L 545,178 L 628,175 L 668,208 L 638,255 L 615,328 L 585,405 L 538,412 L 512,345 L 492,285 L 452,248 Z',
-  },
-  {
-    id: 'region-asia',
-    regionId: 'asia_pacific',
-    label: 'Asie',
-    d: 'M 628,62 L 785,58 L 912,82 L 925,145 L 875,215 L 822,262 L 758,255 L 705,242 L 668,205 L 638,142 Z',
-  },
-  {
-    id: 'region-se-asia',
-    regionId: 'asia_pacific',
-    label: 'Asie du Sud-Est',
-    d: 'M 775,268 L 865,265 L 895,312 L 835,328 L 778,308 Z',
-  },
-  {
-    id: 'region-oceania',
-    regionId: 'asia_pacific',
-    label: 'Océanie',
-    d: 'M 795,352 L 892,345 L 922,398 L 892,438 L 812,428 L 788,388 Z',
-  },
-];
+interface HoveredCountryTooltip {
+  code: string;
+  nameFr: string;
+  flag: string;
+  visitors: number;
+  extractions: number;
+  successRate: number | null;
+  xPct: number;
+  yPct: number;
+}
 
-function getHeatTierColors(tier: ActivityHeatTier, isSelected: boolean) {
-  if (tier === 'hot') {
-    return {
-      fill: isSelected ? 'rgba(249, 115, 22, 0.45)' : 'rgba(249, 115, 22, 0.32)',
-      stroke: isSelected ? '#fb923c' : '#f97316',
-      dot: '#f97316',
-      badge:
-        'bg-orange-500/15 border-orange-500/40 text-orange-800 dark:text-orange-300',
-      label: 'Activité Maximale',
-    };
-  }
-  if (tier === 'high') {
-    return {
-      fill: isSelected ? 'rgba(245, 158, 11, 0.38)' : 'rgba(245, 158, 11, 0.25)',
-      stroke: isSelected ? '#fbbf24' : '#f59e0b',
-      dot: '#f59e0b',
-      badge:
-        'bg-amber-500/15 border-amber-500/40 text-amber-800 dark:text-amber-300',
-      label: 'Activité Élevée',
-    };
-  }
-  if (tier === 'medium') {
-    return {
-      fill: isSelected ? 'rgba(16, 185, 129, 0.34)' : 'rgba(16, 185, 129, 0.22)',
-      stroke: isSelected ? '#34d399' : '#10b981',
-      dot: '#10b981',
-      badge:
-        'bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-300',
-      label: 'Activité Modérée',
-    };
-  }
-  return {
-    fill: isSelected ? 'rgba(56, 189, 248, 0.28)' : 'rgba(92, 53, 30, 0.45)',
-    stroke: isSelected ? '#38bdf8' : '#7c4324',
-    dot: '#38bdf8',
-    badge: 'bg-sky-500/15 border-sky-500/40 text-sky-800 dark:text-sky-300',
-    label: 'Activité Standard',
-  };
+const PERIOD_LABELS: Record<VisitorsMapPeriod, string> = {
+  today: 'Aujourd’hui',
+  '7d': '7 jours',
+  '30d': '30 jours',
+};
+
+function formatFrNumber(value: number): string {
+  return Math.max(0, Number(value) || 0).toLocaleString('fr-FR');
 }
 
 export const VisitorsMap: React.FC<VisitorsMapProps> = ({
   d1Stats,
   initialPeriod = '30d',
+  period: controlledPeriod,
+  onPeriodChange,
 }) => {
-  const [period, setPeriod] = useState<VisitorsMapPeriod>(initialPeriod);
-  const [selectedRegionId, setSelectedRegionId] = useState<WorldRegionId | 'all'>('all');
-  const [activeCountryCode, setActiveCountryCode] = useState<string | null>(null);
+  const [internalPeriod, setInternalPeriod] = useState<VisitorsMapPeriod>(initialPeriod);
+  const period = controlledPeriod ?? internalPeriod;
+  const setPeriod = (next: VisitorsMapPeriod) => {
+    if (onPeriodChange) {
+      onPeriodChange(next);
+    } else {
+      setInternalPeriod(next);
+    }
+  };
+
+  const [hoveredTooltip, setHoveredTooltip] = useState<HoveredCountryTooltip | null>(null);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
 
   const summary = useMemo(
     () => buildD1VisitorsMapSummary(period, d1Stats),
     [period, d1Stats]
   );
 
-  const regionLookup = useMemo(() => {
-    const map = new Map<WorldRegionId, (typeof summary.regions)[number]>();
-    for (const r of summary.regions) {
-      map.set(r.regionId, r);
+  const countryByCode = useMemo(() => {
+    const map = new Map<string, D1VisitorOriginRecord>();
+    for (const c of summary.countries) {
+      map.set(c.countryCode, c);
     }
     return map;
-  }, [summary.regions]);
+  }, [summary.countries]);
 
-  const filteredCountries = useMemo(() => {
-    if (selectedRegionId === 'all') return summary.countries;
-    return summary.countries.filter((c) => c.regionId === selectedRegionId);
-  }, [summary.countries, selectedRegionId]);
+  // Choropleth coloring is driven by real human visitors (falls back to extractions only if 0 visits recorded)
+  const useVisitsForColor = summary.humanVisits > 0;
+  const maxChoroplethValue = useMemo(() => {
+    if (useVisitsForColor) return summary.maxCountryVisitors;
+    return summary.countries.reduce((max, c) => Math.max(max, c.extractions), 0);
+  }, [useVisitsForColor, summary.maxCountryVisitors, summary.countries]);
 
-  const activeCountry = useMemo(() => {
-    if (activeCountryCode) {
-      const found = summary.countries.find((c) => c.countryCode === activeCountryCode);
-      if (found) return found;
+  const handleShapePointer = (
+    e: React.MouseEvent<SVGPathElement>,
+    code: string,
+    nameFr: string
+  ) => {
+    const svg = e.currentTarget.ownerSVGElement;
+    let xPct = 50;
+    let yPct = 30;
+    if (svg) {
+      const rect = svg.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        xPct = Math.min(82, Math.max(18, ((e.clientX - rect.left) / rect.width) * 100));
+        yPct = Math.min(84, Math.max(12, ((e.clientY - rect.top) / rect.height) * 100));
+      }
     }
-    return filteredCountries[0] || summary.mostActiveCountry;
-  }, [activeCountryCode, filteredCountries, summary]);
+    const stats = countryByCode.get(code);
+    setHoveredTooltip({
+      code,
+      nameFr: stats?.countryName || nameFr || getCountryNameFr(code),
+      flag: stats?.flag || getCountryFlag(code),
+      visitors: stats?.visitors ?? 0,
+      extractions: stats?.extractions ?? 0,
+      successRate: stats?.successRate ?? null,
+      xPct,
+      yPct,
+    });
+  };
 
-  const activeRegion = useMemo(() => {
-    if (selectedRegionId !== 'all') {
-      return regionLookup.get(selectedRegionId) || summary.mostActiveRegion;
-    }
-    return summary.mostActiveRegion;
-  }, [selectedRegionId, regionLookup, summary.mostActiveRegion]);
+  const maxCountryRankValue = useMemo(() => {
+    if (summary.countries.length === 0) return 1;
+    return Math.max(
+      1,
+      ...summary.countries.map((c) => (useVisitsForColor ? c.visitors : c.extractions))
+    );
+  }, [summary.countries, useVisitsForColor]);
 
   return (
     <section
-      aria-label="Carte mondiale des origines visiteurs D1"
+      aria-label="Carte mondiale et sources des visiteurs D1"
       className="bg-admin-surface border border-admin-border rounded-lg p-5 space-y-5 shadow-2xs"
     >
-      {/* En-tête VisitorsMap */}
+      {/* En-tête + Sélecteur de période unique */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-admin-accent-bg border border-admin-accent-border flex items-center justify-center text-admin-accent shrink-0 mt-0.5">
             <Globe className="w-4 h-4" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
-                Carte Mondiale des Origines Visiteurs (D1 Analytics)
-              </h3>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-admin-accent-bg border border-admin-accent-border text-admin-accent">
-                Région #1 : {summary.mostActiveRegion.shortName} (<span className="font-mono">{summary.mostActiveRegion.sharePct}%</span>)
-              </span>
-            </div>
+            <h3 className="font-display text-sm sm:text-base font-bold text-admin-text">
+              Carte Mondiale &amp; Visiteurs Réels (D1)
+            </h3>
             <p className="text-xs text-admin-text-muted">
-              Visualisation SVG des origines géographiques et mise en évidence des régions à plus forte activité D1
+              Visites sans cookie (<span className="font-mono">page_visits</span>) et extractions par pays (
+              <span className="font-mono">daily_country_metrics</span>) · {PERIOD_LABELS[period]}
             </p>
           </div>
         </div>
 
-        {/* Sélecteur de période */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            role="group"
-            aria-label="Période de la carte des visiteurs"
-            className="inline-flex rounded-lg p-1 border border-admin-border"
-          >
-            {(
-              [
-                { id: 'today', label: 'Aujourd’hui' },
-                { id: '7d', label: '7 jours' },
-                { id: '30d', label: '30 jours' },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setPeriod(tab.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                  period === tab.id
-                    ? 'bg-admin-accent text-white shadow-2xs'
-                    : 'text-admin-text-secondary hover:text-admin-text'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div
+          role="group"
+          aria-label="Période de la carte et des visiteurs"
+          className="inline-flex rounded-lg p-1 border border-admin-border"
+        >
+          {(
+            [
+              { id: 'today', label: 'Aujourd’hui' },
+              { id: '7d', label: '7j' },
+              { id: '30d', label: '30j' },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setPeriod(tab.id)}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                period === tab.id
+                  ? 'bg-admin-accent text-white shadow-2xs'
+                  : 'text-admin-text-secondary hover:text-admin-text'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Bandeau KPI des régions les plus actives */}
+      {/* 4 KPI cohérents D1 : Humains, Bots, Extractions, Taux de succès */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
-            <span>Région la plus active</span>
-            <TrendingUp className="w-3.5 h-3.5 text-admin-text-muted" />
-          </div>
-          <p className="font-display text-lg font-bold text-admin-text truncate">
-            {summary.mostActiveRegion.shortName}
-          </p>
-          <p className="text-xs text-admin-text-muted">
-            <span className="font-mono">{summary.mostActiveRegion.visitors.toLocaleString('fr-FR')}</span> visiteurs (
-            <span className="font-mono">{summary.mostActiveRegion.sharePct}%</span>)
-          </p>
-        </div>
-
-        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
-            <span>Pays d’origine #1</span>
-            <span className="text-base leading-none">{summary.mostActiveCountry.flag}</span>
-          </div>
-          <p className="font-display text-lg font-bold text-admin-text truncate">
-            {summary.mostActiveCountry.countryName} (<span className="font-mono">{summary.mostActiveCountry.countryCode}</span>)
-          </p>
-          <p className="text-xs text-admin-text-muted">
-            <span className="font-mono">{summary.mostActiveCountry.visitors.toLocaleString('fr-FR')}</span> vis. ·{' '}
-            <span className="font-mono">{summary.mostActiveCountry.sharePct}%</span> du trafic
-          </p>
-        </div>
-
-        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
-          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
-            <span>Visiteurs totaux (D1)</span>
+            <span>Visiteurs humains</span>
             <Users className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-mono text-lg font-bold text-admin-text tabular-nums">
-            {summary.totalVisitors.toLocaleString('fr-FR')}
+          <p className="font-mono text-xl font-bold text-admin-text tabular-nums">
+            {formatFrNumber(summary.humanVisits)}
           </p>
           <p className="text-xs text-admin-text-muted">
-            <span className="font-mono">{summary.totalExtractions.toLocaleString('fr-FR')}</span> extractions médias
+            {summary.mostActiveCountry
+              ? `Top : ${summary.mostActiveCountry.flag} ${summary.mostActiveCountry.countryName}`
+              : 'Aucune visite enregistrée'}
           </p>
         </div>
 
         <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
           <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
-            <span>Succès géographique moyen</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-admin-text-muted" />
+            <span>Visites bots (filtrées)</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-admin-text-muted" />
           </div>
-          <p className="font-mono text-lg font-bold text-emerald-800 dark:text-emerald-400 tabular-nums">
-            {summary.globalSuccessRate}%
+          <p className="font-mono text-xl font-bold text-admin-text-secondary tabular-nums">
+            {formatFrNumber(summary.botVisits)}
           </p>
           <p className="text-xs text-admin-text-muted">
-            <span className="font-mono">{summary.countries.length}</span> pays actifs sur <span className="font-mono">5</span> régions
+            Total brut : <span className="font-mono">{formatFrNumber(summary.totalVisits)}</span> (humains + bots)
+          </p>
+        </div>
+
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Extractions ({PERIOD_LABELS[period]})</span>
+            <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
+          </div>
+          <p className="font-mono text-xl font-bold text-admin-text tabular-nums">
+            {formatFrNumber(summary.totalExtractions)}
+          </p>
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{formatFrNumber(summary.totalExtractSuccess)}</span> OK ·{' '}
+            <span className="font-mono">{formatFrNumber(summary.totalExtractError)}</span> échecs
+          </p>
+        </div>
+
+        <div className="p-3.5 rounded-lg border border-admin-border space-y-1">
+          <div className="flex items-center justify-between text-xs font-medium text-admin-text-secondary">
+            <span>Taux de succès ({PERIOD_LABELS[period]})</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-admin-text-muted" />
+          </div>
+          <p
+            className={`font-mono text-xl font-bold tabular-nums ${
+              summary.totalExtractions === 0
+                ? 'text-admin-text-muted'
+                : summary.globalSuccessRate >= 80
+                ? 'text-emerald-800 dark:text-emerald-400'
+                : summary.globalSuccessRate >= 50
+                ? 'text-amber-800 dark:text-amber-400'
+                : 'text-red-800 dark:text-red-400'
+            }`}
+          >
+            {summary.totalExtractions > 0 ? `${summary.globalSuccessRate}%` : '—'}
+          </p>
+          <p className="text-xs text-admin-text-muted">
+            <span className="font-mono">{summary.countries.length}</span> pays actifs dans D1
           </p>
         </div>
       </div>
 
-      {/* Filtres rapides de région pour surligner une zone sur la carte SVG */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setSelectedRegionId('all')}
-          className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
-            selectedRegionId === 'all'
-              ? 'bg-admin-accent text-white border-admin-accent'
-              : 'text-admin-text-secondary border-admin-border hover:text-admin-text'
-          }`}
-        >
-          Toutes les régions (5)
-        </button>
-        {summary.regions.map((reg) => {
-          const active = selectedRegionId === reg.regionId;
-          return (
-            <button
-              key={reg.regionId}
-              type="button"
-              onClick={() =>
-                setSelectedRegionId((prev) => (prev === reg.regionId ? 'all' : reg.regionId))
-              }
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
-                active
-                  ? 'bg-admin-accent text-white border-admin-accent'
-                  : 'text-admin-text-secondary border-admin-border hover:text-admin-text'
-              }`}
-            >
-              <span className="font-mono">#{reg.rank}</span>
-              <span>{reg.shortName}</span>
-              <span className="font-mono opacity-80">({reg.sharePct}%)</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Carte Mondiale SVG + Classement des Régions les plus actives */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Canvas SVG Carte Mondiale avec régions surlignées par intensité d'activité */}
-        <div className="lg:col-span-8 rounded-lg bg-[#16100c] border border-admin-border p-3.5 flex flex-col justify-between text-[#fffaf5]">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 text-xs text-[#c89d7c]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-              Zones thermiques D1 : les régions les plus actives sont illuminées en orange/ambre
-            </span>
-            <span>Cliquez sur un continent ou un pays pour inspecter</span>
-          </div>
-
-          <div className="relative w-full aspect-[2/1] min-h-[240px]">
-            <svg
-              viewBox="0 0 1000 500"
-              className="w-full h-full select-none"
-              role="img"
-              aria-label="Carte mondiale SVG des origines de visiteurs et régions actives"
-            >
-              <defs>
-                <radialGradient id="visitorsMapHotGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#f97316" stopOpacity="0.9" />
-                  <stop offset="55%" stopColor="#fb923c" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="visitorsMapHighGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.85" />
-                  <stop offset="55%" stopColor="#fbbf24" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="visitorsMapNormalGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-                  <stop offset="55%" stopColor="#34d399" stopOpacity="0.28" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-
-              {/* Grille géographique chaude */}
-              {[100, 200, 300, 400].map((y) => (
-                <line
-                  key={`grid-y-${y}`}
-                  x1={0}
-                  y1={y}
-                  x2={1000}
-                  y2={y}
-                  stroke="#2c1d13"
-                  strokeWidth="0.8"
-                  strokeDasharray="4 4"
-                />
-              ))}
-              {[166, 333, 500, 666, 833].map((x) => (
-                <line
-                  key={`grid-x-${x}`}
-                  x1={x}
-                  y1={0}
-                  x2={x}
-                  y2={500}
-                  stroke="#2c1d13"
-                  strokeWidth="0.8"
-                  strokeDasharray="4 4"
-                />
-              ))}
-
-              {/* Polygones des Régions colorés selon leur niveau d'activité (HeatTier) */}
-              {REGION_SVG_SHAPES.map((shape) => {
-                const regInfo = regionLookup.get(shape.regionId);
-                const tier = regInfo?.heatTier || 'low';
-                const isSelected =
-                  selectedRegionId === 'all'
-                    ? Boolean(regInfo?.isTopRegion)
-                    : selectedRegionId === shape.regionId;
-                const isDimmed =
-                  selectedRegionId !== 'all' && selectedRegionId !== shape.regionId;
-                const colors = getHeatTierColors(tier, isSelected);
-
-                return (
-                  <path
-                    key={shape.id}
-                    d={shape.d}
-                    fill={colors.fill}
-                    stroke={colors.stroke}
-                    strokeWidth={isSelected ? '2.2' : '1.4'}
-                    opacity={isDimmed ? 0.35 : 1}
-                    strokeLinejoin="round"
-                    onClick={() =>
-                      setSelectedRegionId((prev) =>
-                        prev === shape.regionId ? 'all' : shape.regionId
-                      )
-                    }
-                    className="cursor-pointer transition-all duration-300 hover:opacity-100"
-                  >
-                    <title>
-                      {regInfo
-                        ? `${regInfo.name} (#${regInfo.rank}) : ${regInfo.visitors.toLocaleString(
-                            'fr-FR'
-                          )} visiteurs (${regInfo.sharePct}%)`
-                        : shape.label}
-                    </title>
-                  </path>
-                );
-              })}
-
-              {/* Badges de région sur les centroïdes des 5 régions */}
-              {summary.regions.map((reg) => {
-                const isHighlighted =
-                  selectedRegionId === 'all'
-                    ? reg.rank <= 2
-                    : selectedRegionId === reg.regionId;
-                if (!isHighlighted) return null;
-                return (
-                  <g
-                    key={`badge-${reg.regionId}`}
-                    transform={`translate(${reg.centroidX}, ${reg.centroidY})`}
-                    onClick={() =>
-                      setSelectedRegionId((prev) =>
-                        prev === reg.regionId ? 'all' : reg.regionId
-                      )
-                    }
-                    className="cursor-pointer"
-                  >
-                    <rect
-                      x="-46"
-                      y="-24"
-                      width="92"
-                      height="16"
-                      rx="4"
-                      fill="var(--admin-surface-muted)"
-                      fillOpacity="0.92"
-                      stroke={reg.isTopRegion ? '#f97316' : '#f59e0b'}
-                      strokeWidth="1"
-                    />
-                    <text
-                      textAnchor="middle"
-                      y="-13"
-                      fill={reg.isTopRegion ? '#fdba74' : '#fde68a'}
-                      fontSize="8"
-                      fontFamily="monospace"
-                      fontWeight="bold"
-                    >
-                      #{reg.rank} {reg.shortName} {reg.sharePct}%
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Points d'origine des visiteurs par pays */}
-              {filteredCountries.map((country, idx) => {
-                const isSelected = activeCountry?.countryCode === country.countryCode;
-                const radius = Math.max(5, Math.min(20, 5 + Math.sqrt(country.sharePct) * 2.6));
-                const glowUrl =
-                  country.heatTier === 'hot'
-                    ? 'url(#visitorsMapHotGlow)'
-                    : country.heatTier === 'high'
-                    ? 'url(#visitorsMapHighGlow)'
-                    : 'url(#visitorsMapNormalGlow)';
-                const dotFill =
-                  country.heatTier === 'hot'
-                    ? '#f97316'
-                    : country.heatTier === 'high'
-                    ? '#f59e0b'
-                    : '#10b981';
-
-                return (
-                  <g
-                    key={country.countryCode}
-                    transform={`translate(${country.svgX}, ${country.svgY})`}
-                    onClick={() => setActiveCountryCode(country.countryCode)}
-                    onMouseEnter={() => setActiveCountryCode(country.countryCode)}
-                    className="cursor-pointer"
-                  >
-                    <circle
-                      r={radius * 1.9}
-                      fill={glowUrl}
-                      opacity={isSelected ? 1 : 0.75}
-                    />
-                    {(isSelected || idx < 4) && (
-                      <circle
-                        r={radius + 3}
-                        fill="none"
-                        stroke={isSelected ? '#fffaf5' : dotFill}
-                        strokeWidth={isSelected ? '1.8' : '1.1'}
-                      />
-                    )}
-                    <circle
-                      r={Math.max(4, radius * 0.6)}
-                      fill={dotFill}
-                      stroke="#140e0a"
-                      strokeWidth="1.2"
-                    />
-                    {(idx < 6 || isSelected) && (
-                      <text
-                        textAnchor="middle"
-                        y={radius + 11}
-                        fill="#fffaf5"
-                        fontSize="7.5"
-                        fontFamily="monospace"
-                        fontWeight="bold"
-                      >
-                        {country.countryCode} ({country.sharePct}%)
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-
-          {/* Légende d'intensité thermique */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 border-t border-[#2c1d13] text-xs text-[#c89d7c]">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                Activité Maximale (#1)
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                Activité Élevée (#2)
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                Activité Modérée / Standard
-              </span>
-            </div>
-            <span className="text-[#f3d5b5]">Région active : {activeRegion.name}</span>
-          </div>
+      {/* Carte Choroplèthe SVG embarquée (une seule couleur : plus il y a de visiteurs, plus c'est foncé) */}
+      <div className="rounded-lg border border-admin-border bg-[#f6f1eb] dark:bg-[#ece4dc] p-3.5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5c4838]">
+          <span className="font-semibold">
+            Carte choroplèthe par pays ({useVisitsForColor ? 'visiteurs humains' : 'extractions D1'})
+          </span>
+          <span>Survolez un pays pour voir le détail</span>
         </div>
 
-        {/* Colonne droite (4 cols) : Classement des Régions les plus actives + Pays inspecté */}
-        <div className="lg:col-span-4 flex flex-col justify-between gap-4">
-          {/* Classement des Régions par activité */}
-          <div className="p-4 rounded-lg border border-admin-border space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-display text-xs font-bold text-admin-text-secondary">
-                Régions les plus actives (D1)
-              </h4>
-              <BarChart3 className="w-3.5 h-3.5 text-admin-text-muted" />
-            </div>
+        <div className="relative w-full aspect-[2/1] min-h-[220px] select-none">
+          <svg
+            viewBox="0 0 1000 500"
+            className="w-full h-full block"
+            role="img"
+            aria-label="Carte choroplèthe mondiale des visiteurs par pays"
+            onMouseLeave={() => setHoveredTooltip(null)}
+          >
+            {/* Fond océan très léger */}
+            <rect x="0" y="0" width="1000" height="500" fill="#f6f1eb" rx="6" />
 
-            <div className="space-y-2.5">
-              {summary.regions.map((reg) => {
-                const colors = getHeatTierColors(
-                  reg.heatTier,
-                  selectedRegionId === reg.regionId
-                );
-                return (
-                  <button
-                    key={reg.regionId}
-                    type="button"
-                    onClick={() =>
-                      setSelectedRegionId((prev) =>
-                        prev === reg.regionId ? 'all' : reg.regionId
-                      )
-                    }
-                    className={`w-full text-left p-2.5 rounded-md border transition-all cursor-pointer ${
-                      selectedRegionId === reg.regionId
-                        ? 'border-admin-accent shadow-2xs'
-                        : 'border-admin-border hover:border-admin-border-strong'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span
-                          className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded-md border ${colors.badge}`}
-                        >
-                          #{reg.rank}
-                        </span>
-                        <span className="font-bold text-admin-text truncate">
-                          {reg.shortName}
-                        </span>
-                      </div>
-                      <span className="font-mono font-bold text-admin-text tabular-nums shrink-0">
-                        {reg.visitors.toLocaleString('fr-FR')} vis. ({reg.sharePct}%)
-                      </span>
-                    </div>
+            {/* Grille latitude/longitude discrète */}
+            {[125, 250, 375].map((y) => (
+              <line
+                key={`lat-${y}`}
+                x1="0"
+                y1={y}
+                x2="1000"
+                y2={y}
+                stroke="#e2d9cf"
+                strokeWidth="0.6"
+                strokeDasharray="3 4"
+              />
+            ))}
 
-                    <div className="mt-1.5 w-full h-1.5 rounded-full border border-admin-border overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${
-                          reg.heatTier === 'hot'
-                            ? 'bg-orange-500'
-                            : reg.heatTier === 'high'
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
-                        }`}
-                        style={{ width: `${Math.min(100, Math.max(4, reg.sharePct))}%` }}
-                      />
-                    </div>
+            {/* Polygones GeoJSON embarqués par pays */}
+            {WORLD_COUNTRY_SHAPES.map((shape) => {
+              const stats = countryByCode.get(shape.code);
+              const value = useVisitsForColor
+                ? stats?.visitors ?? 0
+                : stats?.extractions ?? 0;
+              const fill = getChoroplethFill(value, maxChoroplethValue);
+              const isSelected = selectedCountryCode === shape.code;
+              const isHovered = hoveredTooltip?.code === shape.code;
 
-                    <div className="mt-1 flex items-center justify-between text-xs text-admin-text-muted">
-                      <span>
-                        Top : {reg.topCountryFlag} {reg.topCountry}
-                      </span>
-                      <span className="font-mono">
-                        {reg.extractions.toLocaleString('fr-FR')} extr. · {reg.avgSuccessRate}% OK
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Fiche du pays d'origine inspecté */}
-          {activeCountry && (
-            <div className="p-4 rounded-lg border border-admin-border space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-admin-text-secondary">
-                  Pays d’origine sélectionné
-                </span>
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
-                    getHeatTierColors(activeCountry.heatTier, true).badge
-                  }`}
+              return (
+                <path
+                  key={shape.code}
+                  d={shape.d}
+                  data-country={shape.code}
+                  fill={fill}
+                  stroke={isHovered || isSelected ? '#431407' : '#ffffff'}
+                  strokeWidth={isHovered || isSelected ? 1.4 : 0.65}
+                  strokeLinejoin="round"
+                  onMouseEnter={(e) => handleShapePointer(e, shape.code, shape.nameFr)}
+                  onMouseMove={(e) => handleShapePointer(e, shape.code, shape.nameFr)}
+                  onClick={() =>
+                    setSelectedCountryCode((prev) =>
+                      prev === shape.code ? null : shape.code
+                    )
+                  }
+                  className="cursor-pointer transition-colors duration-150"
                 >
-                  {getHeatTierColors(activeCountry.heatTier, true).label}
+                  <title>
+                    {`${shape.nameFr} (${shape.code}) — ${formatFrNumber(
+                      stats?.visitors ?? 0
+                    )} visiteurs, ${formatFrNumber(stats?.extractions ?? 0)} extractions`}
+                  </title>
+                </path>
+              );
+            })}
+          </svg>
+
+          {/* Tooltip au survol */}
+          {hoveredTooltip && (
+            <div
+              role="tooltip"
+              style={{
+                left: `${hoveredTooltip.xPct}%`,
+                top: `${hoveredTooltip.yPct}%`,
+                transform:
+                  hoveredTooltip.yPct < 36
+                    ? 'translate(-50%, 16px)'
+                    : 'translate(-50%, -115%)',
+              }}
+              className="pointer-events-none absolute z-20 min-w-[195px] rounded-lg border border-[#d6c8ba] bg-[#1c140f]/95 text-[#fffaf5] px-3 py-2 shadow-lg text-xs space-y-1"
+            >
+              <div className="flex items-center gap-1.5 font-display font-bold text-xs">
+                <span>{hoveredTooltip.flag}</span>
+                <span>{hoveredTooltip.nameFr}</span>
+                <span className="font-mono text-[11px] text-[#d6b79c]">
+                  ({hoveredTooltip.code})
                 </span>
               </div>
-
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl leading-none">{activeCountry.flag}</span>
-                  <div>
-                    <div className="font-display text-sm font-bold text-admin-text">
-                      {activeCountry.countryName} (<span className="font-mono">{activeCountry.countryCode}</span>)
-                    </div>
-                    <div className="text-xs text-admin-text-muted">
-                      Moteur favori : {activeCountry.topPlatform}
-                    </div>
-                  </div>
-                </div>
-                <span className="font-mono text-lg font-bold text-admin-accent tabular-nums">
-                  {activeCountry.sharePct}%
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 font-mono text-[11px] text-[#f3e4d7]">
+                <span className="text-[#c8a98e] font-sans">Visiteurs :</span>
+                <span className="text-right font-semibold tabular-nums">
+                  {formatFrNumber(hoveredTooltip.visitors)}
                 </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 pt-1 text-center text-xs">
-                <div className="p-2 rounded-lg border border-admin-border">
-                  <div className="text-xs text-admin-text-muted">Visiteurs</div>
-                  <div className="font-mono font-bold text-admin-text tabular-nums">
-                    {activeCountry.visitors.toLocaleString('fr-FR')}
-                  </div>
-                </div>
-                <div className="p-2 rounded-lg border border-admin-border">
-                  <div className="text-xs text-admin-text-muted">Extractions</div>
-                  <div className="font-mono font-bold text-admin-text tabular-nums">
-                    {activeCountry.extractions.toLocaleString('fr-FR')}
-                  </div>
-                </div>
-                <div className="p-2 rounded-lg border border-admin-border">
-                  <div className="text-xs text-admin-text-muted">Succès</div>
-                  <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
-                    {activeCountry.successRate}%
-                  </div>
-                </div>
+                <span className="text-[#c8a98e] font-sans">Extractions :</span>
+                <span className="text-right font-semibold tabular-nums">
+                  {formatFrNumber(hoveredTooltip.extractions)}
+                </span>
+                <span className="text-[#c8a98e] font-sans">Taux succès :</span>
+                <span className="text-right font-semibold tabular-nums">
+                  {hoveredTooltip.successRate !== null
+                    ? `${hoveredTooltip.successRate}%`
+                    : '—'}
+                </span>
               </div>
             </div>
           )}
         </div>
+
+        {/* Légende simple (échelle monochrome) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#e0d6cb] text-xs text-[#5c4838]">
+          <div className="flex items-center gap-2">
+            <span>0</span>
+            <div className="flex items-center gap-1" aria-label="Échelle choroplèthe des visiteurs">
+              {CHOROPLETH_COLORS.map((hex, idx) => (
+                <span
+                  key={hex}
+                  title={idx === 0 ? '0 visite' : `Palier ${idx}/5`}
+                  className="w-5 h-3 rounded-xs border border-black/10 inline-block"
+                  style={{ backgroundColor: hex }}
+                />
+              ))}
+            </div>
+            <span className="font-mono font-semibold">
+              {maxChoroplethValue > 0
+                ? `${formatFrNumber(maxChoroplethValue)} max`
+                : 'Aucune donnée'}
+            </span>
+          </div>
+          <span className="text-[11px] text-[#7a6250]">
+            GeoJSON embarqué · 0 requête externe · Source unique D1
+          </span>
+        </div>
       </div>
 
-      {/* Grille des principaux pays d'origine D1 */}
+      {/* Classement des pays (drapeau + barre) sous la carte */}
       <div className="p-4 rounded-lg border border-admin-border space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="font-display text-xs font-bold text-admin-text-secondary">
-            Top Origines des Visiteurs par Pays ({filteredCountries.length} pays)
+            Classement des pays ({summary.countries.length} pays · {PERIOD_LABELS[period]})
           </h4>
           <span className="text-xs text-admin-text-muted">
-            Cliquez sur une carte pays pour la localiser sur la mappemonde
+            Visiteurs humains · Extractions · Taux de succès
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {filteredCountries.slice(0, 8).map((c, idx) => {
-            const isSelected = activeCountry?.countryCode === c.countryCode;
-            return (
-              <button
-                key={c.countryCode}
-                type="button"
-                onClick={() => setActiveCountryCode(c.countryCode)}
-                className={`p-3 rounded-md border text-left transition-all cursor-pointer ${
-                  isSelected
-                    ? 'border-admin-accent shadow-2xs'
-                    : 'border-admin-border hover:border-admin-border-strong'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-lg leading-none">{c.flag}</span>
-                    <span className="font-display text-xs font-bold text-admin-text truncate">
-                      <span className="font-mono">#{idx + 1}</span> {c.countryName}
+        {summary.countries.length === 0 ? (
+          <p className="text-xs text-admin-text-muted py-4 text-center">
+            Aucune donnée géographique enregistrée dans D1 pour cette période.
+          </p>
+        ) : (
+          <div className="space-y-2.5">
+            {summary.countries.slice(0, 12).map((country, idx) => {
+              const barValue = useVisitsForColor ? country.visitors : country.extractions;
+              const widthPct = Math.max(
+                4,
+                Math.round((barValue / maxCountryRankValue) * 100)
+              );
+              const isSelected = selectedCountryCode === country.countryCode;
+
+              return (
+                <button
+                  key={country.countryCode}
+                  type="button"
+                  onClick={() =>
+                    setSelectedCountryCode((prev) =>
+                      prev === country.countryCode ? null : country.countryCode
+                    )
+                  }
+                  className={`w-full text-left p-2.5 rounded-md border transition-colors cursor-pointer space-y-1.5 ${
+                    isSelected
+                      ? 'border-admin-accent bg-admin-accent-bg/40'
+                      : 'border-admin-border hover:border-admin-border-strong'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-mono text-admin-text-muted w-5 shrink-0">
+                        #{idx + 1}
+                      </span>
+                      <span className="text-base leading-none shrink-0">
+                        {country.flag}
+                      </span>
+                      <span className="font-semibold text-admin-text truncate">
+                        {country.countryName}
+                      </span>
+                      <span className="font-mono text-admin-text-muted text-[11px]">
+                        {country.countryCode}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 font-mono text-xs tabular-nums">
+                      <span className="font-bold text-admin-text">
+                        {formatFrNumber(country.visitors)} vis.
+                      </span>
+                      <span className="text-admin-text-secondary">
+                        {formatFrNumber(country.extractions)} extr.
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          country.successRate === null
+                            ? 'text-admin-text-muted'
+                            : country.successRate >= 80
+                            ? 'text-emerald-800 dark:text-emerald-400'
+                            : country.successRate >= 50
+                            ? 'text-amber-800 dark:text-amber-400'
+                            : 'text-red-800 dark:text-red-400'
+                        }`}
+                      >
+                        {country.successRate !== null ? `${country.successRate}% OK` : '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-1.5 rounded-full bg-admin-muted border border-admin-border overflow-hidden">
+                    <div
+                      className="h-full bg-orange-600 dark:bg-orange-500 rounded-full transition-all duration-300"
+                      style={{ width: `${widthPct}%` }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Bloc "D'où viennent les visiteurs" : Catégories + Top 10 pages d'entrée */}
+      <div className="p-4 rounded-lg border border-admin-border space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h4 className="font-display text-sm font-bold text-admin-text">
+              D’où viennent les visiteurs ({PERIOD_LABELS[period]})
+            </h4>
+            <p className="text-xs text-admin-text-muted">
+              Sources des visiteurs humains (hors bots) et top 10 des pages d’entrée
+            </p>
+          </div>
+          <span className="text-xs font-mono text-admin-text-secondary tabular-nums">
+            {formatFrNumber(summary.humanVisits)} humain(s) · {formatFrNumber(summary.botVisits)} bot(s)
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Répartition par catégorie (Recherche / Direct / Réseaux sociaux / Autres sites) */}
+          <div className="lg:col-span-5 space-y-3">
+            <h5 className="text-xs font-semibold text-admin-text-secondary">
+              Sources de trafic
+            </h5>
+            <div className="space-y-2.5">
+              {summary.sources.categories.map((cat) => (
+                <div key={cat.category} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-admin-text">{cat.label}</span>
+                    <span className="font-mono tabular-nums text-admin-text-secondary">
+                      <strong className="text-admin-text">{formatFrNumber(cat.visits)}</strong>{' '}
+                      ({cat.sharePct}%)
                     </span>
                   </div>
-                  <span className="font-mono text-xs font-bold text-admin-accent tabular-nums">
-                    {c.sharePct}%
-                  </span>
+                  <div className="w-full h-2 rounded-full bg-admin-muted border border-admin-border overflow-hidden">
+                    <div
+                      className="h-full bg-orange-600 dark:bg-orange-500 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${cat.visits > 0 ? Math.max(4, cat.sharePct) : 0}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="mt-1.5 flex items-center justify-between text-xs font-mono text-admin-text-muted">
-                  <span>{c.visitors.toLocaleString('fr-FR')} vis.</span>
-                  <span>{c.extractions.toLocaleString('fr-FR')} extr.</span>
+              ))}
+            </div>
+
+            {summary.sources.topReferrerHosts.length > 0 && (
+              <div className="pt-2 border-t border-admin-border/70 space-y-1.5">
+                <div className="text-xs font-semibold text-admin-text-secondary">
+                  Domaines référents principaux
                 </div>
-              </button>
-            );
-          })}
+                <div className="flex flex-wrap gap-1.5">
+                  {summary.sources.topReferrerHosts.map((ref) => (
+                    <span
+                      key={ref.host}
+                      className="text-xs font-mono px-2 py-0.5 rounded-md bg-admin-muted border border-admin-border text-admin-text-secondary"
+                    >
+                      {ref.host} ({formatFrNumber(ref.visits)})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Top 10 pages d'entrée */}
+          <div className="lg:col-span-7 space-y-2.5">
+            <h5 className="text-xs font-semibold text-admin-text-secondary">
+              Top 10 pages d’entrée
+            </h5>
+            {summary.sources.topEntryPages.length === 0 ? (
+              <p className="text-xs text-admin-text-muted py-4 text-center border border-admin-border rounded-md">
+                Aucune visite humaine enregistrée sur cette période.
+              </p>
+            ) : (
+              <div className="overflow-x-auto border border-admin-border rounded-md">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-admin-border text-admin-text-muted bg-admin-muted/40">
+                      <th className="py-2 px-2.5 font-semibold">#</th>
+                      <th className="py-2 px-2.5 font-semibold">Page d’entrée</th>
+                      <th className="py-2 px-2.5 text-right font-semibold">Visites</th>
+                      <th className="py-2 px-2.5 text-right font-semibold">Part</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-admin-border/60 font-mono">
+                    {summary.sources.topEntryPages.map((entry, idx) => (
+                      <tr key={entry.page} className="hover:bg-admin-hover/40">
+                        <td className="py-1.5 px-2.5 text-admin-text-muted">
+                          {idx + 1}
+                        </td>
+                        <td className="py-1.5 px-2.5 text-admin-text break-all">
+                          {entry.page}
+                        </td>
+                        <td className="py-1.5 px-2.5 text-right font-semibold text-admin-text tabular-nums">
+                          {formatFrNumber(entry.visits)}
+                        </td>
+                        <td className="py-1.5 px-2.5 text-right text-admin-text-secondary tabular-nums">
+                          {entry.sharePct}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

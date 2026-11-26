@@ -90,6 +90,9 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
       http_status?: number | null;
       content_kind?: string | null;
       engine_fn?: string | null;
+      error_message?: string | null;
+      source_domain?: string | null;
+      country?: string | null;
     }> = [];
 
     const queryBindings = [...filterBindings, limit, offset];
@@ -97,7 +100,7 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
     try {
       const res = await db
         .prepare(
-          `SELECT id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn FROM request_log${whereSql} ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?`
+          `SELECT id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn, error_message, source_domain, country FROM request_log${whereSql} ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?`
         )
         .bind(...queryBindings)
         .all<{
@@ -112,13 +115,16 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
           http_status?: number | null;
           content_kind?: string | null;
           engine_fn?: string | null;
+          error_message?: string | null;
+          source_domain?: string | null;
+          country?: string | null;
         }>();
       rows = res.results || [];
     } catch {
       try {
-        const res8 = await db
+        const res11 = await db
           .prepare(
-            `SELECT id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status FROM request_log${whereSql} ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?`
+            `SELECT id, ts, platform, status, error_code, duration_ms, ip_hash, engine_stage, http_status, content_kind, engine_fn FROM request_log${whereSql} ORDER BY ts DESC, id DESC LIMIT ? OFFSET ?`
           )
           .bind(...queryBindings)
           .all<{
@@ -131,8 +137,10 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
             ip_hash: string;
             engine_stage?: string | null;
             http_status?: number | null;
+            content_kind?: string | null;
+            engine_fn?: string | null;
           }>();
-        rows = res8.results || [];
+        rows = res11.results || [];
       } catch {
         const fallbackRes = await db
           .prepare(
@@ -164,6 +172,9 @@ export async function onRequestGet(context: PagesContext): Promise<Response> {
         engine_stage: row.engine_stage || null,
         http_status: row.http_status ?? null,
         error_code: row.error_code || null,
+        error_message: row.error_message || null,
+        source_domain: row.source_domain || null,
+        country: row.country || null,
         duration_ms: row.duration_ms,
         ip_hash_short: truncatedIp || '—',
         ip_hash: truncatedIp,

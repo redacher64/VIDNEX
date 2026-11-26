@@ -38,6 +38,10 @@ import { getSystemSettings, isRequestBlocked } from '../_lib/settings.ts';
 import { checkD1RateLimit } from '../_lib/ratelimit.ts';
 import { incrementDailyMetrics, logExtractionEvent } from '../_lib/logger.ts';
 import { resolveStoryWithProviders } from '../_lib/instagramStories.ts';
+import {
+  extractRequestCountry,
+  extractSafeDomain,
+} from '../_lib/visitAnalytics.ts';
 
 export interface Env extends AdminEnv {
   IG_SESSION_ID?: string;
@@ -138,6 +142,7 @@ async function handleExtract(
   const startedAt = Date.now();
   const rawIp = getRawClientIp(request);
   const ipHash = await hashIpAddress(rawIp, env.IP_HASH_SALT);
+  const requestCountry = extractRequestCountry(request);
 
   // 0. Chargement de la configuration D1 (avec repli silencieux si D1 est coupé)
   const settings = await getSystemSettings(env);
@@ -194,16 +199,21 @@ async function handleExtract(
   }
 
   const initialClass = classifyUrlForLog(targetUrl, preferredPlatform);
+  const sourceDomain = extractSafeDomain(targetUrl);
 
   // Vérification 2 : Liste de blocage (IP hachée, domaine ou URL)
   const isBlocked = await isRequestBlocked(env, ipHash, targetUrl);
   if (isBlocked) {
+    const blockedMsg = 'Cette requête ou ressource a été restreinte par l’administrateur.';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
         platform: initialClass.platform,
         status: 'error',
         errorCode: 'BLOCKED',
+        errorMessage: blockedMsg,
+        sourceDomain,
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'blocklist',
@@ -212,22 +222,22 @@ async function handleExtract(
         engineFn: initialClass.engineFn,
       })
     );
-    return createErrorResponse(
-      'BLOCKED',
-      'Cette requête ou ressource a été restreinte par l’administrateur.',
-      403
-    );
+    return createErrorResponse('BLOCKED', blockedMsg, 403);
   }
 
   // Vérification 3 : Limite de débit par IP (D1 rate_limits avec fallback mémoire)
   const rate = await checkD1RateLimit(env, ipHash, settings.rate_limit_per_min);
   if (!rate.allowed) {
+    const rateMsg = `Limite de requêtes atteinte (${settings.rate_limit_per_min}/min). Veuillez patienter ${rate.retryAfterSec}s avant de réessayer.`;
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
         platform: initialClass.platform,
         status: 'error',
         errorCode: 'RATE_LIMITED',
+        errorMessage: rateMsg,
+        sourceDomain,
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'rate_limit',
@@ -236,12 +246,9 @@ async function handleExtract(
         engineFn: initialClass.engineFn,
       })
     );
-    return createErrorResponse(
-      'RATE_LIMITED',
-      `Limite de requêtes atteinte (${settings.rate_limit_per_min}/min). Veuillez patienter ${rate.retryAfterSec}s avant de réessayer.`,
-      429,
-      { 'Retry-After': String(rate.retryAfterSec) }
-    );
+    return createErrorResponse('RATE_LIMITED', rateMsg, 429, {
+      'Retry-After': String(rate.retryAfterSec),
+    });
   }
 
   if (!targetUrl) {
@@ -258,12 +265,18 @@ async function handleExtract(
   if (detection.platform === 'facebook' && detection.isLoginRedirect) {
     const fbClass = classifyUrlForLog(targetUrl, 'facebook', detection.cleanUrl);
     const isStoryLogin = detection.kind === 'story' || fbClass.contentKind === 'story';
+    const fbLoginMsg = isStoryLogin
+      ? FB_STORY_LOGIN_REQUIRED_MESSAGE
+      : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.";
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
         platform: 'facebook',
         status: 'error',
         errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
+        errorMessage: fbLoginMsg,
+        sourceDomain,
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: isStoryLogin ? 'story_auth_required' : 'detect_login_redirect',
@@ -272,25 +285,24 @@ async function handleExtract(
         engineFn: isStoryLogin ? 'facebook.story' : fbClass.engineFn,
       })
     );
-    return createErrorResponse(
-      'PRIVATE_OR_LOGIN_REQUIRED',
-      isStoryLogin
-        ? FB_STORY_LOGIN_REQUIRED_MESSAGE
-        : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
-      403
-    );
+    return createErrorResponse('PRIVATE_OR_LOGIN_REQUIRED', fbLoginMsg, 403);
   }
 
   if (
     detection.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
     (detection.platform === 'facebook' && detection.kind === 'photo')
   ) {
+    const fbPhotoMsg =
+      'Les photos Facebook ne sont pas prises en charge. Seules les vidéos publiques et les Reels Facebook peuvent être téléchargés.';
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
         platform: 'facebook',
         status: 'error',
         errorCode: 'UNSUPPORTED_URL',
+        errorMessage: fbPhotoMsg,
+        sourceDomain,
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'fb_photo_unsupported',
@@ -299,19 +311,30 @@ async function handleExtract(
         engineFn: 'facebook.video',
       })
     );
-    return createErrorResponse(
-      'UNSUPPORTED_URL',
-      'Les photos Facebook ne sont pas prises en charge. Seules les vidéos publiques et les Reels Facebook peuvent être téléchargés.',
-      400
-    );
+    return createErrorResponse('UNSUPPORTED_URL', fbPhotoMsg, 400);
   }
 
   if (!detection.isValid || !detection.platform) {
-    return createErrorResponse(
-      'UNSUPPORTED_URL',
-      'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn (/in/{slug}).',
-      400
+    const unsupportedMsg =
+      'URL non supportée. VIDNEX prend en charge les vidéos et publications TikTok, Instagram, X (Twitter), Facebook et les photos de profil publiques LinkedIn (/in/{slug}).';
+    scheduleAsyncLog(
+      ctx,
+      logExtractionEvent(env, {
+        platform: initialClass.platform,
+        status: 'error',
+        errorCode: 'UNSUPPORTED_URL',
+        errorMessage: unsupportedMsg,
+        sourceDomain,
+        country: requestCountry,
+        durationMs: Date.now() - startedAt,
+        ipHash,
+        engineStage: 'detect_url',
+        httpStatus: 400,
+        contentKind: initialClass.contentKind,
+        engineFn: initialClass.engineFn,
+      })
     );
+    return createErrorResponse('UNSUPPORTED_URL', unsupportedMsg, 400);
   }
 
   // Résolution des liens courts Instagram (/share/...) pour reclasser si redirection vers /stories/ ou /reel/
@@ -332,19 +355,47 @@ async function handleExtract(
   if (detection.platform === 'x' && detection.isShortLink) {
     const resolvedTco = await resolveTcoShortLink(detection.cleanUrl);
     if (!resolvedTco) {
-      return createErrorResponse(
-        'UNSUPPORTED_URL',
-        'Impossible de résoudre ce lien court t.co vers un tweet X valide.',
-        400
+      const msg = 'Impossible de résoudre ce lien court t.co vers un tweet X valide.';
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: 'x',
+          status: 'error',
+          errorCode: 'UNSUPPORTED_URL',
+          errorMessage: msg,
+          sourceDomain,
+          country: requestCountry,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          engineStage: 'tco_redirect',
+          httpStatus: 400,
+          contentKind: 'post',
+          engineFn: 'x.video',
+        })
       );
+      return createErrorResponse('UNSUPPORTED_URL', msg, 400);
     }
     const revalidated = detectUrl(resolvedTco, 'x');
     if (!revalidated.isValid || revalidated.platform !== 'x' || revalidated.isShortLink) {
-      return createErrorResponse(
-        'UNSUPPORTED_URL',
-        'Le lien court t.co ne pointe pas vers une publication X (Twitter) valide.',
-        400
+      const msg = 'Le lien court t.co ne pointe pas vers une publication X (Twitter) valide.';
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: 'x',
+          status: 'error',
+          errorCode: 'UNSUPPORTED_URL',
+          errorMessage: msg,
+          sourceDomain,
+          country: requestCountry,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          engineStage: 'tco_redirect',
+          httpStatus: 400,
+          contentKind: 'post',
+          engineFn: 'x.video',
+        })
       );
+      return createErrorResponse('UNSUPPORTED_URL', msg, 400);
     }
     detection = revalidated;
   }
@@ -361,12 +412,18 @@ async function handleExtract(
         resolvedFb.finalUrl || detection.cleanUrl
       );
       const isRedirectedStory = fbShortClass.contentKind === 'story';
+      const errMsg =
+        resolvedFb.errorMessage ||
+        'Impossible de résoudre ce lien de partage Facebook vers une vidéo publique valide.';
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
           platform: 'facebook',
           status: 'error',
           errorCode: errCode,
+          errorMessage: errMsg,
+          sourceDomain,
+          country: requestCountry,
           durationMs: Date.now() - startedAt,
           ipHash,
           engineStage: isRedirectedStory ? 'story_auth_required' : 'fb_redirect',
@@ -375,24 +432,25 @@ async function handleExtract(
           engineFn: fbShortClass.engineFn,
         })
       );
-      return createErrorResponse(
-        errCode,
-        resolvedFb.errorMessage ||
-          'Impossible de résoudre ce lien de partage Facebook vers une vidéo publique valide.',
-        status
-      );
+      return createErrorResponse(errCode, errMsg, status);
     }
 
     const revalidatedFb = detectUrl(resolvedFb.finalUrl, 'facebook');
     if (revalidatedFb.isLoginRedirect) {
       const fbLoginClass = classifyUrlForLog(targetUrl, 'facebook', resolvedFb.finalUrl);
       const isStoryLogin = revalidatedFb.kind === 'story' || fbLoginClass.contentKind === 'story';
+      const loginMsg = isStoryLogin
+        ? FB_STORY_LOGIN_REQUIRED_MESSAGE
+        : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.";
       scheduleAsyncLog(
         ctx,
         logExtractionEvent(env, {
           platform: 'facebook',
           status: 'error',
           errorCode: 'PRIVATE_OR_LOGIN_REQUIRED',
+          errorMessage: loginMsg,
+          sourceDomain,
+          country: requestCountry,
           durationMs: Date.now() - startedAt,
           ipHash,
           engineStage: isStoryLogin ? 'story_auth_required' : 'fb_redirect_login',
@@ -401,21 +459,30 @@ async function handleExtract(
           engineFn: isStoryLogin ? 'facebook.story' : fbLoginClass.engineFn,
         })
       );
-      return createErrorResponse(
-        'PRIVATE_OR_LOGIN_REQUIRED',
-        isStoryLogin
-          ? FB_STORY_LOGIN_REQUIRED_MESSAGE
-          : "Cette vidéo n'est pas publique ou Facebook demande une connexion. Seules les vidéos publiques peuvent être téléchargées.",
-        403
-      );
+      return createErrorResponse('PRIVATE_OR_LOGIN_REQUIRED', loginMsg, 403);
     }
 
     if (!revalidatedFb.isValid || revalidatedFb.platform !== 'facebook') {
-      return createErrorResponse(
-        'UNSUPPORTED_URL',
-        'Le lien Facebook résolu ne pointe pas vers une vidéo ou un Reel public pris en charge.',
-        400
+      const msg =
+        'Le lien Facebook résolu ne pointe pas vers une vidéo ou un Reel public pris en charge.';
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: 'facebook',
+          status: 'error',
+          errorCode: 'UNSUPPORTED_URL',
+          errorMessage: msg,
+          sourceDomain,
+          country: requestCountry,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          engineStage: 'fb_redirect_invalid',
+          httpStatus: 400,
+          contentKind: 'video',
+          engineFn: 'facebook.video',
+        })
       );
+      return createErrorResponse('UNSUPPORTED_URL', msg, 400);
     }
     detection = revalidatedFb;
   }
@@ -425,6 +492,8 @@ async function handleExtract(
     detection.platform || preferredPlatform,
     detection.cleanUrl
   );
+  const resolvedSourceDomain =
+    extractSafeDomain(detection.cleanUrl) || sourceDomain;
 
   // Vérification 4 : Plateforme désactivée dans l'admin
   if (
@@ -444,12 +513,16 @@ async function handleExtract(
         : detection.platform === 'linkedin'
         ? 'LinkedIn'
         : 'Facebook';
+    const disabledMsg = `L'extraction ${label} est temporairement désactivée par l'administrateur.`;
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
         platform: detection.platform,
         status: 'error',
         errorCode: 'PLATFORM_DISABLED',
+        errorMessage: disabledMsg,
+        sourceDomain: resolvedSourceDomain,
+        country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
         engineStage: 'platform_disabled',
@@ -458,11 +531,7 @@ async function handleExtract(
         engineFn: resolvedClass.engineFn,
       })
     );
-    return createErrorResponse(
-      'PLATFORM_DISABLED',
-      `L'extraction ${label} est temporairement désactivée par l'administrateur.`,
-      403
-    );
+    return createErrorResponse('PLATFORM_DISABLED', disabledMsg, 403);
   }
 
   let result: ExtractResponse;
@@ -496,6 +565,9 @@ async function handleExtract(
             platform: 'instagram',
             status: 'error',
             errorCode: attempt.errorCode || 'BLOCKED_BY_PLATFORM',
+            errorMessage: storyOutcome.message || STORIES_UNAVAILABLE_MESSAGE,
+            sourceDomain: resolvedSourceDomain,
+            country: requestCountry,
             durationMs: attempt.durationMs,
             ipHash,
             engineStage: attempt.provider,
@@ -527,6 +599,9 @@ async function handleExtract(
             platform: 'instagram',
             status: 'error',
             errorCode: errCode,
+            errorMessage: errMsg,
+            sourceDomain: resolvedSourceDomain,
+            country: requestCountry,
             durationMs: Date.now() - startedAt,
             ipHash,
             engineStage: !settings.feature_stories
@@ -565,6 +640,8 @@ async function handleExtract(
           platform: 'instagram',
           status: 'success',
           errorCode: null,
+          sourceDomain: resolvedSourceDomain,
+          country: requestCountry,
           durationMs: Date.now() - startedAt,
           ipHash,
           stage: storyOutcome.provider === 'session' ? 'direct' : 'tiers',
@@ -682,6 +759,7 @@ async function handleExtract(
 
   if (!result.ok || result.error) {
     const errCode = result.error?.code || 'BLOCKED_BY_PLATFORM';
+    const errMessage = result.error?.message || "Erreur lors de l'extraction du contenu.";
     const mappedStatus = mapErrorCodeToHttpStatus(errCode);
     const loggedHttpStatus =
       errCode === 'TIMEOUT'
@@ -695,6 +773,9 @@ async function handleExtract(
         platform: loggedPlatform,
         status: 'error',
         errorCode: errCode,
+        errorMessage: errMessage,
+        sourceDomain: resolvedSourceDomain,
+        country: requestCountry,
         durationMs,
         ipHash,
         stage: result.stage ?? null,
@@ -704,11 +785,7 @@ async function handleExtract(
         engineFn,
       })
     );
-    return createErrorResponse(
-      errCode,
-      result.error?.message || "Erreur lors de l'extraction du contenu.",
-      mappedStatus
-    );
+    return createErrorResponse(errCode, errMessage, mappedStatus);
   }
 
   const visualItemsCount = (result.items || []).filter(
@@ -727,6 +804,8 @@ async function handleExtract(
       platform: loggedPlatform,
       status: 'success',
       errorCode: null,
+      sourceDomain: resolvedSourceDomain,
+      country: requestCountry,
       durationMs,
       ipHash,
       stage: result.stage ?? null,

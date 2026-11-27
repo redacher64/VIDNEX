@@ -32,7 +32,22 @@ import {
   parseFacebookHtmlPayload,
 } from '../../functions/_lib/facebook.ts';
 import { createMemoryD1Database } from '../../functions/_lib/db.ts';
-import worker from '../../worker.ts';
+import { resetSecurityMemoryState } from '../../functions/_lib/security.ts';
+import rawWorker from '../../worker.ts';
+
+const TEST_BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+
+const worker = {
+  fetch(request: Request, env?: any, ctx?: any) {
+    if (!request.headers.has('User-Agent')) {
+      const headers = new Headers(request.headers);
+      headers.set('User-Agent', TEST_BROWSER_UA);
+      return rawWorker.fetch(new Request(request, { headers }), env, ctx);
+    }
+    return rawWorker.fetch(request, env, ctx);
+  },
+};
 
 // Offline CI guard: any unmocked external fetch rejects immediately instead of hitting the internet
 globalThis.fetch = (async (input: RequestInfo | URL) => {
@@ -637,8 +652,9 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(bareDomainDownloadRes.status, 403);
 
-    // Exhaust extract rate limit (30 req/min) for IP 203.0.113.99
-    for (let i = 0; i < 30; i++) {
+    // Exhaust extract rate limit (10 req/min) for IP 203.0.113.99
+    resetSecurityMemoryState();
+    for (let i = 0; i < 10; i++) {
       await worker.fetch(
         new Request('https://vidnex.space/api/extract', {
           headers: { 'CF-Connecting-IP': '203.0.113.99' },
@@ -654,6 +670,7 @@ describe('VIDNEX URL Detection & Security Suite', () => {
     );
     assert.equal(throttledRes.status, 429);
     assert.ok(Number(throttledRes.headers.get('Retry-After')) >= 1);
+    resetSecurityMemoryState();
   });
 
   it('ÉTAPE 7 — Vérification complète des 9 scénarios du panneau /admin et Cloudflare D1', async () => {

@@ -1,6 +1,20 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../worker.ts';
+import rawWorker from '../worker.ts';
+
+const TEST_BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+
+const worker = {
+  fetch(request: Request, env?: any, ctx?: any) {
+    if (!request.headers.has('User-Agent')) {
+      const headers = new Headers(request.headers);
+      headers.set('User-Agent', TEST_BROWSER_UA);
+      return rawWorker.fetch(new Request(request, { headers }), env, ctx);
+    }
+    return rawWorker.fetch(request, env, ctx);
+  },
+};
 import { detectUrl } from '../functions/_lib/detect.ts';
 import { detectMediaUrl } from '../src/utils/urlDetector.ts';
 import { createMemoryD1Database, type AdminEnv } from '../functions/_lib/db.ts';

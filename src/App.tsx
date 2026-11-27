@@ -143,6 +143,7 @@ export function App({ initialPath }: AppProps = {}) {
     null
   );
   const [mediaResult, setMediaResult] = useState<MediaResult | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [lastRequest, setLastRequest] = useState<{
     url: string;
     detected: DetectedUrlInfo;
@@ -411,14 +412,23 @@ export function App({ initialPath }: AppProps = {}) {
   };
 
   const handleSubmitUrl = useCallback(
-    async (url: string, detected: DetectedUrlInfo) => {
+    async (
+      url: string,
+      detected: DetectedUrlInfo,
+      turnstileToken?: string | null
+    ) => {
       setLastRequest({ url, detected });
       setIsExtracting(true);
       setExtractionError(null);
       setExtractionErrorCode(null);
 
       try {
-        const result = await extractMediaFromUrl(url, detected, language);
+        const result = await extractMediaFromUrl(
+          url,
+          detected,
+          language,
+          turnstileToken
+        );
         setMediaResult(result);
       } catch (err) {
         setMediaResult(null);
@@ -432,6 +442,7 @@ export function App({ initialPath }: AppProps = {}) {
         );
       } finally {
         setIsExtracting(false);
+        setTurnstileResetKey((k) => k + 1);
       }
     },
     [language]
@@ -599,6 +610,8 @@ export function App({ initialPath }: AppProps = {}) {
               onEscapeClear={handleCloseDrawer}
               isExtracting={isExtracting}
               language={language}
+              turnstileSiteKey={publicConfig.turnstile_site_key || ''}
+              turnstileResetKey={turnstileResetKey}
             />
 
             <AdSlot

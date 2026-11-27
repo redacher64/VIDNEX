@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   ShieldBan,
+  ShieldCheck,
+  RefreshCw,
   Plus,
   Trash2,
   Save,
@@ -18,6 +20,7 @@ interface SystemSettings {
   platform_facebook: boolean;
   platform_linkedin: boolean;
   rate_limit_per_min: number;
+  rate_limit_per_day: number;
   download_limit_per_min: number;
   ads_enabled: boolean;
   ads_adsterra_enabled: boolean;
@@ -25,6 +28,14 @@ interface SystemSettings {
   stories_provider_order: Array<'session' | 'relay' | 'paid'>;
   stories_list_rate_limit_per_hour: number;
   stories_global_hourly_cap: number;
+}
+
+interface BlockedIpItem {
+  ip_hash: string;
+  reason: string;
+  violations: number;
+  blocked_at: number;
+  expires_at: number;
 }
 
 const STORY_PROVIDER_LABELS: Record<
@@ -121,7 +132,8 @@ export const Controls: React.FC = () => {
     platform_x: true,
     platform_facebook: true,
     platform_linkedin: true,
-    rate_limit_per_min: 30,
+    rate_limit_per_min: 10,
+    rate_limit_per_day: 100,
     download_limit_per_min: 60,
     ads_enabled: true,
     ads_adsterra_enabled: true,
@@ -131,6 +143,8 @@ export const Controls: React.FC = () => {
     stories_global_hourly_cap: 200,
   });
   const [blocklist, setBlocklist] = useState<BlocklistItem[]>([]);
+  const [blockedIps, setBlockedIps] = useState<BlockedIpItem[]>([]);
+  const [rejectedToday, setRejectedToday] = useState<number>(0);
   const [blockType, setBlockType] = useState<'ip_hash' | 'domain' | 'url'>('domain');
   const [blockValue, setBlockValue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -138,12 +152,14 @@ export const Controls: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [settingsRes, blockRes] = await Promise.all([
+      const [settingsRes, blockRes, blockedIpsRes] = await Promise.all([
         fetch('/api/admin/settings', { headers: { Accept: 'application/json' } }),
         fetch('/api/admin/blocklist', { headers: { Accept: 'application/json' } }),
+        fetch('/api/admin/blocked-ips', { headers: { Accept: 'application/json' } }),
       ]);
       const settingsJson = await settingsRes.json();
       const blockJson = await blockRes.json();
+      const blockedIpsJson = await blockedIpsRes.json().catch(() => null);
 
       if (settingsRes.ok && settingsJson.ok && settingsJson.settings) {
         setSettings({
@@ -154,7 +170,8 @@ export const Controls: React.FC = () => {
           platform_x: settingsJson.settings.platform_x !== false,
           platform_facebook: settingsJson.settings.platform_facebook !== false,
           platform_linkedin: settingsJson.settings.platform_linkedin !== false,
-          rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 30,
+          rate_limit_per_min: Number(settingsJson.settings.rate_limit_per_min) || 10,
+          rate_limit_per_day: Number(settingsJson.settings.rate_limit_per_day) || 100,
           download_limit_per_min: Number(settingsJson.settings.download_limit_per_min) || 60,
           ads_enabled: settingsJson.settings.ads_enabled !== false,
           ads_adsterra_enabled:
@@ -171,6 +188,10 @@ export const Controls: React.FC = () => {
       }
       if (blockRes.ok && blockJson.ok) {
         setBlocklist(blockJson.items || []);
+      }
+      if (blockedIpsRes.ok && blockedIpsJson?.ok) {
+        setBlockedIps(blockedIpsJson.items || []);
+        setRejectedToday(Number(blockedIpsJson.rejectedToday) || 0);
       }
     } catch {
       // Ignore
@@ -204,7 +225,8 @@ export const Controls: React.FC = () => {
           platform_x: data.settings.platform_x !== false,
           platform_facebook: data.settings.platform_facebook !== false,
           platform_linkedin: data.settings.platform_linkedin !== false,
-          rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 30,
+          rate_limit_per_min: Number(data.settings.rate_limit_per_min) || 10,
+          rate_limit_per_day: Number(data.settings.rate_limit_per_day) || 100,
           download_limit_per_min: Number(data.settings.download_limit_per_min) || 60,
           ads_enabled: data.settings.ads_enabled !== false,
           ads_adsterra_enabled: data.settings.ads_adsterra_enabled !== false,
@@ -261,6 +283,23 @@ export const Controls: React.FC = () => {
     if (res.ok && data.ok) {
       setBlocklist(data.items || []);
       setStatusMessage('Entrée retirée de la liste de blocage.');
+    }
+  };
+
+  const handleUnblockIp = async (ipHash: string) => {
+    const res = await fetch('/api/admin/blocked-ips', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ ip_hash: ipHash }),
+    });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.ok) {
+      setBlockedIps(data.items || []);
+      setRejectedToday(Number(data.rejectedToday) || 0);
+      setStatusMessage('IP débloquée immédiatement.');
     }
   };
 
@@ -609,7 +648,7 @@ export const Controls: React.FC = () => {
         <div className="bg-admin-surface border border-admin-border rounded-lg divide-y divide-admin-border">
           {/* Rate limits */}
           <div className="p-4 sm:p-5 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center justify-between gap-3 p-3.5 rounded-md border border-admin-border">
                 <div>
                   <label
@@ -641,6 +680,40 @@ export const Controls: React.FC = () => {
                     className="w-20 px-2.5 py-1.5 rounded bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text text-center"
                   />
                   <span className="text-xs font-mono text-admin-text-muted">/ min</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 p-3.5 rounded-md border border-admin-border">
+                <div>
+                  <label
+                    htmlFor="rate-limit-extract-day"
+                    className="font-display text-sm font-bold text-admin-text block"
+                  >
+                    Plafond jour / IP
+                  </label>
+                  <span className="text-xs text-admin-text-muted">
+                    <code className="font-mono">rate_limit_per_day</code>
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <input
+                    id="rate-limit-extract-day"
+                    type="number"
+                    min={1}
+                    max={100000}
+                    value={settings.rate_limit_per_day}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        rate_limit_per_day: Math.max(
+                          1,
+                          parseInt(e.target.value || '1', 10)
+                        ),
+                      })
+                    }
+                    className="w-20 px-2.5 py-1.5 rounded bg-admin-muted border border-admin-border-strong text-xs font-mono text-admin-text text-center"
+                  />
+                  <span className="text-xs font-mono text-admin-text-muted">/ jour</span>
                 </div>
               </div>
 
@@ -690,6 +763,79 @@ export const Controls: React.FC = () => {
                 <span>Enregistrer les limites</span>
               </button>
             </div>
+          </div>
+
+          {/* Auto-blocked IPs (blocked_ips) & Rejected Requests Today */}
+          <div className="p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <h3 className="font-display text-sm font-bold text-admin-text">
+                    Blocage automatique (24h · <code className="font-mono text-xs">blocked_ips</code>)
+                  </h3>
+                  <p className="text-xs text-admin-text-muted">
+                    Toute IP dépassant la limite 3 fois en 1h est bloquée 24h en amont dans le middleware.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <div
+                  data-testid="rejected-requests-today"
+                  className="px-3 py-1.5 rounded-md bg-admin-muted border border-admin-border flex items-center gap-2"
+                >
+                  <span className="text-xs text-admin-text-muted">
+                    Requêtes refusées aujourd&apos;hui :
+                  </span>
+                  <span className="font-mono text-sm font-bold text-red-700 dark:text-red-400">
+                    {rejectedToday}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadData}
+                  aria-label="Actualiser les IP bloquées"
+                  className="p-2 rounded-md bg-admin-muted hover:bg-admin-hover border border-admin-border-strong text-admin-text cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {blockedIps.length === 0 ? (
+              <p className="text-xs text-admin-text-muted py-2 text-center">
+                Aucune IP bloquée automatiquement pour le moment.
+              </p>
+            ) : (
+              <div className="divide-y divide-admin-border border border-admin-border rounded-md overflow-hidden">
+                {blockedIps.map((item) => (
+                  <div
+                    key={item.ip_hash}
+                    className="px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                      <span className="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-semibold shrink-0">
+                        {item.reason} ({item.violations}x)
+                      </span>
+                      <span className="text-admin-text truncate max-w-[260px]" title={item.ip_hash}>
+                        {item.ip_hash}
+                      </span>
+                      <span className="text-[11px] text-admin-text-muted">
+                        Expire : {new Date(item.expires_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUnblockIp(item.ip_hash)}
+                      className="px-3 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-display font-semibold text-xs shrink-0 cursor-pointer self-start sm:self-auto"
+                    >
+                      Débloquer
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Blocklist D1 */}

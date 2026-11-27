@@ -20,15 +20,23 @@ import { getLocalizedErrorMessage } from '../services/extractorService.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
 import { AdSlot } from './AdSlot.tsx';
 import { ShareButton } from './ShareButton.tsx';
+import { TurnstileWidget } from './TurnstileWidget.tsx';
+import { getTurnstileRequiredPrompt } from '../utils/securityFormCopy.ts';
 
 interface HeroOmniboxProps {
   pageKey: 'home' | PlatformPageKey;
   activePlatform: PlatformId;
   onNavigatePage: (pageKey: 'home' | PlatformPageKey) => void;
-  onSubmitUrl: (url: string, detected: DetectedUrlInfo) => void;
+  onSubmitUrl: (
+    url: string,
+    detected: DetectedUrlInfo,
+    turnstileToken?: string | null
+  ) => void;
   onEscapeClear?: () => void;
   isExtracting?: boolean;
   language: SupportedLocale;
+  turnstileSiteKey?: string;
+  turnstileResetKey?: number;
 }
 
 const STORY_CHIP_LABELS: Record<
@@ -55,8 +63,11 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
   onEscapeClear,
   isExtracting = false,
   language,
+  turnstileSiteKey = '',
+  turnstileResetKey = 0,
 }) => {
   const [urlInput, setUrlInput] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [selectedStoryChip, setSelectedStoryChip] = useState<
     'instagram-story' | 'facebook-story' | null
   >(null);
@@ -153,7 +164,15 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
             })
           );
         } else if (pastedDetected.isValid) {
-          onSubmitUrl(pastedDetected.normalizedUrl, pastedDetected);
+          if (turnstileSiteKey.trim() && !turnstileToken) {
+            setValidationMessage(getTurnstileRequiredPrompt(language));
+          } else {
+            onSubmitUrl(
+              pastedDetected.normalizedUrl,
+              pastedDetected,
+              turnstileToken
+            );
+          }
         }
       }
     } catch {
@@ -174,7 +193,11 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
     setUrlInput(sample.url);
     const sampleDetected = detectMediaUrl(sample.url, sample.platform);
     if (sampleDetected.isValid) {
-      onSubmitUrl(sampleDetected.normalizedUrl, sampleDetected);
+      if (turnstileSiteKey.trim() && !turnstileToken) {
+        setValidationMessage(getTurnstileRequiredPrompt(language));
+        return;
+      }
+      onSubmitUrl(sampleDetected.normalizedUrl, sampleDetected, turnstileToken);
     }
   };
 
@@ -211,8 +234,13 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
       return;
     }
 
+    if (turnstileSiteKey.trim() && !turnstileToken) {
+      setValidationMessage(getTurnstileRequiredPrompt(language));
+      return;
+    }
+
     setValidationMessage(null);
-    onSubmitUrl(detected.normalizedUrl, detected);
+    onSubmitUrl(detected.normalizedUrl, detected, turnstileToken);
   };
 
   const homeHref = getLocalizedPagePath(language, 'home');
@@ -442,6 +470,16 @@ export const HeroOmnibox: React.FC<HeroOmniboxProps> = ({
               >
                 {validationMessage}
               </p>
+            )}
+
+            {turnstileSiteKey.trim() && (
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                action="extract"
+                resetKey={turnstileResetKey}
+                onTokenChange={setTurnstileToken}
+                className="mt-3"
+              />
             )}
           </form>
 

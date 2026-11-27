@@ -24,7 +24,10 @@ export type ErrorCode =
   | 'STORY_ACCOUNT_PRIVATE'
   | 'STORY_ACCOUNT_NOT_FOUND'
   | 'STORY_NO_ACTIVE'
-  | 'STORY_RATE_LIMITED';
+  | 'STORY_RATE_LIMITED'
+  | 'TURNSTILE_REQUIRED'
+  | 'TURNSTILE_FAILED'
+  | 'IP_BLOCKED';
 
 export const STORIES_UNAVAILABLE_MESSAGE =
   'Les stories sont temporairement indisponibles.';
@@ -90,7 +93,7 @@ export interface ExtractResponse {
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Accept',
+  'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Turnstile-Token',
 };
 
 export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
@@ -102,6 +105,9 @@ export function mapErrorCodeToHttpStatus(code: ErrorCode): number {
     case 'PLATFORM_DISABLED':
     case 'BLOCKED':
     case 'STORY_ACCOUNT_PRIVATE':
+    case 'TURNSTILE_REQUIRED':
+    case 'TURNSTILE_FAILED':
+    case 'IP_BLOCKED':
       return 403;
     case 'NOT_FOUND':
     case 'PROFILE_NOT_FOUND':

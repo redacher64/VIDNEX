@@ -1221,6 +1221,17 @@ export function getLocalizedErrorMessage(
     );
   }
 
+  if (
+    normalizedProfileCode === 'TURNSTILE_REQUIRED' ||
+    normalizedProfileCode === 'TURNSTILE_FAILED' ||
+    normalizedProfileCode === 'IP_BLOCKED'
+  ) {
+    return (
+      options?.serverMessage ||
+      getLocaleBundleSync(language).ui.errors.BLOCKED
+    );
+  }
+
   const dict = getLocaleBundleSync(language).ui.errors as unknown as Record<
     string,
     string
@@ -1234,7 +1245,8 @@ export function getLocalizedErrorMessage(
 export async function extractMediaFromUrl(
   url: string,
   detected: DetectedUrlInfo,
-  language: LanguageCode = 'en'
+  language: LanguageCode = 'en',
+  turnstileToken?: string | null
 ): Promise<MediaResult> {
   if (
     detected.unsupportedReason === 'FB_PHOTO_UNSUPPORTED' ||
@@ -1268,6 +1280,7 @@ export async function extractMediaFromUrl(
   });
 
   const queryUrl = resolveApiUrl(`/api/extract?${queryParams.toString()}`);
+  const cleanTurnstileToken = (turnstileToken || '').trim();
 
   let response: Response;
   try {
@@ -1275,6 +1288,9 @@ export async function extractMediaFromUrl(
       method: 'GET',
       headers: {
         Accept: 'application/json',
+        ...(cleanTurnstileToken
+          ? { 'X-Turnstile-Token': cleanTurnstileToken }
+          : {}),
       },
     });
   } catch {
@@ -1284,10 +1300,16 @@ export async function extractMediaFromUrl(
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          ...(cleanTurnstileToken
+            ? { 'X-Turnstile-Token': cleanTurnstileToken }
+            : {}),
         },
         body: JSON.stringify({
           url: detected.normalizedUrl || url,
           platform: normalizedPlatform,
+          ...(cleanTurnstileToken
+            ? { 'cf-turnstile-response': cleanTurnstileToken }
+            : {}),
         }),
       });
     } catch {

@@ -60,6 +60,7 @@ export interface SystemSettings {
   stories_list_rate_limit_per_hour: number;
   stories_global_hourly_cap: number;
   rate_limit_per_min: number;
+  rate_limit_per_day: number;
   download_limit_per_min: number;
   ads_enabled: boolean;
   ads_adsterra_enabled: boolean;
@@ -90,7 +91,8 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   stories_provider_order: ['session', 'relay', 'paid'],
   stories_list_rate_limit_per_hour: 5,
   stories_global_hourly_cap: 200,
-  rate_limit_per_min: 30,
+  rate_limit_per_min: 10,
+  rate_limit_per_day: 100,
   download_limit_per_min: 60,
   ads_enabled: true,
   ads_adsterra_enabled: true,
@@ -132,6 +134,12 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       Number.isFinite(rawRate) && rawRate >= 1 && rawRate <= 10_000
         ? Math.floor(rawRate)
         : DEFAULT_SETTINGS.rate_limit_per_min;
+
+    const rawDailyRate = Number(map.get('rate_limit_per_day'));
+    const dailyRateLimit =
+      Number.isFinite(rawDailyRate) && rawDailyRate >= 1 && rawDailyRate <= 100_000
+        ? Math.floor(rawDailyRate)
+        : DEFAULT_SETTINGS.rate_limit_per_day;
 
     const rawDownloadRate = Number(map.get('download_limit_per_min'));
     const downloadLimit =
@@ -179,6 +187,7 @@ export async function getSystemSettings(env?: AdminEnv): Promise<SystemSettings>
       stories_list_rate_limit_per_hour: storyPerIpLimit,
       stories_global_hourly_cap: storyGlobalCap,
       rate_limit_per_min: rateLimit,
+      rate_limit_per_day: dailyRateLimit,
       download_limit_per_min: downloadLimit,
       ads_enabled: map.has('ads_enabled')
         ? map.get('ads_enabled') !== 'false'
@@ -262,6 +271,10 @@ export async function updateSystemSettings(
   if (typeof partial.rate_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.rate_limit_per_min)));
     entries.push(['rate_limit_per_min', String(clamped)]);
+  }
+  if (typeof partial.rate_limit_per_day === 'number') {
+    const clamped = Math.max(1, Math.min(100_000, Math.floor(partial.rate_limit_per_day)));
+    entries.push(['rate_limit_per_day', String(clamped)]);
   }
   if (typeof partial.download_limit_per_min === 'number') {
     const clamped = Math.max(1, Math.min(5000, Math.floor(partial.download_limit_per_min)));

@@ -1,4 +1,5 @@
 import { type AdminEnv, getDb, getRawClientIp, hashIpAddress } from '../../_lib/db.ts';
+import { recordRejectedRequest } from '../../_lib/security.ts';
 import {
   ASSIGNABLE_PERMISSIONS,
   type D1UserRecord,
@@ -126,6 +127,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
   ]);
 
   if (ipBruteCheck.blocked || loginBruteCheck.blocked) {
+    await recordRejectedRequest(env, undefined, nowMs);
     const retryAfterSec = Math.max(
       ipBruteCheck.retryAfterSec,
       loginBruteCheck.retryAfterSec,

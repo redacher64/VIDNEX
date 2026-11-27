@@ -568,6 +568,8 @@ test('Admin Activity logs 1 failure per platform (5 platforms) with all columns 
           headers: {
             'Content-Type': 'application/json',
             'CF-Connecting-IP': '203.0.113.42',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36',
           },
           body: JSON.stringify({ url: tc.url }),
         }),
@@ -2232,7 +2234,11 @@ test('LinkedIn Production 10-Scenario Suite: URL variants, embedded Voyager JSON
     const invalidExtractRes = await extractPost({
       request: new Request('https://vidnex.space/api/extract', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36',
+        },
         body: JSON.stringify({ url: 'https://www.linkedin.com/company/openai' }),
       }),
       env,
@@ -2272,7 +2278,11 @@ test('LinkedIn Production 10-Scenario Suite: URL variants, embedded Voyager JSON
     const invalidImageExtractRes = await extractPost({
       request: new Request('https://vidnex.space/api/extract', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36',
+        },
         body: JSON.stringify({ url: 'https://www.linkedin.com/in/corrupt-photo' }),
       }),
       env,
@@ -2335,7 +2345,11 @@ test('LinkedIn Production 10-Scenario Suite: URL variants, embedded Voyager JSON
     const extractSuccessRes = await extractPost({
       request: new Request('https://vidnex.space/api/extract', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36',
+        },
         body: JSON.stringify({ url: 'https://www.linkedin.com/in/cached-founder' }),
       }),
       env,

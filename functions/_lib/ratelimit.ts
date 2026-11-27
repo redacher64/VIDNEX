@@ -262,27 +262,38 @@ export function getHourlyWindowKey(nowMs: number = Date.now()): number {
   return Math.floor(nowMs / 3_600_000) * 60 + 59;
 }
 
+/**
+ * Calcule une fenêtre journalière alignée sur l'échelle des minutes (dernière minute du jour UTC)
+ * afin qu'elle cohabite avec la table `rate_limits` sans être purgée avant minuit UTC.
+ */
+export function getDailyWindowKey(nowMs: number = Date.now()): number {
+  return Math.floor(nowMs / 86_400_000) * 1440 + 1439;
+}
+
 function computeHourlyRetryAfterSec(nowMs: number): number {
   const nextHourMs = (Math.floor(nowMs / 3_600_000) + 1) * 3_600_000;
   return Math.max(1, Math.ceil((nextHourMs - nowMs) / 1000));
 }
 
-export async function checkD1HourlyRateLimit(
+function computeDailyRetryAfterSec(nowMs: number): number {
+  const nextDayMs = (Math.floor(nowMs / 86_400_000) + 1) * 86_400_000;
+  return Math.max(1, Math.ceil((nextDayMs - nowMs) / 1000));
+}
+
+async function checkD1WindowedRateLimit(
   env: AdminEnv | undefined,
   bucketKey: string,
-  limitPerHour: number,
-  nowMs: number = Date.now()
+  windowKey: number,
+  safeLimit: number,
+  retryAfterSec: number
 ): Promise<HourlyRateLimitResult> {
-  const safeLimit = Math.max(1, Math.floor(limitPerHour));
-  const hourWindow = getHourlyWindowKey(nowMs);
-  const retryAfterSec = computeHourlyRetryAfterSec(nowMs);
   const db = getDb(env);
 
   if (db) {
     try {
       const existing = await db
         .prepare('SELECT count FROM rate_limits WHERE ip_hash = ? AND window = ?')
-        .bind(bucketKey, hourWindow)
+        .bind(bucketKey, windowKey)
         .first<{ count: number }>();
       const existingCount = Number(existing?.count ?? 0);
       if (existingCount >= safeLimit) {
@@ -299,7 +310,7 @@ export async function checkD1HourlyRateLimit(
         .prepare(
           'INSERT INTO rate_limits (ip_hash, window, count) VALUES (?, ?, 1) ON CONFLICT(ip_hash, window) DO UPDATE SET count = count + 1 RETURNING count'
         )
-        .bind(bucketKey, hourWindow)
+        .bind(bucketKey, windowKey)
         .first<{ count: number }>();
 
       const count = Number(updated?.count ?? existingCount + 1);
@@ -316,7 +327,7 @@ export async function checkD1HourlyRateLimit(
     }
   }
 
-  const memKey = `${bucketKey}:${hourWindow}`;
+  const memKey = `${bucketKey}:${windowKey}`;
   const current = d1HourlyFallbackBuckets.get(memKey);
   const currentCount = current ? current.count : 0;
   if (currentCount >= safeLimit) {
@@ -329,10 +340,10 @@ export async function checkD1HourlyRateLimit(
     };
   }
   const nextCount = currentCount + 1;
-  d1HourlyFallbackBuckets.set(memKey, { window: hourWindow, count: nextCount });
+  d1HourlyFallbackBuckets.set(memKey, { window: windowKey, count: nextCount });
   if (d1HourlyFallbackBuckets.size > 4000) {
     for (const [k, v] of d1HourlyFallbackBuckets.entries()) {
-      if (v.window < hourWindow) {
+      if (v.window < windowKey) {
         d1HourlyFallbackBuckets.delete(k);
       }
     }
@@ -344,6 +355,30 @@ export async function checkD1HourlyRateLimit(
     limit: safeLimit,
     retryAfterSec: 0,
   };
+}
+
+export async function checkD1HourlyRateLimit(
+  env: AdminEnv | undefined,
+  bucketKey: string,
+  limitPerHour: number,
+  nowMs: number = Date.now()
+): Promise<HourlyRateLimitResult> {
+  const safeLimit = Math.max(1, Math.floor(limitPerHour));
+  const hourWindow = getHourlyWindowKey(nowMs);
+  const retryAfterSec = computeHourlyRetryAfterSec(nowMs);
+  return checkD1WindowedRateLimit(env, bucketKey, hourWindow, safeLimit, retryAfterSec);
+}
+
+export async function checkD1DailyRateLimit(
+  env: AdminEnv | undefined,
+  bucketKey: string,
+  limitPerDay: number,
+  nowMs: number = Date.now()
+): Promise<HourlyRateLimitResult> {
+  const safeLimit = Math.max(1, Math.floor(limitPerDay));
+  const dayWindow = getDailyWindowKey(nowMs);
+  const retryAfterSec = computeDailyRetryAfterSec(nowMs);
+  return checkD1WindowedRateLimit(env, bucketKey, dayWindow, safeLimit, retryAfterSec);
 }
 
 export async function incrementD1HourlyCounter(

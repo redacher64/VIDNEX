@@ -26,7 +26,13 @@ export interface PublicConfig {
   ads_enabled: boolean;
   ads_adsterra_enabled: boolean;
   feature_stories?: boolean;
+  turnstile_enabled?: boolean;
+  turnstile_site_key?: string;
 }
+
+const BUILD_TURNSTILE_SITE_KEY = String(
+  import.meta.env?.VITE_TURNSTILE_SITE_KEY ?? ''
+).trim();
 
 const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   maintenance: false,
@@ -40,6 +46,8 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   ads_enabled: ENABLE_ADS,
   ads_adsterra_enabled: true,
   feature_stories: false,
+  turnstile_enabled: Boolean(BUILD_TURNSTILE_SITE_KEY),
+  turnstile_site_key: BUILD_TURNSTILE_SITE_KEY,
 };
 
 let currentPublicConfig: PublicConfig = { ...DEFAULT_PUBLIC_CONFIG };
@@ -144,6 +152,15 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
             ? data.ads_adsterra_enabled
             : true,
         feature_stories: Boolean(data.feature_stories),
+        turnstile_enabled:
+          typeof data.turnstile_enabled === 'boolean'
+            ? data.turnstile_enabled
+            : Boolean(BUILD_TURNSTILE_SITE_KEY),
+        turnstile_site_key:
+          typeof data.turnstile_site_key === 'string' &&
+          data.turnstile_site_key.trim()
+            ? data.turnstile_site_key.trim()
+            : BUILD_TURNSTILE_SITE_KEY,
       };
       setRuntimePlatformStates(currentPublicConfig.platforms);
       if (!currentPublicConfig.ads_adsterra_enabled && typeof document !== 'undefined') {

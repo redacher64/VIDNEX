@@ -37,6 +37,18 @@ import {
   onRequestPost as adminBlocklistPost,
   onRequestDelete as adminBlocklistDelete,
 } from './functions/api/admin/blocklist.ts';
+import {
+  onRequestGet as adminBlockedIpsGet,
+  onRequestDelete as adminBlockedIpsDelete,
+} from './functions/api/admin/blocked-ips.ts';
+import {
+  onRequestPost as contactPost,
+  onRequestOptions as contactOptions,
+} from './functions/api/contact.ts';
+import {
+  onRequestPost as dmcaPost,
+  onRequestOptions as dmcaOptions,
+} from './functions/api/dmca.ts';
 import { onRequestGet as adminActivityGet } from './functions/api/admin/activity.ts';
 import {
   onRequestGet as adminUsersGet,
@@ -152,6 +164,24 @@ async function routeInner(
     if (request.method === 'GET') return adminBlocklistGet({ request, env });
     if (request.method === 'POST') return adminBlocklistPost({ request, env });
     if (request.method === 'DELETE') return adminBlocklistDelete({ request, env });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/admin/blocked-ips') {
+    if (request.method === 'GET') return adminBlockedIpsGet({ request, env });
+    if (request.method === 'DELETE') return adminBlockedIpsDelete({ request, env });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/contact') {
+    if (request.method === 'OPTIONS') return contactOptions();
+    if (request.method === 'POST') return contactPost({ request, env, ctx });
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  if (pathname === '/api/dmca') {
+    if (request.method === 'OPTIONS') return dmcaOptions();
+    if (request.method === 'POST') return dmcaPost({ request, env, ctx });
     return new Response('Method Not Allowed', { status: 405 });
   }
 
@@ -374,6 +404,7 @@ export default {
     return adminMiddleware({
       request,
       env,
+      ctx,
       next: () => routeInner(request, env, ctx),
     });
   },

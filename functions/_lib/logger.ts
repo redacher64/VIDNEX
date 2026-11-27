@@ -42,6 +42,7 @@ export type DailyMetricEvent =
   | 'story_opened'
   | 'story_list_opened'
   | 'story_download'
+  | 'rejected_request'
   | `extract_success_h${string}`
   | `extract_error_h${string}`;
 

@@ -34,8 +34,21 @@ import {
   getRawClientIp,
   hashIpAddress,
 } from '../_lib/db.ts';
-import { getSystemSettings, isRequestBlocked } from '../_lib/settings.ts';
-import { checkD1RateLimit } from '../_lib/ratelimit.ts';
+import { getSystemSettings, isRequestBlocked, type SystemSettings } from '../_lib/settings.ts';
+import { checkD1DailyRateLimit, checkD1RateLimit } from '../_lib/ratelimit.ts';
+import {
+  acquireExtractionLock,
+  isBotOrMissingUserAgent,
+  MAX_EXTRACT_TIMEOUT_MS,
+  recordLimitExceedanceAndMaybeBlock,
+  recordRejectedRequest,
+  releaseExtractionLock,
+  validateExtractUrlWhitelist,
+} from '../_lib/security.ts';
+import {
+  extractTurnstileTokenFromRequest,
+  verifyTurnstileToken,
+} from '../_lib/turnstile.ts';
 import { incrementDailyMetrics, logExtractionEvent } from '../_lib/logger.ts';
 import { resolveStoryWithProviders } from '../_lib/instagramStories.ts';
 import {
@@ -134,6 +147,31 @@ function scheduleAsyncLog(
   }
 }
 
+function resolveExtractTimeoutMs(env: Env): number {
+  const raw = Number((env as Record<string, unknown>).EXTRACT_TIMEOUT_MS);
+  if (Number.isFinite(raw) && raw >= 50 && raw <= MAX_EXTRACT_TIMEOUT_MS) {
+    return Math.floor(raw);
+  }
+  return MAX_EXTRACT_TIMEOUT_MS;
+}
+
+async function runWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<{ timedOut: false; value: T } | { timedOut: true }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise.then((value) => ({ timedOut: false as const, value })),
+      new Promise<{ timedOut: true }>((resolve) => {
+        timer = setTimeout(() => resolve({ timedOut: true }), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
 async function handleExtract(
   request: Request,
   env: Env,
@@ -156,8 +194,19 @@ async function handleExtract(
     );
   }
 
+  // Vérification 1B : Rejeter les requêtes sans User-Agent ou avec UA de bots connus
+  if (isBotOrMissingUserAgent(request)) {
+    await recordRejectedRequest(env, ctx);
+    return createErrorResponse(
+      'BLOCKED',
+      'Requête refusée (User-Agent manquant ou automatisé).',
+      403
+    );
+  }
+
   let targetUrl = '';
   let preferredPlatform: SupportedPlatform = 'instagram';
+  let parsedBody: Record<string, unknown> | null = null;
 
   if (request.method === 'GET') {
     const parsed = new URL(request.url);
@@ -179,6 +228,9 @@ async function handleExtract(
   } else if (request.method === 'POST') {
     try {
       const body: any = await request.json().catch(() => ({}));
+      if (body && typeof body === 'object' && !Array.isArray(body)) {
+        parsedBody = body as Record<string, unknown>;
+      }
       targetUrl = String(body?.url || '').trim();
       if (
         body?.platform === 'tiktok' ||
@@ -205,6 +257,7 @@ async function handleExtract(
   const isBlocked = await isRequestBlocked(env, ipHash, targetUrl);
   if (isBlocked) {
     const blockedMsg = 'Cette requête ou ressource a été restreinte par l’administrateur.';
+    await recordRejectedRequest(env, ctx);
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -225,10 +278,21 @@ async function handleExtract(
     return createErrorResponse('BLOCKED', blockedMsg, 403);
   }
 
-  // Vérification 3 : Limite de débit par IP (D1 rate_limits avec fallback mémoire)
-  const rate = await checkD1RateLimit(env, ipHash, settings.rate_limit_per_min);
-  if (!rate.allowed) {
-    const rateMsg = `Limite de requêtes atteinte (${settings.rate_limit_per_min}/min). Veuillez patienter ${rate.retryAfterSec}s avant de réessayer.`;
+  // Vérification 3 : Limite de débit par IP (10 req/min ET 100 req/jour)
+  const minuteRate = await checkD1RateLimit(env, ipHash, settings.rate_limit_per_min);
+  const dailyRate = minuteRate.allowed
+    ? await checkD1DailyRateLimit(env, `day:${ipHash}`, settings.rate_limit_per_day)
+    : { allowed: true, retryAfterSec: 0, limit: settings.rate_limit_per_day };
+
+  if (!minuteRate.allowed || !dailyRate.allowed) {
+    const retryAfterSec = !minuteRate.allowed
+      ? minuteRate.retryAfterSec
+      : dailyRate.retryAfterSec;
+    const rateMsg = !minuteRate.allowed
+      ? `Limite de requêtes atteinte (${settings.rate_limit_per_min}/min). Veuillez patienter ${retryAfterSec}s avant de réessayer.`
+      : `Limite journalière atteinte (${settings.rate_limit_per_day}/jour). Veuillez réessayer plus tard.`;
+    await recordLimitExceedanceAndMaybeBlock(env, ipHash, 'extract_rate_limit');
+    await recordRejectedRequest(env, ctx);
     scheduleAsyncLog(
       ctx,
       logExtractionEvent(env, {
@@ -240,24 +304,147 @@ async function handleExtract(
         country: requestCountry,
         durationMs: Date.now() - startedAt,
         ipHash,
-        engineStage: 'rate_limit',
+        engineStage: !minuteRate.allowed ? 'rate_limit' : 'rate_limit_daily',
         httpStatus: 429,
         contentKind: initialClass.contentKind,
         engineFn: initialClass.engineFn,
       })
     );
     return createErrorResponse('RATE_LIMITED', rateMsg, 429, {
-      'Retry-After': String(rate.retryAfterSec),
+      'Retry-After': String(retryAfterSec),
     });
   }
 
-  if (!targetUrl) {
+  // Vérification 3B : Taille d'URL limitée (<= 2048) + liste blanche stricte des domaines supportés
+  const whitelistCheck = validateExtractUrlWhitelist(targetUrl);
+  if (!whitelistCheck.ok) {
+    await recordRejectedRequest(env, ctx);
+    if (whitelistCheck.reason !== 'MISSING') {
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: initialClass.platform,
+          status: 'error',
+          errorCode: 'UNSUPPORTED_URL',
+          errorMessage: whitelistCheck.message,
+          sourceDomain,
+          country: requestCountry,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          engineStage:
+            whitelistCheck.reason === 'TOO_LONG'
+              ? 'url_length_limit'
+              : 'domain_whitelist',
+          httpStatus: 400,
+          contentKind: initialClass.contentKind,
+          engineFn: initialClass.engineFn,
+        })
+      );
+    }
+    return createErrorResponse('UNSUPPORTED_URL', whitelistCheck.message, 400);
+  }
+
+  // Vérification 3C : Cloudflare Turnstile côté serveur avant toute extraction
+  const turnstileToken = extractTurnstileTokenFromRequest(request, parsedBody);
+  const turnstileResult = await verifyTurnstileToken(
+    request,
+    env,
+    turnstileToken,
+    'extract'
+  );
+  if (!turnstileResult.ok) {
+    await recordRejectedRequest(env, ctx);
     return createErrorResponse(
-      'UNSUPPORTED_URL',
-      'Paramètre "url" manquant. Veuillez coller un lien TikTok, Instagram, X (Twitter), Facebook ou LinkedIn.',
-      400
+      turnstileResult.errorCode || 'TURNSTILE_FAILED',
+      turnstileResult.message || 'Vérification Turnstile échouée.',
+      403
     );
   }
+
+  // Vérification 3D : Une extraction à la fois par IP + timeout max
+  if (!acquireExtractionLock(ipHash)) {
+    await recordRejectedRequest(env, ctx);
+    return createErrorResponse(
+      'RATE_LIMITED',
+      'Une extraction est déjà en cours pour votre adresse IP. Veuillez patienter quelques secondes.',
+      429,
+      { 'Retry-After': '5' }
+    );
+  }
+
+  const timeoutMs = resolveExtractTimeoutMs(env);
+  try {
+    const raced = await runWithTimeout(
+      runExtractionPipeline({
+        request,
+        env,
+        ctx,
+        settings,
+        startedAt,
+        ipHash,
+        requestCountry,
+        targetUrl,
+        preferredPlatform,
+        sourceDomain,
+        initialClass,
+      }),
+      timeoutMs
+    );
+    if (raced.timedOut) {
+      const timeoutMsg =
+        "Délai d'attente maximal dépassé lors de l'extraction. Veuillez réessayer.";
+      await recordRejectedRequest(env, ctx);
+      scheduleAsyncLog(
+        ctx,
+        logExtractionEvent(env, {
+          platform: initialClass.platform,
+          status: 'error',
+          errorCode: 'TIMEOUT',
+          errorMessage: timeoutMsg,
+          sourceDomain,
+          country: requestCountry,
+          durationMs: Date.now() - startedAt,
+          ipHash,
+          engineStage: 'extract_timeout',
+          httpStatus: null,
+          contentKind: initialClass.contentKind,
+          engineFn: initialClass.engineFn,
+        })
+      );
+      return createErrorResponse('TIMEOUT', timeoutMsg, 504);
+    }
+    return raced.value;
+  } finally {
+    releaseExtractionLock(ipHash);
+  }
+}
+
+async function runExtractionPipeline(params: {
+  request: Request;
+  env: Env;
+  ctx?: ExecutionContextLike;
+  settings: SystemSettings;
+  startedAt: number;
+  ipHash: string;
+  requestCountry: string;
+  targetUrl: string;
+  preferredPlatform: SupportedPlatform;
+  sourceDomain: string | null;
+  initialClass: ReturnType<typeof classifyUrlForLog>;
+}): Promise<Response> {
+  const {
+    request,
+    env,
+    ctx,
+    settings,
+    startedAt,
+    ipHash,
+    requestCountry,
+    targetUrl,
+    preferredPlatform,
+    sourceDomain,
+    initialClass,
+  } = params;
 
   // 1. Détection et validation d'URL
   let detection = detectUrl(targetUrl, preferredPlatform);

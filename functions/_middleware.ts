@@ -1,14 +1,25 @@
 import { SITE_URL } from '../src/config/site.ts';
 import { resolveBlogRedirectPath } from '../src/i18n/config.ts';
-import { type AdminEnv } from './_lib/db.ts';
+import {
+  type AdminEnv,
+  type ExecutionContextLike,
+  getRawClientIp,
+  hashIpAddress,
+} from './_lib/db.ts';
 import {
   requirePermission,
   resolveAdminRoutePermission,
 } from './_lib/auth.ts';
+import {
+  isIpBlockedInTable,
+  recordRejectedRequest,
+} from './_lib/security.ts';
 
 export interface MiddlewareContext {
   request: Request;
   env?: AdminEnv;
+  ctx?: ExecutionContextLike;
+  waitUntil?: (promise: Promise<unknown>) => void;
   next: () => Promise<Response>;
 }
 
@@ -57,8 +68,54 @@ export function isPreviewHostRequiringNoindex(
  */
 export async function onRequest(context: MiddlewareContext): Promise<Response> {
   const { request, env = {}, next } = context;
+  const ctx: ExecutionContextLike | undefined =
+    context.ctx || (context.waitUntil ? { waitUntil: context.waitUntil } : undefined);
   const url = new URL(request.url);
   const pathname = url.pathname;
+
+  // Vérification prioritaire : table D1 `blocked_ips` (blocage automatique 24h)
+  const rawIp = getRawClientIp(request);
+  const ipHash = await hashIpAddress(rawIp, env.IP_HASH_SALT);
+  const nowMs = Date.now();
+  const ipBlock = await isIpBlockedInTable(env, ipHash, nowMs);
+  if (ipBlock.blocked) {
+    await recordRejectedRequest(env, ctx, nowMs);
+    const retryAfter = String(ipBlock.retryAfterSec || 86400);
+    if (pathname === '/api' || pathname.startsWith('/api/')) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: {
+            code: 'IP_BLOCKED',
+            message:
+              'Votre adresse IP a été temporairement bloquée pendant 24h suite à des requêtes excessives.',
+          },
+        }),
+        {
+          status: 403,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'Retry-After': retryAfter,
+            'X-Robots-Tag': 'noindex, nofollow',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+    return new Response(
+      'Accès temporairement bloqué (24h) suite à des requêtes excessives.',
+      {
+        status: 403,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'Retry-After': retryAfter,
+          'X-Robots-Tag': 'noindex, nofollow',
+        },
+      }
+    );
+  }
 
   const blogRedirectTarget = resolveBlogRedirectPath(pathname);
   if (blogRedirectTarget) {

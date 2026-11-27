@@ -49,6 +49,11 @@ export interface AdminEnv {
   STORIES_ALLOW_MOCK?: string;
   VIDNEX_LOCAL_DEV?: string;
   CF_PAGES?: string;
+  TURNSTILE_SECRET?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_HOSTNAMES?: string;
+  VITE_TURNSTILE_SITE_KEY?: string;
   [key: string]: unknown;
 }
 
@@ -94,7 +99,7 @@ const migratedEngineColumnsDbs = new WeakSet<object>();
 
 const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
-  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('allow_third_party', 'true'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('feature_stories', 'false'), ('stories_provider_order', 'session,relay,paid'), ('stories_list_rate_limit_per_hour', '5'), ('stories_global_hourly_cap', '200'), ('rate_limit_per_min', '30'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('ads_adsterra_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
+  `INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance', 'false'), ('allow_third_party', 'true'), ('platform_tiktok', 'true'), ('platform_instagram', 'true'), ('platform_x', 'true'), ('platform_facebook', 'true'), ('platform_linkedin', 'true'), ('feature_stories', 'false'), ('stories_provider_order', 'session,relay,paid'), ('stories_list_rate_limit_per_hour', '5'), ('stories_global_hourly_cap', '200'), ('rate_limit_per_min', '10'), ('rate_limit_per_day', '100'), ('download_limit_per_min', '60'), ('ads_enabled', 'true'), ('ads_adsterra_enabled', 'true'), ('test_url_tiktok', ''), ('test_url_instagram', ''), ('test_url_instagram_profile', ''), ('test_url_x', ''), ('test_url_facebook', ''), ('test_url_linkedin', '')`,
   `CREATE TABLE IF NOT EXISTS request_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, platform TEXT NOT NULL, status TEXT NOT NULL, error_code TEXT, duration_ms INTEGER NOT NULL, ip_hash TEXT NOT NULL, engine_stage TEXT, http_status INTEGER, content_kind TEXT, engine_fn TEXT, error_message TEXT, source_domain TEXT, country TEXT)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts)`,
   `CREATE INDEX IF NOT EXISTS idx_request_log_status_ts ON request_log(status, ts DESC)`,
@@ -122,6 +127,10 @@ const D1_BOOTSTRAP_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS blog_revisions (id INTEGER PRIMARY KEY AUTOINCREMENT, article_id TEXT NOT NULL, locale TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL DEFAULT '', meta_title TEXT NOT NULL DEFAULT '', meta_description TEXT NOT NULL DEFAULT '', body_markdown TEXT NOT NULL DEFAULT '', snapshot_json TEXT NOT NULL DEFAULT '{}', status TEXT NOT NULL DEFAULT 'draft', edited_by TEXT NOT NULL, created_at INTEGER NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS idx_blog_revisions_article_locale_created ON blog_revisions(article_id, locale, created_at DESC, id DESC)`,
   `CREATE TABLE IF NOT EXISTS blog_redirects (id INTEGER PRIMARY KEY AUTOINCREMENT, locale TEXT NOT NULL, old_slug TEXT NOT NULL, new_slug TEXT NOT NULL, article_id TEXT NOT NULL, status_code INTEGER NOT NULL DEFAULT 301, created_at INTEGER NOT NULL, UNIQUE(locale, old_slug))`,
+  `CREATE TABLE IF NOT EXISTS blocked_ips (ip_hash TEXT PRIMARY KEY, reason TEXT NOT NULL DEFAULT 'rate_limit', violations INTEGER NOT NULL DEFAULT 3, blocked_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_blocked_ips_expires_at ON blocked_ips(expires_at)`,
+  `CREATE TABLE IF NOT EXISTS form_submissions (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, subject TEXT, target_url TEXT, message TEXT NOT NULL, ip_hash TEXT NOT NULL, created_at INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS idx_form_submissions_created_at ON form_submissions(created_at DESC)`,
 ];
 
 /**
@@ -320,7 +329,8 @@ export function createMemoryD1Database(): D1Database {
     ['stories_provider_order', 'session,relay,paid'],
     ['stories_list_rate_limit_per_hour', '5'],
     ['stories_global_hourly_cap', '200'],
-    ['rate_limit_per_min', '30'],
+    ['rate_limit_per_min', '10'],
+    ['rate_limit_per_day', '100'],
     ['download_limit_per_min', '60'],
     ['ads_enabled', 'true'],
     ['ads_adsterra_enabled', 'true'],
@@ -397,6 +407,26 @@ export function createMemoryD1Database(): D1Database {
     count: number;
     window_start_ts: number;
     blocked_until_ts: number | null;
+  }
+
+  interface BlockedIpRow {
+    ip_hash: string;
+    reason: string;
+    violations: number;
+    blocked_at: number;
+    expires_at: number;
+  }
+
+  interface FormSubmissionRow {
+    id: number;
+    kind: 'contact' | 'dmca';
+    name: string;
+    email: string;
+    subject: string | null;
+    target_url: string | null;
+    message: string;
+    ip_hash: string;
+    created_at: number;
   }
 
   interface UserRow {
@@ -502,6 +532,7 @@ export function createMemoryD1Database(): D1Database {
   let blogTrSeq = 1;
   let blogRevSeq = 1;
   let blogRedirSeq = 1;
+  let formSubSeq = 1;
   let writeCount = 0;
   let requestLogs: RequestLogRow[] = [];
   const dailyMetrics = new Map<string, DailyMetricRow>();
@@ -584,6 +615,8 @@ export function createMemoryD1Database(): D1Database {
   let blocklist: BlocklistRow[] = [];
   const rateLimits = new Map<string, { ip_hash: string; window: number; count: number }>();
   const loginAttempts = new Map<string, LoginAttemptRow>();
+  const blockedIps = new Map<string, BlockedIpRow>();
+  let formSubmissions: FormSubmissionRow[] = [];
   let users: UserRow[] = [];
   let auditLogs: AuditLogRow[] = [];
   let blogArticles: BlogArticleRow[] = [];
@@ -690,6 +723,79 @@ export function createMemoryD1Database(): D1Database {
         }
         return [];
       }
+      if (lower.startsWith('delete from rate_limits where ip_hash =')) {
+        const ipHash = String(boundValues[0] || '');
+        for (const [k, v] of rateLimits.entries()) {
+          if (v.ip_hash === ipHash) rateLimits.delete(k);
+        }
+        return [];
+      }
+
+      // 4B. BLOCKED_IPS
+      if (lower.startsWith('select ip_hash, reason, violations, blocked_at, expires_at from blocked_ips')) {
+        if (lower.includes('where ip_hash =')) {
+          const ipHash = String(boundValues[0] || '');
+          const row = blockedIps.get(ipHash);
+          return row ? [{ ...row }] : [];
+        }
+        if (lower.includes('where expires_at >')) {
+          const nowTs = Number(boundValues[0] || 0);
+          return Array.from(blockedIps.values())
+            .filter((r) => r.expires_at > nowTs)
+            .sort((a, b) => b.blocked_at - a.blocked_at)
+            .map((r) => ({ ...r }));
+        }
+        return Array.from(blockedIps.values())
+          .sort((a, b) => b.blocked_at - a.blocked_at)
+          .map((r) => ({ ...r }));
+      }
+      if (lower.startsWith('insert into blocked_ips')) {
+        const ip_hash = String(boundValues[0] || '');
+        const reason = String(boundValues[1] || 'rate_limit');
+        const violations = Number(boundValues[2] ?? 3);
+        const blocked_at = Number(boundValues[3] ?? Date.now());
+        const expires_at = Number(boundValues[4] ?? blocked_at + 86_400_000);
+        blockedIps.set(ip_hash, {
+          ip_hash,
+          reason,
+          violations,
+          blocked_at,
+          expires_at,
+        });
+        return [];
+      }
+      if (lower.startsWith('delete from blocked_ips where ip_hash =')) {
+        const ipHash = String(boundValues[0] || '');
+        blockedIps.delete(ipHash);
+        return [];
+      }
+      if (lower.startsWith('delete from blocked_ips where expires_at <=')) {
+        const cutoff = Number(boundValues[0] || 0);
+        for (const [k, v] of blockedIps.entries()) {
+          if (v.expires_at <= cutoff) blockedIps.delete(k);
+        }
+        return [];
+      }
+
+      // 4C. FORM_SUBMISSIONS
+      if (lower.startsWith('insert into form_submissions')) {
+        const row: FormSubmissionRow = {
+          id: formSubSeq++,
+          kind: (String(boundValues[0] || 'contact') === 'dmca' ? 'dmca' : 'contact'),
+          name: String(boundValues[1] || ''),
+          email: String(boundValues[2] || ''),
+          subject: boundValues[3] != null ? String(boundValues[3]) : null,
+          target_url: boundValues[4] != null ? String(boundValues[4]) : null,
+          message: String(boundValues[5] || ''),
+          ip_hash: String(boundValues[6] || ''),
+          created_at: Number(boundValues[7] ?? Date.now()),
+        };
+        formSubmissions.push(row);
+        return [{ id: row.id }];
+      }
+      if (lower.startsWith('select') && lower.includes('from form_submissions')) {
+        return [...formSubmissions].sort((a, b) => b.created_at - a.created_at || b.id - a.id);
+      }
 
       // 5. DAILY_METRICS
       if (lower.startsWith('insert into daily_metrics')) {
@@ -708,6 +814,11 @@ export function createMemoryD1Database(): D1Database {
           });
         }
         return [];
+      }
+      if (lower.startsWith("select count from daily_metrics where day = ? and platform = 'security' and event = 'rejected_request'")) {
+        const day = String(boundValues[0] || '');
+        const existing = dailyMetrics.get(`${day}:security:rejected_request`);
+        return existing ? [{ count: existing.count }] : [];
       }
       if (lower.startsWith('select day, platform, event, count from daily_metrics')) {
         const rows = Array.from(dailyMetrics.values());

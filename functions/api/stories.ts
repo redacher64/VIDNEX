@@ -27,6 +27,11 @@ import {
 import { getSystemSettings, isRequestBlocked } from '../_lib/settings.ts';
 import { checkD1HourlyRateLimit } from '../_lib/ratelimit.ts';
 import {
+  isBotOrMissingUserAgent,
+  recordLimitExceedanceAndMaybeBlock,
+  recordRejectedRequest,
+} from '../_lib/security.ts';
+import {
   incrementDailyMetrics,
   logExtractionEvent,
 } from '../_lib/logger.ts';
@@ -133,6 +138,15 @@ async function handleListStories(
     );
   }
 
+  if (isBotOrMissingUserAgent(request)) {
+    await recordRejectedRequest(env, ctx);
+    return createErrorResponse(
+      'BLOCKED',
+      'Requête refusée (User-Agent manquant ou automatisé).',
+      403
+    );
+  }
+
   if (!settings.platform_instagram) {
     return createErrorResponse(
       'PLATFORM_DISABLED',
@@ -221,6 +235,8 @@ async function handleListStories(
     settings.stories_list_rate_limit_per_hour
   );
   if (!ipRate.allowed) {
+    await recordLimitExceedanceAndMaybeBlock(env, ipHash, 'stories_rate_limit');
+    await recordRejectedRequest(env, ctx);
     const rateMsg = `Limite atteinte (${settings.stories_list_rate_limit_per_hour} listes de stories par heure). Veuillez réessayer plus tard.`;
     scheduleAsync(
       ctx,

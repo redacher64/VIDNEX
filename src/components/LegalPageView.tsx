@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   getLocalizedPagePath,
   LEGAL_PAGE_KEYS,
@@ -13,6 +13,12 @@ import {
 } from '../i18n/localeLoader.ts';
 import { getSplitImageContent } from '../utils/splitImageLogic.ts';
 import { PlatformIcon } from './icons/PlatformIcons.tsx';
+import { TurnstileWidget } from './TurnstileWidget.tsx';
+import { getSecurityFormCopy } from '../utils/securityFormCopy.ts';
+import {
+  getPublicConfigSnapshot,
+  subscribePublicConfig,
+} from '../services/adsenseService.ts';
 
 interface LegalPageViewProps {
   legalKey: LegalPageKey;
@@ -88,6 +94,88 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
   const homeHref = getLocalizedPagePath(locale, 'home');
   const splitImageHref = getLocalizedPagePath(locale, 'split_image');
   const splitImageData = getSplitImageContent(locale);
+
+  const isInteractiveForm = legalKey === 'contact' || legalKey === 'dmca';
+  const formCopy = getSecurityFormCopy(locale);
+
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(
+    () => getPublicConfigSnapshot().turnstile_site_key || ''
+  );
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [targetUrl, setTargetUrl] = useState('');
+  const [message, setMessage] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [formFeedback, setFormFeedback] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setFormFeedback(null);
+    return subscribePublicConfig((cfg) => {
+      setTurnstileSiteKey(cfg.turnstile_site_key || '');
+    });
+  }, [legalKey]);
+
+  const handleLegalFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting || !isInteractiveForm) return;
+
+    if (turnstileSiteKey.trim() && !turnstileToken) {
+      setFormFeedback({ type: 'error', text: formCopy.turnstileRequired });
+      return;
+    }
+
+    setSubmitting(true);
+    setFormFeedback(null);
+    const endpoint = legalKey === 'dmca' ? '/api/dmca' : '/api/contact';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...(turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {}),
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          subject: legalKey === 'contact' ? subject.trim() : undefined,
+          targetUrl: legalKey === 'dmca' ? targetUrl.trim() : undefined,
+          message: message.trim(),
+          website: honeypot,
+          ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        setFormFeedback({
+          type: 'error',
+          text: data?.error?.message || formCopy.genericError,
+        });
+        return;
+      }
+
+      setName('');
+      setEmail('');
+      setSubject('');
+      setTargetUrl('');
+      setMessage('');
+      setHoneypot('');
+      setFormFeedback({ type: 'success', text: formCopy.successMessage });
+    } catch {
+      setFormFeedback({ type: 'error', text: formCopy.genericError });
+    } finally {
+      setSubmitting(false);
+      setTurnstileResetKey((k) => k + 1);
+    }
+  };
 
   return (
     <section className="w-full py-10 sm:py-14 bg-[#fffaf5] dark:bg-[#140e0a]">
@@ -187,6 +275,165 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
             <div className="h-4 w-full rounded bg-orange-100/70 dark:bg-orange-900/30" />
             <div className="h-4 w-5/6 rounded bg-orange-100/70 dark:bg-orange-900/30" />
           </article>
+        )}
+
+        {/* Interactive Protected Form for Contact & DMCA (Turnstile + Honeypot + 3/h rate limit) */}
+        {isInteractiveForm && (
+          <section
+            aria-label={legalKey === 'dmca' ? formCopy.dmcaTitle : formCopy.contactTitle}
+            className="mt-8 bg-white/95 dark:bg-[#1c140e]/95 rounded-3xl border border-orange-200/90 dark:border-orange-900/60 p-6 sm:p-8 shadow-card-warm"
+          >
+            <h2 className="font-display text-lg sm:text-xl font-bold text-[#1f130b] dark:text-[#fffaf5]">
+              {legalKey === 'dmca' ? formCopy.dmcaTitle : formCopy.contactTitle}
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-[#6c4e40] dark:text-orange-200/75">
+              {legalKey === 'dmca' ? formCopy.dmcaSubtitle : formCopy.contactSubtitle}
+            </p>
+
+            {formFeedback && (
+              <div
+                role={formFeedback.type === 'error' ? 'alert' : 'status'}
+                className={`mt-4 p-3.5 rounded-xl border text-xs sm:text-sm font-medium ${
+                  formFeedback.type === 'success'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
+                    : 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-red-900 dark:text-red-200'
+                }`}
+              >
+                {formFeedback.text}
+              </div>
+            )}
+
+            <form onSubmit={handleLegalFormSubmit} className="mt-5 space-y-4 relative">
+              {/* Honeypot invisible : ne jamais remplir par un humain */}
+              <div
+                aria-hidden="true"
+                className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none"
+              >
+                <label htmlFor={`hp-${legalKey}`}>Website</label>
+                <input
+                  id={`hp-${legalKey}`}
+                  name="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor={`legal-form-name-${legalKey}`}
+                    className="block text-xs font-semibold text-[#1f130b] dark:text-orange-100 mb-1.5"
+                  >
+                    {formCopy.nameLabel}
+                  </label>
+                  <input
+                    id={`legal-form-name-${legalKey}`}
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fffaf5] dark:bg-[#140e0a] border border-orange-200 dark:border-orange-900/70 text-sm text-[#1f130b] dark:text-[#fffaf5] focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor={`legal-form-email-${legalKey}`}
+                    className="block text-xs font-semibold text-[#1f130b] dark:text-orange-100 mb-1.5"
+                  >
+                    {formCopy.emailLabel}
+                  </label>
+                  <input
+                    id={`legal-form-email-${legalKey}`}
+                    type="email"
+                    required
+                    maxLength={160}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fffaf5] dark:bg-[#140e0a] border border-orange-200 dark:border-orange-900/70 text-sm text-[#1f130b] dark:text-[#fffaf5] focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              {legalKey === 'contact' ? (
+                <div>
+                  <label
+                    htmlFor="legal-form-subject"
+                    className="block text-xs font-semibold text-[#1f130b] dark:text-orange-100 mb-1.5"
+                  >
+                    {formCopy.subjectLabel}
+                  </label>
+                  <input
+                    id="legal-form-subject"
+                    type="text"
+                    maxLength={160}
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fffaf5] dark:bg-[#140e0a] border border-orange-200 dark:border-orange-900/70 text-sm text-[#1f130b] dark:text-[#fffaf5] focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label
+                    htmlFor="legal-form-target-url"
+                    className="block text-xs font-semibold text-[#1f130b] dark:text-orange-100 mb-1.5"
+                  >
+                    {formCopy.targetUrlLabel}
+                  </label>
+                  <input
+                    id="legal-form-target-url"
+                    type="url"
+                    required
+                    maxLength={2048}
+                    placeholder="https://..."
+                    value={targetUrl}
+                    onChange={(e) => setTargetUrl(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fffaf5] dark:bg-[#140e0a] border border-orange-200 dark:border-orange-900/70 text-sm font-mono text-[#1f130b] dark:text-[#fffaf5] focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor={`legal-form-message-${legalKey}`}
+                  className="block text-xs font-semibold text-[#1f130b] dark:text-orange-100 mb-1.5"
+                >
+                  {formCopy.messageLabel}
+                </label>
+                <textarea
+                  id={`legal-form-message-${legalKey}`}
+                  required
+                  minLength={10}
+                  maxLength={4000}
+                  rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#fffaf5] dark:bg-[#140e0a] border border-orange-200 dark:border-orange-900/70 text-sm text-[#1f130b] dark:text-[#fffaf5] focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              {turnstileSiteKey.trim() && (
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  action={legalKey}
+                  resetKey={turnstileResetKey}
+                  onTokenChange={setTurnstileToken}
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="min-h-[44px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 disabled:opacity-60 text-white font-mono text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+              >
+                {submitting ? formCopy.submittingLabel : formCopy.submitLabel}
+              </button>
+            </form>
+          </section>
         )}
 
         {/* Internal Links to the 5 Platform Tools + Split Image Tool */}

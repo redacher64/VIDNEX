@@ -610,7 +610,11 @@ export function App({ initialPath }: AppProps = {}) {
               onEscapeClear={handleCloseDrawer}
               isExtracting={isExtracting}
               language={language}
-              turnstileSiteKey={publicConfig.turnstile_site_key || ''}
+              turnstileSiteKey={
+                publicConfig.turnstile_enabled
+                  ? publicConfig.turnstile_site_key || ''
+                  : ''
+              }
               turnstileResetKey={turnstileResetKey}
             />
 

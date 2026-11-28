@@ -98,9 +98,10 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
   const isInteractiveForm = legalKey === 'contact' || legalKey === 'dmca';
   const formCopy = getSecurityFormCopy(locale);
 
-  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(
-    () => getPublicConfigSnapshot().turnstile_site_key || ''
-  );
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(() => {
+    const cfg = getPublicConfigSnapshot();
+    return cfg.turnstile_enabled ? cfg.turnstile_site_key || '' : '';
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -118,7 +119,9 @@ export const LegalPageView: React.FC<LegalPageViewProps> = ({
   useEffect(() => {
     setFormFeedback(null);
     return subscribePublicConfig((cfg) => {
-      setTurnstileSiteKey(cfg.turnstile_site_key || '');
+      setTurnstileSiteKey(
+        cfg.turnstile_enabled ? cfg.turnstile_site_key || '' : ''
+      );
     });
   }, [legalKey]);
 

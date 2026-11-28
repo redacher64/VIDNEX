@@ -30,6 +30,13 @@ export interface PublicConfig {
   turnstile_site_key?: string;
 }
 
+/**
+ * Interrupteur temporaire côté front pour masquer Cloudflare Turnstile
+ * sans supprimer l'intégration. Repasser à `false` pour réactiver
+ * (en même temps que `TURNSTILE_TEMPORARILY_DISABLED` dans `functions/_lib/turnstile.ts`).
+ */
+export const TURNSTILE_TEMPORARILY_DISABLED = true;
+
 const BUILD_TURNSTILE_SITE_KEY = String(
   import.meta.env?.VITE_TURNSTILE_SITE_KEY ?? ''
 ).trim();
@@ -46,8 +53,12 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   ads_enabled: ENABLE_ADS,
   ads_adsterra_enabled: true,
   feature_stories: false,
-  turnstile_enabled: Boolean(BUILD_TURNSTILE_SITE_KEY),
-  turnstile_site_key: BUILD_TURNSTILE_SITE_KEY,
+  turnstile_enabled: TURNSTILE_TEMPORARILY_DISABLED
+    ? false
+    : Boolean(BUILD_TURNSTILE_SITE_KEY),
+  turnstile_site_key: TURNSTILE_TEMPORARILY_DISABLED
+    ? ''
+    : BUILD_TURNSTILE_SITE_KEY,
 };
 
 let currentPublicConfig: PublicConfig = { ...DEFAULT_PUBLIC_CONFIG };
@@ -136,6 +147,18 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
     if (!res.ok) return currentPublicConfig;
     const data = await res.json();
     if (data && typeof data === 'object') {
+      const resolvedTurnstileEnabled = TURNSTILE_TEMPORARILY_DISABLED
+        ? false
+        : typeof data.turnstile_enabled === 'boolean'
+        ? data.turnstile_enabled
+        : Boolean(BUILD_TURNSTILE_SITE_KEY);
+      const resolvedTurnstileSiteKey = !resolvedTurnstileEnabled
+        ? ''
+        : typeof data.turnstile_site_key === 'string' &&
+          data.turnstile_site_key.trim()
+        ? data.turnstile_site_key.trim()
+        : BUILD_TURNSTILE_SITE_KEY;
+
       currentPublicConfig = {
         maintenance: Boolean(data.maintenance),
         platforms: {
@@ -152,15 +175,8 @@ export async function fetchPublicConfig(): Promise<PublicConfig> {
             ? data.ads_adsterra_enabled
             : true,
         feature_stories: Boolean(data.feature_stories),
-        turnstile_enabled:
-          typeof data.turnstile_enabled === 'boolean'
-            ? data.turnstile_enabled
-            : Boolean(BUILD_TURNSTILE_SITE_KEY),
-        turnstile_site_key:
-          typeof data.turnstile_site_key === 'string' &&
-          data.turnstile_site_key.trim()
-            ? data.turnstile_site_key.trim()
-            : BUILD_TURNSTILE_SITE_KEY,
+        turnstile_enabled: resolvedTurnstileEnabled,
+        turnstile_site_key: resolvedTurnstileSiteKey,
       };
       setRuntimePlatformStates(currentPublicConfig.platforms);
       if (!currentPublicConfig.ads_adsterra_enabled && typeof document !== 'undefined') {

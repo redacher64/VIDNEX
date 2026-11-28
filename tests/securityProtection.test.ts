@@ -213,12 +213,48 @@ describe('VIDNEX Anti-Spam, Rate Limit, Turnstile, Filtering & Auto-Block Suite'
     assert.ok(Number(fourth.headers.get('Retry-After')) >= 1);
   });
 
-  it('3. Turnstile server-side verification on /api/extract and forms (rejects missing/invalid/failed siteverify, accepts valid)', async () => {
+  it('3. Turnstile temporary bypass by default + server-side verification when enabled', async () => {
     const db = createMemoryD1Database();
+
+    // Default state (TURNSTILE_TEMPORARILY_DISABLED = true): hidden in public-config and bypassed server-side
+    const disabledEnv = makeEnv(db, {
+      TURNSTILE_SECRET: 'turnstile-test-secret-key',
+      TURNSTILE_SITE_KEY: '0x4AAAAAAATestSiteKey',
+      TURNSTILE_HOSTNAMES: 'vidnex.space',
+    });
+    const disabledCfgRes = await worker.fetch(
+      new Request('https://vidnex.space/api/public-config'),
+      disabledEnv
+    );
+    const disabledCfgJson: any = await disabledCfgRes.json();
+    assert.equal(disabledCfgJson.turnstile_enabled, false);
+    assert.equal(disabledCfgJson.turnstile_site_key, '');
+    assert.equal(JSON.stringify(disabledCfgJson).includes('turnstile-test-secret-key'), false);
+
+    const bypassContactRes = await worker.fetch(
+      new Request('https://vidnex.space/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'CF-Connecting-IP': '203.0.113.29',
+          'User-Agent': BROWSER_UA,
+        },
+        body: JSON.stringify({
+          name: 'Bypass User',
+          email: 'bypass@example.com',
+          message: 'Temporary Turnstile bypass submission works cleanly.',
+        }),
+      }),
+      disabledEnv
+    );
+    assert.equal(bypassContactRes.status, 200);
+
+    // Re-enabled state (TURNSTILE_FORCE_ENABLE = 'true'): full fail-closed verification
     const env = makeEnv(db, {
       TURNSTILE_SECRET: 'turnstile-test-secret-key',
       TURNSTILE_SITE_KEY: '0x4AAAAAAATestSiteKey',
       TURNSTILE_HOSTNAMES: 'vidnex.space',
+      TURNSTILE_FORCE_ENABLE: 'true',
     });
 
     // Public config exposes sitekey + flag, NEVER the secret

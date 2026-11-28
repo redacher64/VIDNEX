@@ -19,12 +19,29 @@ interface SiteverifyPayload {
   'error-codes'?: string[];
 }
 
+/**
+ * Interrupteur temporaire pour masquer/désactiver Cloudflare Turnstile
+ * sans supprimer l'intégration. Repasser à `false` pour réactiver.
+ * Peut aussi être forcé ponctuellement via `env.TURNSTILE_FORCE_ENABLE === 'true'`.
+ */
+export const TURNSTILE_TEMPORARILY_DISABLED = true;
+
+export function isTurnstileTemporarilyDisabled(env?: AdminEnv): boolean {
+  if (!TURNSTILE_TEMPORARILY_DISABLED) return false;
+  return String(env?.TURNSTILE_FORCE_ENABLE || '').trim().toLowerCase() !== 'true';
+}
+
 export function getTurnstileSecret(env?: AdminEnv): string {
   return String(env?.TURNSTILE_SECRET || env?.TURNSTILE_SECRET_KEY || '').trim();
 }
 
 export function getTurnstileSiteKey(env?: AdminEnv): string {
   return String(env?.TURNSTILE_SITE_KEY || env?.VITE_TURNSTILE_SITE_KEY || '').trim();
+}
+
+export function isTurnstileEnabled(env?: AdminEnv): boolean {
+  if (isTurnstileTemporarilyDisabled(env)) return false;
+  return Boolean(getTurnstileSecret(env) && getTurnstileSiteKey(env));
 }
 
 export function extractTurnstileTokenFromRequest(
@@ -63,6 +80,10 @@ export async function verifyTurnstileToken(
   token: string,
   expectedAction?: string
 ): Promise<TurnstileVerifyResult> {
+  if (isTurnstileTemporarilyDisabled(env)) {
+    return { ok: true };
+  }
+
   const secret = getTurnstileSecret(env);
   if (!secret) {
     return { ok: true };

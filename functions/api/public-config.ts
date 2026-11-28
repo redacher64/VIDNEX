@@ -1,8 +1,8 @@
 import { type AdminEnv } from '../_lib/db.ts';
 import { getSystemSettings } from '../_lib/settings.ts';
 import {
-  getTurnstileSecret,
   getTurnstileSiteKey,
+  isTurnstileEnabled,
 } from '../_lib/turnstile.ts';
 
 export interface PagesContext {
@@ -21,8 +21,8 @@ export interface PagesContext {
 export async function onRequestGet(context: PagesContext): Promise<Response> {
   const env = context.env || {};
   const settings = await getSystemSettings(env);
-  const turnstileSiteKey = getTurnstileSiteKey(env);
-  const turnstileEnabled = Boolean(getTurnstileSecret(env) && turnstileSiteKey);
+  const turnstileEnabled = isTurnstileEnabled(env);
+  const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey(env) : '';
 
   return new Response(
     JSON.stringify({

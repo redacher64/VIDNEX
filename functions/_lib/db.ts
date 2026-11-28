@@ -53,6 +53,7 @@ export interface AdminEnv {
   TURNSTILE_SECRET_KEY?: string;
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_HOSTNAMES?: string;
+  TURNSTILE_FORCE_ENABLE?: string;
   VITE_TURNSTILE_SITE_KEY?: string;
   [key: string]: unknown;
 }
